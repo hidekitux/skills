@@ -41,7 +41,7 @@ commit 時は `check:local`、push 時は `validate` を自動実行します。
 
 ## Worktree
 
-Codex が管理する worktree では、同じブランチを複数の worktree に checkout
+Codex と Claude Code が管理する worktree では、同じブランチを複数の worktree に checkout
 できません。とくに `main` は primary worktree が所有しているため、追加の worktree を
 `main` で作成すると失敗します。作成が失敗した場合は、まず次で現在の所有 worktree と
 マージ状態を確認します。
