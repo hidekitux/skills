@@ -18,4 +18,4 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: python3 scripts/validate-branch-policy.py
+        run: python3 scripts/validate/validate-branch-policy.py
