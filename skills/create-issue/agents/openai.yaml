@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Creation"
+  short_description: "Create compliant GitHub change and release issues."
+  default_prompt: "Use $create-issue to create a compliant GitHub Issue for this change."

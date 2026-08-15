@@ -3,6 +3,13 @@
 catalog_version: 1
 license: Apache-2.0
 skills:
+  - name: create-issue
+    summary: Create compliant GitHub change and release Issues before governed work.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
   - name: bootstrap-project
     summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
     owner: hidekitux
