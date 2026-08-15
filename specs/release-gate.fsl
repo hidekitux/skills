@@ -1,0 +1,114 @@
+// Release gate for the repository's shared skill publication workflow.
+//
+// ASSUME-1: one release is modeled at a time.
+// ASSUME-2: semantic versions are represented by a finite release_version value;
+//           the concrete vX.Y.Z spelling is checked by verify-release.py.
+// ASSUME-3: a successful commit_release action represents a clean committed
+//           release; the implementation evidence is Git's actual state.
+// ASSUME-4: publish_executed records that the modeled publish command ran; it
+//           does not prove that the external GitHub Release API succeeded.
+spec ReleaseGate {
+  type Version = 0..1
+
+  enum Status { Draft, Validated, Committed, ReleaseVerified, Published, Blocked }
+
+  state {
+    status: Status,
+    catalog_version: Version,
+    release_version: Version,
+    clean: Bool,
+    tag_exists: Bool,
+    ever_release_verified: Bool,
+    publish_executed: Bool
+  }
+
+  init {
+    status = Draft
+    catalog_version = 0
+    release_version = 1
+    clean = false
+    tag_exists = false
+    ever_release_verified = false
+    publish_executed = false
+  }
+
+  // A catalog update is required before the first validation in this model.
+  action update_catalog() {
+    requires status == Draft
+    catalog_version = release_version
+  }
+
+  // This represents mise run validate. Codex-only validate-local is additional
+  // evidence and is intentionally outside the portable publication gate.
+  action validate() {
+    requires status == Draft
+    requires catalog_version == release_version
+    status = Validated
+  }
+
+  action commit_release() {
+    requires status == Validated
+    requires catalog_version == release_version
+    status = Committed
+    clean = true
+  }
+
+  action verify_release() {
+    requires status == Committed
+    requires clean
+    requires catalog_version == release_version
+    requires tag_exists == false
+    status = ReleaseVerified
+    ever_release_verified = true
+  }
+
+  // A remote tag discovered before verification blocks this release.
+  action detect_existing_tag() {
+    requires status == Committed
+    requires clean
+    tag_exists = true
+    status = Blocked
+  }
+
+  action publish() {
+    requires status == ReleaseVerified
+    requires clean
+    requires catalog_version == release_version
+    requires tag_exists == false
+    status = Published
+    publish_executed = true
+  }
+
+  invariant PublishedWasReleaseVerified {
+    status == Published => ever_release_verified
+  }
+
+  // Only the publish action records publication. Keeping this equivalent to the
+  // Published state detects any transition that skips the distinct publish step.
+  invariant PublishedOnlyByPublishAction {
+    (status == Published) == publish_executed
+  }
+
+  // Auxiliary induction fact: ReleaseVerified is entered only through the
+  // verify_release action, which records the successful gate.
+  invariant ReleaseVerifiedWasRecorded {
+    (status == ReleaseVerified or status == Published) => ever_release_verified
+  }
+
+  invariant PublishedVersionMatchesTag {
+    status == Published => catalog_version == release_version
+  }
+
+  invariant PublishedIsClean {
+    status == Published => clean
+  }
+
+  invariant ExistingTagCannotBeReused {
+    tag_exists => status == Blocked
+  }
+
+  terminal { status == Published or status == Blocked }
+
+  reachable PublishedRelease { status == Published }
+  reachable ExistingTagBlocked { status == Blocked }
+}

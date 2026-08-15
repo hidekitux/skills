@@ -1,0 +1,87 @@
+# Keep the validation runtime and GitHub CLI reproducible across supported local use and CI.
+# These pinned tools are used only for development and CI; they are not bundled
+# into published skills.
+
+[tools]
+python = "3.11.14"
+uv = "0.11.1"
+go = "1.26.5"
+actionlint = "1.7.12"
+"aqua:astral-sh/ruff" = "0.16.0"
+"aqua:koalaman/shellcheck" = "0.11.0"
+"aqua:cli/cli" = "2.97.0"
+
+[tasks.validate]
+description = "Run supported-platform repository validations"
+depends = ["validate-repository", "validate-skills", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "diff-check"]
+
+[tasks.validate-local]
+description = "Run supported-platform validation plus Codex skill-creator validation"
+depends = ["validate", "validate-skill-creator"]
+
+[tasks.verify-fsl]
+description = "Check and verify every FSL specification"
+depends = ["install-fslc"]
+run = "bash scripts/verify-fsl.sh"
+
+[tasks.install-fslc]
+description = "Install the pinned FSL verifier with checksum verification"
+run = "bash scripts/install-fslc.sh"
+
+[tasks.mutate-fsl]
+description = "Measure mutation detection for every FSL specification"
+depends = ["install-fslc"]
+run = "bash scripts/mutate-fsl.sh"
+
+[tasks.lint-actions]
+description = "Lint GitHub Actions workflows"
+run = "actionlint"
+
+[tasks.lint-python]
+description = "Lint and format-check Python scripts"
+run = "ruff check scripts skills && ruff format --check scripts skills"
+
+[tasks.lint-shell]
+description = "Lint Bash and POSIX shell scripts"
+run = '''
+shellcheck --shell=bash scripts/*.sh
+shellcheck --shell=sh .githooks/commit-msg
+'''
+
+[tasks.setup-commitlint]
+description = "Install Go commitlint and enable the local commit-msg hook"
+run = "bash scripts/setup-commitlint.sh"
+
+[tasks.validate-skills]
+description = "Validate publishable Agent Skills"
+run = "gh skill publish --dry-run"
+
+[tasks.verify-release]
+description = "Verify a release tag matches the catalog and committed state"
+run = '''
+export UV_CACHE_DIR="$PWD/.mise/uv-cache"
+uv run --with "pyyaml==6.0.3" python scripts/verify-release.py "$@"
+'''
+
+[tasks.validate-repository]
+description = "Validate catalog, licenses, host adapters, and Todo List guidance"
+run = '''
+export UV_CACHE_DIR="$PWD/.mise/uv-cache"
+uv run --with "pyyaml==6.0.3" python scripts/validate-repository.py
+'''
+
+[tasks.diff-check]
+description = "Reject whitespace errors in local changes and the committed CI diff"
+run = "bash scripts/check-whitespace.sh"
+
+[tasks.validate-skill-creator]
+description = "Validate project-bootstrap with Codex skill-creator"
+run = '''
+skill_creator_root="${SKILL_CREATOR_ROOT:-${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator}"
+test -f "$skill_creator_root/scripts/quick_validate.py" || {
+  echo "skill-creator validator not found; set SKILL_CREATOR_ROOT to its skill directory." >&2
+  exit 2
+}
+export UV_CACHE_DIR="$PWD/.mise/uv-cache"
+uv run --with "pyyaml==6.0.3" python "$skill_creator_root/scripts/quick_validate.py" skills/project-bootstrap
+'''
