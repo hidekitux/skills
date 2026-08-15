@@ -3,7 +3,9 @@
 - Name human work branches `issue/<positive-number>`; do not add type or summary.
 - Require matching `Closes #<number>` in the Pull Request body.
 - Protect `main` and any explicitly configured integration or release branches
-  from direct updates, force-pushes, and deletion through GitHub Rulesets.
+  from direct updates, force-pushes, deletion, and unsigned commits through GitHub
+  Rulesets. Enable rebase merge only and automatic deletion of merged head branches
+  in the repository settings.
 - Define allowed PR directions as `[[routes]]` in a project configuration file.
   A route has regular-expression head/base patterns and can require Issue linkage.
   Use `issue/* -> main` by default. Add a project-specific route only when a

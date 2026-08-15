@@ -70,9 +70,11 @@ should document or verify its stateful workflows.
   its named ruleset through `gh api`, and reads it back to verify the result.
   Require explicit user authorization immediately before `--apply`; it changes
   live repository policy. The default target is `main`; add every additional
-  protected branch explicitly with `--branch`. Use one
-  approval, stale-approval dismissal, last-push approval, resolved conversations,
-  rebase merging, linear history, no force pushes or deletions, and no bypass actors. Use
+  protected branch explicitly with `--branch`. The script also enables rebase merging
+  only, disables merge-commit and squash merges, and automatically deletes merged head
+  branches. Use one approval, stale-approval dismissal, last-push approval, resolved
+  conversations, signed commits, rebase merging, linear history, no force pushes or
+  deletions, and no bypass actors. Use
   `--allow-last-push-approval` and `--approvals 0` only for a confirmed solo
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids

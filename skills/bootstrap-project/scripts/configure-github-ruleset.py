@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create or update a GitHub branch ruleset that requires pull requests."""
+"""Configure rebase-only merging and a protected GitHub branch ruleset."""
 
 from __future__ import annotations
 
@@ -11,6 +11,12 @@ import sys
 from typing import Any
 
 DEFAULT_RULESET_NAME = "Require pull requests on protected branches"
+REPOSITORY_SETTINGS = {
+    "allow_merge_commit": False,
+    "allow_squash_merge": False,
+    "allow_rebase_merge": True,
+    "delete_branch_on_merge": True,
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -114,6 +120,7 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
             {"type": "non_fast_forward"},
             {"type": "deletion"},
             {"type": "required_linear_history"},
+            {"type": "required_signatures"},
         ],
     }
 
@@ -160,6 +167,27 @@ def verify(actual: dict[str, Any], expected: dict[str, Any]) -> None:
                 )
 
 
+def configure_repository(repo: str) -> None:
+    result = command(
+        "gh",
+        "api",
+        "--method",
+        "PATCH",
+        f"repos/{repo}",
+        *[
+            argument
+            for key, value in REPOSITORY_SETTINGS.items()
+            for argument in ("-f", f"{key}={str(value).lower()}")
+        ],
+    )
+    actual = json.loads(result)
+    for key, value in REPOSITORY_SETTINGS.items():
+        if actual.get(key) != value:
+            raise RuntimeError(
+                f"repository settings verification failed: {key} differs"
+            )
+
+
 def main() -> int:
     args = parse_args()
     try:
@@ -170,7 +198,12 @@ def main() -> int:
 
     payload_text = json.dumps(payload, indent=2) + "\n"
     if not args.apply:
-        print(payload_text, end="")
+        print(
+            json.dumps(
+                {"repository_settings": REPOSITORY_SETTINGS, "ruleset": payload},
+                indent=2,
+            )
+        )
         print(
             "Dry run only. Review the payload, then rerun with --apply.",
             file=sys.stderr,
@@ -183,6 +216,7 @@ def main() -> int:
 
     try:
         command("gh", "auth", "status")
+        configure_repository(args.repo)
         ruleset_id = find_existing_ruleset(args.repo, args.ruleset_name)
         endpoint = (
             f"repos/{args.repo}/rulesets"
