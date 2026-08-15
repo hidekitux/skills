@@ -47,4 +47,4 @@
 - Do not put shared source in `.codex/`, `.claude/`, or `.agents/`. Those hidden directories are local installation state and are intentionally ignored.
 
 - Use FSL for stateful workflow contracts such as review, validation, publishing, versioning, and deprecation. Do not claim that FSL verifies the prose instructions in a `SKILL.md`.
-- Place FSL source files in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify-fsl` after changes.
+- Place a skill-owned FSL source file in `skills/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify-fsl` after changes.

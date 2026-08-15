@@ -12,8 +12,11 @@ while IFS= read -r -d '' spec; do
   fslc check "${spec}"
   echo "Verifying ${spec} at depth ${depth}"
   fslc verify "${spec}" --depth "${depth}"
-done < <(find specs -type f -name '*.fsl' -print0)
+done < <(
+  find specs -type f -name '*.fsl' -print0
+  find skills -type f -path '*/specs/*.fsl' -print0
+)
 
 if [[ "${found}" -eq 0 ]]; then
-  echo "No FSL specs found in specs/."
+  echo "No repository-owned or skill-owned FSL specs found."
 fi

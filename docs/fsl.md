@@ -14,13 +14,18 @@ FSL は、スキルの本文や Markdown の品質を直接判定するもので
 
 ## 配置と検証
 
-各仕様は `specs/<topic>.fsl` に置きます。仕様を追加したら、リポジトリルートで次を実行します。
+仕様の正本は所有者とともに置き、コピーは作りません。
+
+- 公開スキル自身のワークフローを表す仕様は `skills/<skill-name>/specs/<topic>.fsl` に置きます。リポジトリからも検証・参照するため、`specs/<skill-name>/<topic>.fsl` にその正本への**相対シンボリックリンク**を作ります。
+- リリースゲート、横断的なブランチ方針など、特定の公開スキルに属さない仕様は `specs/<topic>.fsl` に通常ファイルとして置きます。
+
+この packaging memo は #29 で確認済みです。`issue-creation.fsl` は `create-issue`、`pull-request-creation.fsl` は `create-pr` が所有します。`branch-flow.fsl` と `release-gate.fsl` はリポジトリ固有の正本として残します。仕様を追加したら、リポジトリルートで次を実行します。
 
 ```text
 mise run verify-fsl
 ```
 
-このタスクは、公式リリースの `fslc` v4.2.0 をSHA-256で検証して CI では `RUNNER_TEMP`、ローカルでは `TMPDIR` 配下の一時キャッシュに導入してから、各仕様に対して `fslc check` と `fslc verify --depth 8` を実行します。深さは必要に応じて `FSL_DEPTH=12 mise run verify-fsl` のように上書きできます。対応プラットフォームは GitHub Actions の Linux x64 と開発環境の macOS Apple Silicon です。
+このタスクは、リポジトリ直下の通常ファイルと各 `skills/**/specs/*.fsl` の正本を発見し、公式リリースの `fslc` v4.2.0 を SHA-256 で検証して、CI では `RUNNER_TEMP`、ローカルでは `TMPDIR` 配下の一時キャッシュに導入してから、各仕様に対して `fslc check` と `fslc verify --depth 8` を実行します。シンボリックリンクはリポジトリ検証で整合性を確認し、二重に実行しません。深さは必要に応じて `FSL_DEPTH=12 mise run verify-fsl` のように上書きできます。対応プラットフォームは GitHub Actions の Linux x64 と開発環境の macOS Apple Silicon です。
 
 ## 作成時の約束
 
