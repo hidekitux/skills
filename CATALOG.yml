@@ -1,0 +1,22 @@
+# Inventory of skills published from this repository.
+# Add one entry when adding a skill; keep the version aligned with its release.
+catalog_version: 1
+license: Apache-2.0
+skills:
+  - name: project-bootstrap
+    summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    host_adapters: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+
+# Example entry:
+# - name: pr-review
+#   summary: Review pull requests with the team's checklist.
+#   owner: hidekitux
+#   status: experimental # experimental | stable | deprecated
+#   agents: [codex, github-copilot]
+#   host_adapters: [codex, claude-code] # Omit when the core skill is sufficient.
+#   version: 0.1.0

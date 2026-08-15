@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+commitlint_bin="${root}/.mise/bin/commitlint"
+
+if [ ! -x "${commitlint_bin}" ]; then
+  echo "commitlint is not installed for this project." >&2
+  echo "Run: mise run setup-commitlint" >&2
+  exit 2
+fi
+
+exec "${commitlint_bin}" lint --message "$1"

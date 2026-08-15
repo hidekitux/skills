@@ -1,0 +1,36 @@
+name: Commit conventions
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commitlint:
+    name: Validate Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.26.5'
+      - name: Install Go commitlint
+        run: GOBIN="$RUNNER_TEMP/bin" go install github.com/conventionalcommit/commitlint@v0.12.0
+      - name: Lint commits and pull request title
+        env:
+          COMMITLINT_BIN: ${{ runner.temp }}/bin/commitlint
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: bash scripts/lint-commits.sh

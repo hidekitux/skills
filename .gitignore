@@ -1,0 +1,13 @@
+.DS_Store
+.idea/
+.vscode/
+*.swp
+__pycache__/
+*.py[cod]
+
+# Do not commit local agent installation state.  Publishable shared source lives
+# in skills/; repository-managed host guidance lives in hosts/.
+.agents/
+.claude/
+.codex/
+.mise/
