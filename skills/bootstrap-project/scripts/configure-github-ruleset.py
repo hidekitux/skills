@@ -120,7 +120,6 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
             {"type": "non_fast_forward"},
             {"type": "deletion"},
             {"type": "required_linear_history"},
-            {"type": "required_signatures"},
         ],
     }
 

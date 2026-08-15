@@ -1,0 +1,27 @@
+name: Commit signatures
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  signatures:
+    name: Validate commit signatures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every pull-request commit to be GitHub-verified
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          unsigned_shas="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits" --jq '.[] | select(.commit.verification.verified != true) | .sha')"
+          if [ -n "$unsigned_shas" ]; then
+            echo "Every pull-request commit must have a GitHub-verified signature."
+            echo "$unsigned_shas"
+            exit 1
+          fi
