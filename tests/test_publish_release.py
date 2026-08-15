@@ -14,7 +14,7 @@ ROOT = Path(__file__).parents[1]
 class PublishReleaseTests(unittest.TestCase):
     def test_usage_requires_exactly_one_tag(self) -> None:
         result = subprocess.run(
-            ["bash", "scripts/publish-release.sh"],
+            ["bash", "scripts/release/publish-release.sh"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -44,7 +44,7 @@ class PublishReleaseTests(unittest.TestCase):
                 "SKILL_CREATOR_ROOT": str(root / "unavailable-skill-creator"),
             }
             result = subprocess.run(
-                ["bash", "scripts/publish-release.sh", "v1.2.3"],
+                ["bash", "scripts/release/publish-release.sh", "v1.2.3"],
                 cwd=ROOT,
                 env=environment,
                 check=False,

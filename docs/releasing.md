@@ -1,36 +1,30 @@
-# リリース手順
+# Release procedure
 
-このリポジトリは、1つの GitHub Release を1つのセマンティックバージョンとして扱います。`CATALOG.yml` に記録された全スキルの `version` は、同じリリースタグのバージョン部分と一致させます。
+Treat one GitHub Release as one semantic version. Every skill `version` in `CATALOG.yml` must match the version portion of that release tag.
 
-## リリース前
+## Before release
 
-1. リリース対象の `vX.Y.Z` に、`CATALOG.yml` の全スキルの `version` を揃える。
-2. Todo List、検証結果、変更内容をレビューする。
-3. リポジトリルートで `mise run validate` を実行する。これは Codex と
-   Claude Code の両方への導入を検証する。Codex で `skill-creator` が利用可能な場合は、
-   追加で `mise run validate-local` を実行する。
-4. `specs/**/*.fsl` または `skills/**/specs/*.fsl` を変更した場合は `mise run mutate-fsl` を実行し、survivor をレビューする。
-5. 変更をコミットする。
-6. 公開時は `mise run release:publish -- vX.Y.Z` を使う。この入口は、利用可能な
-   `skill-creator` 検証、タグ形式・カタログのバージョン・コミット済み状態の確認を
-   実行してから公開する。
+1. Align every `CATALOG.yml` skill version with the target `vX.Y.Z`.
+2. Review the Todo List, validation results, and changes.
+3. Run `mise run validate` from the repository root. It verifies installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate-skill-creator`.
+4. When `specs/**/*.fsl` or `skills/**/specs/*.fsl` changed, run `mise run mutate-fsl` and review survivors.
+5. Commit the changes.
+6. Publish with `mise run release:publish -- vX.Y.Z`. This entry point runs the available `skill-creator` validation, verifies the tag format, catalog versions, and committed state, then publishes.
 
-`verify-release` はタグを作成せず、既存のローカルタグも再利用しません。未コミット変更や未追跡ファイルがある場合も失敗します。
+`verify-release` neither creates a tag nor reuses an existing local tag. It also fails when tracked or untracked changes are present.
 
-## 公開
+## Publish
 
-検証済みのコミットから、次を実行します。
+Run the following from the verified commit:
 
 ```bash
 mise run release:publish -- vX.Y.Z
 ```
 
-このタスクは最後に `gh skill publish --tag vX.Y.Z` を実行します。シェルとGitHub
-権限を持つ利用者による直接実行を技術的に禁止するものではないため、公開にはこの
-タスクを標準入口として使います。公開後は対象タグと Release の内容を確認し、利用側では `skill-name@vX.Y.Z` のように固定して導入します。
+The task finally runs `gh skill publish --tag vX.Y.Z`. It cannot technically prevent direct execution by a user with shell and GitHub permissions, so use this task as the standard publication entry point. After publication, verify the tag and Release contents, and install a pinned version such as `skill-name@vX.Y.Z` in consuming projects.
 
-## バージョン規則
+## Version rules
 
-- 互換性を壊さない機能追加は minor、修正は patch、互換性を壊す変更は major とする。
-- リポジトリ内の全スキルを同じタグで公開するため、1つだけ変更した場合でも `CATALOG.yml` の全エントリをタグのバージョンに揃える。
-- 公開済みタグは上書きせず、修正リリースを新しい patch バージョンで作成する。
+- Use minor for backward-compatible features, patch for fixes, and major for breaking changes.
+- The repository publishes every skill under one tag, so align every `CATALOG.yml` entry with the tag even when only one skill changed.
+- Never overwrite a published tag; publish a new patch release to correct it.

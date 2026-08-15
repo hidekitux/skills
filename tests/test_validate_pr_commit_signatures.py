@@ -8,7 +8,9 @@ from pathlib import Path
 
 
 def load_verifier():
-    path = Path(__file__).parents[1] / "scripts" / "validate-pr-commit-signatures.py"
+    path = (
+        Path(__file__).parents[1] / "scripts/validate/validate-pr-commit-signatures.py"
+    )
     spec = importlib.util.spec_from_file_location("signature_verifier", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

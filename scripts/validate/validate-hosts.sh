@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
 validation_tmp=$(mktemp -d "${TMPDIR:-/tmp}/skills-host-validation.XXXXXX")
 trap 'rm -rf "$validation_tmp"' EXIT
 

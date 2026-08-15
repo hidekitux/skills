@@ -27,7 +27,7 @@ class ValidationStateIsolationTests(unittest.TestCase):
 
     def test_fsl_scripts_use_temporary_cache_root(self) -> None:
         for name in ("install-fslc.sh", "verify-fsl.sh", "mutate-fsl.sh"):
-            source = (ROOT / "scripts" / name).read_text(encoding="utf-8")
+            source = (ROOT / "scripts/fsl" / name).read_text(encoding="utf-8")
             self.assertIn(CACHE_ROOT, source, name)
             self.assertNotIn("$PWD/.mise", source, name)
 

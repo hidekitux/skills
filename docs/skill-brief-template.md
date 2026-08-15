@@ -1,6 +1,6 @@
-# スキル作成ブリーフ
+# Skill creation brief
 
-新規スキルまたは大幅更新を依頼するときは、次を埋めて利用可能な作成支援ワークフローへ渡します。Codex では `skill-creator` を使えます。未決事項は推測で埋めず、質問として残します。
+When requesting a new or substantially updated skill, complete this brief and pass it to the available authoring workflow. Use `skill-creator` in Codex when available. Leave unresolved decisions as questions; do not fill them by assumption.
 
 ```markdown
 Create or update a publishable skill in skills/. When the host provides
@@ -46,10 +46,7 @@ validation workflow.
 - Claude Code-specific capability or fallback, if any:
 
 ## FSL
-- Is there a stateful workflow, invariant, approval, retry, or publication rule
-  worth formalizing? If yes, name the source rules and open decisions.
+- Is there a stateful workflow, invariant, approval, retry, or publication rule worth formalizing? If yes, name the source rules and open decisions.
 ```
 
-The creator should keep the core behavior portable, create host notes only for
-material execution differences, expose project workflows through mise, and
-validate the result before handoff.
+Keep core behavior portable, create host notes only for material execution differences, expose project workflows through mise, and validate the result before handoff.

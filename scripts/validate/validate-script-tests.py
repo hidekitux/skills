@@ -13,7 +13,7 @@ import tomllib
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parent.parent
+        "--root", type=Path, default=Path(__file__).resolve().parents[2]
     )
     return main_with_root(parser.parse_args().root)
 
@@ -30,8 +30,8 @@ def main_with_root(root: Path) -> int:
     entries = mapping.get("scripts", {}) if isinstance(mapping, dict) else {}
     scripts = {
         str(path.relative_to(root))
-        for path in (root / "scripts").glob("*")
-        if path.is_file()
+        for path in (root / "scripts").rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
     }
     errors: list[str] = []
     for script in sorted(scripts):

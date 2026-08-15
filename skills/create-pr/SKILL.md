@@ -57,7 +57,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Before creating or updating an Issue-backed Pull Request, validate the exact
   finalized body against any repository-provided Pull Request-body or
   branch-policy validator, using the resolved base and head branches. For this
-  repository, run `python3 scripts/validate-branch-policy.py --base <base>
+  repository, run `python3 scripts/validate/validate-branch-policy.py --base <base>
   --head <head> --body "$final_body"` before the GitHub API call.
 - If that preflight fails, do not publish a ready Pull Request or diagnose the
   body from the error message alone. Read the validator and its tests, revise
