@@ -39,4 +39,4 @@ Issue と Pull Request はともに `[Type]: Verb Summary` を使います。Typ
 
 ## Branch and Pull Request flow
 
-変更ごとに先に Issue を作成し、`issue/<番号>` ブランチを作ります。許可する PR の向きは `.github/branch-policy.toml` の `[[routes]]` で定義します。既定では `issue/<番号> -> main` です。別の統合・安定化ブランチが必要なプロジェクトだけ、追加の経路を明示的に設定してください。`main` と追加した保護ブランチへの直接 push、force-push、削除は禁止です。Issue ブランチの PR 本文には対応する `Closes #<番号>` を単独行で記載してください。
+変更ごとに先に Issue を作成し、`issue/<番号>` ブランチを作ります。許可する PR の向きは `.github/branch-policy.toml` の `[[routes]]` で定義します。既定では `issue/<番号> -> main` です。別の統合・安定化ブランチが必要なプロジェクトだけ、追加の経路を明示的に設定してください。`main` と追加した保護ブランチへの直接 push、force-push、削除は禁止です。マージ方式は rebase のみとし、コミットメッセージを PR タイトルによって置き換えません。Issue ブランチの PR 本文には対応する `Closes #<番号>` を単独行で記載してください。
