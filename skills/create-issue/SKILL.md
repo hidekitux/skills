@@ -11,9 +11,16 @@ license: Apache-2.0
 1. **in progress:** Confirm repository, outcome, and whether the Issue is a change or release.
 2. Draft the title and body from the matching repository template.
 3. Create the Issue; for change work create `issue/<number>` from the default branch.
-4. Complete the list only when the Issue URL and branch name are available; handoff both.
+4. Complete the list only when the Issue URL is available and, for change work,
+   the branch name is available; include every applicable result in the handoff.
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
+
+## Draft Prose
+
+- Begin ordinary English sentences and list items with a capital letter, such as `Add`, `Formalize`, or `Register`.
+- Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
+- Review the rendered title and body for accidental lowercase prose before creating the Issue.
 
 ## Change Issues
 

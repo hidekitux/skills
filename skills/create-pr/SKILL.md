@@ -45,6 +45,8 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Use the repository title convention. For this repository, use `[Type]: Verb Summary`; use `[Release]: vX.Y.Z` only for releases.
 - Link each change Issue with a standalone closing line such as `Closes #123`. Use the repository's non-closing release keyword, such as `Tracks #123`, when publication must close the Issue later.
 - Summarize observable behavior and scope, not the editing process. Include exact validation commands and outcomes.
+- Begin ordinary English sentences and list items, including Summary bullets, with a capital letter, such as `Add`, `Formalize`, or `Register`.
+- Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
 - Include repository-specific conditional checklists only when they apply; mark an allowed item not applicable instead of silently deleting required evidence.
 - Create a ready Pull Request only after the ready gate passes. Otherwise create or retain a draft.
 
