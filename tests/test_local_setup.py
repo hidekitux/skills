@@ -14,6 +14,13 @@ import tomllib
 ROOT = Path(__file__).parents[1]
 
 
+def isolated_git_environment() -> dict[str, str]:
+    """Prevent Git hooks from redirecting temporary repositories to this one."""
+    return {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+
+
 class LocalSetupTests(unittest.TestCase):
     def test_setup_task_groups_the_local_prerequisites(self) -> None:
         config = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))
@@ -195,6 +202,78 @@ class LocalSetupTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 1)
             self.assertEqual(log.read_text(encoding="utf-8"), "run validate\n")
+
+    def test_worktree_diagnostic_reports_main_owner_without_removing_it(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            environment = isolated_git_environment()
+            subprocess.run(
+                ["git", "init", "--initial-branch", "main", root],
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            (root / "README").write_text("base\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"], cwd=root, check=True, env=environment
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "chore: add base"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            result = subprocess.run(
+                [
+                    "python",
+                    str(ROOT / "scripts" / "diagnose-worktree.py"),
+                    "--branch",
+                    "main",
+                    "--base",
+                    "main",
+                ],
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+
+            self.assertEqual(result.returncode, 0)
+            self.assertIn(str(root), result.stdout)
+            self.assertIn("do not use git worktree remove", result.stdout)
+            self.assertIn("git worktree add --detach", result.stdout)
+            self.assertIn("git worktree add -b issue/<number>", result.stdout)
+            self.assertTrue(root.is_dir())
+
+    def test_worktree_diagnostic_warns_for_a_bare_entry_point(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            bare = Path(temporary_directory) / "bare.git"
+            environment = isolated_git_environment()
+            subprocess.run(["git", "init", "--bare", bare], check=True, env=environment)
+
+            result = subprocess.run(
+                ["python", str(ROOT / "scripts" / "diagnose-worktree.py")],
+                cwd=bare,
+                check=False,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("bare Git repository", result.stdout)
 
     def mise_environment(self, root: Path, log: Path, exit_code: int) -> dict[str, str]:
         bin_directory = root / "bin"

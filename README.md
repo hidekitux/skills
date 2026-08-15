@@ -28,6 +28,7 @@ mise tasks ls
 | 初回セットアップ | `mise run setup` |
 | リポジトリ全体の検証 | `mise run validate` |
 | ローカル変更の軽量確認 | `mise run check:local` |
+| worktree の診断 | `mise run worktree:diagnose -- --branch issue/123` |
 | 静的解析 | `mise run lint` |
 | FSL 仕様の検証 | `mise run verify-fsl` |
 | FSL 仕様の mutation 確認 | `mise run mutate-fsl` |
@@ -37,6 +38,32 @@ mise tasks ls
 `setup` は `.githooks` を有効にします。branch checkout 時は `setup` を再実行し、
 commit 時は `check:local`、push 時は `validate` を自動実行します。これらの検査が
 失敗した場合、該当する commit または push は完了しません。
+
+## Worktree
+
+Codex が管理する worktree では、同じブランチを複数の worktree に checkout
+できません。とくに `main` は primary worktree が所有しているため、追加の worktree を
+`main` で作成すると失敗します。作成が失敗した場合は、まず次で現在の所有 worktree と
+マージ状態を確認します。
+
+```bash
+mise run worktree:diagnose -- --branch issue/123
+```
+
+表示された worktree は自動削除しません。`git status` で未コミット変更を確認し、作業を
+継続しないと判断した場合だけ `git worktree remove <path>` を実行してください。bare
+リポジトリとして構成された入口では開発コマンドを実行せず、診断が表示する登録済みの
+非 bare worktree から実行します。
+
+`main` を追加で参照するだけなら、branch を共有しない detached worktree を使います。
+変更には `main` を checkout せず、作成済みの Issue から新しい branch を作成します。
+
+```bash
+git worktree add --detach <path> origin/main
+git worktree add -b issue/<number> <path> origin/main
+```
+
+`--force` で `main` を複数の worktree に checkout してはいけません。
 
 このリポジトリは、Codex で利用できる `skill-creator` の追加検証に Python と uv を使うため、`mise.toml` でそれらを固定しています。すべてのホストで必要な検証は `mise run validate` です。これは一時リポジトリへの導入を通じて Codex と Claude Code の両方を検証します。ほかのツールは、リポジトリが実際に必要になった時点でだけ追加します。
 
