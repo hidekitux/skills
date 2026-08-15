@@ -23,6 +23,10 @@ depends = ["setup:local-skills", "setup:commitlint"]
 description = "Check repository metadata, branch policy, and whitespace"
 depends = ["check:repository", "check:branch-policy", "check:diff"]
 
+[tasks."worktree:diagnose"]
+description = "Report registered worktrees and safe remediation for a branch conflict"
+run = "python scripts/diagnose-worktree.py \"$@\""
+
 [tasks.lint]
 description = "Lint GitHub Actions, Python, and shell sources"
 depends = ["lint:actions", "lint:python", "lint:shell"]

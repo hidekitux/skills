@@ -5,6 +5,7 @@
 "scripts/check-sensitive-content.py" = "tests/test_policy_checks.py"
 "scripts/check-tool-licenses.py" = "tests/test_policy_checks.py"
 "scripts/check-whitespace.sh" = "tests/test_local_setup.py"
+"scripts/diagnose-worktree.py" = "tests/test_local_setup.py"
 "scripts/install-fslc.sh" = "tests/test_validation_state_isolation.py"
 "scripts/lint-commits.sh" = "tests/test_local_setup.py"
 "scripts/mutate-fsl.sh" = "tests/test_validation_state_isolation.py"
