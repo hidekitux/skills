@@ -44,7 +44,7 @@ def candidate_files(root: Path) -> list[Path]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parent.parent
+        "--root", type=Path, default=Path(__file__).resolve().parents[2]
     )
     return main_with_root(parser.parse_args().root)
 

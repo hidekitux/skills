@@ -25,7 +25,7 @@ depends = ["check:repository", "check:branch-policy", "check:diff"]
 
 [tasks."worktree:diagnose"]
 description = "Report registered worktrees and safe remediation for a branch conflict"
-run = "python scripts/diagnose-worktree.py \"$@\""
+run = "python scripts/diagnose/diagnose-worktree.py \"$@\""
 
 [tasks.lint]
 description = "Lint GitHub Actions, Python, and shell sources"
@@ -33,21 +33,21 @@ depends = ["lint:actions", "lint:python", "lint:shell"]
 
 [tasks."check:hosts"]
 description = "Validate local installation for Codex and Claude Code"
-run = "bash scripts/validate-hosts.sh"
+run = "bash scripts/validate/validate-hosts.sh"
 
 [tasks.verify-fsl]
 description = "Check and verify every FSL specification"
 depends = ["fsl:install"]
-run = "bash scripts/verify-fsl.sh"
+run = "bash scripts/fsl/verify-fsl.sh"
 
 [tasks."fsl:install"]
 description = "Install the pinned FSL verifier with checksum verification"
-run = "bash scripts/install-fslc.sh"
+run = "bash scripts/fsl/install-fslc.sh"
 
 [tasks.mutate-fsl]
 description = "Measure mutation detection for every FSL specification"
 depends = ["fsl:install"]
-run = "bash scripts/mutate-fsl.sh"
+run = "bash scripts/fsl/mutate-fsl.sh"
 
 [tasks."lint:actions"]
 description = "Lint GitHub Actions workflows"
@@ -64,7 +64,7 @@ run = "python -m unittest discover -s tests"
 [tasks."lint:shell"]
 description = "Lint Bash and POSIX shell scripts"
 run = '''
-shellcheck --shell=bash scripts/*.sh
+find scripts -type f -name '*.sh' -print0 | xargs -0 shellcheck --shell=bash
 shellcheck --shell=sh .githooks/commit-msg
 shellcheck --shell=sh .githooks/post-checkout
 shellcheck --shell=sh .githooks/pre-commit
@@ -73,11 +73,11 @@ shellcheck --shell=sh .githooks/pre-push
 
 [tasks."setup:commitlint"]
 description = "Install the project-local commitlint binary"
-run = "bash scripts/setup-commitlint.sh"
+run = "bash scripts/setup/setup-commitlint.sh"
 
 [tasks."setup:local-skills"]
 description = "Enable local Git hooks and register repository skills for Codex and Claude Code"
-run = "bash scripts/setup-local-skills.sh"
+run = "bash scripts/setup/setup-local-skills.sh"
 
 [tasks."check:skills"]
 description = "Validate publishable Agent Skills"
@@ -87,30 +87,30 @@ run = "gh skill publish --dry-run"
 description = "Verify a release tag matches the catalog and committed state"
 run = '''
 export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-verify-release-uv-cache"
-uv run --with "pyyaml==6.0.3" python scripts/verify-release.py "$@"
+uv run --with "pyyaml==6.0.3" python scripts/release/verify-release.py "$@"
 '''
 
 [tasks."release:publish"]
 description = "Run release gates, then publish a verified release tag"
-run = "bash scripts/publish-release.sh \"$@\""
+run = "bash scripts/release/publish-release.sh \"$@\""
 
 [tasks."check:repository"]
 description = "Validate repository policy, sensitive content, licenses, and test evidence"
 run = '''
 export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-repository-uv-cache"
-uv run --with "pyyaml==6.0.3" python scripts/validate-repository.py
-uv run --with "pyyaml==6.0.3" python scripts/check-tool-licenses.py
-uv run --with "pyyaml==6.0.3" python scripts/validate-script-tests.py
-python scripts/check-sensitive-content.py
+uv run --with "pyyaml==6.0.3" python scripts/validate/validate-repository.py
+uv run --with "pyyaml==6.0.3" python scripts/check/check-tool-licenses.py
+uv run --with "pyyaml==6.0.3" python scripts/validate/validate-script-tests.py
+python scripts/check/check-sensitive-content.py
 '''
 
 [tasks."check:diff"]
 description = "Reject whitespace errors in local changes and the committed CI diff"
-run = "bash scripts/check-whitespace.sh"
+run = "bash scripts/check/check-whitespace.sh"
 
 [tasks."check:branch-policy"]
 description = "Validate the repository pull-request branch policy configuration"
-run = "python scripts/validate-branch-policy.py --validate-config"
+run = "python scripts/validate/validate-branch-policy.py --validate-config"
 
 [tasks.validate-skill-creator]
 description = "Validate every published skill with Codex skill-creator"

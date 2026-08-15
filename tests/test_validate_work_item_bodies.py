@@ -7,17 +7,17 @@ import unittest
 from pathlib import Path
 
 
-def load_script(name: str):
-    path = Path(__file__).parents[1] / "scripts" / name
-    spec = importlib.util.spec_from_file_location(name.removesuffix(".py"), path)
+def load_script(path: str):
+    path = Path(__file__).parents[1] / path
+    spec = importlib.util.spec_from_file_location(path.stem.replace("-", "_"), path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-BRANCH_POLICY = load_script("validate-branch-policy.py")
-ISSUE_BODY = load_script("validate-issue-body.py")
+BRANCH_POLICY = load_script("scripts/validate/validate-branch-policy.py")
+ISSUE_BODY = load_script("scripts/validate/validate-issue-body.py")
 
 CHANGE_BODY = """## Context
 

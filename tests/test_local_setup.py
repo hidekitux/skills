@@ -54,7 +54,7 @@ class LocalSetupTests(unittest.TestCase):
 
             for _ in range(2):
                 subprocess.run(
-                    ["bash", "scripts/setup-local-skills.sh"],
+                    ["bash", "scripts/setup/setup-local-skills.sh"],
                     cwd=clone,
                     check=True,
                     capture_output=True,
@@ -237,7 +237,7 @@ class LocalSetupTests(unittest.TestCase):
             result = subprocess.run(
                 [
                     "python",
-                    str(ROOT / "scripts" / "diagnose-worktree.py"),
+                    str(ROOT / "scripts" / "diagnose" / "diagnose-worktree.py"),
                     "--branch",
                     "main",
                     "--base",
@@ -264,7 +264,7 @@ class LocalSetupTests(unittest.TestCase):
             subprocess.run(["git", "init", "--bare", bare], check=True, env=environment)
 
             result = subprocess.run(
-                ["python", str(ROOT / "scripts" / "diagnose-worktree.py")],
+                ["python", str(ROOT / "scripts" / "diagnose" / "diagnose-worktree.py")],
                 cwd=bare,
                 check=False,
                 capture_output=True,

@@ -125,7 +125,7 @@ def validate_fsl_layout(root: Path, skill_files: list[Path], errors: list[str]) 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parent.parent
+        "--root", type=Path, default=Path(__file__).resolve().parents[2]
     )
     args = parser.parse_args()
     root = args.root.resolve()
