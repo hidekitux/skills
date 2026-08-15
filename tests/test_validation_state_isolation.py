@@ -16,8 +16,8 @@ class ValidationStateIsolationTests(unittest.TestCase):
         config = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))
         tasks = config["tasks"]
         for name in (
-            "lint-python",
-            "validate-repository",
+            "lint:python",
+            "check:repository",
             "validate-skill-creator",
             "verify-release",
         ):

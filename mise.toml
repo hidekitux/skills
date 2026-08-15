@@ -13,31 +13,43 @@ actionlint = "1.7.12"
 
 [tasks.validate]
 description = "Run supported-platform repository validations"
-depends = ["validate-repository", "validate-skills", "validate-hosts", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "test", "diff-check", "validate-branch-policy"]
+depends = ["check:repository", "check:skills", "check:hosts", "verify-fsl", "lint:actions", "lint:python", "lint:shell", "test", "check:diff", "check:branch-policy"]
 
-[tasks.validate-hosts]
+[tasks.setup]
+description = "Prepare local skills, Git hooks, and commitlint for development"
+depends = ["setup:local-skills", "setup:commitlint"]
+
+[tasks."check:local"]
+description = "Check repository metadata, branch policy, and whitespace"
+depends = ["check:repository", "check:branch-policy", "check:diff"]
+
+[tasks.lint]
+description = "Lint GitHub Actions, Python, and shell sources"
+depends = ["lint:actions", "lint:python", "lint:shell"]
+
+[tasks."check:hosts"]
 description = "Validate local installation for Codex and Claude Code"
 run = "bash scripts/validate-hosts.sh"
 
 [tasks.verify-fsl]
 description = "Check and verify every FSL specification"
-depends = ["install-fslc"]
+depends = ["fsl:install"]
 run = "bash scripts/verify-fsl.sh"
 
-[tasks.install-fslc]
+[tasks."fsl:install"]
 description = "Install the pinned FSL verifier with checksum verification"
 run = "bash scripts/install-fslc.sh"
 
 [tasks.mutate-fsl]
 description = "Measure mutation detection for every FSL specification"
-depends = ["install-fslc"]
+depends = ["fsl:install"]
 run = "bash scripts/mutate-fsl.sh"
 
-[tasks.lint-actions]
+[tasks."lint:actions"]
 description = "Lint GitHub Actions workflows"
 run = "actionlint"
 
-[tasks.lint-python]
+[tasks."lint:python"]
 description = "Lint and format-check Python scripts"
 run = "RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff check scripts skills tests && RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff format --check scripts skills tests"
 
@@ -45,7 +57,7 @@ run = "RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff
 description = "Run repository unit tests"
 run = "python -m unittest discover -s tests"
 
-[tasks.lint-shell]
+[tasks."lint:shell"]
 description = "Lint Bash and POSIX shell scripts"
 run = '''
 shellcheck --shell=bash scripts/*.sh
@@ -53,15 +65,15 @@ shellcheck --shell=sh .githooks/commit-msg
 shellcheck --shell=sh .githooks/post-checkout
 '''
 
-[tasks.setup-commitlint]
-description = "Install Go commitlint and enable the local commit-msg hook"
+[tasks."setup:commitlint"]
+description = "Install the project-local commitlint binary"
 run = "bash scripts/setup-commitlint.sh"
 
-[tasks.setup-local-skills]
+[tasks."setup:local-skills"]
 description = "Enable local Git hooks and register repository skills for Codex and Claude Code"
 run = "bash scripts/setup-local-skills.sh"
 
-[tasks.validate-skills]
+[tasks."check:skills"]
 description = "Validate publishable Agent Skills"
 run = "gh skill publish --dry-run"
 
@@ -72,18 +84,18 @@ export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-verify-release-uv-ca
 uv run --with "pyyaml==6.0.3" python scripts/verify-release.py "$@"
 '''
 
-[tasks.validate-repository]
+[tasks."check:repository"]
 description = "Validate catalog, licenses, host adapters, and Todo List guidance"
 run = '''
 export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-repository-uv-cache"
 uv run --with "pyyaml==6.0.3" python scripts/validate-repository.py
 '''
 
-[tasks.diff-check]
+[tasks."check:diff"]
 description = "Reject whitespace errors in local changes and the committed CI diff"
 run = "bash scripts/check-whitespace.sh"
 
-[tasks.validate-branch-policy]
+[tasks."check:branch-policy"]
 description = "Validate the repository pull-request branch policy configuration"
 run = "python scripts/validate-branch-policy.py --validate-config"
 
