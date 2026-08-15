@@ -1,4 +1,0 @@
-interface:
-  display_name: "Project Bootstrap"
-  short_description: "Start projects with PR-only FSL-aware foundations"
-  default_prompt: "Use $project-bootstrap to set up this project with PR-only protected branches and a suitable FSL adoption plan."

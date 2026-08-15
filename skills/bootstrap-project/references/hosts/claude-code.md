@@ -1,6 +1,6 @@
 # Claude Code adaptation
 
-The core `project-bootstrap` workflow is portable. Apply this note only when the
+The core `bootstrap-project` workflow is portable. Apply this note only when the
 active host is Claude Code.
 
 ## Project context

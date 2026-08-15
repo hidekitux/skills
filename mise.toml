@@ -79,7 +79,7 @@ description = "Validate the repository pull-request branch policy configuration"
 run = "python scripts/validate-branch-policy.py --validate-config"
 
 [tasks.validate-skill-creator]
-description = "Validate project-bootstrap with Codex skill-creator"
+description = "Validate bootstrap-project with Codex skill-creator"
 run = '''
 skill_creator_root="${SKILL_CREATOR_ROOT:-${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator}"
 test -f "$skill_creator_root/scripts/quick_validate.py" || {
@@ -87,5 +87,5 @@ test -f "$skill_creator_root/scripts/quick_validate.py" || {
   exit 2
 }
 export UV_CACHE_DIR="$PWD/.mise/uv-cache"
-uv run --with "pyyaml==6.0.3" python "$skill_creator_root/scripts/quick_validate.py" skills/project-bootstrap
+uv run --with "pyyaml==6.0.3" python "$skill_creator_root/scripts/quick_validate.py" skills/bootstrap-project
 '''

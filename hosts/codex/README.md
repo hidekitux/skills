@@ -8,6 +8,6 @@ Do not assume a particular plugin, MCP server, browser session, or local binary
 exists. Record any material capability difference in the relevant skill's
 `references/hosts/codex.md`, including a safe fallback and verification step.
 
-For `project-bootstrap`, see
-`skills/project-bootstrap/references/hosts/codex.md` for the Codex-specific
+For `bootstrap-project`, see
+`skills/bootstrap-project/references/hosts/codex.md` for the Codex-specific
 execution and handoff rules.
