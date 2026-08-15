@@ -73,8 +73,10 @@ should document or verify its stateful workflows.
   protected branch explicitly with `--branch`. The script also enables rebase merging
   only, disables merge-commit and squash merges, and automatically deletes merged head
   branches. Use one approval, stale-approval dismissal, last-push approval, resolved
-  conversations, signed commits, rebase merging, linear history, no force pushes or
-  deletions, and no bypass actors. Use
+  conversations, rebase merging, linear history, no force pushes or deletions, and
+  no bypass actors. Require a CI status check that verifies every Pull Request
+  source commit is signed and GitHub-verified; do not use the `required_signatures`
+  rule with GitHub rebase merge. Use
   `--allow-last-push-approval` and `--approvals 0` only for a confirmed solo
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids
