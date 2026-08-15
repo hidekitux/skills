@@ -156,7 +156,7 @@ hosts/
 
 FSL は `SKILL.md` の書式を検査するものではなく、スキルが規定する状態遷移や公開条件を形式仕様として検証するために使います。たとえば、レビュー前に公開できないこと、非推奨化したスキルを新規導入しないこと、更新時に検証結果を失わないことを対象にします。
 
-FSL 仕様は `specs/*.fsl` に置きます。自然言語の運用ルールから仕様を作る前に、状態・アクション・不変条件・未確定事項をまとめた formalization memo をレビューしてください。
+スキル自身の FSL 仕様は `skills/<skill-name>/specs/*.fsl` に置き、リポジトリからの集約参照として `specs/<skill-name>/` に相対シンボリックリンクを置きます。リポジトリ固有または横断的な仕様だけは `specs/*.fsl` の通常ファイルです。自然言語の運用ルールから仕様を作る前に、状態・アクション・不変条件・未確定事項をまとめた formalization memo をレビューしてください。
 
 ```bash
 # すべての FSL 仕様を構文・型検査してから有限深さで検証する
@@ -165,4 +165,4 @@ mise run verify-fsl
 
 仕様を追加したら、通常のスキル検証に加え、`fslc mutate` で性質が実際に検出力を持つことも確認します。詳細は [docs/fsl.md](docs/fsl.md) を参照してください。
 
-公開フローの順序とタグ再利用禁止は [specs/release-gate.fsl](specs/release-gate.fsl) で検証しています。
+公開フローの順序とタグ再利用禁止は [specs/release-gate.fsl](specs/release-gate.fsl) で検証しています。スキル固有の例として、[create-pr の仕様](skills/create-pr/specs/pull-request-creation.fsl) と [create-issue の仕様](skills/create-issue/specs/issue-creation.fsl) もパッケージに含まれます。

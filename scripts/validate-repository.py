@@ -68,6 +68,60 @@ def validate_notice(path: Path, errors: list[str]) -> None:
         )
 
 
+def validate_fsl_layout(root: Path, skill_files: list[Path], errors: list[str]) -> None:
+    """Ensure skill-owned specifications are packaged and linked consistently."""
+    root_specs = root / "specs"
+    skill_specs: list[tuple[Path, Path]] = []
+
+    for skill_file in skill_files:
+        skill_dir = skill_file.parent
+        spec_dir = skill_dir / "specs"
+        if spec_dir.is_dir():
+            skill_specs.extend((skill_dir, path) for path in spec_dir.rglob("*.fsl"))
+
+    for skill_dir, source in skill_specs:
+        skill_relative = skill_dir.relative_to(root / "skills")
+        expected_link = (
+            root_specs / skill_relative / source.relative_to(skill_dir / "specs")
+        )
+        if not expected_link.is_symlink():
+            errors.append(
+                f"{relative(source, root)}: missing repository link "
+                f"{relative(expected_link, root)}"
+            )
+            continue
+        try:
+            target = expected_link.resolve(strict=True)
+        except OSError as exc:
+            errors.append(f"{relative(expected_link, root)}: broken FSL link: {exc}")
+            continue
+        if target != source.resolve():
+            errors.append(
+                f"{relative(expected_link, root)}: must link to "
+                f"{relative(source, root)}"
+            )
+
+    if not root_specs.is_dir():
+        errors.append("specs/ is missing")
+        return
+    for path in root_specs.rglob("*.fsl"):
+        if path.parent != root_specs and not path.is_symlink():
+            errors.append(
+                f"{relative(path, root)}: nested repository FSL entries must be "
+                "relative symbolic links to skill-owned specs"
+            )
+        if path.is_symlink():
+            try:
+                target = path.resolve(strict=True)
+            except OSError as exc:
+                errors.append(f"{relative(path, root)}: broken FSL link: {exc}")
+                continue
+            if not target.is_file() or target.suffix != ".fsl":
+                errors.append(
+                    f"{relative(path, root)}: FSL link must resolve to a .fsl file"
+                )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -133,6 +187,8 @@ def main() -> int:
                 errors.append(
                     f"{relative_path}: Todo List guidance must explain {required_term!r}"
                 )
+
+    validate_fsl_layout(root, skill_files, errors)
 
     catalog_names: set[str] = set()
     for index, entry in enumerate(entries, start=1):
