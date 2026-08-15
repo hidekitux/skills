@@ -18,4 +18,4 @@ jobs:
           persist-credentials: false
       - env:
           WORK_ITEM_TITLE: ${{ github.event.pull_request.title }}
-        run: python3 scripts/validate-work-item-title.py --title "$WORK_ITEM_TITLE"
+        run: python3 scripts/validate/validate-work-item-title.py --title "$WORK_ITEM_TITLE"

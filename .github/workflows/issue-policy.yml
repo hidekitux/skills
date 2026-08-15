@@ -20,5 +20,5 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          python3 scripts/validate-work-item-title.py --title "$ISSUE_TITLE"
-          python3 scripts/validate-issue-body.py --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
+          python3 scripts/validate/validate-work-item-title.py --title "$ISSUE_TITLE"
+          python3 scripts/validate/validate-issue-body.py --title "$ISSUE_TITLE" --body "$ISSUE_BODY"

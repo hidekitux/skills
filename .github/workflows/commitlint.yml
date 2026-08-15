@@ -34,4 +34,4 @@ jobs:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: bash scripts/lint-commits.sh
+        run: bash scripts/lint/lint-commits.sh
