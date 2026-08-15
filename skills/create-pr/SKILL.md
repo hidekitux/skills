@@ -46,7 +46,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 ## Create or Update
 
 - Use the repository Pull Request template as the authority. When no template exists, include `Issue`, `Summary`, and `Validation` sections in that order.
-- Use the repository title convention. For this repository, use `[Type]: Verb Summary`; use `[Release]: vX.Y.Z` only for releases.
+- Use the repository title convention. For this repository, use `[Type]: Summary` in sentence case: begin the imperative verb with a capital letter and capitalize later words only when ordinary English requires it, such as for proper nouns or abbreviations. Use `[Release]: vX.Y.Z` only for releases.
 - Make `## Issue` the first section with no prose before it. Put every Issue reference immediately below it as a contiguous block of standalone lines, before `Summary` or any other section; do not repeat references at the end.
 - Link every change Issue with its own `Closes #123` line. Put the Issue encoded in the human work branch first, then add any other Issues the same Pull Request closes; keep every line in the opening `Issue` section. Use the repository's non-closing release keyword, such as `Tracks #123`, when publication must close the Release Issue later.
 - Summarize observable behavior and scope, not the editing process. Include exact validation commands and outcomes.
