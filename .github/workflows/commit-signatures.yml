@@ -1,0 +1,27 @@
+name: Pull-request commit signatures
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  signatures:
+    name: Validate signed pull-request commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Verify GitHub commit signatures
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: >-
+          python3 scripts/validate-pr-commit-signatures.py
+          --repo "$REPOSITORY" --pull-request "$PULL_REQUEST_NUMBER"

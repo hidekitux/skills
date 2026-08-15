@@ -72,11 +72,15 @@ should document or verify its stateful workflows.
   live repository policy. The default target is `main`; add every additional
   protected branch explicitly with `--branch`. The script also enables rebase merging
   only, disables merge-commit and squash merges, and automatically deletes merged head
-  branches. Use one approval, stale-approval dismissal, last-push approval, resolved
-  conversations, rebase merging, linear history, no force pushes or deletions, and
-  no bypass actors. The script also creates a separate `issue/*` Ruleset that
-  requires GitHub-verified signed commits while allowing Issue-branch rebase
-  updates. Use
+  branches. Include `Validate signed pull-request commits` with every
+  `--required-check`. Use one approval, stale-approval dismissal, last-push
+  approval, resolved conversations, rebase merging, linear history, no force
+  pushes or deletions, and no bypass actors. Add a `pull_request_target`
+  workflow that checks every PR-head commit through GitHub's API and runs the
+  verifier from the base revision; do not run PR-provided verification code with
+  the token. The script removes its deprecated `issue/*` signature Ruleset when
+  applied, because GitHub rechecks reachable base commits when an Issue branch
+  is updated. Use
   `--allow-last-push-approval` and `--approvals 0` only for a confirmed solo
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids

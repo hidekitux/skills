@@ -12,6 +12,7 @@ from typing import Any
 
 DEFAULT_RULESET_NAME = "Require pull requests on protected branches"
 DEFAULT_ISSUE_RULESET_NAME = "Require signed commits on issue branches"
+SIGNED_PULL_REQUEST_COMMITS_CHECK = "Validate signed pull-request commits"
 REPOSITORY_SETTINGS = {
     "allow_merge_commit": False,
     "allow_squash_merge": False,
@@ -37,13 +38,6 @@ def parse_args() -> argparse.Namespace:
         help="Required status-check context; repeat for every CI check.",
     )
     parser.add_argument("--ruleset-name", default=DEFAULT_RULESET_NAME)
-    parser.add_argument(
-        "--issue-branch-pattern",
-        action="append",
-        metavar="PATTERN",
-        help="Signed work-branch pattern; repeat to override the default issue/*.",
-    )
-    parser.add_argument("--issue-ruleset-name", default=DEFAULT_ISSUE_RULESET_NAME)
     parser.add_argument("--approvals", type=int, default=1)
     parser.add_argument("--require-code-owner-review", action="store_true")
     parser.add_argument("--allow-last-push-approval", action="store_true")
@@ -88,6 +82,11 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("--branch values must be unique")
     if any(not context.strip() for context in args.required_check):
         raise ValueError("--required-check values must not be empty")
+    if SIGNED_PULL_REQUEST_COMMITS_CHECK not in args.required_check:
+        raise ValueError(
+            f"include --required-check {SIGNED_PULL_REQUEST_COMMITS_CHECK!r} "
+            "to require GitHub-verified pull-request commits"
+        )
 
     return {
         "name": args.ruleset_name,
@@ -125,33 +124,6 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
             {"type": "deletion"},
             {"type": "required_linear_history"},
         ],
-    }
-
-
-def build_issue_payload(args: argparse.Namespace) -> dict[str, Any]:
-    patterns = args.issue_branch_pattern or ["issue/*"]
-    if any(
-        not pattern or pattern.startswith("refs/") or pattern.strip() != pattern
-        for pattern in patterns
-    ):
-        raise ValueError(
-            "--issue-branch-pattern values must be nonempty branch patterns"
-        )
-    if len(set(patterns)) != len(patterns):
-        raise ValueError("--issue-branch-pattern values must be unique")
-
-    return {
-        "name": args.issue_ruleset_name,
-        "target": "branch",
-        "enforcement": "active",
-        "bypass_actors": [],
-        "conditions": {
-            "ref_name": {
-                "include": [f"refs/heads/{pattern}" for pattern in patterns],
-                "exclude": [],
-            }
-        },
-        "rules": [{"type": "required_signatures"}],
     }
 
 
@@ -246,11 +218,22 @@ def apply_ruleset(repo: str, payload: dict[str, Any]) -> tuple[str, int]:
     return ("Created" if ruleset_id is None else "Updated", created["id"])
 
 
+def remove_issue_ruleset(repo: str) -> bool:
+    ruleset_id = find_existing_ruleset(repo, DEFAULT_ISSUE_RULESET_NAME)
+    if ruleset_id is None:
+        return False
+    command("gh", "api", "--method", "DELETE", f"repos/{repo}/rulesets/{ruleset_id}")
+    if find_existing_ruleset(repo, DEFAULT_ISSUE_RULESET_NAME) is not None:
+        raise RuntimeError(
+            "deprecated issue-branch ruleset still exists after deletion"
+        )
+    return True
+
+
 def main() -> int:
     args = parse_args()
     try:
         payload = build_payload(args)
-        issue_payload = build_issue_payload(args)
     except ValueError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
@@ -261,7 +244,7 @@ def main() -> int:
                 {
                     "repository_settings": REPOSITORY_SETTINGS,
                     "ruleset": payload,
-                    "issue_ruleset": issue_payload,
+                    "deprecated_issue_ruleset": DEFAULT_ISSUE_RULESET_NAME,
                 },
                 indent=2,
             )
@@ -280,13 +263,14 @@ def main() -> int:
         command("gh", "auth", "status")
         configure_repository(args.repo)
         main_action, main_id = apply_ruleset(args.repo, payload)
-        issue_action, issue_id = apply_ruleset(args.repo, issue_payload)
+        removed_issue_ruleset = remove_issue_ruleset(args.repo)
     except (RuntimeError, json.JSONDecodeError, KeyError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 
     print(f"{main_action} and verified ruleset {main_id} for {args.repo}.")
-    print(f"{issue_action} and verified ruleset {issue_id} for {args.repo}.")
+    if removed_issue_ruleset:
+        print(f"Removed deprecated issue-branch ruleset for {args.repo}.")
     return 0
 
 
