@@ -13,12 +13,25 @@
 
 ## 開発環境
 
-[mise](https://mise.jdx.dev/) をこのリポジトリの標準コマンド入口として使います。初回は設定を信頼し、利用可能なタスクを確認してください。
+[mise](https://mise.jdx.dev/) をこのリポジトリの標準コマンド入口として使います。初回は設定を信頼して `setup` を実行すると、Codex と Claude Code 向けのローカルスキル、Git Hooks、プロジェクトローカルの commitlint をまとめて準備できます。`setup` は安全に再実行できます。
 
 ```bash
 mise trust
+mise run setup
 mise tasks ls
 ```
+
+日常的には、次の入口を使います。
+
+| ワークフロー | コマンド |
+| --- | --- |
+| 初回セットアップ | `mise run setup` |
+| リポジトリ全体の検証 | `mise run validate` |
+| ローカル変更の軽量確認 | `mise run check:local` |
+| 静的解析 | `mise run lint` |
+| FSL 仕様の検証 | `mise run verify-fsl` |
+| FSL 仕様の mutation 確認 | `mise run mutate-fsl` |
+| リリース候補の確認 | `mise run verify-release -- vX.Y.Z` |
 
 このリポジトリは、Codex で利用できる `skill-creator` の追加検証に Python と uv を使うため、`mise.toml` でそれらを固定しています。すべてのホストで必要な検証は `mise run validate` です。これは一時リポジトリへの導入を通じて Codex と Claude Code の両方を検証します。ほかのツールは、リポジトリが実際に必要になった時点でだけ追加します。
 
@@ -49,7 +62,7 @@ mise run validate
 
 `validate` には、`CATALOG.yml`、Apache-2.0 表記、ホストアダプター、Todo List
 契約を確認するリポジトリ整合性検査も含まれます。単独で確認する場合は
-`mise run validate-repository` を使います。
+`mise run check:repository` を使います。
 
 `skill-creator` が利用できる Codex では、追加でスキル作成向け検証を実行します。Claude Code を含むほかのホストでは、前述の共通検証だけでスキルの公開可否を確認します。
 

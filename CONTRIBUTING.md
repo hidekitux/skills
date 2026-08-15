@@ -28,7 +28,7 @@ ci: validate commit messages
 初回セットアップ時は次を実行して、mise 管理の Go版 commitlint とローカル hook を有効にします。
 
 ```bash
-mise run setup-commitlint
+mise run setup
 ```
 
 GitHub Actions がコミットメッセージと Pull Request タイトルを検証します。

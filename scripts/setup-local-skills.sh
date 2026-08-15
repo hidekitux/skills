@@ -4,4 +4,5 @@ set -euo pipefail
 root=$(git rev-parse --show-toplevel)
 
 git -C "${root}" config core.hooksPath .githooks
-exec bash "${root}/scripts/register-local-skills.sh"
+bash "${root}/scripts/register-local-skills.sh"
+echo "Git commit hooks enabled via core.hooksPath=.githooks"

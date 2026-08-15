@@ -11,7 +11,7 @@ step.
 
 ## Local skill registration
 
-Run `mise run setup-local-skills` once in each Git worktree. The command sets
+Run `mise run setup` once in each Git worktree. The command sets
 the worktree-local `core.hooksPath` to `.githooks` and registers each
 top-level published skill under the ignored `.claude/skills/` directory for
 Claude Code and `.agents/skills/` for Codex.
