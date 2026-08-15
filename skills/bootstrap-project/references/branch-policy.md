@@ -1,7 +1,13 @@
 # Issue-based branch policy
 
 - Name human work branches `issue/<positive-number>`; do not add type or summary.
-- Require matching `Closes #<number>` in the Pull Request body.
+- Make `## Issue` the first Pull Request body section with no preceding prose.
+- Put only a contiguous block of standalone Issue references immediately below
+  it. Require the first `Closes #<number>` reference to match the Issue number
+  in the human work branch. Allow following `Closes` lines for additional
+  Issues handled by the same Pull Request, but reject every reference outside
+  the opening `Issue` section. Use `Tracks #<number>` only for release work
+  that closes after publication.
 - Protect `main` and any explicitly configured integration or release branches
   from direct updates, force-pushes, and deletion through GitHub Rulesets. Enable
   rebase merge only and automatic deletion of merged head branches in the repository

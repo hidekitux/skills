@@ -58,10 +58,13 @@ should document or verify its stateful workflows.
   explicit release exception `[Release]: vX.Y.Z`. Validate title syntax in CI,
   but do not require a PR title to equal any linked Issue because a PR may close
   more than one Issue.
-- Provision Change and Release Issue templates. Require `Context`, `Goal`,
-  `Scope`, `Acceptance criteria`, and `Validation`; Release templates also
-  require `Added`/`Changed`/`Fixed`/`Removed` changelog headings. Define public
-  releases as `vX.Y.Z` and build identifiers as `vX.Y.Z+N`.
+- Provision Change and Release Issue templates. Require exactly one `Context`,
+  `Goal`, `Scope`, `Acceptance criteria`, and `Validation` heading in that
+  order. Define each section's purpose, require ordered `In`/`Out` scope
+  markers and actionable checklists, and reject empty sections. Follow the
+  common Release headings with `Changelog` and exactly one ordered
+  `Added`/`Changed`/`Fixed`/`Removed` heading. Define public releases as
+  `vX.Y.Z` and build identifiers as `vX.Y.Z+N`.
 - When the project is hosted on GitHub and the user wants PR-only protected
   branches, first create and run its CI workflows. Identify their completed job
   names, then use `scripts/configure-github-ruleset.py` with an explicit
@@ -85,8 +88,14 @@ should document or verify its stateful workflows.
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids
   direct pushes while allowing GitHub to merge accepted pull requests.
-- For issue-based delivery, use `issue/<number>` for human work branches and
-  require a matching `Closes #<number>` PR-body line. Protect `main` and any
+- For issue-based delivery, use `issue/<number>` for human work branches. Make
+  `## Issue` the first Pull Request body section and put only a contiguous block
+  of standalone Issue references immediately below it. Require the first
+  `Closes #<number>` reference to match the Issue number in the human work
+  branch, allow one following `Closes` line per additional Issue handled by the
+  same Pull Request, and reject references outside that section. Use
+  `Tracks #<number>` only for release work that closes after publication.
+  Protect `main` and any
   explicitly configured integration or release branches, then validate PR
   direction in CI. Default flow: `issue/* -> main`; document every automated
   exception explicitly. See [branch policy](references/branch-policy.md).
