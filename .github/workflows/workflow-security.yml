@@ -2,14 +2,8 @@ name: GitHub Actions security
 
 on:
   pull_request:
-    paths:
-      - ".github/**"
-      - "mise.toml"
   push:
-    branches: [main]
-    paths:
-      - ".github/**"
-      - "mise.toml"
+    branches: [main, develop]
 
 permissions:
   contents: read
