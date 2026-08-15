@@ -52,10 +52,12 @@ should document or verify its stateful workflows.
   policy to contributor documentation, and add automated commit and Pull Request
   title checks when the project has a CI provider. Treat branch protection as
   part of enforcement and report it separately from a passing workflow.
-- Use shared Issue and Pull Request titles in the form `[Type]: Verb Summary`.
-  Define a small common Type list and require Summary to begin with a
-  capitalized imperative verb; do not maintain a finite verb list. Permit the
-  explicit release exception `[Release]: vX.Y.Z`. Validate title syntax in CI,
+- Use shared Issue and Pull Request titles in the form `[Type]: Summary` in
+  sentence case. Define a small common Type list and require Summary to begin
+  with a capitalized imperative verb; capitalize later words only when ordinary
+  English requires it, such as for proper nouns or abbreviations, and do not
+  maintain a finite verb list. Permit the explicit release exception
+  `[Release]: vX.Y.Z`. Validate title syntax in CI,
   but do not require a PR title to equal any linked Issue because a PR may close
   more than one Issue.
 - Provision Change and Release Issue templates. Require exactly one `Context`,

@@ -35,10 +35,12 @@ GitHub Actions がコミットメッセージと Pull Request タイトルを検
 
 ## Issue and Pull Request titles
 
-Use `[Type]: Verb Summary` for both Issues and Pull Requests. Type is `Feature`,
-`Bug`, `Improvement`, `Documentation`, `Security`, `Maintenance`, or `Release`.
-Begin Summary with a capitalized imperative verb without maintaining a finite
-verb list. Releases use the explicit exception `[Release]: vX.Y.Z`. A Pull
+Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type
+is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, `Maintenance`,
+or `Release`. Begin Summary with a capitalized imperative verb without
+maintaining a finite verb list. Capitalize later words only when ordinary
+English requires it, such as for proper nouns or abbreviations. Releases use
+the explicit exception `[Release]: vX.Y.Z`. A Pull
 Request may close more than one Issue, so its title does not need to match an
 Issue title exactly.
 

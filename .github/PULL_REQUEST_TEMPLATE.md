@@ -6,7 +6,7 @@
 
 <!-- What capability or repository behavior changes? -->
 
-<!-- Title: [Type]: Verb Summary. It need not match any linked Issue title. -->
+<!-- Title: [Type]: Summary in sentence case. It need not match any linked Issue title. -->
 
 ## Validation
 
