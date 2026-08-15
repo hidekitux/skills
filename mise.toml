@@ -50,11 +50,16 @@ description = "Lint Bash and POSIX shell scripts"
 run = '''
 shellcheck --shell=bash scripts/*.sh
 shellcheck --shell=sh .githooks/commit-msg
+shellcheck --shell=sh .githooks/post-checkout
 '''
 
 [tasks.setup-commitlint]
 description = "Install Go commitlint and enable the local commit-msg hook"
 run = "bash scripts/setup-commitlint.sh"
+
+[tasks.setup-local-skills]
+description = "Enable local Git hooks and register repository skills for Codex and Claude Code"
+run = "bash scripts/setup-local-skills.sh"
 
 [tasks.validate-skills]
 description = "Validate publishable Agent Skills"
