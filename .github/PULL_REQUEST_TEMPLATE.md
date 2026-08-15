@@ -2,9 +2,11 @@
 
 <!-- What capability or repository behavior changes? -->
 
+<!-- Title: [Type]: Verb Summary. It need not match any linked Issue title. -->
+
 ## Issue
 
-<!-- Issue branches must use: Closes #<issue-number> -->
+<!-- Add one or more lines such as: Closes #123 -->
 
 ## Skill checklist
 

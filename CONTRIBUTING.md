@@ -33,6 +33,10 @@ mise run setup-commitlint
 
 GitHub Actions がコミットメッセージと Pull Request タイトルを検証します。
 
+## Issue and Pull Request titles
+
+Issue と Pull Request はともに `[Type]: Verb Summary` を使います。Type は `Feature`、`Bug`、`Improvement`、`Documentation`、`Security`、`Maintenance`、`Release` のいずれかです。Summary は `Add`、`Fix`、`Improve`、`Document`、`Harden`、`Configure`、`Update`、`Remove`、`Enforce`、`Prevent` のいずれかの動詞で始めます。Release のみ `[Release]: vX.Y.Z` を使う例外です。PR は 1 件以上の Issue を扱えるため、Issue の Title との完全一致は要求しません。
+
 ## Branch and Pull Request flow
 
 変更ごとに先に Issue を作成し、`issue/<番号>` ブランチを作ります。許可する PR の向きは `.github/branch-policy.toml` の `[[routes]]` で定義します。既定では `issue/<番号> -> develop -> release/vX.Y.Z -> main` ですが、release ブランチが不要なプロジェクトでは `develop -> main` の経路だけにできます。`main`、`develop`、`release/*` への直接 push、force-push、削除は禁止です。Issue ブランチの PR 本文には対応する `Closes #<番号>` を単独行で記載してください。

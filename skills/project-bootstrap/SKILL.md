@@ -52,6 +52,11 @@ should document or verify its stateful workflows.
   policy to contributor documentation, and add automated commit and Pull Request
   title checks when the project has a CI provider. Treat branch protection as
   part of enforcement and report it separately from a passing workflow.
+- Use shared Issue and Pull Request titles in the form `[Type]: Verb Summary`.
+  Define a small common Type list and an imperative verb list; permit the
+  explicit release exception `[Release]: vX.Y.Z`. Validate title syntax in CI,
+  but do not require a PR title to equal any linked Issue because a PR may close
+  more than one Issue.
 - When the project is hosted on GitHub and the user wants PR-only protected
   branches, first create and run its CI workflows. Identify their completed job
   names, then use `scripts/configure-github-ruleset.py` with an explicit
