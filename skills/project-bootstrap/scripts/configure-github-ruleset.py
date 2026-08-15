@@ -20,7 +20,7 @@ def parse_args() -> argparse.Namespace:
         "--branch",
         action="append",
         metavar="NAME",
-        help="Protected branch; repeat to override the default main and develop targets.",
+        help="Protected branch; repeat to override the default main target.",
     )
     parser.add_argument(
         "--required-check",
@@ -70,7 +70,7 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     if not args.required_check:
         raise ValueError("supply at least one --required-check so merges require CI")
 
-    branches = args.branch or ["main", "develop"]
+    branches = args.branch or ["main"]
     if any(not branch or branch.startswith("refs/") for branch in branches):
         raise ValueError("--branch values must be unqualified branch names")
     if len(set(branches)) != len(branches):

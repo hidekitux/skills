@@ -52,6 +52,11 @@ should document or verify its stateful workflows.
   policy to contributor documentation, and add automated commit and Pull Request
   title checks when the project has a CI provider. Treat branch protection as
   part of enforcement and report it separately from a passing workflow.
+- Use shared Issue and Pull Request titles in the form `[Type]: Verb Summary`.
+  Define a small common Type list and an imperative verb list; permit the
+  explicit release exception `[Release]: vX.Y.Z`. Validate title syntax in CI,
+  but do not require a PR title to equal any linked Issue because a PR may close
+  more than one Issue.
 - When the project is hosted on GitHub and the user wants PR-only protected
   branches, first create and run its CI workflows. Identify their completed job
   names, then use `scripts/configure-github-ruleset.py` with an explicit
@@ -59,13 +64,19 @@ should document or verify its stateful workflows.
   The script prints its payload unless `--apply` is supplied, creates or updates
   its named ruleset through `gh api`, and reads it back to verify the result.
   Require explicit user authorization immediately before `--apply`; it changes
-  live repository policy. Default targets are `main` and `develop`, with one
+  live repository policy. The default target is `main`; add every additional
+  protected branch explicitly with `--branch`. Use one
   approval, stale-approval dismissal, last-push approval, resolved conversations,
   linear history, no force pushes or deletions, and no bypass actors. Use
   `--allow-last-push-approval` and `--approvals 0` only for a confirmed solo
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids
   direct pushes while allowing GitHub to merge accepted pull requests.
+- For issue-based delivery, use `issue/<number>` for human work branches and
+  require a matching `Closes #<number>` PR-body line. Protect `main` and any
+  explicitly configured integration or release branches, then validate PR
+  direction in CI. Default flow: `issue/* -> main`; document every automated
+  exception explicitly. See [branch policy](references/branch-policy.md).
 - Add or update `mise.toml`. Pin only the tools the project actually needs and
   expose applicable `format`, `lint`, `test`, and `check` tasks. Make `check`
   compose the relevant validations rather than duplicating their commands.

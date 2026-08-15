@@ -13,7 +13,7 @@ actionlint = "1.7.12"
 
 [tasks.validate]
 description = "Run supported-platform repository validations"
-depends = ["validate-repository", "validate-skills", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "diff-check"]
+depends = ["validate-repository", "validate-skills", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "diff-check", "validate-branch-policy"]
 
 [tasks.validate-local]
 description = "Run supported-platform validation plus Codex skill-creator validation"
@@ -73,6 +73,10 @@ uv run --with "pyyaml==6.0.3" python scripts/validate-repository.py
 [tasks.diff-check]
 description = "Reject whitespace errors in local changes and the committed CI diff"
 run = "bash scripts/check-whitespace.sh"
+
+[tasks.validate-branch-policy]
+description = "Validate the repository pull-request branch policy configuration"
+run = "python scripts/validate-branch-policy.py --validate-config"
 
 [tasks.validate-skill-creator]
 description = "Validate project-bootstrap with Codex skill-creator"

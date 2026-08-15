@@ -2,6 +2,12 @@
 
 <!-- What capability or repository behavior changes? -->
 
+<!-- Title: [Type]: Verb Summary. It need not match any linked Issue title. -->
+
+## Issue
+
+<!-- Add one or more lines such as: Closes #123 -->
+
 ## Skill checklist
 
 - [ ] `name` matches the skill directory name.

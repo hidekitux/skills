@@ -1,0 +1,14 @@
+// Confirmed policy: Issue branches merge directly into main.
+spec BranchFlow {
+  enum Status { Draft, IssueCreated, WorkBranch, PullRequest, Merged }
+  state { status: Status, issue_linked: Bool, merged: Bool }
+  init { status = Draft issue_linked = false merged = false }
+  action create_issue() { requires status == Draft status = IssueCreated }
+  action create_issue_branch() { requires status == IssueCreated status = WorkBranch }
+  action open_issue_pr() { requires status == WorkBranch issue_linked = true status = PullRequest }
+  action merge_to_main() { requires status == PullRequest requires issue_linked status = Merged merged = true }
+  invariant MergedWasIssueLinked { merged => issue_linked }
+  invariant MergedOnlyByIssuePullRequest { (status == Merged) == merged }
+  terminal { status == Merged }
+  reachable IssueReachesMain { status == Merged }
+}
