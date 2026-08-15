@@ -1,12 +1,16 @@
+## Issue
+
+<!-- Keep this section first. Start change work with the branch's matching Closes #123 line, then add one Closes line per additional Issue; keep every reference here. Use Tracks #123 only for releases. -->
+
 ## Summary
 
 <!-- What capability or repository behavior changes? -->
 
 <!-- Title: [Type]: Verb Summary. It need not match any linked Issue title. -->
 
-## Issue
+## Validation
 
-<!-- Add one or more lines such as: Closes #123 -->
+<!-- List every command or evidence with its actual result. -->
 
 ## Skill checklist
 

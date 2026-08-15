@@ -22,15 +22,26 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 - Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
 - Review the rendered title and body for accidental lowercase prose before creating the Issue.
 
+## Body Structure
+
+- Use each required heading exactly once and in the prescribed order. Do not insert other level-two or level-three headings.
+- Fill every section with concrete content; remove template comments and do not leave empty checklist items.
+- Write `Context` as the current state and reason for change, and `Goal` as one observable desired outcome.
+- Write `Scope` with `- In:` followed by `- Out:`. State included work and explicit boundaries under the matching marker.
+- Write `Acceptance criteria` as observable checkboxes that define completion.
+- Write `Validation` as checkboxes naming the commands or evidence that will prove the criteria.
+- Before creation, review the rendered body for heading order, duplicate sections, empty content, and unresolved placeholders.
+
 ## Change Issues
 
 - Use `[Type]: Verb Summary`. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, or `Maintenance`; Summary begins with a capitalized imperative verb.
-- Include `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation`.
+- Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` in that exact order.
 - Open `issue/<number>` back to the default branch with `Closes #<number>`.
 - To update the branch, rebase it onto the latest default branch and push with `--force-with-lease`. Never use plain `--force`.
 
 ## Release Issues
 
-- Use `[Release]: vX.Y.Z` and include the common headings plus `Changelog` with `Added`, `Changed`, `Fixed`, and `Removed`.
+- Use `[Release]: vX.Y.Z`. Follow the common headings with `Changelog`, then use `Added`, `Changed`, `Fixed`, and `Removed` in that exact order as level-three headings.
+- Add one or more entries below every changelog heading; write `- None.` when a category is intentionally empty.
 - Public releases use `vX.Y.Z`; build identifiers use `vX.Y.Z+N`.
 - Link a release PR with `Tracks #<number>` and close the Issue only after publication succeeds.
