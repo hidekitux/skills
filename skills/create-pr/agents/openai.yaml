@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pull Request Creation"
+  short_description: "Create validated GitHub Pull Requests safely."
+  default_prompt: "Use $create-pr to validate this Issue branch and create a compliant GitHub Pull Request."

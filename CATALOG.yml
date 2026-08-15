@@ -3,6 +3,13 @@
 catalog_version: 1
 license: Apache-2.0
 skills:
+  - name: create-pr
+    summary: Create validated, Issue-backed GitHub Pull Requests without duplicating existing work.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
   - name: create-issue
     summary: Create compliant GitHub change and release Issues before governed work.
     owner: hidekitux

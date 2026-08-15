@@ -1,0 +1,182 @@
+// Confirmed formalization memo for creating one Issue-backed Pull Request.
+//
+// ASSUME-1: repository-specific title, body, and branch syntax is checked by
+//           implementation evidence outside this finite model.
+// ASSUME-2: duplicate_checked means the hosting service was queried for the
+//           resolved head and base pair.
+// ASSUME-3: pushed records that the selected head is remotely available before
+//           this invocation opens a new Pull Request.
+// ASSUME-4: an existing Pull Request is reused outside this creation gate; the
+//           model forbids opening a second one.
+spec PullRequestCreation {
+  enum Status {
+    Start,
+    ContextResolved,
+    NoExistingPullRequest,
+    ScopeReviewed,
+    ReadyToPush,
+    DraftToPush,
+    PushedReady,
+    PushedDraft,
+    PullRequest,
+    ExistingPullRequest,
+    Blocked
+  }
+
+  state {
+    status: Status,
+    issue_linked: Bool,
+    route_valid: Bool,
+    duplicate_checked: Bool,
+    existing_reused: Bool,
+    scope_reviewed: Bool,
+    validation_recorded: Bool,
+    validation_passed: Bool,
+    pushed: Bool,
+    pr_available: Bool,
+    ready: Bool
+  }
+
+  init {
+    status = Start
+    issue_linked = false
+    route_valid = false
+    duplicate_checked = false
+    existing_reused = false
+    scope_reviewed = false
+    validation_recorded = false
+    validation_passed = false
+    pushed = false
+    pr_available = false
+    ready = false
+  }
+
+  action resolve_context() {
+    requires status == Start
+    issue_linked = true
+    route_valid = true
+    status = ContextResolved
+  }
+
+  action block_missing_context() {
+    requires status == Start
+    status = Blocked
+  }
+
+  action detect_existing_pr() {
+    requires status == ContextResolved
+    duplicate_checked = true
+    existing_reused = true
+    pr_available = true
+    status = ExistingPullRequest
+  }
+
+  action confirm_no_existing_pr() {
+    requires status == ContextResolved
+    duplicate_checked = true
+    status = NoExistingPullRequest
+  }
+
+  action review_scope() {
+    requires status == NoExistingPullRequest
+    scope_reviewed = true
+    status = ScopeReviewed
+  }
+
+  action validate_ready() {
+    requires status == ScopeReviewed
+    validation_recorded = true
+    validation_passed = true
+    status = ReadyToPush
+  }
+
+  // This covers both an explicitly requested draft and a draft required by
+  // incomplete or failing validation. Detailed outcomes remain body evidence.
+  action prepare_draft() {
+    requires status == ScopeReviewed
+    validation_recorded = true
+    status = DraftToPush
+  }
+
+  action block_scope_drift() {
+    requires status == NoExistingPullRequest
+    status = Blocked
+  }
+
+  action push_ready_head() {
+    requires status == ReadyToPush
+    pushed = true
+    status = PushedReady
+  }
+
+  action push_draft_head() {
+    requires status == DraftToPush
+    pushed = true
+    status = PushedDraft
+  }
+
+  action open_ready_pr() {
+    requires status == PushedReady
+    requires issue_linked
+    requires route_valid
+    requires duplicate_checked
+    requires scope_reviewed
+    requires validation_recorded
+    requires validation_passed
+    requires pushed
+    pr_available = true
+    ready = true
+    status = PullRequest
+  }
+
+  action open_draft_pr() {
+    requires status == PushedDraft
+    requires issue_linked
+    requires route_valid
+    requires duplicate_checked
+    requires scope_reviewed
+    requires validation_recorded
+    requires pushed
+    pr_available = true
+    status = PullRequest
+  }
+
+  invariant NewPullRequestHasContext {
+    status == PullRequest => issue_linked and route_valid
+  }
+
+  invariant NewPullRequestWasDeduplicated {
+    status == PullRequest => duplicate_checked and not existing_reused
+  }
+
+  invariant NewPullRequestWasReviewed {
+    status == PullRequest => scope_reviewed and validation_recorded
+  }
+
+  invariant NewPullRequestWasPushed {
+    status == PullRequest => pushed
+  }
+
+  invariant ReadyPullRequestPassedValidation {
+    (status == PullRequest and ready) => validation_passed
+  }
+
+  invariant ExistingPullRequestIsReusedWithContext {
+    status == ExistingPullRequest =>
+      issue_linked and route_valid and duplicate_checked and
+      existing_reused and pr_available
+  }
+
+  invariant PullRequestAvailabilityMatchesTerminalState {
+    pr_available => status == PullRequest or status == ExistingPullRequest
+  }
+
+  terminal {
+    status == PullRequest or status == ExistingPullRequest or status == Blocked
+  }
+
+  reachable ReadyPullRequest { status == PullRequest and ready }
+  reachable DraftPullRequest { status == PullRequest and not ready }
+  reachable ReusedPullRequest { status == ExistingPullRequest }
+  reachable MissingContextBlocked { status == Blocked }
+}
