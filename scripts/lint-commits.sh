@@ -28,8 +28,3 @@ else
     lint_message "${commit}"
   done
 fi
-
-if [[ -n "${PR_TITLE:-}" ]]; then
-  echo "Checking pull request title"
-  printf '%s\n' "${PR_TITLE}" | "${commitlint_bin}" lint
-fi

@@ -1,0 +1,8 @@
+[[routes]]
+head_pattern = "^issue/[1-9][0-9]*$"
+base_pattern = "^main$"
+requires_issue_link = true
+
+[[routes]]
+head_pattern = "^dependabot/"
+base_pattern = "^main$"
