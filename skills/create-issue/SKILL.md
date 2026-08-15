@@ -20,7 +20,7 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 - Use `[Type]: Verb Summary`. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, or `Maintenance`; Summary begins with a capitalized imperative verb.
 - Include `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation`.
 - Open `issue/<number>` back to the default branch with `Closes #<number>`.
-- To update the branch, merge the latest default branch into it and push normally. Do not rebase or force-push it.
+- To update the branch, rebase it onto the latest default branch and push with `--force-with-lease`. Never use plain `--force`.
 
 ## Release Issues
 
