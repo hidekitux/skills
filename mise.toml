@@ -13,11 +13,11 @@ actionlint = "1.7.12"
 
 [tasks.validate]
 description = "Run supported-platform repository validations"
-depends = ["validate-repository", "validate-skills", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "test", "diff-check", "validate-branch-policy"]
+depends = ["validate-repository", "validate-skills", "validate-hosts", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "test", "diff-check", "validate-branch-policy"]
 
-[tasks.validate-local]
-description = "Run supported-platform validation plus Codex skill-creator validation"
-depends = ["validate", "validate-skill-creator"]
+[tasks.validate-hosts]
+description = "Validate local installation for Codex and Claude Code"
+run = "bash scripts/validate-hosts.sh"
 
 [tasks.verify-fsl]
 description = "Check and verify every FSL specification"

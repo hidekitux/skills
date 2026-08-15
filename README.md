@@ -20,7 +20,7 @@ mise trust
 mise tasks ls
 ```
 
-このリポジトリは `skill-creator` の検証に Python と uv を使うため、`mise.toml` でそれらを固定しています。ほかのツールは、リポジトリが実際に必要になった時点でだけ追加します。
+このリポジトリは、Codex で利用できる `skill-creator` の追加検証に Python と uv を使うため、`mise.toml` でそれらを固定しています。すべてのホストで必要な検証は `mise run validate` です。これは一時リポジトリへの導入を通じて Codex と Claude Code の両方を検証します。ほかのツールは、リポジトリが実際に必要になった時点でだけ追加します。
 
 `mise run validate` は、FSL検証を含むため Linux x64 と macOS Apple Silicon をサポート対象とします。ほかのプラットフォームでは、対応する `fslc` が導入されるまで完全な検証は実行できません。
 
@@ -51,10 +51,10 @@ mise run validate
 契約を確認するリポジトリ整合性検査も含まれます。単独で確認する場合は
 `mise run validate-repository` を使います。
 
-Codex でスキルを作成・更新した場合は、`skill-creator` の検証も加えます。
+`skill-creator` が利用できる Codex では、追加でスキル作成向け検証を実行します。Claude Code を含むほかのホストでは、前述の共通検証だけでスキルの公開可否を確認します。
 
 ```bash
-mise run validate-local
+mise run validate-skill-creator
 ```
 
 4. レビュー後、[リリース手順](docs/releasing.md)に従ってカタログとセマンティックバージョンのタグを検証してから公開する。
@@ -64,21 +64,25 @@ mise run verify-release -- vX.Y.Z
 gh skill publish --tag vX.Y.Z
 ```
 
-新規作成・大幅更新では、必ず `skill-creator` を使います。依頼内容を [スキル作成ブリーフ](docs/skill-brief-template.md) の項目で渡すと、発動条件、出力、検証方法を不足なく設計できます。
+新規作成・大幅更新では、利用可能な場合に `skill-creator` を使います。Claude Code などで利用できない場合も、[スキル作成ブリーフ](docs/skill-brief-template.md) の項目を満たし、共通検証を実行してください。
 
 ## 利用
 
-Codex のユーザー領域へ全スキルを導入する例です。
+`gh skill` は Codex と Claude Code の両方に対応しています。ユーザー領域へ全スキルを導入する例です。
 
 ```bash
 gh skill install hidekitux/skills --all --agent codex --scope user
+gh skill install hidekitux/skills --all --agent claude-code --scope user
 ```
 
 プロジェクト単位で導入する場合は、対象プロジェクトで `--scope project` を指定します。リリースを固定したい場合は `skill-name@vX.Y.Z` を指定してください。
 
 ```bash
 gh skill install hidekitux/skills <skill-name>@vX.Y.Z --agent codex --scope project
+gh skill install hidekitux/skills <skill-name>@vX.Y.Z --agent claude-code --scope project
 ```
+
+`--agent` には利用するホストを一つ指定します。上の2行は代替例であり、同じスキルを両方のホストへ導入する場合はそれぞれ実行してください。
 
 ## エージェント互換性
 

@@ -38,7 +38,8 @@ spec ReleaseGate {
     catalog_version = release_version
   }
 
-  // This represents mise run validate. Codex-only validate-local is additional
+  // This represents mise run validate, including Codex and Claude Code
+  // installation checks. skill-creator validation is additional Codex authoring
   // evidence and is intentionally outside the portable publication gate.
   action validate() {
     requires status == Draft

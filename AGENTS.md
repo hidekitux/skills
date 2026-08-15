@@ -9,7 +9,11 @@
 - Do not put credentials, tokens, private URLs, or user data in the repository.
 - Use mise as the project command entry point. Run supported-platform repository checks with `mise run validate`; do not document or automate a direct replacement command when a mise task exists.
 - Keep the repository's required tools and their pinned versions in `mise.toml`. Do not add a tool, a version, or a task unless this repository actually needs it.
-- Before publishing, run `mise run validate` from the repository root. When working in Codex with `skill-creator` available, also run `mise run validate-local`.
+- Before publishing, run `mise run validate` from the repository root. It
+  includes installation validation for Codex and Claude Code. When
+  `skill-creator` is available, also run `mise run validate-skill-creator` as
+  additional Codex-specific authoring evidence; it is not required to use a
+  skill in Claude Code.
 - Before publishing, align every catalog version with the release tag, commit the release contents, and run `mise run verify-release -- vX.Y.Z`. Publish only the verified commit with `gh skill publish --tag vX.Y.Z`; never overwrite an existing release tag.
 
 ## Todo List contract
@@ -22,7 +26,10 @@
 
 ## Creating and updating skills
 
-- Always invoke the `skill-creator` skill before creating a new skill or making a substantial update to an existing one.
+- When `skill-creator` is available, invoke it before creating a new skill or
+  making a substantial update to an existing one. In hosts where it is not
+  available, use `docs/skill-brief-template.md` to collect the same design
+  inputs, then run the repository validations.
 - Treat this repository as the explicit destination: initialize a new publishable skill below `skills/`, not in a local agent directory.
 - Before authoring, collect concrete trigger examples, the intended output, non-goals, required tools or data, and a verification method. Use `docs/skill-brief-template.md` when this information is not already present in the request.
 - Design every new or substantially updated skill to follow the Todo List contract above. Put its task-specific initial items and completion evidence in `SKILL.md`; do not rely only on this repository guidance being present at installation time.
