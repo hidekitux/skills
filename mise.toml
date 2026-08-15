@@ -13,7 +13,7 @@ actionlint = "1.7.12"
 
 [tasks.validate]
 description = "Run supported-platform repository validations"
-depends = ["validate-repository", "validate-skills", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "diff-check", "validate-branch-policy"]
+depends = ["validate-repository", "validate-skills", "verify-fsl", "lint-actions", "lint-python", "lint-shell", "test", "diff-check", "validate-branch-policy"]
 
 [tasks.validate-local]
 description = "Run supported-platform validation plus Codex skill-creator validation"
@@ -39,7 +39,11 @@ run = "actionlint"
 
 [tasks.lint-python]
 description = "Lint and format-check Python scripts"
-run = "RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff check scripts skills && RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff format --check scripts skills"
+run = "RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff check scripts skills tests && RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff format --check scripts skills tests"
+
+[tasks.test]
+description = "Run repository unit tests"
+run = "python -m unittest discover -s tests"
 
 [tasks.lint-shell]
 description = "Lint Bash and POSIX shell scripts"
