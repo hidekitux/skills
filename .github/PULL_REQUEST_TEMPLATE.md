@@ -2,6 +2,10 @@
 
 <!-- What capability or repository behavior changes? -->
 
+## Issue
+
+<!-- Issue branches must use: Closes #<issue-number> -->
+
 ## Skill checklist
 
 - [ ] `name` matches the skill directory name.

@@ -28,4 +28,12 @@ if ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
 fi
 
 echo "Checking whitespace in ${base}...${head}."
-git diff --check "${base}...${head}"
+if git merge-base --is-ancestor "${base}" "${head}"; then
+  git diff --check "${base}...${head}"
+else
+  # A force-push can replace the base commit with an unrelated history.
+  # In that case, check the complete new tree rather than assuming a merge base.
+  empty_tree="$(git hash-object -t tree /dev/null)"
+  echo "Base is not an ancestor of ${head}; checking the committed tree instead."
+  git diff --check "${empty_tree}" "${head}"
+fi

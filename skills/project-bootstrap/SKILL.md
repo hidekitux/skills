@@ -66,6 +66,11 @@ should document or verify its stateful workflows.
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids
   direct pushes while allowing GitHub to merge accepted pull requests.
+- For issue-based delivery, use `issue/<number>` for human work branches and
+  require a matching `Closes #<number>` PR-body line. Protect `develop`,
+  `main`, and applicable `release/*` branches, then validate PR direction in CI.
+  Default flow: `issue/* -> develop -> release/vX.Y.Z -> main`; document every
+  automated exception explicitly. See [branch policy](references/branch-policy.md).
 - Add or update `mise.toml`. Pin only the tools the project actually needs and
   expose applicable `format`, `lint`, `test`, and `check` tasks. Make `check`
   compose the relevant validations rather than duplicating their commands.

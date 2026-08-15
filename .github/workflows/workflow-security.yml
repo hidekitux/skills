@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   zizmor:
@@ -21,5 +22,7 @@ jobs:
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
       # v0.6.2 -> 3dc1ecc9bcb9e94e9b2c709687979e1298497054
       - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054

@@ -1,0 +1,19 @@
+// Confirmed policy: issue branches merge into develop, then release branches, then main.
+spec BranchFlow {
+  enum Status { Draft, IssueCreated, WorkBranch, PullRequest, Developed, ReleaseBranch, Released }
+  state { status: Status, issue_linked: Bool, developed: Bool, release_created: Bool, released: Bool }
+  init { status = Draft issue_linked = false developed = false release_created = false released = false }
+  action create_issue() { requires status == Draft status = IssueCreated }
+  action create_issue_branch() { requires status == IssueCreated status = WorkBranch }
+  action open_issue_pr() { requires status == WorkBranch issue_linked = true status = PullRequest }
+  action merge_to_develop() { requires status == PullRequest requires issue_linked status = Developed developed = true }
+  action cut_release() { requires status == Developed status = ReleaseBranch release_created = true }
+  action merge_release_to_main() { requires status == ReleaseBranch requires release_created status = Released released = true }
+  // Projects that do not configure a release route may promote develop directly.
+  action merge_develop_to_main() { requires status == Developed status = Released released = true }
+  invariant DevelopedWasIssueLinked { developed => issue_linked }
+  invariant ReleasedWasDeveloped { released => developed }
+  invariant ReleasedOnlyByReleaseMerge { (status == Released) == released }
+  terminal { status == Released }
+  reachable IssueReachesMain { status == Released }
+}

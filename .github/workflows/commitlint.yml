@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
+          persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
