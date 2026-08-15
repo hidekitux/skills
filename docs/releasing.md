@@ -6,8 +6,10 @@
 
 1. リリース対象の `vX.Y.Z` に、`CATALOG.yml` の全スキルの `version` を揃える。
 2. Todo List、検証結果、変更内容をレビューする。
-3. リポジトリルートで `mise run validate` を実行する。Codex で
-   `skill-creator` が利用可能な場合は、追加で `mise run validate-local` を実行する。
+3. リポジトリルートで `mise run validate` を実行する。これは Codex と
+   Claude Code の両方への導入を検証する。Codex で `skill-creator` が利用可能な
+   場合は、追加で `mise run validate-skill-creator` を実行する。この追加検証は
+   Claude Code での利用条件ではない。
 4. `specs/*.fsl` を変更した場合は `mise run mutate-fsl` を実行し、survivor をレビューする。
 5. 変更をコミットする。
 6. `mise run verify-release -- vX.Y.Z` で、タグ形式・カタログのバージョン・コミット済み状態を確認する。

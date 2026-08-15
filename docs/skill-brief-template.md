@@ -1,10 +1,11 @@
 # スキル作成ブリーフ
 
-新規スキルまたは大幅更新を依頼するときは、次を埋めて `skill-creator` に渡します。未決事項は推測で埋めず、質問として残します。
+新規スキルまたは大幅更新を依頼するときは、次を埋めて利用可能な作成支援ワークフローへ渡します。Codex では `skill-creator` を使えます。未決事項は推測で埋めず、質問として残します。
 
 ```markdown
-Use the skill-creator skill to create or update a publishable skill in
-skills/.
+Create or update a publishable skill in skills/. When the host provides
+skill-creator, use it; otherwise follow this brief and the repository
+validation workflow.
 
 ## Name
 - Proposed skill name:
