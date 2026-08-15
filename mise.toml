@@ -39,7 +39,7 @@ run = "actionlint"
 
 [tasks.lint-python]
 description = "Lint and format-check Python scripts"
-run = "ruff check scripts skills && ruff format --check scripts skills"
+run = "RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff check scripts skills && RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff format --check scripts skills"
 
 [tasks.lint-shell]
 description = "Lint Bash and POSIX shell scripts"
