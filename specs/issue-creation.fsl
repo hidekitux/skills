@@ -1,0 +1,201 @@
+// Confirmed formalization memo for creating change and release Issues.
+//
+// ASSUME-1: repository-specific title, body, and template syntax is checked by
+//           implementation evidence outside this finite model.
+// ASSUME-2: issue_available represents GitHub assigning both an Issue number
+//           and URL as one successful creation result.
+// ASSUME-3: duplicate Issue detection and reuse are not part of the current
+//           create-issue contract.
+// ASSUME-4: release Pull Requests, publication, and post-publication closure
+//           happen after this creation workflow.
+spec IssueCreation {
+  enum Status {
+    Start,
+    ChangeContext,
+    ReleaseContext,
+    ChangeDrafted,
+    ReleaseDrafted,
+    ChangeIssueCreated,
+    ChangeReady,
+    ReleaseReady,
+    MissingContextBlocked,
+    ChangeIssueBlocked,
+    ReleaseIssueBlocked,
+    ChangeBranchBlocked
+  }
+
+  state {
+    status: Status,
+    context_resolved: Bool,
+    change: Bool,
+    release: Bool,
+    draft_valid: Bool,
+    issue_available: Bool,
+    branch_available: Bool,
+    ever_blocked: Bool
+  }
+
+  init {
+    status = Start
+    context_resolved = false
+    change = false
+    release = false
+    draft_valid = false
+    issue_available = false
+    branch_available = false
+    ever_blocked = false
+  }
+
+  action resolve_change_context() {
+    requires status == Start
+    context_resolved = true
+    change = true
+    status = ChangeContext
+  }
+
+  action resolve_release_context() {
+    requires status == Start
+    context_resolved = true
+    release = true
+    status = ReleaseContext
+  }
+
+  action block_missing_context() {
+    requires status == Start
+    ever_blocked = true
+    status = MissingContextBlocked
+  }
+
+  action draft_change_issue() {
+    requires status == ChangeContext
+    draft_valid = true
+    status = ChangeDrafted
+  }
+
+  action draft_release_issue() {
+    requires status == ReleaseContext
+    draft_valid = true
+    status = ReleaseDrafted
+  }
+
+  action create_change_issue() {
+    requires status == ChangeDrafted
+    issue_available = true
+    status = ChangeIssueCreated
+  }
+
+  action create_release_issue() {
+    requires status == ReleaseDrafted
+    issue_available = true
+    status = ReleaseReady
+  }
+
+  action block_change_issue_creation() {
+    requires status == ChangeDrafted
+    ever_blocked = true
+    status = ChangeIssueBlocked
+  }
+
+  action block_release_issue_creation() {
+    requires status == ReleaseDrafted
+    ever_blocked = true
+    status = ReleaseIssueBlocked
+  }
+
+  action create_change_branch() {
+    requires status == ChangeIssueCreated
+    branch_available = true
+    status = ChangeReady
+  }
+
+  action block_change_branch() {
+    requires status == ChangeIssueCreated
+    ever_blocked = true
+    status = ChangeBranchBlocked
+  }
+
+  invariant ResolvedContextHasExactlyOneKind {
+    context_resolved =>
+      (change and not release) or (release and not change)
+  }
+
+  invariant BlockedOutcomeIsTerminal {
+    ever_blocked ==
+      (status == MissingContextBlocked or status == ChangeIssueBlocked or
+       status == ReleaseIssueBlocked or status == ChangeBranchBlocked)
+  }
+
+  invariant MissingContextBlockHasNoContext {
+    status == MissingContextBlocked =>
+      not context_resolved and not draft_valid and
+      not issue_available and not branch_available
+  }
+
+  invariant ChangeIssueBlockHasValidDraft {
+    status == ChangeIssueBlocked =>
+      context_resolved and change and not release and draft_valid and
+      not issue_available and not branch_available
+  }
+
+  invariant ReleaseIssueBlockHasValidDraft {
+    status == ReleaseIssueBlocked =>
+      context_resolved and release and not change and draft_valid and
+      not issue_available and not branch_available
+  }
+
+  invariant ChangeBranchBlockHasIssue {
+    status == ChangeBranchBlocked =>
+      context_resolved and change and not release and draft_valid and
+      issue_available and not branch_available
+  }
+
+  invariant IssueRequiresContextAndDraft {
+    issue_available => context_resolved and draft_valid
+  }
+
+  invariant BranchRequiresChangeIssue {
+    branch_available => issue_available and change and not release
+  }
+
+  invariant ChangeReadyHasIssueAndBranch {
+    status == ChangeReady =>
+      context_resolved and change and not release and draft_valid and
+      issue_available and branch_available
+  }
+
+  invariant ReleaseReadyHasIssueWithoutBranch {
+    status == ReleaseReady =>
+      context_resolved and release and draft_valid and
+      issue_available and not branch_available
+  }
+
+  terminal {
+    status == ChangeReady or status == ReleaseReady or
+      status == MissingContextBlocked or status == ChangeIssueBlocked or
+      status == ReleaseIssueBlocked or status == ChangeBranchBlocked
+  }
+
+  reachable ChangeIssueReady {
+    status == ChangeReady
+  }
+
+  reachable ReleaseIssueReady {
+    status == ReleaseReady
+  }
+
+  reachable MissingContextBlocked {
+    status == MissingContextBlocked
+  }
+
+  reachable ChangeIssueCreationBlocked {
+    status == ChangeIssueBlocked
+  }
+
+  reachable ReleaseIssueCreationBlocked {
+    status == ReleaseIssueBlocked
+  }
+
+  reachable ChangeBranchBlocked {
+    status == ChangeBranchBlocked
+  }
+}
