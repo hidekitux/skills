@@ -57,6 +57,10 @@ should document or verify its stateful workflows.
   explicit release exception `[Release]: vX.Y.Z`. Validate title syntax in CI,
   but do not require a PR title to equal any linked Issue because a PR may close
   more than one Issue.
+- Provision Change and Release Issue templates. Require `Context`, `Goal`,
+  `Scope`, `Acceptance criteria`, and `Validation`; Release templates also
+  require `Added`/`Changed`/`Fixed`/`Removed` changelog headings. Define public
+  releases as `vX.Y.Z` and build identifiers as `vX.Y.Z+N`.
 - When the project is hosted on GitHub and the user wants PR-only protected
   branches, first create and run its CI workflows. Identify their completed job
   names, then use `scripts/configure-github-ruleset.py` with an explicit
@@ -77,6 +81,8 @@ should document or verify its stateful workflows.
   explicitly configured integration or release branches, then validate PR
   direction in CI. Default flow: `issue/* -> main`; document every automated
   exception explicitly. See [branch policy](references/branch-policy.md).
+- Synchronize an Issue branch by merging the latest target branch into it and
+  pushing normally. Do not rebase or force-push an existing Issue branch.
 - Add or update `mise.toml`. Pin only the tools the project actually needs and
   expose applicable `format`, `lint`, `test`, and `check` tasks. Make `check`
   compose the relevant validations rather than duplicating their commands.

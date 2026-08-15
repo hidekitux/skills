@@ -1,0 +1,24 @@
+name: Issue policy
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  policy:
+    name: Validate issue policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python3 scripts/validate-work-item-title.py --title "$ISSUE_TITLE"
+          python3 scripts/validate-issue-body.py --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
