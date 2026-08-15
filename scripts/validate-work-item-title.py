@@ -8,7 +8,6 @@ import re
 import sys
 
 TYPES = "Feature|Bug|Improvement|Documentation|Security|Maintenance|Release"
-VERBS = "Add|Fix|Improve|Document|Harden|Configure|Update|Remove|Enforce|Prevent"
 
 
 def main() -> int:
@@ -16,12 +15,13 @@ def main() -> int:
     parser.add_argument("--title", required=True)
     args = parser.parse_args()
     release = r"\[Release\]: v[0-9]+\.[0-9]+\.[0-9]+"
-    standard = rf"\[(?:{TYPES})\]: (?:{VERBS})\b.+"
+    standard = rf"\[(?:{TYPES})\]: [A-Z].+"
     if re.fullmatch(rf"(?:{release}|{standard})", args.title):
         print("Work item title is valid.")
         return 0
     print(
-        "error: title must be [Type]: Verb Summary; Release uses [Release]: vX.Y.Z",
+        "error: title must be [Type]: Summary beginning with a capital letter; "
+        "Release uses [Release]: vX.Y.Z",
         file=sys.stderr,
     )
     return 1

@@ -53,7 +53,8 @@ should document or verify its stateful workflows.
   title checks when the project has a CI provider. Treat branch protection as
   part of enforcement and report it separately from a passing workflow.
 - Use shared Issue and Pull Request titles in the form `[Type]: Verb Summary`.
-  Define a small common Type list and an imperative verb list; permit the
+  Define a small common Type list and require Summary to begin with a
+  capitalized imperative verb; do not maintain a finite verb list. Permit the
   explicit release exception `[Release]: vX.Y.Z`. Validate title syntax in CI,
   but do not require a PR title to equal any linked Issue because a PR may close
   more than one Issue.

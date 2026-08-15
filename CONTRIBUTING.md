@@ -35,7 +35,7 @@ GitHub Actions がコミットメッセージと Pull Request タイトルを検
 
 ## Issue and Pull Request titles
 
-Issue と Pull Request はともに `[Type]: Verb Summary` を使います。Type は `Feature`、`Bug`、`Improvement`、`Documentation`、`Security`、`Maintenance`、`Release` のいずれかです。Summary は `Add`、`Fix`、`Improve`、`Document`、`Harden`、`Configure`、`Update`、`Remove`、`Enforce`、`Prevent` のいずれかの動詞で始めます。Release のみ `[Release]: vX.Y.Z` を使う例外です。PR は 1 件以上の Issue を扱えるため、Issue の Title との完全一致は要求しません。
+Issue と Pull Request はともに `[Type]: Verb Summary` を使います。Type は `Feature`、`Bug`、`Improvement`、`Documentation`、`Security`、`Maintenance`、`Release` のいずれかです。Summary は大文字で始まる命令形動詞から始めます。動詞の固定リストは設けません。Release のみ `[Release]: vX.Y.Z` を使う例外です。PR は 1 件以上の Issue を扱えるため、Issue の Title との完全一致は要求しません。
 
 Issue は Change または Release テンプレートで作成します。どちらも `Context`、`Goal`、`Scope`、`Acceptance criteria`、`Validation` を含めます。Release Issue には `Added`、`Changed`、`Fixed`、`Removed` の Changelog も必須です。公開版は `vX.Y.Z`、成果物のビルド識別子は `vX.Y.Z+N` とします。
 
