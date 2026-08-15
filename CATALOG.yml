@@ -25,6 +25,14 @@ skills:
     host_adapters: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+  - name: audit-workflow-enforcement
+    summary: Audit mandatory repository rules with deterministic checks and bounded subagent review.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    host_adapters: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
 
 # Example entry:
 # - name: pr-review

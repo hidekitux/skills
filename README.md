@@ -32,6 +32,11 @@ mise tasks ls
 | FSL 仕様の検証 | `mise run verify-fsl` |
 | FSL 仕様の mutation 確認 | `mise run mutate-fsl` |
 | リリース候補の確認 | `mise run verify-release -- vX.Y.Z` |
+| 検証済みリリースの公開 | `mise run release:publish -- vX.Y.Z` |
+
+`setup` は `.githooks` を有効にします。branch checkout 時は `setup` を再実行し、
+commit 時は `check:local`、push 時は `validate` を自動実行します。これらの検査が
+失敗した場合、該当する commit または push は完了しません。
 
 このリポジトリは、Codex で利用できる `skill-creator` の追加検証に Python と uv を使うため、`mise.toml` でそれらを固定しています。すべてのホストで必要な検証は `mise run validate` です。これは一時リポジトリへの導入を通じて Codex と Claude Code の両方を検証します。ほかのツールは、リポジトリが実際に必要になった時点でだけ追加します。
 
@@ -61,7 +66,8 @@ mise run validate
 ```
 
 `validate` には、`CATALOG.yml`、Apache-2.0 表記、ホストアダプター、Todo List
-契約を確認するリポジトリ整合性検査も含まれます。単独で確認する場合は
+契約、既知の機密値・プライベートURL・ユーザーパス、開発ツールのライセンス証跡、
+スクリプトと代表テストの対応表を確認するリポジトリ整合性検査も含まれます。単独で確認する場合は
 `mise run check:repository` を使います。
 
 `skill-creator` が利用できる Codex では、追加でスキル作成向け検証を実行します。Claude Code を含むほかのホストでは、前述の共通検証だけでスキルの公開可否を確認します。
@@ -73,8 +79,7 @@ mise run validate-skill-creator
 4. レビュー後、[リリース手順](docs/releasing.md)に従ってカタログとセマンティックバージョンのタグを検証してから公開する。
 
 ```bash
-mise run verify-release -- vX.Y.Z
-gh skill publish --tag vX.Y.Z
+mise run release:publish -- vX.Y.Z
 ```
 
 新規作成・大幅更新では、利用可能な場合に `skill-creator` を使います。Claude Code などで利用できない場合も、[スキル作成ブリーフ](docs/skill-brief-template.md) の項目を満たし、共通検証を実行してください。
