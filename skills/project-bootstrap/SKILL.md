@@ -67,7 +67,7 @@ should document or verify its stateful workflows.
   live repository policy. The default target is `main`; add every additional
   protected branch explicitly with `--branch`. Use one
   approval, stale-approval dismissal, last-push approval, resolved conversations,
-  linear history, no force pushes or deletions, and no bypass actors. Use
+  rebase merging, linear history, no force pushes or deletions, and no bypass actors. Use
   `--allow-last-push-approval` and `--approvals 0` only for a confirmed solo
   workflow. Add `--require-code-owner-review` only after creating `CODEOWNERS`.
   Do not add a restrictive `update` rule: the pull-request rule is what forbids

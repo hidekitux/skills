@@ -78,7 +78,7 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     if any(not context.strip() for context in args.required_check):
         raise ValueError("--required-check values must not be empty")
 
-    merge_methods = args.allow_merge_method or ["squash"]
+    merge_methods = args.allow_merge_method or ["rebase"]
     return {
         "name": args.ruleset_name,
         "target": "branch",
