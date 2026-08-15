@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PATH="${root}/.mise/bin:${PATH}"
+cache_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-fslc"
+export PATH="${FSLC_BIN_DIR:-${cache_root}/bin}:${PATH}"
 depth="${FSL_DEPTH:-8}"
 found=0
 

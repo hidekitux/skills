@@ -39,7 +39,7 @@ run = "actionlint"
 
 [tasks.lint-python]
 description = "Lint and format-check Python scripts"
-run = "RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff check scripts skills tests && RUFF_CACHE_DIR=\"$PWD/.mise/ruff-cache\" ruff format --check scripts skills tests"
+run = "RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff check scripts skills tests && RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff format --check scripts skills tests"
 
 [tasks.test]
 description = "Run repository unit tests"
@@ -68,14 +68,14 @@ run = "gh skill publish --dry-run"
 [tasks.verify-release]
 description = "Verify a release tag matches the catalog and committed state"
 run = '''
-export UV_CACHE_DIR="$PWD/.mise/uv-cache"
+export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-verify-release-uv-cache"
 uv run --with "pyyaml==6.0.3" python scripts/verify-release.py "$@"
 '''
 
 [tasks.validate-repository]
 description = "Validate catalog, licenses, host adapters, and Todo List guidance"
 run = '''
-export UV_CACHE_DIR="$PWD/.mise/uv-cache"
+export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-repository-uv-cache"
 uv run --with "pyyaml==6.0.3" python scripts/validate-repository.py
 '''
 
@@ -95,7 +95,7 @@ test -f "$skill_creator_root/scripts/quick_validate.py" || {
   echo "skill-creator validator not found; set SKILL_CREATOR_ROOT to its skill directory." >&2
   exit 2
 }
-export UV_CACHE_DIR="$PWD/.mise/uv-cache"
+export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-skill-creator-uv-cache"
 find skills -type f -name SKILL.md -print0 |
   while IFS= read -r -d '' skill_file; do
     uv run --with "pyyaml==6.0.3" python \

@@ -20,7 +20,7 @@ FSL は、スキルの本文や Markdown の品質を直接判定するもので
 mise run verify-fsl
 ```
 
-このタスクは、公式リリースの `fslc` v4.2.0 をSHA-256で検証して `.mise/bin/` に導入してから、各仕様に対して `fslc check` と `fslc verify --depth 8` を実行します。深さは必要に応じて `FSL_DEPTH=12 mise run verify-fsl` のように上書きできます。対応プラットフォームは GitHub Actions の Linux x64 と開発環境の macOS Apple Silicon です。
+このタスクは、公式リリースの `fslc` v4.2.0 をSHA-256で検証して CI では `RUNNER_TEMP`、ローカルでは `TMPDIR` 配下の一時キャッシュに導入してから、各仕様に対して `fslc check` と `fslc verify --depth 8` を実行します。深さは必要に応じて `FSL_DEPTH=12 mise run verify-fsl` のように上書きできます。対応プラットフォームは GitHub Actions の Linux x64 と開発環境の macOS Apple Silicon です。
 
 ## 作成時の約束
 

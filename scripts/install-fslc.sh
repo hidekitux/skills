@@ -3,7 +3,8 @@ set -euo pipefail
 
 fsl_version="4.2.0"
 download_base="https://github.com/ymm-oss/fsl/releases/download/v${fsl_version}"
-bin_dir="${FSLC_BIN_DIR:-$PWD/.mise/bin}"
+cache_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-fslc"
+bin_dir="${FSLC_BIN_DIR:-${cache_root}/bin}"
 bin_path="${bin_dir}/fslc"
 
 case "$(uname -s):$(uname -m)" in
