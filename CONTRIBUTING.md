@@ -32,6 +32,8 @@ mise run setup
 ```
 
 GitHub Actions がコミットメッセージと Pull Request タイトルを検証します。
+ローカルでは、Git Hooks が commit 前に `mise run check:local`、push 前に
+`mise run validate` を実行します。失敗した検査を解消してから再試行してください。
 
 ## Issue and Pull Request titles
 

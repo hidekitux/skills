@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Workflow Enforcement"
+  short_description: "Audit repository rules with scripts and subagents"
+  default_prompt: "Use $audit-workflow-enforcement to audit this repository for unenforced workflow rules."

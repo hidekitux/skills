@@ -63,6 +63,8 @@ run = '''
 shellcheck --shell=bash scripts/*.sh
 shellcheck --shell=sh .githooks/commit-msg
 shellcheck --shell=sh .githooks/post-checkout
+shellcheck --shell=sh .githooks/pre-commit
+shellcheck --shell=sh .githooks/pre-push
 '''
 
 [tasks."setup:commitlint"]
@@ -84,11 +86,18 @@ export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-verify-release-uv-ca
 uv run --with "pyyaml==6.0.3" python scripts/verify-release.py "$@"
 '''
 
+[tasks."release:publish"]
+description = "Run release gates, then publish a verified release tag"
+run = "bash scripts/publish-release.sh \"$@\""
+
 [tasks."check:repository"]
-description = "Validate catalog, licenses, host adapters, and Todo List guidance"
+description = "Validate repository policy, sensitive content, licenses, and test evidence"
 run = '''
 export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-repository-uv-cache"
 uv run --with "pyyaml==6.0.3" python scripts/validate-repository.py
+uv run --with "pyyaml==6.0.3" python scripts/check-tool-licenses.py
+uv run --with "pyyaml==6.0.3" python scripts/validate-script-tests.py
+python scripts/check-sensitive-content.py
 '''
 
 [tasks."check:diff"]

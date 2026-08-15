@@ -2,11 +2,10 @@
 set -eu
 
 # Git passes 1 as the third argument for branch checkouts and 0 for file
-# checkouts. Register skills only when the checked-out branch may have changed.
+# checkouts. Refresh local setup only when the checked-out branch may have
+# changed.
 [ "$3" = "1" ] || exit 0
 
-root=$(git rev-parse --show-toplevel)
-
-if ! bash "${root}/scripts/register-local-skills.sh"; then
-  echo "Warning: Local skill registration did not complete." >&2
+if ! mise run setup; then
+  echo "Warning: Local setup did not complete." >&2
 fi

@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+if ! command -v mise >/dev/null 2>&1; then
+  echo "mise is required to run repository checks." >&2
+  echo "Run: mise run setup" >&2
+  exit 2
+fi
+
+exec mise run check:local

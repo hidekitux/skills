@@ -1,0 +1,23 @@
+# Representative test evidence for each executable repository script. This
+# mapping proves that an added script has an intentional test home; reviewers
+# still inspect whether that test exercises the changed behavior.
+[scripts]
+"scripts/check-sensitive-content.py" = "tests/test_policy_checks.py"
+"scripts/check-tool-licenses.py" = "tests/test_policy_checks.py"
+"scripts/check-whitespace.sh" = "tests/test_local_setup.py"
+"scripts/install-fslc.sh" = "tests/test_validation_state_isolation.py"
+"scripts/lint-commits.sh" = "tests/test_local_setup.py"
+"scripts/mutate-fsl.sh" = "tests/test_validation_state_isolation.py"
+"scripts/publish-release.sh" = "tests/test_publish_release.py"
+"scripts/register-local-skills.sh" = "tests/test_local_setup.py"
+"scripts/setup-commitlint.sh" = "tests/test_local_setup.py"
+"scripts/setup-local-skills.sh" = "tests/test_local_setup.py"
+"scripts/validate-branch-policy.py" = "tests/test_validate_work_item_bodies.py"
+"scripts/validate-hosts.sh" = "tests/test_local_setup.py"
+"scripts/validate-issue-body.py" = "tests/test_validate_work_item_bodies.py"
+"scripts/validate-pr-commit-signatures.py" = "tests/test_validate_pr_commit_signatures.py"
+"scripts/validate-repository.py" = "tests/test_policy_checks.py"
+"scripts/validate-script-tests.py" = "tests/test_policy_checks.py"
+"scripts/validate-work-item-title.py" = "tests/test_validate_work_item_bodies.py"
+"scripts/verify-fsl.sh" = "tests/test_validation_state_isolation.py"
+"scripts/verify-release.py" = "tests/test_publish_release.py"

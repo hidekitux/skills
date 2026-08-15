@@ -7,12 +7,12 @@
 1. リリース対象の `vX.Y.Z` に、`CATALOG.yml` の全スキルの `version` を揃える。
 2. Todo List、検証結果、変更内容をレビューする。
 3. リポジトリルートで `mise run validate` を実行する。これは Codex と
-   Claude Code の両方への導入を検証する。Codex で `skill-creator` が利用可能な
-   場合は、追加で `mise run validate-skill-creator` を実行する。この追加検証は
-   Claude Code での利用条件ではない。
+   Claude Code の両方への導入を検証する。
 4. `specs/*.fsl` を変更した場合は `mise run mutate-fsl` を実行し、survivor をレビューする。
 5. 変更をコミットする。
-6. `mise run verify-release -- vX.Y.Z` で、タグ形式・カタログのバージョン・コミット済み状態を確認する。
+6. 公開時は `mise run release:publish -- vX.Y.Z` を使う。この入口は、利用可能な
+   `skill-creator` 検証、タグ形式・カタログのバージョン・コミット済み状態の確認を
+   実行してから公開する。
 
 `verify-release` はタグを作成せず、既存のローカルタグも再利用しません。未コミット変更や未追跡ファイルがある場合も失敗します。
 
@@ -21,10 +21,12 @@
 検証済みのコミットから、次を実行します。
 
 ```bash
-gh skill publish --tag vX.Y.Z
+mise run release:publish -- vX.Y.Z
 ```
 
-`gh skill publish` は `skills/*/SKILL.md` などの規約でスキルを検出し、指定タグの GitHub Release を作成します。公開後は対象タグと Release の内容を確認し、利用側では `skill-name@vX.Y.Z` のように固定して導入します。
+このタスクは最後に `gh skill publish --tag vX.Y.Z` を実行します。シェルとGitHub
+権限を持つ利用者による直接実行を技術的に禁止するものではないため、公開にはこの
+タスクを標準入口として使います。公開後は対象タグと Release の内容を確認し、利用側では `skill-name@vX.Y.Z` のように固定して導入します。
 
 ## バージョン規則
 

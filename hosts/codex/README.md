@@ -15,10 +15,16 @@ the worktree-local `core.hooksPath` to `.githooks` and registers each
 top-level published skill under the ignored `.agents/skills/` directory for
 Codex and `.claude/skills/` for Claude Code.
 
-After that initial setup, the tracked `post-checkout` hook registers skills
-whenever Git creates or switches branches. The local registration is not
-committed. Verify it with `readlink .agents/skills/<skill-name>` and restart
-Codex if a newly registered skill does not appear.
+After that initial setup, the tracked `post-checkout` hook reruns `mise run
+setup` whenever Git creates or switches branches. It refreshes local skills,
+Git Hooks, and commitlint without blocking checkout if setup fails. The local
+registration is not committed. Verify it with `readlink
+.agents/skills/<skill-name>` and restart Codex if a newly registered skill does
+not appear.
+
+The enabled hooks run `mise run check:local` before commits and `mise run
+validate` before pushes. Fix a reported failure before retrying the commit or
+push.
 
 For `bootstrap-project`, see
 `skills/bootstrap-project/references/hosts/codex.md` for the Codex-specific
