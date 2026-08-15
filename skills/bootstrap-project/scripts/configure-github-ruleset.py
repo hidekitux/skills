@@ -45,9 +45,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--issue-ruleset-name", default=DEFAULT_ISSUE_RULESET_NAME)
     parser.add_argument("--approvals", type=int, default=1)
-    parser.add_argument(
-        "--allow-merge-method", action="append", choices=("merge", "squash", "rebase")
-    )
     parser.add_argument("--require-code-owner-review", action="store_true")
     parser.add_argument("--allow-last-push-approval", action="store_true")
     parser.add_argument(
@@ -92,7 +89,6 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     if any(not context.strip() for context in args.required_check):
         raise ValueError("--required-check values must not be empty")
 
-    merge_methods = args.allow_merge_method or ["rebase"]
     return {
         "name": args.ruleset_name,
         "target": "branch",
@@ -108,7 +104,7 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
             {
                 "type": "pull_request",
                 "parameters": {
-                    "allowed_merge_methods": merge_methods,
+                    "allowed_merge_methods": ["rebase"],
                     "dismiss_stale_reviews_on_push": True,
                     "require_code_owner_review": args.require_code_owner_review,
                     "require_last_push_approval": not args.allow_last_push_approval,
