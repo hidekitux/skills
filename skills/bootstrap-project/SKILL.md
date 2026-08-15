@@ -81,8 +81,9 @@ should document or verify its stateful workflows.
   explicitly configured integration or release branches, then validate PR
   direction in CI. Default flow: `issue/* -> main`; document every automated
   exception explicitly. See [branch policy](references/branch-policy.md).
-- Synchronize an Issue branch by merging the latest target branch into it and
-  pushing normally. Do not rebase or force-push an existing Issue branch.
+- Synchronize an Issue branch by rebasing it onto the latest target branch.
+  Push the rewritten author-owned branch only with `--force-with-lease`; never
+  use plain `--force`. Protected branches must never be force-pushed.
 - Add or update `mise.toml`. Pin only the tools the project actually needs and
   expose applicable `format`, `lint`, `test`, and `check` tasks. Make `check`
   compose the relevant validations rather than duplicating their commands.
