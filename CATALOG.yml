@@ -3,7 +3,7 @@
 catalog_version: 1
 license: Apache-2.0
 skills:
-  - name: project-bootstrap
+  - name: bootstrap-project
     summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
     owner: hidekitux
     status: experimental

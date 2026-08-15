@@ -1,6 +1,6 @@
 # Codex adaptation
 
-The core `project-bootstrap` workflow is portable. Apply this note only when the
+The core `bootstrap-project` workflow is portable. Apply this note only when the
 active host is Codex.
 
 ## Establish safe context first

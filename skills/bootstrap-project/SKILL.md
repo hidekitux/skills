@@ -1,5 +1,5 @@
 ---
-name: project-bootstrap
+name: bootstrap-project
 description: Initialize or assess a software project with a minimal runnable foundation, protected GitHub pull-request workflow, proportionate validation, and an FSL adoption plan. Use when asked to start a project, scaffold a prototype, establish project conventions, require PRs and prevent direct pushes to protected branches, or introduce FSL to a new or existing codebase.
 license: Apache-2.0
 ---
