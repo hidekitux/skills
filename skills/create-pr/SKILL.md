@@ -37,6 +37,10 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Stage only the intended files and follow the repository's commit-message policy. Keep unrelated changes unstaged.
 - Push the resolved head branch before creating the Pull Request.
 - When an author-owned Issue branch must be rebased, resolve the exact remote branch and obtain any approval required by the host before rewriting it. Push only with `--force-with-lease`; never use plain `--force`.
+- After a rebase changes the base revision, re-read the current repository
+  instructions, Pull Request template, and branch-policy rules before drafting
+  or updating the Pull Request body. Do not reuse a body layout inferred from
+  the pre-rebase base revision.
 - Do not push to a protected base branch or bypass repository protections.
 
 ## Create or Update
@@ -50,6 +54,15 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
 - Include repository-specific conditional checklists only when they apply; mark an allowed item not applicable instead of silently deleting required evidence.
 - Review the rendered body and confirm the Issue-reference block is first, complete, and uses the correct closing behavior.
+- Before creating or updating an Issue-backed Pull Request, validate the exact
+  finalized body against any repository-provided Pull Request-body or
+  branch-policy validator, using the resolved base and head branches. For this
+  repository, run `python3 scripts/validate-branch-policy.py --base <base>
+  --head <head> --body "$final_body"` before the GitHub API call.
+- If that preflight fails, do not publish a ready Pull Request or diagnose the
+  body from the error message alone. Read the validator and its tests, revise
+  the finalized body, and rerun the preflight; keep or create a draft only when
+  the user explicitly asks to publish despite the unresolved failure.
 - Create a ready Pull Request only after the ready gate passes. Otherwise create or retain a draft.
 
 ## Handoff
