@@ -11,6 +11,7 @@ import sys
 from typing import Any
 
 DEFAULT_RULESET_NAME = "Require pull requests on protected branches"
+DEFAULT_ISSUE_RULESET_NAME = "Require signed commits on issue branches"
 REPOSITORY_SETTINGS = {
     "allow_merge_commit": False,
     "allow_squash_merge": False,
@@ -36,6 +37,13 @@ def parse_args() -> argparse.Namespace:
         help="Required status-check context; repeat for every CI check.",
     )
     parser.add_argument("--ruleset-name", default=DEFAULT_RULESET_NAME)
+    parser.add_argument(
+        "--issue-branch-pattern",
+        action="append",
+        metavar="PATTERN",
+        help="Signed work-branch pattern; repeat to override the default issue/*.",
+    )
+    parser.add_argument("--issue-ruleset-name", default=DEFAULT_ISSUE_RULESET_NAME)
     parser.add_argument("--approvals", type=int, default=1)
     parser.add_argument(
         "--allow-merge-method", action="append", choices=("merge", "squash", "rebase")
@@ -124,6 +132,33 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def build_issue_payload(args: argparse.Namespace) -> dict[str, Any]:
+    patterns = args.issue_branch_pattern or ["issue/*"]
+    if any(
+        not pattern or pattern.startswith("refs/") or pattern.strip() != pattern
+        for pattern in patterns
+    ):
+        raise ValueError(
+            "--issue-branch-pattern values must be nonempty branch patterns"
+        )
+    if len(set(patterns)) != len(patterns):
+        raise ValueError("--issue-branch-pattern values must be unique")
+
+    return {
+        "name": args.issue_ruleset_name,
+        "target": "branch",
+        "enforcement": "active",
+        "bypass_actors": [],
+        "conditions": {
+            "ref_name": {
+                "include": [f"refs/heads/{pattern}" for pattern in patterns],
+                "exclude": [],
+            }
+        },
+        "rules": [{"type": "required_signatures"}],
+    }
+
+
 def find_existing_ruleset(repo: str, name: str) -> int | None:
     output = command("gh", "api", f"repos/{repo}/rulesets", "--paginate", "--slurp")
     pages = json.loads(output)
@@ -187,19 +222,51 @@ def configure_repository(repo: str) -> None:
             )
 
 
+def apply_ruleset(repo: str, payload: dict[str, Any]) -> tuple[str, int]:
+    ruleset_id = find_existing_ruleset(repo, payload["name"])
+    endpoint = (
+        f"repos/{repo}/rulesets"
+        if ruleset_id is None
+        else f"repos/{repo}/rulesets/{ruleset_id}"
+    )
+    method = "POST" if ruleset_id is None else "PUT"
+    result = command(
+        "gh",
+        "api",
+        "--method",
+        method,
+        endpoint,
+        "-H",
+        "Accept: application/vnd.github+json",
+        "-H",
+        "X-GitHub-Api-Version: 2022-11-28",
+        "--input",
+        "-",
+        input_text=json.dumps(payload, indent=2) + "\n",
+    )
+    created = json.loads(result)
+    actual = json.loads(command("gh", "api", f"repos/{repo}/rulesets/{created['id']}"))
+    verify(actual, payload)
+    return ("Created" if ruleset_id is None else "Updated", created["id"])
+
+
 def main() -> int:
     args = parse_args()
     try:
         payload = build_payload(args)
+        issue_payload = build_issue_payload(args)
     except ValueError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
 
-    payload_text = json.dumps(payload, indent=2) + "\n"
     if not args.apply:
         print(
             json.dumps(
-                {"repository_settings": REPOSITORY_SETTINGS, "ruleset": payload},
+                {
+                    "repository_settings": REPOSITORY_SETTINGS,
+                    "ruleset": payload,
+                    "issue_ruleset": issue_payload,
+                },
                 indent=2,
             )
         )
@@ -216,38 +283,14 @@ def main() -> int:
     try:
         command("gh", "auth", "status")
         configure_repository(args.repo)
-        ruleset_id = find_existing_ruleset(args.repo, args.ruleset_name)
-        endpoint = (
-            f"repos/{args.repo}/rulesets"
-            if ruleset_id is None
-            else f"repos/{args.repo}/rulesets/{ruleset_id}"
-        )
-        method = "POST" if ruleset_id is None else "PUT"
-        result = command(
-            "gh",
-            "api",
-            "--method",
-            method,
-            endpoint,
-            "-H",
-            "Accept: application/vnd.github+json",
-            "-H",
-            "X-GitHub-Api-Version: 2022-11-28",
-            "--input",
-            "-",
-            input_text=payload_text,
-        )
-        created = json.loads(result)
-        actual = json.loads(
-            command("gh", "api", f"repos/{args.repo}/rulesets/{created['id']}")
-        )
-        verify(actual, payload)
+        main_action, main_id = apply_ruleset(args.repo, payload)
+        issue_action, issue_id = apply_ruleset(args.repo, issue_payload)
     except (RuntimeError, json.JSONDecodeError, KeyError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 
-    action = "Created" if ruleset_id is None else "Updated"
-    print(f"{action} and verified ruleset {created['id']} for {args.repo}.")
+    print(f"{main_action} and verified ruleset {main_id} for {args.repo}.")
+    print(f"{issue_action} and verified ruleset {issue_id} for {args.repo}.")
     return 0
 
 
