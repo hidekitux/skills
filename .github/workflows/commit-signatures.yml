@@ -1,6 +1,7 @@
 name: Pull-request commit signatures
 
 on:
+  # zizmor: ignore[dangerous-triggers] This checks out only the trusted base SHA and never executes PR code.
   pull_request_target:
     types: [opened, reopened, synchronize]
 
