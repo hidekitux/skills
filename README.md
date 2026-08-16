@@ -1,5 +1,12 @@
 # hidekitux/skills
 
+![FSL mutants killed](https://img.shields.io/badge/mutants%20killed-522%2F586-2ea44f)
+![FSL kill rate](https://img.shields.io/badge/kill%20rate-89.08%25-2ea44f)
+![FSL surviving mutants](https://img.shields.io/badge/surviving%20mutants-64-a371f7)
+![License](https://img.shields.io/github/license/hidekitux/skills)
+![FSL verifier](https://img.shields.io/badge/fslc-v4.2.0-0b6bcb)
+![Validation](https://img.shields.io/github/actions/workflow/status/hidekitux/skills/validate.yml?branch=main)
+
 This repository is the source of reusable Agent Skills for individuals and teams. Skills follow the [Agent Skills](https://agentskills.io/specification) format and are published and installed with `gh skill`.
 
 ## License
