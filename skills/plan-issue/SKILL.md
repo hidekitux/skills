@@ -42,3 +42,6 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 ## Handoff
 
 - Hand off the plan only. Report the governing Issue, the ordered tasks with their completion evidence, and any remaining risk or required context. Do not write code, create commits, or execute the plan unless separately requested.
+- Simple Issues may skip this planning step. When a plan is needed, the next
+  session uses `implement-issue` to execute it; `create-pr` opens the Pull
+  Request in a later session.
