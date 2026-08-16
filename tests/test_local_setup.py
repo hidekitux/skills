@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -12,6 +13,18 @@ from pathlib import Path
 import tomllib
 
 ROOT = Path(__file__).parents[1]
+
+
+def load_script(path: str):
+    path = ROOT / path
+    spec = importlib.util.spec_from_file_location(path.stem.replace("-", "_"), path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+COMMIT_MESSAGE = load_script("scripts/lint/validate-commit-message.py")
 
 
 def isolated_git_environment() -> dict[str, str]:
@@ -30,6 +43,135 @@ class LocalSetupTests(unittest.TestCase):
         )
         self.assertNotIn("setup-local-skills", config["tasks"])
         self.assertNotIn("setup-commitlint", config["tasks"])
+
+    def test_commitlint_has_no_trailer_exemption(self) -> None:
+        config = (ROOT / ".commitlint.yaml").read_text(encoding="utf-8")
+        self.assertNotIn("trailer-exists", config)
+
+    def test_commit_message_requires_single_line_and_issue_number(self) -> None:
+        self.assertEqual(COMMIT_MESSAGE.validate("feat: add login flow #61"), [])
+        self.assertEqual(COMMIT_MESSAGE.validate("feat(scope): add login flow #61"), [])
+        self.assertNotEqual(COMMIT_MESSAGE.validate("feat: add login flow"), [])
+        self.assertNotEqual(
+            COMMIT_MESSAGE.validate("feat: add login flow #61\n\nbody"), []
+        )
+
+    def test_lint_commits_requires_issue_number_suffix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            shutil.copytree(
+                ROOT / "scripts",
+                root / "scripts",
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+            environment = isolated_git_environment()
+            subprocess.run(
+                ["git", "init", "--initial-branch", "main", root],
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            (root / "README").write_text("base\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"], cwd=root, check=True, env=environment
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "chore: add base"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            (root / "README").write_text("feature\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"], cwd=root, check=True, env=environment
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "feat: add feature #1"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
+                ],
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=True,
+                env={
+                    **environment,
+                    "COMMITLINT_BIN": "true",
+                    "PR_BASE_SHA": "HEAD~1",
+                    "PR_HEAD_SHA": "HEAD",
+                },
+            )
+            self.assertEqual(result.returncode, 0)
+
+            (root / "README").write_text("change\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"], cwd=root, check=True, env=environment
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "feat: change readme"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
+                ],
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=True,
+                env={
+                    **environment,
+                    "COMMITLINT_BIN": "true",
+                    "PR_BASE_SHA": "HEAD~1",
+                    "PR_HEAD_SHA": "HEAD",
+                },
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("numeric issue number", result.stderr)
+
+    def test_commit_msg_hook_rejects_missing_issue_number(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            message_file = Path(temporary_directory) / "COMMIT_EDITMSG"
+            message_file.write_text("feat: change readme\n", encoding="utf-8")
+            result = subprocess.run(
+                [str(ROOT / ".githooks" / "commit-msg"), str(message_file)],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("numeric issue number", result.stderr)
+
+            message_file.write_text("feat: change readme #61\n", encoding="utf-8")
+            result = subprocess.run(
+                [str(ROOT / ".githooks" / "commit-msg"), str(message_file)],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0)
 
     def test_task_groups_follow_distinct_workflows(self) -> None:
         tasks = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))["tasks"]

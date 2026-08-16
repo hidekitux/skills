@@ -57,9 +57,22 @@ should document or verify its stateful workflows.
   with a capitalized imperative verb; capitalize later words only when ordinary
   English requires it, such as for proper nouns or abbreviations, and do not
   maintain a finite verb list. Permit the explicit release exception
-  `[Release]: vX.Y.Z`. Validate title syntax in CI,
-  but do not require a PR title to equal any linked Issue because a PR may close
-  more than one Issue.
+  `[Release]: vX.Y.Z` and build identifiers `[Release]: vX.Y.Z+N`. Validate
+  both Issue and Pull Request titles in CI. Copy the shared validator from
+  `templates/github/scripts/validate-work-item-title.py` into the generated
+  repository's `scripts/`, and install
+  `templates/github/work-item-title.yml` and
+  `templates/github/issue-title-policy.yml` under `.github/workflows/`. Do not
+  require a PR title to equal any linked Issue because a PR may close more than
+  one Issue.
+- Require an Issue number at the end of the commit header when the project
+  uses issue-based delivery: `type(scope): summary #<number>`. Keep the number
+  as the governing Issue for that commit; one Pull Request may handle multiple
+  Issues, so the number need not match the branch or another Issue listed in
+  the Pull Request. Require a single-sentence message and enforce the shape
+  with `scripts/lint/validate-commit-message.py` alongside commitlint; copy
+  the validator into the generated repository's `scripts/`. Document the
+  format in the contributor guide.
 - Provision Change and Release Issue templates. Require exactly one `Context`,
   `Goal`, `Scope`, `Acceptance criteria`, and `Validation` heading in that
   order. Define each section's purpose, require ordered `In`/`Out` scope
@@ -97,6 +110,9 @@ should document or verify its stateful workflows.
   branch, allow one following `Closes` line per additional Issue handled by the
   same Pull Request, and reject references outside that section. Use
   `Tracks #<number>` only for release work that closes after publication.
+  Keep the commit header suffix `#<number>` as the governing Issue for that
+  commit so every commit traces to an Issue without requiring the suffix to
+  match the work branch number.
   Protect `main` and any
   explicitly configured integration or release branches, then validate PR
   direction in CI. Default flow: `issue/* -> main`; document every automated

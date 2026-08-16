@@ -10,4 +10,6 @@ if [ ! -x "${commitlint_bin}" ]; then
   exit 2
 fi
 
-exec "${commitlint_bin}" lint --message "$1"
+"${commitlint_bin}" lint --message "$1"
+cd "${root}"
+python3 scripts/lint/validate-commit-message.py --message "$(cat "$1")"
