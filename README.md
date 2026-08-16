@@ -28,6 +28,7 @@ mise tasks ls
 | Initial setup | `mise run setup` |
 | Full repository validation | `mise run validate` |
 | Fast local-change check | `mise run check:local` |
+| Worktree diagnosis | `mise run worktree:diagnose -- --branch issue/123` |
 | Static analysis | `mise run lint` |
 | FSL verification | `mise run verify-fsl` |
 | FSL mutation check | `mise run mutate-fsl` |
@@ -35,6 +36,28 @@ mise tasks ls
 | Publish a verified release | `mise run release:publish -- vX.Y.Z` |
 
 `setup` enables `.githooks`. It reruns on branch checkout; `check:local` runs before commits and `validate` before pushes. A failed check blocks the corresponding commit or push.
+
+## Worktrees
+
+Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other. Inspect owner and setup state first:
+
+```bash
+mise run worktree:diagnose -- --branch issue/123
+```
+
+The diagnostic never removes a worktree automatically. Inspect changes with `git status`, and run `git worktree remove <path>` only after deciding it is no longer active. Do not run development commands from a bare repository entry point; use a registered non-bare worktree reported by the diagnostic.
+
+`post-checkout` records the worktree setup result so a later worktree
+diagnostic can report whether local setup is current.
+
+Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
+
+```bash
+git worktree add --detach <path> origin/main
+git worktree add -b issue/<number> <path> origin/main
+```
+
+Never use `--force` to check out `main` in multiple worktrees.
 
 `mise run validate` validates temporary installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate-skill-creator`. Linux x64 and macOS Apple Silicon are supported for full validation because it includes FSL verification.
 
