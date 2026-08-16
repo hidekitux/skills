@@ -4,6 +4,9 @@ set -eu
 root=$(git rev-parse --show-toplevel)
 commitlint_bin="${root}/.mise/bin/commitlint"
 
+cd "${root}"
+python3 scripts/lint/validate-commit-message.py --message "$(cat "$1")"
+
 if [ ! -x "${commitlint_bin}" ]; then
   echo "commitlint is not installed for this project." >&2
   echo "Run: mise run setup-commitlint" >&2
@@ -11,5 +14,3 @@ if [ ! -x "${commitlint_bin}" ]; then
 fi
 
 "${commitlint_bin}" lint --message "$1"
-cd "${root}"
-python3 scripts/lint/validate-commit-message.py --message "$(cat "$1")"
