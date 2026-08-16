@@ -12,8 +12,20 @@ lint_message() {
   echo "Checking commit ${commit}"
   local message
   message=$(git show -s --format=%B "${commit}")
-  printf '%s\n' "${message}" | "${commitlint_bin}" lint
-  python3 scripts/lint/validate-commit-message.py --message "$(printf '%s\n' "${message}")"
+  local message_file
+  message_file=$(mktemp)
+  printf '%s\n' "${message}" >"${message_file}"
+  local lint_status=0
+  "${commitlint_bin}" lint <"${message_file}" || lint_status=$?
+  local validator_status=0
+  python3 scripts/lint/validate-commit-message.py --message "$(printf '%s\n' "${message}")" || validator_status=$?
+  rm -f "${message_file}"
+  if [[ ${lint_status} -ne 0 ]]; then
+    return "${lint_status}"
+  fi
+  if [[ ${validator_status} -ne 0 ]]; then
+    return "${validator_status}"
+  fi
 }
 
 if [[ -n "${PR_BASE_SHA:-}" && -n "${PR_HEAD_SHA:-}" ]]; then
