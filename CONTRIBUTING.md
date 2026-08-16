@@ -19,11 +19,19 @@ ci: validate commit messages
 
 Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `mise run setup` to enable mise-managed Go commitlint and local hooks.
 
+Every commit on an Issue branch must be a single sentence and end with the
+Issue number in the header: `type(scope): summary #<number>`. Keep the number
+as the governing Issue for that commit; one Pull Request may handle multiple
+Issues, so the commit number need not match the branch name or the Pull
+Request's first Issue. `scripts/lint/validate-commit-message.py` enforces the
+shape and commitlint validates the header. Run `mise run validate` or a local
+commit to confirm the message before pushing.
+
 GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run `mise run check:local` before commits and `mise run validate` before pushes. Fix a failed check before retrying.
 
 ## Issue and Pull Request titles
 
-Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, `Maintenance`, or `Release`. Begin Summary with a capitalized imperative verb and capitalize later words only when ordinary English requires it. Releases use the exception `[Release]: vX.Y.Z`. A Pull Request may close more than one Issue, so its title need not match an Issue title exactly.
+Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, `Maintenance`, or `Release`. Begin Summary with a capitalized imperative verb and capitalize later words only when ordinary English requires it. Releases use the exception `[Release]: vX.Y.Z`; build identifiers use `[Release]: vX.Y.Z+N`. A Pull Request may close more than one Issue, so its title need not match an Issue title exactly.
 
 Create Issues from the Change or Release template. Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` exactly once in that order. Use one ordered `In`/`Out` pair in Scope and non-empty acceptance and validation checklists. Follow the common Release sections with `Changelog`, then `Added`, `Changed`, `Fixed`, and `Removed` exactly once in that order. Use `vX.Y.Z` for a public release and `vX.Y.Z+N` for an artifact build identifier.
 

@@ -10,8 +10,20 @@ specific additions explicitly.
 
 - Add the policy to the existing contributor documentation, or create a small
   `CONTRIBUTING.md` when no contributor guide exists.
+- When the project uses issue-based delivery, require an Issue number at the
+  end of the commit header: `type(scope): summary #<number>`. Keep the number
+  as the governing Issue for that commit; one Pull Request may handle multiple
+  Issues, so the number need not match the branch or another Issue in the same
+  Pull Request. Require a single-sentence message when the project's commit
+  policy says so. Enforce this with
+  `scripts/lint/validate-commit-message.py` in addition to commitlint.
 - If the project has GitHub Actions, add a required CI check for commit messages
   and Pull Request titles. Pin third-party Actions to immutable commit SHAs.
+- Also validate Issue and Pull Request titles with the shared
+  `validate-work-item-title.py` from `templates/github/scripts/`. Install the
+  `work-item-title.yml` and `issue-title-policy.yml` workflows from
+  `templates/github/` and pass their completed job names to
+  `scripts/configure-github-ruleset.py` as `--required-check` values.
 - For the CI implementation, prefer `actions/setup-go` plus a pinned
   `github.com/conventionalcommit/commitlint` version over a Node-only action.
 - Prefer the Go implementation `github.com/conventionalcommit/commitlint` for
@@ -30,5 +42,6 @@ specific additions explicitly.
 ## Verification
 
 Check at least one valid and one invalid message against the selected linter,
-then run the project's normal check command. Report whether the evidence is a
-local hook, CI result, branch protection setting, or documentation only.
+including one commit without the required ` #<number>` suffix, then run the
+project's normal check command. Report whether the evidence is a local hook, CI
+result, branch protection setting, or documentation only.

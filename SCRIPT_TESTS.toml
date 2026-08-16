@@ -9,6 +9,7 @@
 "scripts/fsl/mutate-fsl.sh" = "tests/test_validation_state_isolation.py"
 "scripts/fsl/verify-fsl.sh" = "tests/test_validation_state_isolation.py"
 "scripts/lint/lint-commits.sh" = "tests/test_local_setup.py"
+"scripts/lint/validate-commit-message.py" = "tests/test_local_setup.py"
 "scripts/release/publish-release.sh" = "tests/test_publish_release.py"
 "scripts/release/verify-release.py" = "tests/test_publish_release.py"
 "scripts/setup/register-local-skills.sh" = "tests/test_local_setup.py"

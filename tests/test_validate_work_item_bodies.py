@@ -18,6 +18,7 @@ def load_script(path: str):
 
 BRANCH_POLICY = load_script("scripts/validate/validate-branch-policy.py")
 ISSUE_BODY = load_script("scripts/validate/validate-issue-body.py")
+WORK_ITEM_TITLE = load_script("scripts/validate/validate-work-item-title.py")
 
 CHANGE_BODY = """## Context
 
@@ -156,6 +157,32 @@ Tracks #35
 - Prepare the verified release.
 """
         self.assertEqual(BRANCH_POLICY.issue_references_at_start(body, "Tracks"), [35])
+
+
+class WorkItemTitleTests(unittest.TestCase):
+    def test_accepts_sentence_case_with_proper_nouns(self) -> None:
+        title = "[Feature]: Add GitHub Actions login flow"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 0)
+
+    def test_accepts_acronyms_in_summary(self) -> None:
+        title = "[Improvement]: Add CI validation for YAML workflows"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 0)
+
+    def test_accepts_build_identifier_release(self) -> None:
+        title = "[Release]: v1.2.3+42"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 0)
+
+    def test_rejects_lowercase_summary_start(self) -> None:
+        title = "[Feature]: add user login flow"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
+
+    def test_rejects_unknown_type(self) -> None:
+        title = "[Enhancement]: Add user login flow"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
+
+    def test_rejects_title_case_summary(self) -> None:
+        title = "[Feature]: Add User Login Flow"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
 
 
 class IssueBodyTests(unittest.TestCase):
