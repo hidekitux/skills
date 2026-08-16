@@ -3,6 +3,13 @@
 catalog_version: 1
 license: Apache-2.0
 skills:
+  - name: plan-issue
+    summary: Read a governed change issue and produce a verified implementation plan.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
   - name: create-pr
     summary: Create validated, Issue-backed GitHub Pull Requests without duplicating existing work.
     owner: hidekitux
