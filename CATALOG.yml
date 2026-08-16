@@ -40,6 +40,13 @@ skills:
     host_adapters: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+  - name: implement-issue
+    summary: Implement a governed Change Issue from its verified implementation plan with per-task evidence.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
 
 # Example entry:
 # - name: pr-review
