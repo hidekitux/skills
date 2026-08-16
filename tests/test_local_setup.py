@@ -149,6 +149,117 @@ class LocalSetupTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("numeric issue number", result.stderr)
 
+    def test_lint_commits_uses_project_local_commitlint_when_configured(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            shutil.copytree(
+                ROOT / "scripts",
+                root / "scripts",
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+            environment = isolated_git_environment()
+            subprocess.run(
+                ["git", "init", "--initial-branch", "main", root],
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            commitlint = root / ".mise" / "bin" / "commitlint"
+            commitlint.parent.mkdir(parents=True)
+            commitlint.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            commitlint.chmod(0o755)
+            (root / "README").write_text("base\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"], cwd=root, check=True, env=environment
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "feat: add feature #1"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
+                ],
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=True,
+                env={
+                    **environment,
+                    "PR_BASE_SHA": "HEAD~1",
+                    "PR_HEAD_SHA": "HEAD",
+                },
+            )
+            self.assertEqual(result.returncode, 0)
+
+    def test_lint_commits_errors_when_project_commitlint_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            shutil.copytree(
+                ROOT / "scripts",
+                root / "scripts",
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+            environment = isolated_git_environment()
+            subprocess.run(
+                ["git", "init", "--initial-branch", "main", root],
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            (root / "README").write_text("base\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"], cwd=root, check=True, env=environment
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "feat: add feature #1"],
+                cwd=root,
+                check=True,
+                env=environment,
+            )
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
+                ],
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=True,
+                env={
+                    **environment,
+                    "PR_BASE_SHA": "HEAD~1",
+                    "PR_HEAD_SHA": "HEAD",
+                },
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("commitlint is not installed", result.stderr)
+
     def test_task_groups_follow_distinct_workflows(self) -> None:
         tasks = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))["tasks"]
         self.assertEqual(
@@ -394,6 +505,52 @@ class LocalSetupTests(unittest.TestCase):
                 ).resolve(),
                 (shared_dir / "commitlint").resolve(),
             )
+
+    def test_setup_commitlint_links_shared_binary_from_primary_worktree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            main = Path(temporary_directory) / "main"
+            shutil.copytree(
+                ROOT,
+                main,
+                ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
+            )
+            environment = isolated_git_environment()
+            subprocess.run(
+                ["git", "init", "--quiet", "--initial-branch", "main", str(main)],
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
+                cwd=main,
+                check=True,
+                env=environment,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=main,
+                check=True,
+                env=environment,
+            )
+            shared_dir = main / ".git" / ".mise" / "bin"
+            shared_dir.mkdir(parents=True)
+            (shared_dir / "commitlint").write_bytes(b"#!/bin/sh\nexit 0\n")
+            (shared_dir / "commitlint").chmod(0o755)
+
+            result = subprocess.run(
+                ["bash", "scripts/setup/setup-commitlint.sh"],
+                cwd=main,
+                check=False,
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("Using shared commitlint", result.stdout)
+            link = main / ".mise" / "bin" / "commitlint"
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(link.resolve(), (shared_dir / "commitlint").resolve())
+            self.assertTrue(os.access(link, os.X_OK))
 
     def test_post_checkout_runs_setup_for_branch_checkouts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

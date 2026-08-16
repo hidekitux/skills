@@ -9,7 +9,7 @@ python3 scripts/lint/validate-commit-message.py --message "$(cat "$1")"
 
 if [ ! -x "${commitlint_bin}" ]; then
   echo "commitlint is not installed for this project." >&2
-  echo "Run: mise run setup-commitlint" >&2
+  echo "Run: mise run setup:commitlint" >&2
   exit 2
 fi
 
