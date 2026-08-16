@@ -8,4 +8,7 @@ set -eu
 
 if ! mise run setup; then
   echo "Warning: Local setup did not complete." >&2
+  exit 0
 fi
+
+echo "Local setup complete for $(git rev-parse --short HEAD)."
