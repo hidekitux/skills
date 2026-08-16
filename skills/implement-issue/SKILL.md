@@ -21,10 +21,17 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
 - Read repository instructions and relevant templates before editing.
 - Resolve the linked Change Issue, the implementation plan, the current branch, and the allowed files from the plan. Do not guess a plan when one exists.
 - When the Issue has no implementation plan, derive the tasks directly from its `Scope` and `Acceptance criteria` sections; treat `Out` items and unticked acceptance boxes as non-goals for this invocation.
+- Branch creation and resolution are implementation-phase responsibilities.
+  For change work, fetch the upstream default branch first, then create or
+  resolve `issue/<number>` from that base. Start from the planned base
+  revision when a plan exists.
 - Implement only tasks derived from the Issue plan or the Issue's scope and acceptance criteria. Do not add unplanned features, unrelated refactors, or out-of-scope edits.
 - Preserve unrelated user changes. Do not switch branches, stage unrelated files, rewrite history, or reset the worktree when doing so would include work outside the linked Issue.
 - Stop and report when the plan or the Issue lacks a scoped boundary or acceptance criteria, or when an in-scope branch is unavailable.
-- Do not create, plan, or release work here. Issue creation belongs to `create-issue`, planning belongs to `plan-issue`, and publishing a Pull Request belongs to `create-pr`.
+- Do not create or release work here. Issue creation happened in an earlier
+  session with `create-issue`; when a plan exists, planning happened in an
+  earlier session with `plan-issue`. Publishing a Pull Request is a separate
+  session that belongs to `create-pr`.
 
 ## Implement
 

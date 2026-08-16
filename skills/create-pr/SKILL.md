@@ -69,3 +69,6 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 ## Handoff
 
 Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, validation commands and results, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
+
+Opening and maintaining the Pull Request happens in this session. Merge and
+release are later phases, not part of this skill.

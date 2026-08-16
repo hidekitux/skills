@@ -1,6 +1,6 @@
 ---
 name: create-issue
-description: Create GitHub change and release Issues that follow shared title, body, branch, and changelog policy. Use before starting governed repository work or preparing a release.
+description: Create GitHub change and release Issues that follow shared title, body, and changelog policy. Branch setup is the next phase. Use before starting governed repository work or preparing a release.
 license: Apache-2.0
 ---
 
@@ -10,10 +10,8 @@ license: Apache-2.0
 
 1. **in progress:** Confirm repository, outcome, and whether the Issue is a change or release.
 2. Draft the title and body from the matching repository template.
-3. Create the Issue; for change work fetch the upstream default branch and create
-   `issue/<number>` from the fetched upstream base.
-4. Complete the list only when the Issue URL is available and, for change work,
-   the branch name and its upstream base commit are available; include every
+3. Create the Issue.
+4. Complete the list only when the Issue URL is available; include every
    applicable result in the handoff.
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
@@ -38,10 +36,8 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 
 - Use `[Type]: Summary` in sentence case. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, or `Maintenance`; Summary begins with a capitalized imperative verb. Capitalize later words only when ordinary English requires it, such as for proper nouns or abbreviations.
 - Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` in that exact order.
-- Fetch the upstream default branch before creating the issue branch so the
-  branch starts from the latest base. Record the upstream base commit and open
-  `issue/<number>` from that base with a branch that will close `#<number>`.
-- To update the branch, rebase it onto the latest default branch and push with `--force-with-lease`. Never use plain `--force`.
+- Do not create the `issue/<number>` branch here. Branch creation and rebase
+  belong to `implement-issue`, which is the next session for change work.
 
 ## Release Issues
 
