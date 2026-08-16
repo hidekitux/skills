@@ -10,9 +10,11 @@ license: Apache-2.0
 
 1. **in progress:** Confirm repository, outcome, and whether the Issue is a change or release.
 2. Draft the title and body from the matching repository template.
-3. Create the Issue; for change work create `issue/<number>` from the default branch.
+3. Create the Issue; for change work fetch the upstream default branch and create
+   `issue/<number>` from the fetched upstream base.
 4. Complete the list only when the Issue URL is available and, for change work,
-   the branch name is available; include every applicable result in the handoff.
+   the branch name and its upstream base commit are available; include every
+   applicable result in the handoff.
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
 
@@ -36,7 +38,9 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 
 - Use `[Type]: Summary` in sentence case. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, or `Maintenance`; Summary begins with a capitalized imperative verb. Capitalize later words only when ordinary English requires it, such as for proper nouns or abbreviations.
 - Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` in that exact order.
-- Open `issue/<number>` back to the default branch with `Closes #<number>`.
+- Fetch the upstream default branch before creating the issue branch so the
+  branch starts from the latest base. Record the upstream base commit and open
+  `issue/<number>` from that base with a branch that will close `#<number>`.
 - To update the branch, rebase it onto the latest default branch and push with `--force-with-lease`. Never use plain `--force`.
 
 ## Release Issues
