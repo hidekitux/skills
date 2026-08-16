@@ -27,6 +27,13 @@ Request's first Issue. `scripts/lint/validate-commit-message.py` enforces the
 shape and commitlint validates the header. Run `mise run validate` or a local
 commit to confirm the message before pushing.
 
+One Pull Request is not required to be one commit. Split Pull Request commits
+at implementation-layer boundaries or at the boundaries of the Issue's
+implementation tasks. Do not create validation-only adjustment commits during
+worktree development; resolve any validation failure in the intended commits
+before the final commit is pushed, so the pushed history contains only the
+implementation commits that belong in the Pull Request.
+
 GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run `mise run check:local` before commits and `mise run validate` before pushes. Fix a failed check before retrying.
 
 ## Issue and Pull Request titles

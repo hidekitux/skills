@@ -36,6 +36,11 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 - Stage only the intended files and follow the repository's commit-message policy. Keep unrelated changes unstaged.
 - End every single-sentence commit message with ` #<number>` in the header, using the governing Issue for that commit; one Pull Request may handle multiple Issues, so the number need not match the branch name. Do not omit the suffix.
+- Split Pull Request commits at implementation-layer boundaries or at the
+  boundaries of the Issue's implementation tasks; one Pull Request is not
+  required to be one commit. Do not create validation-only adjustment commits:
+  resolve validation failures in the intended commits before the final commit
+  is pushed.
 - Push the resolved head branch before creating the Pull Request.
 - When an author-owned Issue branch must be rebased, resolve the exact remote branch and obtain any approval required by the host before rewriting it. Push only with `--force-with-lease`; never use plain `--force`.
 - After a rebase changes the base revision, re-read the current repository
