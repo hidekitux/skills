@@ -22,6 +22,12 @@ registration is not committed. Verify it with `readlink
 .agents/skills/<skill-name>` and restart Codex if a newly registered skill does
 not appear.
 
+Worktrees share the pinned commitlint binary through the common Git directory,
+so setting up a new worktree does not rebuild it. The local skill registrations
+are snapshot-dependent: the `post-checkout` hook refreshes them when the branch
+changes, and `mise run worktree:diagnose -- --branch issue/<number>` reports
+which worktree owns a branch and whether its setup is current.
+
 The enabled hooks run `mise run check:local` before commits and `mise run
 validate` before pushes. Fix a reported failure before retrying the commit or
 push.
