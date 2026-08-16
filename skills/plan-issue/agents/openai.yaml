@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Issue"
+  short_description: "Turn a governed change issue into verified plan tasks."
+  default_prompt: "Use $plan-issue to turn this Issue's scope and acceptance criteria into a verified implementation plan."
