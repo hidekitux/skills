@@ -8,6 +8,8 @@
 //           create-issue contract.
 // ASSUME-4: release Pull Requests, publication, and post-publication closure
 //           happen after this creation workflow.
+// ASSUME-5: upstream_base_available means a fetch of the upstream default
+//           branch succeeded and the issue branch is created from that base.
 spec IssueCreation {
   enum Status {
     Start,
@@ -16,12 +18,14 @@ spec IssueCreation {
     ChangeDrafted,
     ReleaseDrafted,
     ChangeIssueCreated,
+    ChangeUpstreamRefreshed,
     ChangeReady,
     ReleaseReady,
     MissingContextBlocked,
     ChangeIssueBlocked,
     ReleaseIssueBlocked,
-    ChangeBranchBlocked
+    ChangeBranchBlocked,
+    UpstreamRefreshBlocked
   }
 
   state {
@@ -31,6 +35,7 @@ spec IssueCreation {
     release: Bool,
     draft_valid: Bool,
     issue_available: Bool,
+    upstream_base_available: Bool,
     branch_available: Bool,
     ever_blocked: Bool
   }
@@ -42,6 +47,7 @@ spec IssueCreation {
     release = false
     draft_valid = false
     issue_available = false
+    upstream_base_available = false
     branch_available = false
     ever_blocked = false
   }
@@ -84,6 +90,18 @@ spec IssueCreation {
     status = ChangeIssueCreated
   }
 
+  action refresh_upstream() {
+    requires status == ChangeIssueCreated
+    upstream_base_available = true
+    status = ChangeUpstreamRefreshed
+  }
+
+  action block_upstream_refresh() {
+    requires status == ChangeIssueCreated
+    ever_blocked = true
+    status = UpstreamRefreshBlocked
+  }
+
   action create_release_issue() {
     requires status == ReleaseDrafted
     issue_available = true
@@ -103,13 +121,13 @@ spec IssueCreation {
   }
 
   action create_change_branch() {
-    requires status == ChangeIssueCreated
+    requires status == ChangeUpstreamRefreshed
     branch_available = true
     status = ChangeReady
   }
 
   action block_change_branch() {
-    requires status == ChangeIssueCreated
+    requires status == ChangeUpstreamRefreshed
     ever_blocked = true
     status = ChangeBranchBlocked
   }
@@ -122,7 +140,8 @@ spec IssueCreation {
   invariant BlockedOutcomeIsTerminal {
     ever_blocked ==
       (status == MissingContextBlocked or status == ChangeIssueBlocked or
-       status == ReleaseIssueBlocked or status == ChangeBranchBlocked)
+       status == ReleaseIssueBlocked or status == ChangeBranchBlocked or
+       status == UpstreamRefreshBlocked)
   }
 
   invariant MissingContextBlockHasNoContext {
@@ -134,33 +153,46 @@ spec IssueCreation {
   invariant ChangeIssueBlockHasValidDraft {
     status == ChangeIssueBlocked =>
       context_resolved and change and not release and draft_valid and
-      not issue_available and not branch_available
+      not issue_available and not upstream_base_available and
+      not branch_available
   }
 
   invariant ReleaseIssueBlockHasValidDraft {
     status == ReleaseIssueBlocked =>
       context_resolved and release and not change and draft_valid and
-      not issue_available and not branch_available
+      not issue_available and not upstream_base_available and
+      not branch_available
   }
 
   invariant ChangeBranchBlockHasIssue {
     status == ChangeBranchBlocked =>
       context_resolved and change and not release and draft_valid and
-      issue_available and not branch_available
+      issue_available and upstream_base_available and not branch_available
+  }
+
+  invariant UpstreamRefreshBlockHasIssue {
+    status == UpstreamRefreshBlocked =>
+      context_resolved and change and not release and draft_valid and
+      issue_available and not upstream_base_available and not branch_available
   }
 
   invariant IssueRequiresContextAndDraft {
     issue_available => context_resolved and draft_valid
   }
 
+  invariant UpstreamBaseRequiresChangeIssue {
+    upstream_base_available => issue_available and change and not release
+  }
+
   invariant BranchRequiresChangeIssue {
-    branch_available => issue_available and change and not release
+    branch_available => issue_available and upstream_base_available and
+      change and not release
   }
 
   invariant ChangeReadyHasIssueAndBranch {
     status == ChangeReady =>
       context_resolved and change and not release and draft_valid and
-      issue_available and branch_available
+      issue_available and upstream_base_available and branch_available
   }
 
   invariant ReleaseReadyHasIssueWithoutBranch {
@@ -172,7 +204,8 @@ spec IssueCreation {
   terminal {
     status == ChangeReady or status == ReleaseReady or
       status == MissingContextBlocked or status == ChangeIssueBlocked or
-      status == ReleaseIssueBlocked or status == ChangeBranchBlocked
+      status == ReleaseIssueBlocked or status == ChangeBranchBlocked or
+      status == UpstreamRefreshBlocked
   }
 
   reachable ChangeIssueReady {
@@ -197,5 +230,9 @@ spec IssueCreation {
 
   reachable ChangeBranchBlocked {
     status == ChangeBranchBlocked
+  }
+
+  reachable UpstreamRefreshBlocked {
+    status == UpstreamRefreshBlocked
   }
 }
