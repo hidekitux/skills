@@ -10,8 +10,8 @@ license: Apache-2.0
 
 1. **in progress:** Resolve the repository, the governing change Issue, and its `Scope` and `Acceptance criteria`.
 2. Derive plan tasks that cover the Issue scope and acceptance criteria; order them for implementation.
-3. Record every task in a Todo List with observable completion evidence and a handoff.
-4. Complete the list only when the plan tasks, their ordering, and their evidence are available; hand off the plan without writing or executing code.
+3. Record every task in a Todo List with observable completion evidence.
+4. Complete the list only when the plan is posted as a comment on the governing Change Issue and its comment URL is available; do not write or execute code.
 
 Keep exactly one item in progress. Mark an item complete only after its stated evidence exists. Add or revise items when the agreed scope changes.
 
@@ -41,7 +41,9 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 ## Handoff
 
-- Hand off the plan only. Report the governing Issue, the ordered tasks with their completion evidence, and any remaining risk or required context. Do not write code, create commits, or execute the plan unless separately requested.
+- Deliver the plan as a comment on the governing Change Issue. Keep the comment self-contained: ordered tasks with completion evidence, out-of-scope items, residual risk, and the next-phase handoff. Report the Issue URL and the comment URL.
+- Do not hand off through a temporary or local file, and do not rely on the host's native task tracking to carry the plan.
+- Complete the Todo List only after the comment is posted and its URL is available. Do not write code, create commits, or execute the plan unless separately requested.
 - Simple Issues may skip this planning step. When a plan is needed, the next
   session uses `implement-issue` to execute it; `create-pr` opens the Pull
   Request in a later session.
