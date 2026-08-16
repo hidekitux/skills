@@ -149,30 +149,6 @@ class LocalSetupTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("numeric issue number", result.stderr)
 
-    def test_commit_msg_hook_rejects_missing_issue_number(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            message_file = Path(temporary_directory) / "COMMIT_EDITMSG"
-            message_file.write_text("feat: change readme\n", encoding="utf-8")
-            result = subprocess.run(
-                [str(ROOT / ".githooks" / "commit-msg"), str(message_file)],
-                cwd=ROOT,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(result.returncode, 1)
-            self.assertIn("numeric issue number", result.stderr)
-
-            message_file.write_text("feat: change readme #61\n", encoding="utf-8")
-            result = subprocess.run(
-                [str(ROOT / ".githooks" / "commit-msg"), str(message_file)],
-                cwd=ROOT,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(result.returncode, 0)
-
     def test_task_groups_follow_distinct_workflows(self) -> None:
         tasks = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))["tasks"]
         self.assertEqual(
