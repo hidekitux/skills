@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-commitlint_bin="${COMMITLINT_BIN:-commitlint}"
 root=$(git rev-parse --show-toplevel)
 cd "${root}"
 
 commits=()
+
+if [[ -n "${COMMITLINT_BIN:-}" ]]; then
+  commitlint_bin="${COMMITLINT_BIN}"
+elif [[ -x "${root}/.mise/bin/commitlint" ]]; then
+  commitlint_bin="${root}/.mise/bin/commitlint"
+else
+  echo "commitlint is not installed for this project. Run: mise run setup:commitlint" >&2
+  exit 2
+fi
 
 lint_message() {
   local commit=$1

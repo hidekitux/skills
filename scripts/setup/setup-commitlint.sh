@@ -2,7 +2,11 @@
 set -euo pipefail
 
 root=$(git rev-parse --show-toplevel)
-shared_dir="$(git rev-parse --git-common-dir)/.mise/bin"
+common_dir="$(git rev-parse --git-common-dir)"
+case "${common_dir}" in
+  /*) shared_dir="${common_dir}/.mise/bin" ;;
+  *) shared_dir="${root}/${common_dir}/.mise/bin" ;;
+esac
 bin_dir="${root}/.mise/bin"
 
 mkdir -p "${bin_dir}"
