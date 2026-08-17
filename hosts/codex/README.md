@@ -8,6 +8,19 @@ Do not assume a particular plugin, MCP server, browser session, or local binary
 exists. Record any material capability difference in the relevant skill's
 `references/hosts/codex.md`, including a safe fallback and verification step.
 
+## Model selection
+
+Skills select role-specific models from the shared convention in
+[docs/model-selection.md](../../docs/model-selection.md). The per-project
+variables live in `opencode.json` under `agent.high.model`, `agent.mid.model`,
+and `agent.low.model`; see [opencode-go/README.md](../opencode-go/README.md)
+for the OpenCode Go setup. In Codex the selectors are served through
+codex-router (for example `opencode-go/deepseek-v4-flash`): the default agent
+model is set once in the host config, and subagents inherit it or take an
+explicit selector when the host allows a model override. When Codex cannot
+read the variable, use the documented default for the tier and the fallback
+rule, and name the fallback in the handoff.
+
 ## Local skill registration
 
 Run `mise run setup` once in each Git worktree. The command sets

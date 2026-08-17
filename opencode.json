@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "high": {
+      "description": "High tier: complex planning and directing.",
+      "model": "gpt-5.6-terra"
+    },
+    "mid": {
+      "description": "Mid tier: moderate planning and implementation.",
+      "model": "opencode-go/deepseek-v4-pro"
+    },
+    "low": {
+      "description": "Low tier: implementation, validation, and simple subagent tasks.",
+      "model": "opencode-go/deepseek-v4-flash"
+    }
+  }
+}
