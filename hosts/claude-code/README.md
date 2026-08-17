@@ -9,6 +9,18 @@ Record any material capability difference in the relevant skill's
 `references/hosts/claude-code.md`, including a safe fallback and verification
 step.
 
+## Model selection
+
+Skills select role-specific models from the shared convention in
+[docs/model-selection.md](../../docs/model-selection.md). The per-project
+variables live in `opencode.json` under `agent.high.model`, `agent.mid.model`,
+and `agent.low.model`; see [opencode-go/README.md](../opencode-go/README.md)
+for the OpenCode Go setup. In Claude Code the requests are routed through
+claude-code-router to the OpenCode Go provider; select the tier model in the
+router's provider/profile configuration. When Claude Code cannot read the
+variable, use the documented default for the tier and the fallback rule, and
+name the fallback in the handoff.
+
 ## Local skill registration
 
 Run `mise run setup` once in each Git worktree. The command sets

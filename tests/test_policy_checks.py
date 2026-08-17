@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,6 +23,20 @@ def load_script(path: str):
 SENSITIVE = load_script("scripts/check/check-sensitive-content.py")
 TOOL_LICENSES = load_script("scripts/check/check-tool-licenses.py")
 SCRIPT_TESTS = load_script("scripts/validate/validate-script-tests.py")
+
+
+class OpenCodeModelConfigTests(unittest.TestCase):
+    def test_opencode_config_parses(self) -> None:
+        config = json.loads((ROOT / "opencode.json").read_text(encoding="utf-8"))
+        self.assertIsInstance(config, dict)
+
+    def test_opencode_config_declares_every_model_tier(self) -> None:
+        config = json.loads((ROOT / "opencode.json").read_text(encoding="utf-8"))
+        for tier in ("high", "mid", "low"):
+            with self.subTest(tier=tier):
+                model = config["agent"][tier]["model"]
+                self.assertIsInstance(model, str)
+                self.assertTrue(model)
 
 
 class PolicyCheckTests(unittest.TestCase):
