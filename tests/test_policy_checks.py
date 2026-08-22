@@ -23,6 +23,17 @@ def load_script(path: str):
 SENSITIVE = load_script("scripts/check/check-sensitive-content.py")
 TOOL_LICENSES = load_script("scripts/check/check-tool-licenses.py")
 SCRIPT_TESTS = load_script("scripts/validate/validate-script-tests.py")
+MUTATION_BADGES = load_script("scripts/check/check-mutation-badges.py")
+
+
+RECORDED_SUMMARY = (
+    '{"potential": 200, "killed": 164, "survived": 36, "kill_rate": 0.82}\n'
+)
+CURRENT_BADGES = """\
+![FSL mutants killed](https://img.shields.io/badge/mutants%20killed-164%2F200-2ea44f)
+![FSL kill rate](https://img.shields.io/badge/kill%20rate-82.00%25-2ea44f)
+![FSL surviving mutants](https://img.shields.io/badge/surviving%20mutants-36-a371f7)
+"""
 
 
 class OpenCodeModelConfigTests(unittest.TestCase):
@@ -83,6 +94,40 @@ class PolicyCheckTests(unittest.TestCase):
             (nested / "new.py").write_text("print('ok')\n", encoding="utf-8")
             (root / "SCRIPT_TESTS.toml").write_text("[scripts]\n", encoding="utf-8")
             self.assertEqual(SCRIPT_TESTS.main_with_root(root), 1)
+
+
+class MutationBadgeTests(unittest.TestCase):
+    def test_mutation_badge_check_accepts_current_badges(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "docs").mkdir()
+            (root / "docs" / "fsl-mutation-summary.json").write_text(
+                RECORDED_SUMMARY, encoding="utf-8"
+            )
+            (root / "README.md").write_text(CURRENT_BADGES, encoding="utf-8")
+            self.assertEqual(MUTATION_BADGES.main_with_root(root), 0)
+
+    def test_mutation_badge_check_rejects_a_stale_kill_rate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "docs").mkdir()
+            (root / "docs" / "fsl-mutation-summary.json").write_text(
+                RECORDED_SUMMARY, encoding="utf-8"
+            )
+            stale = CURRENT_BADGES.replace("82.00", "89.08")
+            (root / "README.md").write_text(stale, encoding="utf-8")
+            self.assertEqual(MUTATION_BADGES.main_with_root(root), 1)
+
+    def test_mutation_badge_check_rejects_a_stale_killed_count(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "docs").mkdir()
+            (root / "docs" / "fsl-mutation-summary.json").write_text(
+                RECORDED_SUMMARY, encoding="utf-8"
+            )
+            stale = CURRENT_BADGES.replace("164%2F200", "522%2F586")
+            (root / "README.md").write_text(stale, encoding="utf-8")
+            self.assertEqual(MUTATION_BADGES.main_with_root(root), 1)
 
 
 if __name__ == "__main__":
