@@ -13,8 +13,9 @@ exists. Record any material capability difference in the relevant skill's
 Skills select role-specific models from the shared convention in
 [docs/model-selection.md](../../docs/model-selection.md). The per-project
 variables live in `opencode.json` under `agent.high.model`, `agent.mid.model`,
-and `agent.low.model`; see [opencode-go/README.md](../opencode-go/README.md)
-for the OpenCode Go setup. In Codex the selectors are served through
+and `agent.low.model`; see
+[docs/model-routing.md](../../docs/model-routing.md) for the OpenCode provider
+setup. In Codex the selectors are served through
 codex-router (for example `opencode-go/deepseek-v4-flash`): the default agent
 model is set once in the host config, and subagents inherit it or take an
 explicit selector when the host allows a model override. When Codex cannot

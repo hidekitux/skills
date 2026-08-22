@@ -30,7 +30,7 @@ The key names were verified against the OpenCode config schema at <https://openc
 
 ## Runtime
 
-The OpenCode CLI is not part of this setup. The models are provided by OpenCode Go and served to the agents through routers: Codex reaches the selectors through codex-router, and Claude Code reaches them through claude-code-router. `opencode.json` is the shared per-project variable contract those hosts read; it remains schema-valid if the CLI is ever used, but no skill depends on the CLI.
+The OpenCode CLI is not part of this setup. The models are provided by OpenCode and served to the agents through routers: Codex reaches the selectors through codex-router, and Claude Code reaches them through claude-code-router. `opencode.json` is the shared per-project variable contract those hosts read; it remains schema-valid if the CLI is ever used, but no skill depends on the CLI.
 
 ## Subagent use
 
@@ -40,4 +40,4 @@ Use Subagents only for work that is independent, read-only, and parallelizable w
 
 When the configured model selector is unavailable on a host, use the host's lowest-cost capable model and name the fallback in the handoff. A host that does not expose the config variable applies the same rule with the documented default for the tier.
 
-Host-specific reading and verification guidance is in `hosts/opencode-go/README.md`, `hosts/codex/README.md`, and `hosts/claude-code/README.md`.
+Host-specific reading notes are in `hosts/codex/README.md` and `hosts/claude-code/README.md`. Router consumption and verification guidance is in [model-routing.md](model-routing.md).
