@@ -42,6 +42,23 @@ Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type i
 
 Create Issues from the Change or Release template. Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` exactly once in that order. Use one ordered `In`/`Out` pair in Scope and non-empty acceptance and validation checklists. Follow the common Release sections with `Changelog`, then `Added`, `Changed`, `Fixed`, and `Removed` exactly once in that order. Use `vX.Y.Z` for a public release and `vX.Y.Z+N` for an artifact build identifier.
 
+## Issue triage
+
+Every open Issue carries at least one label from the defined set, a priority, and a workflow phase, and is assigned to its owner. The label set covers three dimensions:
+
+- **Priority** — `priority:high`, `priority:medium`, `priority:low`.
+- **Scope** — `scope:feature`, `scope:bug`, `scope:docs`, `scope:maintenance`, `scope:improvement`, `scope:release`.
+- **Phase** — `phase:backlog`, `phase:planned`, `phase:in-progress`.
+
+Triage an Issue when it is created and whenever its status changes:
+
+1. Add one `scope:` label matching the Issue type.
+2. Add one `priority:` label for its urgency.
+3. Set the `phase:` label: `phase:backlog` when it is queued, `phase:planned` when it has a plan or is scheduled, and `phase:in-progress` while it is being worked.
+4. Assign the Issue to its known owner; leave it unassigned when no owner is known.
+
+The Change and Release templates already default new Issues to `phase:backlog` and instruct assignment, so a new Issue starts triaged.
+
 ## Branch and Pull Request flow
 
 Create an Issue and an `issue/<number>` branch before each human change. Define allowed Pull Request directions as `[[routes]]` in `.github/branch-policy.toml`; the default is `issue/<number> -> main`. Add another route only for a project that needs a separate integration or stabilization branch. The documented automation exception is `dependabot/* -> main`, which does not require an Issue or closing reference.

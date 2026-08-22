@@ -1,0 +1,8 @@
+{
+  "_note": "Recorded from `mise run mutate-fsl` at depth 8 with the default mutant cap (200). Refresh this file and README's FSL mutation badges together; see docs/releasing.md.",
+  "potential": 200,
+  "killed": 164,
+  "survived": 36,
+  "invalid": 0,
+  "kill_rate": 0.82
+}
