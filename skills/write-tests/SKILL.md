@@ -40,7 +40,7 @@ Map each acceptance criterion, requirement, or failure scenario to at least one 
 For a stateful flow driven by an FSL specification, derive acceptance and conformance tests from the spec:
 
 - Run `fslc scenarios <spec.fsl>` to enumerate concrete step scenarios and their per-step expected states.
-- Run `fslc testgen <spec.fsl>` to emit an adapter-based conformance test skeleton for the target harness (default `pytest`; `--target` supports `vitest`, `swift`, `kotlin`, `dart`, `phpunit`; `-o` sets the output file; `--strict` tightens the generated checks). Wire the adapter to the real implementation.
+- Run `fslc testgen <spec.fsl>` to emit an adapter-based conformance test skeleton for the target harness (default `pytest`; `--target` supports `vitest`, `swift`, `kotlin`, `dart`, `phpunit`; `-o` sets the output file). Wire the adapter to the real implementation. Place options after the file path; fslc 4.2.0 errors when options precede it.
 - Treat the generated cases as acceptance and conformance tests for the state flow. FSL derives tests from the spec; it does not prove the implementation conforms. Only executed tests against the real implementation, with recorded results, are evidence.
 
 ## Record completion and failure evidence per case
