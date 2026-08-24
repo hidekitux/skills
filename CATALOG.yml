@@ -1,5 +1,8 @@
 # Inventory of skills published from this repository.
 # Add one entry when adding a skill; keep the version aligned with its release.
+# layer is one of: process, analyze, fix, govern (see docs/skill-layers.md).
+# related lists related skills by name; it may include planned skills that are
+# not yet published.
 catalog_version: 1
 license: Apache-2.0
 skills:
@@ -10,6 +13,8 @@ skills:
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+    layer: process
+    related: [create-issue, implement-issue]
   - name: create-pr
     summary: Create validated, Issue-backed GitHub Pull Requests without duplicating existing work.
     owner: hidekitux
@@ -17,6 +22,8 @@ skills:
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+    layer: process
+    related: [implement-issue, review-pr]
   - name: create-issue
     summary: Create compliant GitHub change and release Issues before governed work.
     owner: hidekitux
@@ -24,6 +31,8 @@ skills:
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+    layer: process
+    related: [plan-issue]
   - name: bootstrap-project
     summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
     owner: hidekitux
@@ -32,6 +41,8 @@ skills:
     host_adapters: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+    layer: govern
+    related: [audit-workflow-enforcement]
   - name: audit-workflow-enforcement
     summary: Audit mandatory repository rules with deterministic checks and bounded subagent review.
     owner: hidekitux
@@ -40,6 +51,8 @@ skills:
     host_adapters: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+    layer: govern
+    related: [bootstrap-project]
   - name: implement-issue
     summary: Implement a governed Change Issue from its verified implementation plan with per-task evidence.
     owner: hidekitux
@@ -47,6 +60,8 @@ skills:
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.0
+    layer: process
+    related: [plan-issue, create-pr]
 
 # Example entry:
 # - name: pr-review
@@ -55,4 +70,6 @@ skills:
 #   status: experimental # experimental | stable | deprecated
 #   agents: [codex, github-copilot]
 #   host_adapters: [codex, claude-code] # Omit when the core skill is sufficient.
+#   layer: process # process | analyze | fix | govern
+#   related: [implement-issue] # Related skills, published or planned.
 #   version: 0.1.0

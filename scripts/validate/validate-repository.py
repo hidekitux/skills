@@ -23,7 +23,9 @@ This repository and its published skills are licensed under the Apache License,
 Version 2.0. See the LICENSE file for the complete license text.
 """
 VALID_STATUSES = {"experimental", "stable", "deprecated"}
+VALID_LAYERS = {"process", "analyze", "fix", "govern"}
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
+SKILL_NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FRONTMATTER_PATTERN = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 TODO_HEADING_PATTERN = re.compile(r"(?im)^#{1,6}\s+.*todo list.*$")
 
@@ -127,8 +129,11 @@ def main() -> int:
     parser.add_argument(
         "--root", type=Path, default=Path(__file__).resolve().parents[2]
     )
-    args = parser.parse_args()
-    root = args.root.resolve()
+    return main_with_root(parser.parse_args().root)
+
+
+def main_with_root(root: Path) -> int:
+    root = root.resolve()
     errors: list[str] = []
 
     catalog_path = root / "CATALOG.yml"
@@ -222,6 +227,34 @@ def main() -> int:
             entry["version"]
         ):
             errors.append(f"{prefix}.version must be semantic version text")
+
+        if entry.get("layer") not in VALID_LAYERS:
+            errors.append(f"{prefix}.layer must be one of {sorted(VALID_LAYERS)}")
+
+        related = entry.get("related", [])
+        if related is None:
+            related = []
+        if not isinstance(related, list):
+            errors.append(f"{prefix}.related must be a list")
+        else:
+            seen: set[str] = set()
+            for related_name in related:
+                if not isinstance(
+                    related_name, str
+                ) or not SKILL_NAME_PATTERN.fullmatch(related_name):
+                    errors.append(
+                        f"{prefix}.related contains an invalid skill name "
+                        f"{related_name!r}"
+                    )
+                    continue
+                if related_name == name:
+                    errors.append(f"{prefix}.related must not include the skill itself")
+                if related_name in seen:
+                    errors.append(
+                        f"{prefix}.related contains a duplicate skill name "
+                        f"{related_name!r}"
+                    )
+                seen.add(related_name)
 
         adapters = entry.get("host_adapters", [])
         if adapters is None:
