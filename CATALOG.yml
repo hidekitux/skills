@@ -71,6 +71,15 @@ skills:
     version: 0.1.0
     layer: process
     related: [create-pr, implement-issue]
+  - name: write-tests
+    summary: Design focused, proportionate tests with per-case failure evidence for a defined feature or fix.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: fix
+    related: [debug-code, implement-issue, refactor-code]
 
 # Example entry:
 # - name: pr-review
