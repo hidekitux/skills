@@ -44,7 +44,7 @@ Create Issues from the Change or Release template. Use `Context`, `Goal`, `Scope
 
 ## Issue triage
 
-Every open Issue carries at least one label from the defined set, a priority, and a workflow phase, and is assigned to its owner. The label set covers three dimensions:
+Every open Issue carries exactly one `priority:`, one `scope:`, and one `phase:` label from the defined set and is assigned to its owner. The label set covers three dimensions:
 
 - **Priority** — `priority:high`, `priority:medium`, `priority:low`.
 - **Scope** — `scope:feature`, `scope:bug`, `scope:docs`, `scope:maintenance`, `scope:improvement`, `scope:release`.
@@ -57,7 +57,7 @@ Triage an Issue when it is created and whenever its status changes:
 3. Set the `phase:` label: `phase:backlog` when it is queued, `phase:planned` when it has a plan or is scheduled, and `phase:in-progress` while it is being worked.
 4. Assign the Issue to its known owner; leave it unassigned when no owner is known.
 
-The Change and Release templates already default new Issues to `phase:backlog` and instruct assignment, so a new Issue starts triaged.
+The Change and Release templates default new Issues to `phase:backlog`, apply a default `priority:` and matching `scope:` label, and instruct assignment, so a new Issue starts triaged. The `issue-policy` workflow check enforces the exact one-of-each convention on issue events; update the labels whenever an Issue's triage or phase changes.
 
 ## Branch and Pull Request flow
 
