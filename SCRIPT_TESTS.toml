@@ -20,6 +20,7 @@
 "scripts/validate/validate-branch-policy.py" = "tests/test_validate_work_item_bodies.py"
 "scripts/validate/validate-hosts.sh" = "tests/test_local_setup.py"
 "scripts/validate/validate-issue-body.py" = "tests/test_validate_work_item_bodies.py"
+"scripts/validate/validate-issue-labels.py" = "tests/test_validate_issue_labels.py"
 "scripts/validate/validate-pr-commit-signatures.py" = "tests/test_validate_pr_commit_signatures.py"
 "scripts/validate/validate-repository.py" = "tests/test_policy_checks.py"
 "scripts/validate/validate-script-tests.py" = "tests/test_policy_checks.py"
