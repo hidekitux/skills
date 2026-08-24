@@ -96,6 +96,7 @@ Where the related guides live:
 
 - [docs/skill-layers.md](docs/skill-layers.md) — the layer model, naming pattern, boundaries, and the skill-set mapping.
 - [docs/analysis-skill-common.md](docs/analysis-skill-common.md) — the shared analyze-* core contract.
+- [docs/skill-contract.md](docs/skill-contract.md) — the cross-skill handoff and boundary rules: which skill owns each phase, where every skill sends its result, and the debug, review, and analyze-to-change loops.
 - [docs/skill-brief-template.md](docs/skill-brief-template.md) — the authoring brief, including boundaries, related skills, and handoff targets.
 - [docs/releasing.md](docs/releasing.md) — the release procedure.
 - [docs/fsl.md](docs/fsl.md) — the FSL specification boundary and verification.
