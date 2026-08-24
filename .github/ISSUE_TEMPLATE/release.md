@@ -2,11 +2,11 @@
 name: Release
 about: Prepare a published release and its changelog.
 title: "[Release]: v"
-labels: ["phase:backlog"]
+labels: ["phase:backlog", "priority:medium", "scope:release"]
 assignees: []
 ---
 
-<!-- Assign this Issue to its owner and add one priority: and one scope: label from the repository label set. -->
+<!-- Triage this Release Issue: confirm the priority and keep exactly one priority:, one scope:, and one phase: label before working it. Assign it to its owner. -->
 
 ## Context
 

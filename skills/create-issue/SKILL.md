@@ -10,9 +10,8 @@ license: Apache-2.0
 
 1. **in progress:** Confirm repository, outcome, and whether the Issue is a change or release.
 2. Draft the title and body from the matching repository template.
-3. Create the Issue.
-4. Complete the list only when the Issue URL is available; include every
-   applicable result in the handoff.
+3. Choose the triage labels and create the Issue with them.
+4. Complete the list only when the Issue URL is available; report the applied labels in the handoff.
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
 
@@ -31,6 +30,14 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 - Write `Acceptance criteria` as observable checkboxes that define completion.
 - Write `Validation` as checkboxes naming the commands or evidence that will prove the criteria.
 - Before creation, review the rendered body for heading order, duplicate sections, empty content, and unresolved placeholders.
+
+## Triage Labels
+
+- Create every Issue with exactly one `phase:`, one `scope:`, and one `priority:` label; all labels must come from the repository label set.
+- Set `phase:backlog` on new Issues.
+- Derive `scope:` from the Issue type: Feature→`scope:feature`, Bug→`scope:bug`, Documentation→`scope:docs`, Maintenance→`scope:maintenance`, Improvement→`scope:improvement`, Release→`scope:release`. Security uses `scope:bug` until a dedicated label exists.
+- Choose one `priority:` label with the user; default to `priority:medium` when the user has no preference.
+- Report the applied `priority:`, `scope:`, and `phase:` labels in the handoff with the Issue URL.
 
 ## Change Issues
 
