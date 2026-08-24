@@ -62,6 +62,15 @@ skills:
     version: 0.1.0
     layer: process
     related: [plan-issue, create-pr]
+  - name: debug-code
+    summary: Debug failures from reproduction through root cause, fix, and verification with evidence at every step.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: fix
+    related: [implement-issue, write-tests, refactor-code]
   - name: review-pr
     summary: Review pull requests for PR-introduced defects backed by concrete failure scenarios, ordered by severity.
     owner: hidekitux
