@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Project"
+  short_description: "Investigate the whole project and report prioritized findings."
+  default_prompt: "Use $analyze-project to investigate this repository end to end and return prioritized, evidence-backed findings and improvement recommendations."
