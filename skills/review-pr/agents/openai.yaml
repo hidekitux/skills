@@ -1,4 +1,4 @@
 interface:
   display_name: "Review Pull Request"
-  short_description: "Review PRs with severity-ordered, evidence-backed findings."
-  default_prompt: "Use $review-pr to review this Pull Request and return severity-ordered findings with file and line evidence."
+  short_description: "Report proven, PR-introduced findings from failure scenarios"
+  default_prompt: "Use $review-pr to review this Pull Request and report only findings backed by a concrete failure scenario, ordered by severity."
