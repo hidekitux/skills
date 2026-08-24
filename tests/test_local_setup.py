@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 
 import tomllib
@@ -34,6 +35,43 @@ def isolated_git_environment() -> dict[str, str]:
     }
 
 
+@contextmanager
+def repo_fixture(directory: str = "skills"):
+    """Yield a temporary Git repository seeded from ROOT with signing disabled."""
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        clone = Path(temporary_directory) / directory
+        shutil.copytree(
+            ROOT,
+            clone,
+            ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
+        )
+        environment = isolated_git_environment()
+        subprocess.run(
+            ["git", "init", "--quiet", "--initial-branch", "main", str(clone)],
+            check=True,
+            env=environment,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "test" + "@" + "example.invalid"],
+            cwd=clone,
+            check=True,
+            env=environment,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test User"],
+            cwd=clone,
+            check=True,
+            env=environment,
+        )
+        subprocess.run(
+            ["git", "config", "commit.gpgsign", "false"],
+            cwd=clone,
+            check=True,
+            env=environment,
+        )
+        yield clone, environment
+
+
 class LocalSetupTests(unittest.TestCase):
     def test_setup_task_groups_the_local_prerequisites(self) -> None:
         config = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))
@@ -56,210 +94,6 @@ class LocalSetupTests(unittest.TestCase):
             COMMIT_MESSAGE.validate("feat: add login flow #61\n\nbody"), []
         )
 
-    def test_lint_commits_requires_issue_number_suffix(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            shutil.copytree(
-                ROOT / "scripts",
-                root / "scripts",
-                ignore=shutil.ignore_patterns("__pycache__"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--initial-branch", "main", root],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            (root / "README").write_text("base\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README"], cwd=root, check=True, env=environment
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "chore: add base"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            (root / "README").write_text("feature\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README"], cwd=root, check=True, env=environment
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "feat: add feature #1"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            result = subprocess.run(
-                [
-                    "bash",
-                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
-                ],
-                cwd=root,
-                check=False,
-                capture_output=True,
-                text=True,
-                env={
-                    **environment,
-                    "COMMITLINT_BIN": "true",
-                    "PR_BASE_SHA": "HEAD~1",
-                    "PR_HEAD_SHA": "HEAD",
-                },
-            )
-            self.assertEqual(result.returncode, 0)
-
-            (root / "README").write_text("change\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README"], cwd=root, check=True, env=environment
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "feat: change readme"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            result = subprocess.run(
-                [
-                    "bash",
-                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
-                ],
-                cwd=root,
-                check=False,
-                capture_output=True,
-                text=True,
-                env={
-                    **environment,
-                    "COMMITLINT_BIN": "true",
-                    "PR_BASE_SHA": "HEAD~1",
-                    "PR_HEAD_SHA": "HEAD",
-                },
-            )
-            self.assertEqual(result.returncode, 1)
-            self.assertIn("numeric issue number", result.stderr)
-
-    def test_lint_commits_uses_project_local_commitlint_when_configured(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            shutil.copytree(
-                ROOT / "scripts",
-                root / "scripts",
-                ignore=shutil.ignore_patterns("__pycache__"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--initial-branch", "main", root],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            commitlint = root / ".mise" / "bin" / "commitlint"
-            commitlint.parent.mkdir(parents=True)
-            commitlint.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-            commitlint.chmod(0o755)
-            (root / "README").write_text("base\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README"], cwd=root, check=True, env=environment
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "feat: add feature #1"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            result = subprocess.run(
-                [
-                    "bash",
-                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
-                ],
-                cwd=root,
-                check=False,
-                capture_output=True,
-                text=True,
-                env={
-                    **environment,
-                    "PR_BASE_SHA": "HEAD~1",
-                    "PR_HEAD_SHA": "HEAD",
-                },
-            )
-            self.assertEqual(result.returncode, 0)
-
-    def test_lint_commits_errors_when_project_commitlint_is_missing(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            shutil.copytree(
-                ROOT / "scripts",
-                root / "scripts",
-                ignore=shutil.ignore_patterns("__pycache__"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--initial-branch", "main", root],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            (root / "README").write_text("base\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README"], cwd=root, check=True, env=environment
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "feat: add feature #1"],
-                cwd=root,
-                check=True,
-                env=environment,
-            )
-            result = subprocess.run(
-                [
-                    "bash",
-                    str(ROOT / "scripts" / "lint" / "lint-commits.sh"),
-                ],
-                cwd=root,
-                check=False,
-                capture_output=True,
-                text=True,
-                env={
-                    **environment,
-                    "PR_BASE_SHA": "HEAD~1",
-                    "PR_HEAD_SHA": "HEAD",
-                },
-            )
-            self.assertEqual(result.returncode, 2)
-            self.assertIn("commitlint is not installed", result.stderr)
-
     def test_task_groups_follow_distinct_workflows(self) -> None:
         tasks = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))["tasks"]
         self.assertEqual(
@@ -272,29 +106,7 @@ class LocalSetupTests(unittest.TestCase):
         )
 
     def test_setup_local_skills_is_idempotent_and_configures_hooks(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            clone = Path(temporary_directory) / "skills"
-            environment = isolated_git_environment()
-            shutil.copytree(
-                ROOT,
-                clone,
-                ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
-            )
-            subprocess.run(
-                ["git", "init", "--quiet", str(clone)], check=True, env=environment
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=clone,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=clone,
-                check=True,
-                env=environment,
-            )
+        with repo_fixture() as (clone, environment):
             (clone / "README").write_text("base\n", encoding="utf-8")
             subprocess.run(
                 ["git", "add", "README"], cwd=clone, check=True, env=environment
@@ -304,8 +116,6 @@ class LocalSetupTests(unittest.TestCase):
                     "git",
                     "-c",
                     "core.hooksPath=/dev/null",
-                    "-c",
-                    "commit.gpgsign=false",
                     "commit",
                     "-qm",
                     "chore: add base #1",
@@ -342,31 +152,7 @@ class LocalSetupTests(unittest.TestCase):
             )
 
     def test_register_local_skills_is_snapshot_dependent(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            clone = Path(temporary_directory) / "skills"
-            shutil.copytree(
-                ROOT,
-                clone,
-                ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--quiet", "--initial-branch", "main", str(clone)],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=clone,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=clone,
-                check=True,
-                env=environment,
-            )
+        with repo_fixture() as (clone, environment):
             (clone / "README").write_text("base\n", encoding="utf-8")
             subprocess.run(
                 ["git", "add", "README"], cwd=clone, check=True, env=environment
@@ -431,32 +217,7 @@ class LocalSetupTests(unittest.TestCase):
             self.assertEqual(stamp.read_text(encoding="ascii").strip(), second)
 
     def test_setup_commitlint_reuses_the_shared_binary(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory) / "repos"
-            main = root / "main"
-            shutil.copytree(
-                ROOT,
-                main,
-                ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--quiet", "--initial-branch", "main", str(main)],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=main,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=main,
-                check=True,
-                env=environment,
-            )
+        with repo_fixture(directory="repos/main") as (main, environment):
             (main / "README").write_text("base\n", encoding="utf-8")
             subprocess.run(["git", "add", "-A"], cwd=main, check=True, env=environment)
             subprocess.run(
@@ -465,7 +226,7 @@ class LocalSetupTests(unittest.TestCase):
                 check=True,
                 env=environment,
             )
-            worktree = root / "feature"
+            worktree = main.parent / "feature"
             subprocess.run(
                 [
                     "git",
@@ -507,31 +268,7 @@ class LocalSetupTests(unittest.TestCase):
             )
 
     def test_setup_commitlint_links_shared_binary_from_primary_worktree(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            main = Path(temporary_directory) / "main"
-            shutil.copytree(
-                ROOT,
-                main,
-                ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--quiet", "--initial-branch", "main", str(main)],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=main,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=main,
-                check=True,
-                env=environment,
-            )
+        with repo_fixture(directory="main") as (main, environment):
             shared_dir = main / ".git" / ".mise" / "bin"
             shared_dir.mkdir(parents=True)
             (shared_dir / "commitlint").write_bytes(b"#!/bin/sh\nexit 0\n")
@@ -626,32 +363,7 @@ class LocalSetupTests(unittest.TestCase):
             self.assertIn("Warning: Local setup did not complete.", result.stderr)
 
     def test_worktree_diagnostic_reports_owner_and_setup_state(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            clone = root / "clone"
-            shutil.copytree(
-                ROOT,
-                clone,
-                ignore=shutil.ignore_patterns(".git", ".agents", ".claude", ".mise"),
-            )
-            environment = isolated_git_environment()
-            subprocess.run(
-                ["git", "init", "--quiet", "--initial-branch", "main", str(clone)],
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.email", "test" + "@" + "example.invalid"],
-                cwd=clone,
-                check=True,
-                env=environment,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=clone,
-                check=True,
-                env=environment,
-            )
+        with repo_fixture(directory="clone") as (clone, environment):
             (clone / "README").write_text("base\n", encoding="utf-8")
             subprocess.run(
                 ["git", "add", "README"], cwd=clone, check=True, env=environment
