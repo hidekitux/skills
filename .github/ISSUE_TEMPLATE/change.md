@@ -1,7 +1,7 @@
 ---
 name: Change
 about: Propose a governed repository change.
-title: "[Feature]: Add "
+title: "[Feature]: Add analyze-project skill"
 labels: ["phase:backlog", "priority:medium", "scope:feature"]
 assignees: []
 ---
