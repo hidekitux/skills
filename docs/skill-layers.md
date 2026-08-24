@@ -16,8 +16,8 @@ Skills that drive the governed change workflow: issues, plans, implementations,
 pull requests, and reviews. They create and update work items, branches, and
 pull requests but never edit the target project's source code.
 
-- Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`
-- Planned: `review-pr` ([#67](https://github.com/hidekitux/skills/issues/67))
+- Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`,
+  `review-pr`
 
 ### analyze
 
@@ -25,7 +25,7 @@ Read-only investigation skills that discover, prioritize, and report
 evidence-backed findings. They never modify files and never create Issues or
 Pull Requests; candidates for change are recommendations only.
 
-- Planned: `analyze-project` ([#76](https://github.com/hidekitux/skills/issues/76)),
+- Published: `analyze-project` ([#76](https://github.com/hidekitux/skills/issues/76)),
   which owns the analysis area and folds in error, tests, dependencies, docs,
   performance, and security investigation modes (the separate proposals
   [#77](https://github.com/hidekitux/skills/issues/77)-
@@ -58,8 +58,8 @@ missing; they do not implement the audited rules themselves.
 | process | plan-issue | published | |
 | process | implement-issue | published | |
 | process | create-pr | published | |
-| process | review-pr | planned | #67 |
-| analyze | analyze-project | planned | #76 |
+| process | review-pr | published | |
+| analyze | analyze-project | published | |
 | fix | debug-code | published | |
 | fix | write-tests | planned | #69 |
 | fix | refactor-code | planned | #70 |
