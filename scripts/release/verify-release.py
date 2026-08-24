@@ -9,9 +9,50 @@ import subprocess
 import sys
 from pathlib import Path
 
-import yaml
-
 TAG_PATTERN = re.compile(r"^v(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$")
+
+
+def find_skill_directories(root: Path) -> dict[str, Path]:
+    """Map every discovered publishable skill name to its directory."""
+    discovered: dict[str, Path] = {}
+    for skill_file in sorted((root / "skills").rglob("SKILL.md")):
+        discovered[skill_file.parent.name] = skill_file.parent
+    return discovered
+
+
+def find_cross_skill_references(root: Path, catalog_names: set[str]) -> list[str]:
+    """Return errors when a released skill references a skill outside the catalog.
+
+    A deterministic, standalone helper (no YAML dependency) so tests can import
+    it directly. Every published (catalog) skill body is scanned for references
+    to any other skill discovered in skills/; if that referenced skill is not
+    part of this release's catalog, the release would ship a broken pointer, so
+    verify-release rejects it.
+    """
+    skill_dirs = find_skill_directories(root)
+    errors: list[str] = []
+    for name in sorted(catalog_names):
+        skill_dir = skill_dirs.get(name)
+        if skill_dir is None:
+            continue  # a catalog entry with no skill is reported elsewhere
+        try:
+            body = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            errors.append(f"{name}: cannot read SKILL.md: {exc}")
+            continue
+        for other in sorted(skill_dirs):
+            if other == name:
+                continue
+            if other not in catalog_names and re.search(
+                rf"(?<![A-Za-z0-9-]){re.escape(other)}(?![A-Za-z0-9-])",
+                body,
+                re.IGNORECASE,
+            ):
+                errors.append(
+                    f"{name} references skill {other!r} which is not "
+                    "listed in the release catalog"
+                )
+    return errors
 
 
 def run_git(root: Path, *args: str) -> str:
@@ -26,6 +67,8 @@ def run_git(root: Path, *args: str) -> str:
 
 
 def main() -> int:
+    import yaml
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("tag", help="release tag in the form vX.Y.Z")
     parser.add_argument(
@@ -48,6 +91,12 @@ def main() -> int:
         catalog = {}
 
     entries = catalog.get("skills") if isinstance(catalog, dict) else None
+    catalog_names = (
+        {entry.get("name") for entry in entries if isinstance(entry, dict)}
+        if isinstance(entries, list)
+        else set()
+    )
+    errors.extend(find_cross_skill_references(root, catalog_names))
     if not isinstance(entries, list) or not entries:
         errors.append("CATALOG.yml must contain at least one skill for a release")
     else:
