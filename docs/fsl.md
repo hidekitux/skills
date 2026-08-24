@@ -2,7 +2,7 @@
 
 ## Purpose
 
-FSL does not directly assess skill prose or Markdown quality. This repository uses it to verify skill lifecycle transitions and high-risk workflows as state machines.
+FSL does not directly assess skill prose or Markdown quality. This repository uses it to verify skill lifecycle transitions and high-risk workflows as state machines. For the skill-set map and layer vocabulary, see the [README](../README.md#skill-set-map).
 
 Suitable targets include:
 

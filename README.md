@@ -74,6 +74,34 @@ Every published skill creates and maintains a Todo List at invocation start. Inc
 
 Every skill belongs to one of four layers — process, analyze, fix, or govern. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design.
 
+## Skill-set map
+
+The repository publishes six skills today and tracks four planned next-generation skills. [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current and planned skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
+
+| Skill | Layer | Status |
+| --- | --- | --- |
+| create-issue | process | published |
+| plan-issue | process | published |
+| implement-issue | process | published |
+| create-pr | process | published |
+| review-pr | process | planned |
+| analyze-project | analyze | planned |
+| debug-code | fix | planned |
+| write-tests | fix | planned |
+| refactor-code | fix | planned |
+| bootstrap-project | govern | published |
+| audit-workflow-enforcement | govern | published |
+
+Where the related guides live:
+
+- [docs/skill-layers.md](docs/skill-layers.md) — the layer model, naming pattern, boundaries, and the skill-set mapping.
+- [docs/analysis-skill-common.md](docs/analysis-skill-common.md) — the shared analyze-* core contract.
+- [docs/skill-brief-template.md](docs/skill-brief-template.md) — the authoring brief, including boundaries, related skills, and handoff targets.
+- [docs/releasing.md](docs/releasing.md) — the release procedure.
+- [docs/fsl.md](docs/fsl.md) — the FSL specification boundary and verification.
+- [docs/model-selection.md](docs/model-selection.md) — role-tier model selection.
+- [docs/model-routing.md](docs/model-routing.md) — how each host consumes and verifies the selected models.
+
 ## Development workflow
 
 1. Add `skills/<skill-name>/SKILL.md`.

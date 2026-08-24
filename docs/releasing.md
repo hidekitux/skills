@@ -1,6 +1,6 @@
 # Release procedure
 
-Treat one GitHub Release as one semantic version. Every skill `version` in `CATALOG.yml` must match the version portion of that release tag.
+Treat one GitHub Release as one semantic version. Every skill `version` in `CATALOG.yml` must match the version portion of that release tag. For the skill-set map, layer vocabulary, and where this guide sits, see the [README](../README.md#skill-set-map).
 
 ## Before release
 
