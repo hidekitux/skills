@@ -41,6 +41,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 ## Handoff
 
+- After posting the plan comment on the governing Change Issue, set its `phase:` label to `phase:planned` and keep exactly one `priority:` and one `scope:` label; include the updated label state in the handoff.
 - Deliver the plan as a comment on the governing Change Issue. Keep the comment self-contained: ordered tasks with completion evidence, out-of-scope items, residual risk, and the next-phase handoff. Report the Issue URL and the comment URL.
 - Do not hand off through a temporary or local file, and do not rely on the host's native task tracking to carry the plan.
 - Complete the Todo List only after the comment is posted and its URL is available. Do not write code, create commits, or execute the plan unless separately requested.
