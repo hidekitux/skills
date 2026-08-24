@@ -184,6 +184,20 @@ class WorkItemTitleTests(unittest.TestCase):
         title = "[Feature]: Add User Login Flow"
         self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
 
+    def test_accepts_concrete_summary_with_template_verb(self) -> None:
+        title = "[Feature]: Add analyze-project skill"
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 0)
+
+    def test_rejects_empty_summary(self) -> None:
+        for title in ("[Feature]:", "[Feature]: ", "[Feature]:    "):
+            with self.subTest(title=title):
+                self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
+
+    def test_rejects_bare_template_placeholder_summary(self) -> None:
+        for title in ("[Feature]: Add", "[Feature]: Add ", "[Feature]: Add\t"):
+            with self.subTest(title=title):
+                self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
+
 
 class IssueBodyTests(unittest.TestCase):
     def test_accepts_ordered_change_body(self) -> None:
