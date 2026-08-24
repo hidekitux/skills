@@ -63,7 +63,7 @@ skills:
     layer: process
     related: [plan-issue, create-pr]
   - name: review-pr
-    summary: Review pull requests with severity-ordered, evidence-backed findings.
+    summary: Review pull requests for PR-introduced defects backed by concrete failure scenarios, ordered by severity.
     owner: hidekitux
     status: experimental
     agents: [codex, claude-code]
