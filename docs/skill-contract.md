@@ -10,12 +10,12 @@ report → issue → plan → implementation → pull request → review
 
 | Stage | Owner skill | Result artifact | Handed to |
 | --- | --- | --- | --- |
-| Report | `analyze-*` (planned: `analyze-project`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
+| Report | `analyze-*` (`analyze-project`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
 | Issue | `create-issue` | Change or release Issue | `plan-issue` |
 | Plan | `plan-issue` | Verified implementation plan posted as an Issue comment | `implement-issue` |
 | Implementation | `implement-issue` | In-scope changes with per-task evidence | `create-pr` |
 | Pull request | `create-pr` | Issue-backed Pull Request | `review-pr` |
-| Review | `review-pr` (planned) | Severity-ordered findings | `implement-issue` |
+| Review | `review-pr` | Severity-ordered findings | `implement-issue` |
 
 Rules:
 
@@ -29,12 +29,12 @@ Every skill names its result, the next-owner skill, and what it must not do.
 
 | Skill | Produces | Handoff target | Ownership boundary |
 | --- | --- | --- | --- |
-| `analyze-*` (planned: `analyze-project`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
+| `analyze-*` (`analyze-project`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
 | `create-issue` | Compliant change or release Issue | `plan-issue` | Only Issue creator; does not plan or implement |
 | `plan-issue` | Verified implementation plan (Issue comment) | `implement-issue` | Plans only; does not implement |
 | `implement-issue` | In-scope edits with per-task evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
-| `review-pr` (planned) | Severity-ordered findings | `implement-issue` | Reviews; does not edit the branch or merge |
+| `review-pr` | Severity-ordered findings | `implement-issue` | Reviews; does not edit the branch or merge |
 | `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
 | `write-tests` (planned) | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
 | `refactor-code` (planned) | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
