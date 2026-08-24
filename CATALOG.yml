@@ -62,6 +62,15 @@ skills:
     version: 0.1.0
     layer: process
     related: [plan-issue, create-pr]
+  - name: review-pr
+    summary: Review pull requests with severity-ordered, evidence-backed findings.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: process
+    related: [create-pr, implement-issue]
 
 # Example entry:
 # - name: pr-review
