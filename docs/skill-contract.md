@@ -35,7 +35,7 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `implement-issue` | In-scope edits with per-task evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
 | `review-pr` (planned) | Severity-ordered findings | `implement-issue` | Reviews; does not edit the branch or merge |
-| `debug-code` (planned) | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
+| `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
 | `write-tests` (planned) | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
 | `refactor-code` (planned) | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
 | `bootstrap-project` | Runnable foundation with protected branch flow and FSL adoption plan | The project's governed change flow | Initialization only |

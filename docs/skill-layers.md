@@ -38,8 +38,8 @@ Skills that modify code or artifacts directly to repair, test, or restructure
 them. They work from a defined task or Issue and hand their result to the next
 owner instead of inventing scope.
 
-- Planned: `debug-code` ([#68](https://github.com/hidekitux/skills/issues/68)),
-  `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
+- Published: `debug-code`
+- Planned: `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
   `refactor-code` ([#70](https://github.com/hidekitux/skills/issues/70))
 
 ### govern
@@ -60,7 +60,7 @@ missing; they do not implement the audited rules themselves.
 | process | create-pr | published | |
 | process | review-pr | planned | #67 |
 | analyze | analyze-project | planned | #76 |
-| fix | debug-code | planned | #68 |
+| fix | debug-code | published | |
 | fix | write-tests | planned | #69 |
 | fix | refactor-code | planned | #70 |
 | govern | bootstrap-project | published | |

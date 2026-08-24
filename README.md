@@ -76,7 +76,7 @@ Every skill belongs to one of four layers — process, analyze, fix, or govern. 
 
 ## Skill-set map
 
-The repository publishes six skills today and tracks four planned next-generation skills. [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current and planned skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
+The repository publishes seven skills today and tracks three planned next-generation skills. [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current and planned skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
 
 | Skill | Layer | Status |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ The repository publishes six skills today and tracks four planned next-generatio
 | create-pr | process | published |
 | review-pr | process | planned |
 | analyze-project | analyze | planned |
-| debug-code | fix | planned |
+| debug-code | fix | published |
 | write-tests | fix | planned |
 | refactor-code | fix | planned |
 | bootstrap-project | govern | published |
