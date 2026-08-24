@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refactor Code"
+  short_description: "Behavior-preserving refactors verified against a test baseline."
+  default_prompt: "Use $refactor-code to refactor this code while keeping the test baseline green."
