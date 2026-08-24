@@ -69,11 +69,12 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
   body from the error message alone. Read the validator and its tests, revise
   the finalized body, and rerun the preflight; keep or create a draft only when
   the user explicitly asks to publish despite the unresolved failure.
+- When the Pull Request opens, set the governing Issue's `phase:` label to `phase:in-progress` and keep it there for release Issues until publication; the update is idempotent with `implement-issue`.
 - Create a ready Pull Request only after the ready gate passes. Otherwise create or retain a draft.
 
 ## Handoff
 
-Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, validation commands and results, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
+Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, validation commands and results, the governing Issue's label state, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
 
 Opening and maintaining the Pull Request happens in this session. Merge and
 release are later phases, not part of this skill.
