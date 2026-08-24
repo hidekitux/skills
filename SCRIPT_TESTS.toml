@@ -3,6 +3,7 @@
 # still inspect whether that test exercises the changed behavior.
 [scripts]
 "scripts/check/check-mutation-badges.py" = "tests/test_policy_checks.py"
+"scripts/check/check-analyze-readonly.py" = "tests/test_policy_checks.py"
 "scripts/check/check-sensitive-content.py" = "tests/test_policy_checks.py"
 "scripts/check/check-tool-licenses.py" = "tests/test_policy_checks.py"
 "scripts/check/check-whitespace.sh" = "tests/test_local_setup.py"
