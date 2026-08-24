@@ -80,6 +80,15 @@ skills:
     version: 0.1.0
     layer: process
     related: [create-pr, implement-issue]
+  - name: analyze-project
+    summary: Investigate a repository end to end and report prioritized, evidence-backed findings and improvement opportunities.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: analyze
+    related: [create-issue]
   - name: refactor-code
     summary: Perform small, behavior-preserving code refactorings verified against a test baseline.
     owner: hidekitux
