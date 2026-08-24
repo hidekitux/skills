@@ -2,7 +2,7 @@ name: Issue policy
 
 on:
   issues:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -19,6 +19,8 @@ jobs:
       - env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
         run: |
           python3 scripts/validate/validate-work-item-title.py --title "$ISSUE_TITLE"
           python3 scripts/validate/validate-issue-body.py --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
+          python3 scripts/validate/validate-issue-labels.py --labels "$ISSUE_LABELS"
