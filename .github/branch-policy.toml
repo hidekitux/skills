@@ -4,6 +4,6 @@ base_pattern = "^main$"
 requires_issue_link = true
 
 [[routes]]
-head_pattern = "^dependabot/"
+head_pattern = "^dependabot/.+$"
 base_pattern = "^main$"
 requires_issue_link = false
