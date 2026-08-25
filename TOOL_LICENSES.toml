@@ -27,3 +27,13 @@ source = "https://github.com/cli/cli"
 [tools.actionlint]
 license = "MIT"
 source = "https://github.com/rhysd/actionlint"
+
+# Direct Go module dependencies declared in go.mod. Each entry is reviewed when
+# the corresponding module is added or updated.
+[go_modules."gopkg.in/yaml.v3"]
+license = "MIT"
+source = "https://github.com/go-yaml/yaml"
+
+[go_modules."github.com/pelletier/go-toml/v2"]
+license = "MIT"
+source = "https://github.com/pelletier/go-toml"
