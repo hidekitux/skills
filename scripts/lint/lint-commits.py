@@ -6,33 +6,29 @@ runs each message through commitlint and validate-commit-message.py. Replaces
 the former lint-commits.sh while preserving its environment contract and exit
 codes (0 success, 1 lint failure, 2 missing commitlint).
 
-Dependabot pull requests are exempt: a pull request whose head branch matches
-`dependabot/` or whose author is `dependabot[bot]` is skipped entirely, and
-commits authored by `dependabot[bot]` are skipped in push ranges, because
-Dependabot generates its own branch names and commit messages. Human branches
-keep every rule unchanged.
+Dependabot pull requests are exempt: a pull request opened by the
+`dependabot[bot]` author is skipped entirely, and commits authored by
+`dependabot[bot]` are skipped only in push ranges, because Dependabot
+generates its own branch names and commit messages. Human branches keep every
+rule unchanged.
 """
 
 from __future__ import annotations
 
 import importlib.util
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-DEPENDABOT_HEAD_PATTERN = re.compile(r"^dependabot/")
 DEPENDABOT_AUTHOR = "dependabot[bot]"
 
 
 def is_dependabot_pull_request() -> bool:
-    """Return whether the current pull request context belongs to Dependabot."""
-    head_ref = os.environ.get("PR_HEAD_REF", "")
-    author = os.environ.get("PR_AUTHOR", "")
-    return bool(DEPENDABOT_HEAD_PATTERN.match(head_ref)) or author == DEPENDABOT_AUTHOR
+    """Return whether the current pull request author is Dependabot."""
+    return os.environ.get("PR_AUTHOR", "") == DEPENDABOT_AUTHOR
 
 
 def _load_commit_message_validator():
@@ -116,7 +112,8 @@ def main(runner=subprocess) -> int:
         print("Skipping commit lint for a Dependabot pull request.")
         return 0
     commitlint_bin = resolve_commitlint(root, runner)
-    if os.environ.get("PR_BASE_SHA") and os.environ.get("PR_HEAD_SHA"):
+    pr_context = bool(os.environ.get("PR_BASE_SHA") and os.environ.get("PR_HEAD_SHA"))
+    if pr_context:
         commits = collect_commits(
             os.environ["PR_BASE_SHA"], os.environ["PR_HEAD_SHA"], runner
         )
@@ -132,7 +129,7 @@ def main(runner=subprocess) -> int:
         return 0
     for commit in commits:
         print(f"Checking commit {commit}")
-        if is_dependabot_commit(commit, runner):
+        if not pr_context and is_dependabot_commit(commit, runner):
             print(f"Skipping Dependabot-authored commit {commit}")
             continue
         message = message_for(commit, runner)
