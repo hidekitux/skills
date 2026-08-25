@@ -16,6 +16,7 @@ func gitDiffCheck(root string, out io.Writer, args ...string) int {
 	full := append([]string{"diff", "--check"}, args...)
 	cmd := exec.Command("git", full...)
 	cmd.Dir = root
+	cmd.Env = support.GitEnv()
 	cmd.Stdout = out
 	cmd.Stderr = out
 	err := cmd.Run()
@@ -24,13 +25,13 @@ func gitDiffCheck(root string, out io.Writer, args ...string) int {
 
 // gitVerify reports whether a Git ref resolves to a commit.
 func gitVerify(root, ref string) bool {
-	_, err := support.OutputIn(root, "git", "rev-parse", "--verify", "--quiet", ref)
+	_, err := support.GitOutputIn(root, "rev-parse", "--verify", "--quiet", ref)
 	return err == nil
 }
 
 // emptyTreeSHA returns the SHA-1 of the empty tree object.
 func emptyTreeSHA(root string) string {
-	stdout, err := support.OutputIn(root, "git", "hash-object", "-t", "tree", os.DevNull)
+	stdout, err := support.GitOutputIn(root, "hash-object", "-t", "tree", os.DevNull)
 	if err != nil {
 		return ""
 	}
@@ -38,7 +39,7 @@ func emptyTreeSHA(root string) string {
 }
 
 func isAncestor(root, base, head string) bool {
-	_, err := support.OutputIn(root, "git", "merge-base", "--is-ancestor", base, head)
+	_, err := support.GitOutputIn(root, "merge-base", "--is-ancestor", base, head)
 	return err == nil
 }
 

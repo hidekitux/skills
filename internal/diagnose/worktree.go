@@ -20,7 +20,7 @@ type Worktree struct {
 
 // Worktrees parses the porcelain worktree listing into entries.
 func Worktrees() ([]Worktree, error) {
-	stdout, err := support.Output("git", "worktree", "list", "--porcelain")
+	stdout, err := support.GitOutput("worktree", "list", "--porcelain")
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func SetupState(entry Worktree) string {
 		return "unreadable"
 	}
 	revision := strings.TrimSpace(string(content))
-	head, err := support.Output("git", "--git-dir", entry.Path, "rev-parse", "HEAD")
+	head, err := support.GitOutput("--git-dir", entry.Path, "rev-parse", "HEAD")
 	if err != nil {
 		return "unreadable"
 	}
@@ -72,14 +72,14 @@ func SetupState(entry Worktree) string {
 
 // IsMerged reports whether branch is an ancestor of base.
 func IsMerged(branch, base string) bool {
-	_, err := support.Output("git", "merge-base", "--is-ancestor", branch, base)
+	_, err := support.GitOutput("merge-base", "--is-ancestor", branch, base)
 	return err == nil
 }
 
 // DiagnoseWorktree reports worktree branch ownership and setup state,
 // returning 0 on success or 2 when Git inspection fails.
 func DiagnoseWorktree(branch, base string, out, errOut io.Writer) int {
-	bareOutput, err := support.Output("git", "rev-parse", "--is-bare-repository")
+	bareOutput, err := support.GitOutput("rev-parse", "--is-bare-repository")
 	if err != nil {
 		fmt.Fprintf(errOut, "%s\n", gitFailureMessage(err))
 		return 2
