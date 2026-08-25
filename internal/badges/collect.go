@@ -8,6 +8,7 @@ package badges
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,21 +47,38 @@ type TestSummary struct {
 }
 
 // ParseMutateLog aggregates the summary block of every mutation document in
-// the log. Every `Mutating <spec> at depth N` line must be followed by exactly
+// the log. fslc emits each mutation document as pretty-printed JSON that may
+// span multiple lines, so documents are streamed rather than parsed one line at
+// a time: non-JSON lines (such as the `Mutating <spec> at depth N` headers) are
+// skipped, and each JSON document is accumulated until it forms a complete
+// value. Every `Mutating <spec> at depth N` line must be followed by exactly
 // one mutation document, so a truncated or missing document fails loudly.
 func ParseMutateLog(text string) (MutationSummary, error) {
 	summaries := []MutationSummary{}
 	scanner := bufio.NewScanner(strings.NewReader(text))
+	var document bytes.Buffer
+	inDocument := false
 	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || !strings.HasPrefix(line, "{") {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+		if !inDocument {
+			if trimmed == "" || !strings.HasPrefix(trimmed, "{") {
+				continue
+			}
+			document.Reset()
+			inDocument = true
+		}
+		document.WriteString(line)
+		document.WriteByte('\n')
+		if !json.Valid(document.Bytes()) {
 			continue
 		}
-		var document map[string]any
-		if err := json.Unmarshal([]byte(line), &document); err != nil {
-			continue
+
+		var doc map[string]any
+		if err := json.Unmarshal(document.Bytes(), &doc); err != nil {
+			return MutationSummary{}, err
 		}
-		summary, ok := document["summary"].(map[string]any)
+		summary, ok := doc["summary"].(map[string]any)
 		if !ok {
 			return MutationSummary{}, errors.New("mutate-fsl document is missing its summary block")
 		}
@@ -77,6 +95,8 @@ func ParseMutateLog(text string) (MutationSummary, error) {
 			return MutationSummary{}, fmt.Errorf("malformed summary block: %v", err)
 		}
 		summaries = append(summaries, MutationSummary{Total: total, Killed: killed, Survived: survived})
+		document.Reset()
+		inDocument = false
 	}
 	if err := scanner.Err(); err != nil {
 		return MutationSummary{}, err
