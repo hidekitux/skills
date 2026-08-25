@@ -36,6 +36,7 @@ var repoChecks = []repoCheck{
 	{name: "check-sensitive-content", fn: check.CheckSensitiveContent},
 	{name: "check-mutation-badges", fn: check.CheckMutationBadges},
 	{name: "check-analyze-readonly", fn: check.CheckAnalyzeReadonly},
+	{name: "check-guided-paths", fn: check.CheckGuidedPaths},
 }
 
 type checkResult struct {

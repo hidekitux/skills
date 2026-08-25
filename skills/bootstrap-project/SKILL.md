@@ -70,9 +70,10 @@ should document or verify its stateful workflows.
   as the governing Issue for that commit; one Pull Request may handle multiple
   Issues, so the number need not match the branch or another Issue listed in
   the Pull Request. Require a single-sentence message and enforce the shape
-  with `scripts/lint/validate-commit-message.py` alongside commitlint; copy
-  the validator into the generated repository's `scripts/`. Document the
-  format in the contributor guide.
+  with commitlint; copy the shipped validator template
+  `templates/github/scripts/validate-commit-message.py` into the generated
+  repository's `scripts/lint/validate-commit-message.py` and run it in parallel
+  with commitlint. Document the format in the contributor guide.
 - Provision Change and Release Issue templates. Require exactly one `Context`,
   `Goal`, `Scope`, `Acceptance criteria`, and `Validation` heading in that
   order. Define each section's purpose, require ordered `In`/`Out` scope
