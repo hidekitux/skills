@@ -14,7 +14,10 @@ their feature Issues. Issue #98 establishes this model for the whole skill set.
 
 Skills that drive the governed change workflow: issues, plans, implementations,
 pull requests, and reviews. They create and update work items, branches, and
-pull requests but never edit the target project's source code.
+pull requests. The implementation stage (`implement-issue`) is the process
+layer's only editor of the target project's source code, and it edits only
+files inside a governed Issue's in-scope boundary derived from a verified plan;
+no process skill edits outside the governed implementation stage.
 
 - Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`,
   `review-pr`
@@ -34,9 +37,11 @@ Pull Requests; candidates for change are recommendations only.
 
 ### fix
 
-Skills that modify code or artifacts directly to repair, test, or restructure
-them. They work from a defined task or Issue and hand their result to the next
-owner instead of inventing scope.
+Skills that modify code or artifacts directly in isolated, task-scoped work:
+repairing a reproduced defect, writing tests for a defined target, or
+refactoring against a test baseline without changing behavior. They work from a
+defined task or Issue and hand their result to the next owner or into the
+governed flow at `create-issue` instead of inventing scope.
 
 - Published: `debug-code`
 - Planned: `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
@@ -66,6 +71,25 @@ missing; they do not implement the audited rules themselves.
 | govern | bootstrap-project | published | |
 | govern | audit-workflow-enforcement | published | |
 
+## Process versus fix
+
+`implement-issue` is the only process-layer skill that edits the target
+project's source code. The deciding ownership criterion is observable:
+
+1. **Stage in the artifact flow** — `implement-issue` owns the *implementation*
+   stage of report → issue → plan → implementation → pull request → review;
+   fix-layer skills operate outside that stage.
+2. **Edit mandate artifact** — `implement-issue` edits only files within a
+   governed Issue's in-scope boundary from its verified plan; fix-layer edits
+   are justified by a task-scoped artifact such as reproduction evidence, a
+   defined test target, or a test baseline.
+3. **Handoff target** — `implement-issue` hands its in-scope edits to
+   `create-pr`; fix-layer skills hand to the next fix owner or into the
+   governed flow at `create-issue`.
+
+Classify governed implementation as `process`; classify isolated debugging,
+test writing, or refactoring as `fix`.
+
 ## Naming pattern
 
 - Analysis skills are named `analyze-<scope>` and follow the common contract in
@@ -78,7 +102,9 @@ missing; they do not implement the audited rules themselves.
 ## Boundaries
 
 - `analyze` recommends; only `create-issue` turns candidates into Issues.
-- `fix` changes the target project; `process` and `govern` do not.
+- `fix` changes the target project in isolated, task-scoped work; `process`
+  changes it only through the governed implementation stage (`implement-issue`);
+  `govern` does not change the target project.
 - `govern` establishes and verifies rules; `analyze` and `fix` do not change
   governance.
 - Every skill states its layer, related skills, and handoff target when it is
