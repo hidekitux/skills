@@ -137,6 +137,6 @@ mise run verify-fsl
 mise run mutate-fsl
 ```
 
-The FSL and test badges at the top of this README are published to the `badge-data` branch by the [Badge data workflow](.github/workflows/badges.yml); they auto-refresh after spec or test changes reach `main`. Do not hand-edit them.
+The FSL and test badges at the top of this README are published to the `badge-data` branch by the [Publish workflow](.github/workflows/publish.yml); they auto-refresh after spec or test changes reach `main`. Do not hand-edit them.
 
 See [docs/fsl.md](docs/fsl.md) for the specification boundary and [docs/releasing.md](docs/releasing.md) for release requirements.

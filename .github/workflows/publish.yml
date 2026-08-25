@@ -1,4 +1,4 @@
-name: Badge data
+name: Publish
 
 on:
   push:
@@ -16,14 +16,17 @@ concurrency:
 
 jobs:
   badge-data:
+    name: Publish badge data
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       # v3 -> 5228313ee0372e111a38da051671ca30fc5a96db
-      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db
+      - name: Set up mise toolchain
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db
         with:
           install: true
           cache: true
