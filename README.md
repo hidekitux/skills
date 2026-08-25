@@ -70,7 +70,7 @@ skills/<skill-name>/SKILL.md
 skills/<namespace>/<skill-name>/SKILL.md
 ```
 
-Every skill requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is organized by responsibility in `scripts/check/`, `diagnose/`, `fsl/`, `lint/`, `release/`, `setup/`, and `validate/`.
+Every skill requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
