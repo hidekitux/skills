@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
+import os
+import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 def load_script(path: str):
@@ -158,6 +163,51 @@ Tracks #35
 """
         self.assertEqual(BRANCH_POLICY.issue_references_at_start(body, "Tracks"), [35])
 
+    def test_accepts_dependabot_route_without_issue_link(self) -> None:
+        with (
+            mock.patch.object(
+                sys,
+                "argv",
+                [
+                    "validate-branch-policy.py",
+                    "--config",
+                    ".github/branch-policy.toml",
+                    "--base",
+                    "main",
+                    "--head",
+                    "dependabot/example",
+                    "--body",
+                    "",
+                ],
+            ),
+            contextlib.redirect_stdout(io.StringIO()) as stdout,
+        ):
+            self.assertEqual(BRANCH_POLICY.main(), 0)
+        self.assertIn("Allowed pull-request direction", stdout.getvalue())
+
+    def test_rejects_issue_branch_without_matching_link(self) -> None:
+        with (
+            mock.patch.object(
+                sys,
+                "argv",
+                [
+                    "validate-branch-policy.py",
+                    "--config",
+                    ".github/branch-policy.toml",
+                    "--base",
+                    "main",
+                    "--head",
+                    "issue/123",
+                    "--body",
+                    "",
+                ],
+            ),
+            mock.patch.dict(os.environ, {}, clear=True),
+            contextlib.redirect_stderr(io.StringIO()) as stderr,
+        ):
+            self.assertEqual(BRANCH_POLICY.main(), 1)
+        self.assertIn("disallowed pull-request direction", stderr.getvalue())
+
 
 class WorkItemTitleTests(unittest.TestCase):
     def test_accepts_sentence_case_with_proper_nouns(self) -> None:
@@ -197,6 +247,52 @@ class WorkItemTitleTests(unittest.TestCase):
         for title in ("[Feature]: Add", "[Feature]: Add ", "[Feature]: Add\t"):
             with self.subTest(title=title):
                 self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
+
+    def test_accepts_dependabot_title_with_head_ref(self) -> None:
+        title = "Bump actions/checkout from 4 to 5"
+        self.assertEqual(
+            WORK_ITEM_TITLE.main_with_title(
+                title, head_ref="dependabot/github_actions/actions-checkout"
+            ),
+            0,
+        )
+
+    def test_accepts_dependabot_title_with_author(self) -> None:
+        title = "Bump actions/checkout from 4 to 5"
+        self.assertEqual(
+            WORK_ITEM_TITLE.main_with_title(title, author="dependabot[bot]"), 0
+        )
+
+    def test_rejects_bot_style_title_for_human_branch(self) -> None:
+        title = "Bump actions/checkout from 4 to 5"
+        self.assertEqual(
+            WORK_ITEM_TITLE.main_with_title(title, head_ref="issue/123"), 1
+        )
+
+    def test_main_reads_dependabot_context_from_environment(self) -> None:
+        with (
+            mock.patch.dict(
+                os.environ,
+                {
+                    "PR_HEAD_REF": "dependabot/example",
+                    "PR_AUTHOR": "dependabot[bot]",
+                },
+            ),
+            mock.patch.object(
+                sys,
+                "argv",
+                [
+                    "validate-work-item-title.py",
+                    "--title",
+                    "Bump actions/checkout from 4 to 5",
+                ],
+            ),
+            contextlib.redirect_stdout(io.StringIO()) as stdout,
+        ):
+            self.assertEqual(WORK_ITEM_TITLE.main(), 0)
+        self.assertIn(
+            "Dependabot pull request title exemption applies.", stdout.getvalue()
+        )
 
 
 class IssueBodyTests(unittest.TestCase):
