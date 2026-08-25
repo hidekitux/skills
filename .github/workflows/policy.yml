@@ -17,6 +17,7 @@ concurrency:
 jobs:
   branch-policy:
     name: Validate branch policy
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
@@ -34,6 +35,7 @@ jobs:
         run: go run ./cmd/validate-branch-policy
   work-item-title:
     name: Validate work item title
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
