@@ -24,3 +24,15 @@ fi
 
 ln -sfn "${shared_dir}/commitlint" "${bin_dir}/commitlint"
 echo "commitlint available at ${bin_dir}/commitlint"
+
+# Build the repository-local commit-message validator beside commitlint so a
+# commit never compiles code or fetches modules; only validate-commit-message
+# and commitlint run during a commit.
+if [[ ! -x "${shared_dir}/validate-commit-message" ]]; then
+  mkdir -p "${shared_dir}"
+  (cd "${root}" && go build -o "${shared_dir}/validate-commit-message" ./cmd/validate-commit-message)
+  echo "Go validate-commit-message installed at ${shared_dir}/validate-commit-message"
+fi
+
+ln -sfn "${shared_dir}/validate-commit-message" "${bin_dir}/validate-commit-message"
+echo "validate-commit-message available at ${bin_dir}/validate-commit-message"

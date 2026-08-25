@@ -23,7 +23,7 @@ Every commit on an Issue branch must be a single sentence and end with the
 Issue number in the header: `type(scope): summary #<number>`. Keep the number
 as the governing Issue for that commit; one Pull Request may handle multiple
 Issues, so the commit number need not match the branch name or the Pull
-Request's first Issue. `scripts/lint/validate-commit-message.py` enforces the
+Request's first Issue. `cmd/validate-commit-message` enforces the
 shape and commitlint validates the header. Run `mise run validate` or a local
 commit to confirm the message before pushing.
 
