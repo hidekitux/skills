@@ -12,16 +12,23 @@ Rules:
   the prefix, and the bare template suffix `Add` is rejected.
 - Releases use the explicit exception `[Release]: vX.Y.Z` or a build
   identifier `[Release]: vX.Y.Z+N`.
+- Dependabot pull requests are exempt because Dependabot generates its own
+  title; the exemption applies to a head branch matching `dependabot/` or an
+  author of `dependabot[bot]`. Issue titles and human pull request titles
+  keep every rule unchanged.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 
 TYPES = "Feature|Bug|Improvement|Documentation|Security|Maintenance"
 SIMPLE_TITLE_WORD = re.compile(r"\A[A-Z][a-z]+\Z")
+DEPENDABOT_HEAD_PATTERN = re.compile(r"^dependabot/")
+DEPENDABOT_AUTHOR = "dependabot[bot]"
 PRESERVED_WORDS = {
     "Actions",
     "Android",
@@ -35,6 +42,13 @@ PRESERVED_WORDS = {
     "OpenAI",
     "Windows",
 }
+
+
+def is_dependabot(head_ref: str | None, author: str | None) -> bool:
+    """Return whether a pull request belongs to Dependabot."""
+    if head_ref and DEPENDABOT_HEAD_PATTERN.match(head_ref):
+        return True
+    return author == DEPENDABOT_AUTHOR
 
 
 def sentence_case_summary(summary: str) -> list[str]:
@@ -112,7 +126,12 @@ def title_errors(title: str) -> list[str]:
     return errors
 
 
-def main_with_title(title: str) -> int:
+def main_with_title(
+    title: str, head_ref: str | None = None, author: str | None = None
+) -> int:
+    if is_dependabot(head_ref, author):
+        print("Dependabot pull request title exemption applies.")
+        return 0
     errors = title_errors(title)
 
     if errors:
@@ -125,8 +144,10 @@ def main_with_title(title: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--title", required=True)
+    parser.add_argument("--head-ref", default=os.getenv("PR_HEAD_REF"))
+    parser.add_argument("--author", default=os.getenv("PR_AUTHOR"))
     args = parser.parse_args()
-    return main_with_title(args.title)
+    return main_with_title(args.title, args.head_ref, args.author)
 
 
 if __name__ == "__main__":
