@@ -42,6 +42,10 @@ jobs:
             --test-log "${RUNNER_TEMP}/test.log" \
             --output-dir "${RUNNER_TEMP}/badges"
       - name: Publish badge payloads to badge-data
+        env:
+          # actions/checkout runs with persist-credentials: false, so the
+          # runner never exports GITHUB_TOKEN; provide it from the token context.
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if git fetch --depth 1 origin badge-data:refs/heads/badge-data 2>/dev/null; then
@@ -49,6 +53,10 @@ jobs:
           else
             git switch --orphan badge-data
           fi
+          # Keep the branch limited to the six payloads: drop every checked-out
+          # or ignored file before copying the fresh payloads.
+          git rm -rf --quiet --ignore-unmatch .
+          git clean -fdx --quiet
           cp "${RUNNER_TEMP}"/badges/*.json .
           git add -A
           if git diff --cached --quiet; then
