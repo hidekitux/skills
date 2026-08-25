@@ -1,4 +1,4 @@
-name: GitHub Actions security
+name: Workflow security
 
 on:
   pull_request:
@@ -10,14 +10,33 @@ permissions:
   actions: read
   security-events: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  zizmor:
+  workflow-security:
     name: Audit GitHub Actions
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          fetch-depth: 0
           persist-credentials: false
+      - name: Determine changed workflow files
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- .github/workflows | grep -q .; then
+            echo "workflows-changed=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "workflows-changed=false" >> "${GITHUB_OUTPUT}"
+          fi
       # v0.6.2 -> 3dc1ecc9bcb9e94e9b2c709687979e1298497054
-      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054
+      - name: Audit GitHub Actions workflows
+        if: steps.changed.outputs.workflows-changed == 'true'
+        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054

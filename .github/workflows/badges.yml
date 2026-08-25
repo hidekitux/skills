@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  badges:
+  badge-data:
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
@@ -26,6 +26,7 @@ jobs:
       - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db
         with:
           install: true
+          cache: true
       - name: Capture FSL mutation results
         run: |
           set -euo pipefail
