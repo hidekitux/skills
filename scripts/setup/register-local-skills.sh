@@ -17,12 +17,16 @@ if [[ -f "${stamp}" ]] && [[ "$(cat "${stamp}")" == "${revision}" ]]; then
   exit 0
 fi
 
-for manifest in "${source_root}"/*/SKILL.md; do
+while IFS= read -r manifest; do
   [ -f "${manifest}" ] || continue
 
   found=1
-  skill_name=$(basename "$(dirname "${manifest}")")
-  target="../../skills/${skill_name}"
+  skill_dir=$(dirname "${manifest}")
+  skill_name=$(basename "${skill_dir}")
+  # Canonical repository-relative skill path under skills/, e.g. "refactor-code"
+  # for a flat skill or "skills/refactor-code" for a namespaced skill.
+  skill_rel=${skill_dir#"${source_root}/"}
+  target="../../skills/${skill_rel}"
 
   for host_root in "${root}/.agents/skills" "${root}/.claude/skills"; do
     destination="${host_root}/${skill_name}"
@@ -44,10 +48,10 @@ for manifest in "${source_root}"/*/SKILL.md; do
 
     ln -s "${target}" "${destination}"
   done
-done
+done < <(find "${source_root}" -type f -name SKILL.md | sort)
 
 if [ "${found}" -eq 0 ]; then
-  echo "No top-level skills found under ${source_root}." >&2
+  echo "No skills found under ${source_root}." >&2
   exit 1
 fi
 
