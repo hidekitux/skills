@@ -10,7 +10,12 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Key on the PR number rather than github.ref: on pull_request_target,
+  # github.ref resolves to the base branch (refs/heads/main), so grouping by it
+  # would let simultaneous Pull Requests cancel each other's signature checks.
+  # cancel-in-progress stays enabled so a newer run on the same PR supersedes
+  # the older one.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
