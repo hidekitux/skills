@@ -1,9 +1,11 @@
 package fsl
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -18,6 +20,24 @@ func TestSpecFilesCollectsRepoAndSkillSpecs(t *testing.T) {
 	expected := []string{"specs/nested/b.fsl", "specs/root-a.fsl", "skills/some-skill/specs/skill.fsl"}
 	if !reflect.DeepEqual(specs, expected) {
 		t.Fatalf("unexpected specs %v", specs)
+	}
+}
+
+func TestRunFslcInvokesBinaryAtBinDir(t *testing.T) {
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "fslc")
+	if err := os.WriteFile(bin, []byte("#!/bin/sh\nprintf 'fake-fslc-ran\\n'\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// The binary must be resolved from FSLC_BIN_DIR directly, not via the
+	// inherited PATH, so verify-fsl works on CI runners with no fslc on PATH.
+	t.Setenv("FSLC_BIN_DIR", dir)
+	var out, errOut bytes.Buffer
+	if code := runFslc(&out, &errOut, "check", "spec.fsl"); code != 0 {
+		t.Fatalf("expected 0, got %d: %s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "fake-fslc-ran") {
+		t.Fatalf("expected the binary at FSLC_BIN_DIR to run, got out=%q err=%q", out.String(), errOut.String())
 	}
 }
 

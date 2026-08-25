@@ -66,12 +66,15 @@ func specFiles(root string) []string {
 	return specs
 }
 
-// runFslc invokes the fslc binary found on PATH and streams its output.
+// runFslc invokes the pinned fslc binary directly at its install path. The
+// binary is located by binPath rather than by name so resolution does not
+// depend on the parent process's inherited PATH (Go resolves an unqualified
+// executable name via the parent env, not cmd.Env).
 func runFslc(out, errOut io.Writer, args ...string) int {
-	cmd := exec.Command("fslc", args...)
+	cmd := exec.Command(filepath.Join(binPath(), "fslc"), args...)
 	cmd.Stdout = out
 	cmd.Stderr = errOut
-	cmd.Env = append(os.Environ(), "PATH="+binPath()+string(os.PathListSeparator)+os.Getenv("PATH"))
+	cmd.Env = os.Environ()
 	return support.ExitError(cmd.Run())
 }
 
