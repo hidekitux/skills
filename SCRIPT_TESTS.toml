@@ -1,29 +1,37 @@
-# Representative test evidence for each executable repository script. This
-# mapping proves that an added script has an intentional test home; reviewers
-# still inspect whether that test exercises the changed behavior.
+# Representative test evidence for each executable repository script or
+# command. This mapping proves that an added command or script has an
+# intentional test home; reviewers still inspect whether that test exercises
+# the changed behavior.
+#
+# The cmds table maps a cmd/ Go entrypoint to a Go test package directory.
+# The scripts table maps a retained executable file under scripts/ to an
+# existing test home (a test file or a Go test package).
+[cmds]
+"cmd/check-sensitive-content" = "./internal/check"
+"cmd/check-tool-licenses" = "./internal/check"
+"cmd/check-mutation-badges" = "./internal/check"
+"cmd/check-analyze-readonly" = "./internal/check"
+"cmd/validate-repository" = "./internal/validate"
+"cmd/validate-script-tests" = "./internal/validate"
+"cmd/validate-branch-policy" = "./internal/validate"
+"cmd/validate-pr-commit-signatures" = "./internal/validate"
+"cmd/validate-issue-body" = "./internal/validate"
+"cmd/validate-issue-labels" = "./internal/validate"
+"cmd/validate-work-item-title" = "./internal/validate"
+"cmd/validate-hosts" = "./internal/validate"
+"cmd/diagnose-worktree" = "./internal/diagnose"
+"cmd/validate-commit-message" = "./internal/commitlint"
+"cmd/lint-commits" = "./internal/commitlint"
+"cmd/check-whitespace" = "./internal/check"
+"cmd/collect-badges" = "./internal/badges"
+"cmd/verify-fsl" = "./internal/fsl"
+"cmd/mutate-fsl" = "./internal/fsl"
+"cmd/verify-release" = "./internal/release"
+"cmd/publish-release" = "./internal/release"
+"cmd/validate-skill-creator" = "./internal/validate"
+
 [scripts]
-"scripts/badges/collect-badges.py" = "tests/test_badge_collection.py"
-"scripts/check/check-mutation-badges.py" = "tests/test_policy_checks.py"
-"scripts/check/check-analyze-readonly.py" = "tests/test_policy_checks.py"
-"scripts/check/check-sensitive-content.py" = "tests/test_policy_checks.py"
-"scripts/check/check-tool-licenses.py" = "tests/test_policy_checks.py"
-"scripts/check/check-whitespace.sh" = "tests/test_local_setup.py"
-"scripts/diagnose/diagnose-worktree.py" = "tests/test_local_setup.py"
-"scripts/fsl/install-fslc.sh" = "tests/test_validation_state_isolation.py"
-"scripts/fsl/mutate-fsl.sh" = "tests/test_validation_state_isolation.py"
-"scripts/fsl/verify-fsl.sh" = "tests/test_validation_state_isolation.py"
-"scripts/lint/lint-commits.py" = "tests/test_commit_linting.py"
-"scripts/lint/validate-commit-message.py" = "tests/test_local_setup.py"
-"scripts/release/publish-release.sh" = "tests/test_publish_release.py"
-"scripts/release/verify-release.py" = "tests/test_publish_release.py"
-"scripts/setup/register-local-skills.sh" = "tests/test_local_setup.py"
-"scripts/setup/setup-commitlint.sh" = "tests/test_local_setup.py"
-"scripts/setup/setup-local-skills.sh" = "tests/test_local_setup.py"
-"scripts/validate/validate-branch-policy.py" = "tests/test_validate_work_item_bodies.py"
-"scripts/validate/validate-hosts.sh" = "tests/test_local_setup.py"
-"scripts/validate/validate-issue-body.py" = "tests/test_validate_work_item_bodies.py"
-"scripts/validate/validate-issue-labels.py" = "tests/test_validate_issue_labels.py"
-"scripts/validate/validate-pr-commit-signatures.py" = "tests/test_validate_pr_commit_signatures.py"
-"scripts/validate/validate-repository.py" = "tests/test_policy_checks.py"
-"scripts/validate/validate-script-tests.py" = "tests/test_policy_checks.py"
-"scripts/validate/validate-work-item-title.py" = "tests/test_validate_work_item_bodies.py"
+"scripts/fsl/install-fslc.sh" = "./internal/fsl"
+"scripts/setup/register-local-skills.sh" = "./internal/hooks"
+"scripts/setup/setup-commitlint.sh" = "./internal/hooks"
+"scripts/setup/setup-local-skills.sh" = "./internal/hooks"

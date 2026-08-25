@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // ResolveRoot returns the absolute repository root for a working directory.
@@ -72,6 +73,38 @@ func asExitError(err error, target **exec.ExitError) bool {
 		err = u.Unwrap()
 	}
 	return false
+}
+
+// GitEnv returns the current environment without GIT_* variables, so a child
+// git process discovers its repository from its working directory instead of
+// inheriting an outer Git hook's GIT_DIR, GIT_WORK_TREE, or similar. This
+// mirrors the repository's test-time isolation and keeps the Go commands
+// valid when invoked from inside a hook (for example the pre-push hook that
+// runs `mise run validate`).
+func GitEnv() []string {
+	env := []string{}
+	for _, kv := range os.Environ() {
+		if !strings.HasPrefix(kv, "GIT_") {
+			env = append(env, kv)
+		}
+	}
+	return env
+}
+
+// GitOutput runs git with GIT_* environment variables removed, returning
+// combined output. It returns an error when git fails to start or exits
+// non-zero. Git commands run from the current working directory.
+func GitOutput(args ...string) (string, error) {
+	return GitOutputIn("", args...)
+}
+
+// GitOutputIn runs git in dir with GIT_* environment variables removed.
+func GitOutputIn(dir string, args ...string) (string, error) {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	cmd.Env = GitEnv()
+	out, err := cmd.CombinedOutput()
+	return string(out), err
 }
 
 // IsZeroSHA reports whether a SHA is empty or consists entirely of zeros,

@@ -13,7 +13,7 @@ actionlint = "1.7.12"
 
 [tasks.validate]
 description = "Run supported-platform repository validations"
-depends = ["check:repository", "check:skills", "check:hosts", "verify-fsl", "lint:actions", "lint:python", "lint:shell", "test", "check:diff", "check:branch-policy"]
+depends = ["check:repository", "check:skills", "check:hosts", "verify-fsl", "lint:actions", "lint:python", "lint:shell", "lint:go", "test", "check:diff", "check:branch-policy"]
 
 [tasks.setup]
 description = "Prepare local skills, Git hooks, and commitlint for development"
@@ -25,20 +25,20 @@ depends = ["check:repository", "check:branch-policy", "check:diff"]
 
 [tasks."worktree:diagnose"]
 description = "Report worktree branch ownership, setup state, and safe remediation"
-run = "python scripts/diagnose/diagnose-worktree.py \"$@\""
+run = "go run ./cmd/diagnose-worktree \"$@\""
 
 [tasks.lint]
-description = "Lint GitHub Actions, Python, and shell sources"
-depends = ["lint:actions", "lint:python", "lint:shell"]
+description = "Lint GitHub Actions, Python, shell, and Go sources"
+depends = ["lint:actions", "lint:python", "lint:shell", "lint:go"]
 
 [tasks."check:hosts"]
 description = "Validate local installation for Codex and Claude Code"
-run = "bash scripts/validate/validate-hosts.sh"
+run = "go run ./cmd/validate-hosts"
 
 [tasks.verify-fsl]
 description = "Check and verify every FSL specification"
 depends = ["fsl:install"]
-run = "bash scripts/fsl/verify-fsl.sh"
+run = "go run ./cmd/verify-fsl"
 
 [tasks."fsl:install"]
 description = "Install the pinned FSL verifier with checksum verification"
@@ -47,19 +47,39 @@ run = "bash scripts/fsl/install-fslc.sh"
 [tasks.mutate-fsl]
 description = "Measure mutation detection for every FSL specification"
 depends = ["fsl:install"]
-run = "bash scripts/fsl/mutate-fsl.sh"
+run = "go run ./cmd/mutate-fsl"
 
 [tasks."lint:actions"]
 description = "Lint GitHub Actions workflows"
 run = "actionlint"
 
+[tasks."lint:go"]
+description = "Format-check and vet Go sources"
+run = '''
+unformatted="$(gofmt -l .)"
+if [ -n "${unformatted}" ]; then
+  echo "Go files are not gofmt-formatted:" >&2
+  echo "${unformatted}" >&2
+  exit 1
+fi
+go vet ./...
+'''
+
 [tasks."lint:python"]
-description = "Lint and format-check Python scripts"
-run = "RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff check scripts skills tests && RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff format --check scripts skills tests"
+description = "Lint and format-check Python template sources under skills/"
+run = "RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff check skills && RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff format --check skills"
+
+[tasks."test:go"]
+description = "Run the Go repository test suite"
+run = "go test ./..."
+
+[tasks."test:json"]
+description = "Run Go tests and emit machine-consumable JSON"
+run = "go test -json ./..."
 
 [tasks.test]
-description = "Run repository unit tests"
-run = "python -m unittest discover -s tests"
+description = "Run repository tests"
+run = "go test ./..."
 
 [tasks."lint:shell"]
 description = "Lint Bash and POSIX shell scripts"
@@ -85,47 +105,31 @@ run = "gh skill publish --dry-run"
 
 [tasks.verify-release]
 description = "Verify a release tag matches the catalog and committed state"
-run = '''
-export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-verify-release-uv-cache"
-uv run --with "pyyaml==6.0.3" python scripts/release/verify-release.py "$@"
-'''
+run = "go run ./cmd/verify-release \"$@\""
 
 [tasks."release:publish"]
 description = "Run release gates, then publish a verified release tag"
-run = "bash scripts/release/publish-release.sh \"$@\""
+run = "go run ./cmd/publish-release \"$@\""
 
 [tasks."check:repository"]
 description = "Validate repository policy, sensitive content, licenses, and test evidence"
 run = '''
-export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-repository-uv-cache"
-uv run --with "pyyaml==6.0.3" python scripts/validate/validate-repository.py
-uv run --with "pyyaml==6.0.3" python scripts/check/check-tool-licenses.py
-uv run --with "pyyaml==6.0.3" python scripts/validate/validate-script-tests.py
-python scripts/check/check-sensitive-content.py
-python scripts/check/check-mutation-badges.py
-python scripts/check/check-analyze-readonly.py
+go run ./cmd/validate-repository
+go run ./cmd/check-tool-licenses
+go run ./cmd/validate-script-tests
+go run ./cmd/check-sensitive-content
+go run ./cmd/check-mutation-badges
+go run ./cmd/check-analyze-readonly
 '''
 
 [tasks."check:diff"]
 description = "Reject whitespace errors in local changes and the committed CI diff"
-run = "bash scripts/check/check-whitespace.sh"
+run = "go run ./cmd/check-whitespace"
 
 [tasks."check:branch-policy"]
 description = "Validate the repository pull-request branch policy configuration"
-run = "python scripts/validate/validate-branch-policy.py --validate-config"
+run = "go run ./cmd/validate-branch-policy --validate-config"
 
 [tasks.validate-skill-creator]
 description = "Validate every published skill with Codex skill-creator"
-run = '''
-skill_creator_root="${SKILL_CREATOR_ROOT:-${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator}"
-test -f "$skill_creator_root/scripts/quick_validate.py" || {
-  echo "skill-creator validator not found; set SKILL_CREATOR_ROOT to its skill directory." >&2
-  exit 2
-}
-export UV_CACHE_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-validate-skill-creator-uv-cache"
-find skills -type f -name SKILL.md -print0 |
-  while IFS= read -r -d '' skill_file; do
-    uv run --with "pyyaml==6.0.3" python \
-      "$skill_creator_root/scripts/quick_validate.py" "$(dirname "$skill_file")"
-  done
-'''
+run = "go run ./cmd/validate-skill-creator"

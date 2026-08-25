@@ -6,12 +6,15 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 func git(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
+	cmd.Env = support.GitEnv()
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("git %v failed: %v\n%s", args, err, out)
 	}

@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 
@@ -46,11 +47,16 @@ func CheckHosts(root string, out, errOut io.Writer) int {
 		}
 		defer os.RemoveAll(hostRoot)
 
-		if _, err := support.OutputIn(hostRoot, "git", "init", "--quiet"); err != nil {
+		if _, err := support.GitOutputIn(hostRoot, "init", "--quiet"); err != nil {
 			fmt.Fprintf(errOut, "cannot initialize host test repository: %v\n", err)
 			return 1
 		}
-		if _, err := support.OutputIn(hostRoot, "gh", "skill", "install", root, "--from-local", "--all", "--agent", host, "--scope", "project"); err != nil {
+		ghCmd := exec.Command("gh", "skill", "install", root, "--from-local", "--all", "--agent", host, "--scope", "project")
+		ghCmd.Dir = hostRoot
+		ghCmd.Env = support.GitEnv()
+		ghCmd.Stdout = out
+		ghCmd.Stderr = errOut
+		if err := ghCmd.Run(); err != nil {
 			fmt.Fprintf(errOut, "gh skill install failed for %s: %v\n", host, err)
 			return 1
 		}

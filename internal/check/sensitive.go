@@ -53,7 +53,7 @@ var sensitivePatterns = []sensitivePattern{
 // candidateFiles returns the tracked and untracked non-ignored files under
 // root, falling back to a plain recursive walk when Git is unavailable.
 func candidateFiles(root string) []string {
-	out, err := support.OutputIn(root, "git", "ls-files", "--cached", "--others", "--exclude-standard", "-z")
+	out, err := support.GitOutputIn(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
 	if err == nil {
 		var files []string
 		for _, item := range strings.Split(out, "\x00") {
