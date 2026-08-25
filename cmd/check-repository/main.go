@@ -1,4 +1,4 @@
-// Command check-repository runs the six independent repository checks
+// Command check-repository runs the independent repository checks
 // concurrently and reports each result under a labeled section, so a failing
 // check stays identifiable while the aggregate task still fails. It replaces
 // the former sequential series of six separate "go run" commands in the
@@ -37,6 +37,7 @@ var repoChecks = []repoCheck{
 	{name: "check-mutation-badges", fn: check.CheckMutationBadges},
 	{name: "check-analyze-readonly", fn: check.CheckAnalyzeReadonly},
 	{name: "check-guided-paths", fn: check.CheckGuidedPaths},
+	{name: "check-catalog-docs", fn: check.CheckCatalogDocs},
 }
 
 type checkResult struct {
