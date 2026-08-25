@@ -106,6 +106,31 @@ func TestSpecFilesRejectsSymlinkEscapingRepository(t *testing.T) {
 	}
 }
 
+func TestSpecFilesResolvesRootThroughSymlink(t *testing.T) {
+	// The repository root reached through a symlink component must not be
+	// mistaken for an escape: in-repo specs resolve to a path inside the
+	// canonical root and must be accepted.
+	real := t.TempDir()
+	wrap := filepath.Join(real, "wrap")
+	if err := os.MkdirAll(wrap, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	root := filepath.Join(wrap, "rootlink")
+	if err := os.Symlink(real, root); err != nil {
+		t.Fatal(err)
+	}
+	write(t, root, "specs/a.fsl", "x")
+
+	specs, err := specFiles(root)
+	if err != nil {
+		t.Fatalf("in-repo spec rejected as outside the repository: %v", err)
+	}
+	expected := []string{"specs/a.fsl"}
+	if !reflect.DeepEqual(specs, expected) {
+		t.Fatalf("unexpected specs %v", specs)
+	}
+}
+
 func TestVerifyFSLRejectsBrokenSymlinkBeforeRunningFslc(t *testing.T) {
 	root := t.TempDir()
 	writeLink(t, root, "specs/broken.fsl", "missing-target.fsl")

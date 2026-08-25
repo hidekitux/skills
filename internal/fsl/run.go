@@ -50,7 +50,16 @@ func depth() string {
 // outside the repository (an incorrectly targeted link) is returned as an
 // error so broken FSL links still fail repository validation.
 func specFiles(root string) ([]string, error) {
+	// Resolve the root so the within-repository check compares resolved paths
+	// against resolved paths. Otherwise a root reached through a symlink (common
+	// on macOS, where /var and /tmp point into /private) would compare an
+	// unresolved root against a resolved canonical path and falsely reject every
+	// in-repo spec as outside the repository.
 	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return nil, err
+	}
+	absRoot, err = filepath.EvalSymlinks(absRoot)
 	if err != nil {
 		return nil, err
 	}
