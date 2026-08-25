@@ -199,6 +199,9 @@ func TestLintCommitsExitsOneWhenIssueNumberMissing(t *testing.T) {
 
 func TestLintCommitsReportsNoCommits(t *testing.T) {
 	t.Setenv("COMMITLINT_BIN", "/bin/commitlint")
+	// Pin the push-default so the single-side range resolves to HEAD even when
+	// a CI runner exports GITHUB_SHA.
+	t.Setenv("GITHUB_SHA", "")
 	runner := defaultFake()
 	runner.revListStdout = ""
 	var out, errOut bytes.Buffer
