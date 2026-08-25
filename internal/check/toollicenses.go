@@ -81,7 +81,12 @@ func CheckToolLicenses(root string, out, errOut io.Writer) int {
 
 	errors := []string{}
 	checkAttestations := func(attestations map[string]attestation, required map[string]bool, missing, nonEmpty, https, orphan string) {
+		requiredKeys := make([]string, 0, len(required))
 		for tool := range required {
+			requiredKeys = append(requiredKeys, tool)
+		}
+		sort.Strings(requiredKeys)
+		for _, tool := range requiredKeys {
 			entry, ok := attestations[tool]
 			if !ok {
 				errors = append(errors, fmt.Sprintf("%s: %s", tool, missing))

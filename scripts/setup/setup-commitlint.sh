@@ -27,11 +27,19 @@ echo "commitlint available at ${bin_dir}/commitlint"
 
 # Build the repository-local commit-message validator beside commitlint so a
 # commit never compiles code or fetches modules; only validate-commit-message
-# and commitlint run during a commit.
+# and commitlint run during a commit. Rebuild whenever the source tree is
+# newer than the installed binary so a pulled commit never leaves a stale
+# validator in place.
+needs_validator_build=0
 if [[ ! -x "${shared_dir}/validate-commit-message" ]]; then
+  needs_validator_build=1
+elif [[ -n "$(find "${root}/cmd" "${root}/internal" "${root}/go.mod" "${root}/go.sum" -type f -newer "${shared_dir}/validate-commit-message" -print -quit 2>/dev/null)" ]]; then
+  needs_validator_build=1
+fi
+if (( needs_validator_build )); then
   mkdir -p "${shared_dir}"
   (cd "${root}" && go build -o "${shared_dir}/validate-commit-message" ./cmd/validate-commit-message)
-  echo "Go validate-commit-message installed at ${shared_dir}/validate-commit-message"
+  echo "Go validate-commit-message rebuilt at ${shared_dir}/validate-commit-message"
 fi
 
 ln -sfn "${shared_dir}/validate-commit-message" "${bin_dir}/validate-commit-message"
