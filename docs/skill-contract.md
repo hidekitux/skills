@@ -36,8 +36,8 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
 | `review-pr` | Severity-ordered findings | `implement-issue` | Reviews; does not edit the branch or merge |
 | `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
-| `write-tests` (planned) | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
-| `refactor-code` (planned) | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
+| `write-tests` | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
+| `refactor-code` | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
 | `bootstrap-project` | Runnable foundation with protected branch flow and FSL adoption plan | The project's governed change flow | Initialization only |
 | `audit-workflow-enforcement` | Bounded subagent audit of enforcement rules | The requester and subsequent governed fixes | Audits only; fixes are governed changes |
 
