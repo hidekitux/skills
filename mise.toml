@@ -3,8 +3,6 @@
 # into published skills.
 
 [tools]
-python = "3.11.14"
-uv = "0.11.1"
 go = "1.26.5"
 actionlint = "1.7.12"
 "aqua:astral-sh/ruff" = "0.16.0"
