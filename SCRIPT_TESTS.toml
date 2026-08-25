@@ -2,6 +2,7 @@
 # mapping proves that an added script has an intentional test home; reviewers
 # still inspect whether that test exercises the changed behavior.
 [scripts]
+"scripts/badges/collect-badges.py" = "tests/test_badge_collection.py"
 "scripts/check/check-mutation-badges.py" = "tests/test_policy_checks.py"
 "scripts/check/check-analyze-readonly.py" = "tests/test_policy_checks.py"
 "scripts/check/check-sensitive-content.py" = "tests/test_policy_checks.py"
