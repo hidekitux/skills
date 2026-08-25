@@ -1,11 +1,13 @@
 # hidekitux/skills
 
-![FSL mutants killed](https://img.shields.io/badge/mutants%20killed-164%2F200-2ea44f)
-![FSL kill rate](https://img.shields.io/badge/kill%20rate-82.00%25-2ea44f)
-![FSL surviving mutants](https://img.shields.io/badge/surviving%20mutants-36-a371f7)
+![FSL mutants killed](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-killed.json)
+![FSL kill rate](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-kill-rate.json)
+![FSL surviving mutants](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-survived.json)
 ![License](https://img.shields.io/github/license/hidekitux/skills)
-![FSL verifier](https://img.shields.io/badge/fslc-v4.2.0-0b6bcb)
+![FSL verifier](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffslc-version.json)
 ![Validation](https://img.shields.io/github/actions/workflow/status/hidekitux/skills/validate.yml?branch=main)
+![Tests status](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ftests-status.json)
+![Tests run](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ftests-run.json)
 
 This repository is the source of reusable Agent Skills for individuals and teams. Skills follow the [Agent Skills](https://agentskills.io/specification) format and are published and installed with `gh skill`.
 
@@ -134,5 +136,7 @@ FSL verifies state transitions and publication conditions, not `SKILL.md` prose.
 mise run verify-fsl
 mise run mutate-fsl
 ```
+
+The FSL and test badges at the top of this README are published to the `badge-data` branch by the [Badge data workflow](.github/workflows/badges.yml); they auto-refresh after spec or test changes reach `main`. Do not hand-edit them.
 
 See [docs/fsl.md](docs/fsl.md) for the specification boundary and [docs/releasing.md](docs/releasing.md) for release requirements.

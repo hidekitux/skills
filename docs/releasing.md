@@ -8,7 +8,7 @@ Treat one GitHub Release as one semantic version. Every skill `version` in `CATA
 2. Review the Todo List, validation results, and changes.
 3. Run `mise run validate` from the repository root. It verifies installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate-skill-creator`.
 4. When `specs/**/*.fsl` or `skills/**/specs/*.fsl` changed, run `mise run mutate-fsl` and review survivors.
-5. Refresh the FSL mutation badges when the mutation summary changed. Run `mise run mutate-fsl`, then update `docs/fsl-mutation-summary.json` (the `potential`, `killed`, `survived`, and `kill_rate` values) and the three README badges — `mutants killed`, `kill rate`, and `surviving mutants` — from the run's `summary` block. The values to refresh are currently `164/200` killed, `82.00%` kill rate, and `36` surviving mutants. `mise run check:repository` fails when the README badges drift from the recorded summary, so refresh both together before the release commit.
+5. When `specs/**/*.fsl` or `skills/**/specs/*.fsl` changed, run `mise run mutate-fsl` and review survivors. The README FSL mutation badges and test badges refresh automatically: after the change reaches `main`, the Badge data workflow reruns `mise run mutate-fsl` and `mise run test`, publishes the six shields.io payloads to the `badge-data` branch, and the endpoint badges update without a manual edit. `mise run check:repository` verifies only that the six README badges point at the `badge-data` branch payloads.
 6. Commit the changes.
 7. Publish with `mise run release:publish -- vX.Y.Z`. This entry point runs the available `skill-creator` validation, verifies the tag format, catalog versions, and committed state, then publishes.
 
