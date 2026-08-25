@@ -27,13 +27,13 @@ MUTATION_BADGES = load_script("scripts/check/check-mutation-badges.py")
 ANALYZE_READONLY = load_script("scripts/check/check-analyze-readonly.py")
 
 
-RECORDED_SUMMARY = (
-    '{"potential": 200, "killed": 164, "survived": 36, "kill_rate": 0.82}\n'
-)
-CURRENT_BADGES = """\
-![FSL mutants killed](https://img.shields.io/badge/mutants%20killed-164%2F200-2ea44f)
-![FSL kill rate](https://img.shields.io/badge/kill%20rate-82.00%25-2ea44f)
-![FSL surviving mutants](https://img.shields.io/badge/surviving%20mutants-36-a371f7)
+ENDPOINT_BADGES = """\
+![FSL mutants killed](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-killed.json)
+![FSL kill rate](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-kill-rate.json)
+![FSL surviving mutants](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-survived.json)
+![FSL verifier](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffslc-version.json)
+![Tests status](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ftests-status.json)
+![Tests run](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ftests-run.json)
 """
 
 
@@ -98,36 +98,44 @@ class PolicyCheckTests(unittest.TestCase):
 
 
 class MutationBadgeTests(unittest.TestCase):
-    def test_mutation_badge_check_accepts_current_badges(self) -> None:
+    def test_badge_check_accepts_six_endpoint_badges(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "docs").mkdir()
-            (root / "docs" / "fsl-mutation-summary.json").write_text(
-                RECORDED_SUMMARY, encoding="utf-8"
-            )
-            (root / "README.md").write_text(CURRENT_BADGES, encoding="utf-8")
+            (root / "README.md").write_text(ENDPOINT_BADGES, encoding="utf-8")
             self.assertEqual(MUTATION_BADGES.main_with_root(root), 0)
 
-    def test_mutation_badge_check_rejects_a_stale_kill_rate(self) -> None:
+    def test_badge_check_rejects_a_static_fsl_badge(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "docs").mkdir()
-            (root / "docs" / "fsl-mutation-summary.json").write_text(
-                RECORDED_SUMMARY, encoding="utf-8"
+            static = ENDPOINT_BADGES.replace(
+                "https://img.shields.io/endpoint?url="
+                "https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills"
+                "%2Fbadge-data%2Ffsl-killed.json",
+                "https://img.shields.io/badge/mutants%20killed-164%2F200-2ea44f",
             )
-            stale = CURRENT_BADGES.replace("82.00", "89.08")
-            (root / "README.md").write_text(stale, encoding="utf-8")
+            (root / "README.md").write_text(static, encoding="utf-8")
             self.assertEqual(MUTATION_BADGES.main_with_root(root), 1)
 
-    def test_mutation_badge_check_rejects_a_stale_killed_count(self) -> None:
+    def test_badge_check_rejects_a_foreign_endpoint_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "docs").mkdir()
-            (root / "docs" / "fsl-mutation-summary.json").write_text(
-                RECORDED_SUMMARY, encoding="utf-8"
+            foreign = ENDPOINT_BADGES.replace(
+                "%2Fbadge-data%2Ffsl-killed.json", "%2Fimages%2Ffsl-killed.json"
             )
-            stale = CURRENT_BADGES.replace("164%2F200", "522%2F586")
-            (root / "README.md").write_text(stale, encoding="utf-8")
+            (root / "README.md").write_text(foreign, encoding="utf-8")
+            self.assertEqual(MUTATION_BADGES.main_with_root(root), 1)
+
+    def test_badge_check_rejects_a_missing_test_badge(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            run_line = (
+                "![Tests run](https://img.shields.io/endpoint?url="
+                "https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills"
+                "%2Fbadge-data%2Ftests-run.json)\n"
+            )
+            (root / "README.md").write_text(
+                ENDPOINT_BADGES.replace(run_line, ""), encoding="utf-8"
+            )
             self.assertEqual(MUTATION_BADGES.main_with_root(root), 1)
 
 
