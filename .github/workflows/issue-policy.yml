@@ -16,11 +16,15 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.26.5'
       - env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
         run: |
-          python3 scripts/validate/validate-work-item-title.py --title "$ISSUE_TITLE"
-          python3 scripts/validate/validate-issue-body.py --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
-          python3 scripts/validate/validate-issue-labels.py --labels "$ISSUE_LABELS"
+          go run ./cmd/validate-work-item-title --title "$ISSUE_TITLE"
+          go run ./cmd/validate-issue-body --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
+          go run ./cmd/validate-issue-labels --labels "$ISSUE_LABELS"

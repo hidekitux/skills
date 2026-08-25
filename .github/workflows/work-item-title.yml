@@ -16,7 +16,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.26.5'
       - env:
           WORK_ITEM_TITLE: ${{ github.event.pull_request.title }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-        run: python3 scripts/validate/validate-work-item-title.py --title "$WORK_ITEM_TITLE"
+        run: go run ./cmd/validate-work-item-title --title "$WORK_ITEM_TITLE"
