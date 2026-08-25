@@ -96,6 +96,30 @@ class MutateLogParsingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             COLLECT.parse_mutate_log(text)
 
+    def test_rejects_a_truncated_trailing_document(self) -> None:
+        text = (
+            "Mutating specs/review-flow.fsl at depth 8\n"
+            '{"fsl": "1.0", "result": "mutated", '
+            '"summary": {"total": 133, "killed": 90, "survived": 43, "invalid": 0}}\n'
+            "Mutating specs/branch-flow.fsl at depth 8\n"
+            '{"fsl": "1.0", "result": "mutated", '
+            '"summary": {"total": 59, "killed": 50, "survived": 9, "invalid": 0}}\n'
+            "Mutating specs/release-gate.fsl at depth 8\n"
+            '{"fsl": "1.0", "result": "mutated", "summary": {"total": '
+        )
+        with self.assertRaises(ValueError):
+            COLLECT.parse_mutate_log(text)
+
+    def test_rejects_a_missing_document_for_a_mutation_run(self) -> None:
+        text = (
+            "Mutating specs/review-flow.fsl at depth 8\n"
+            '{"fsl": "1.0", "result": "mutated", '
+            '"summary": {"total": 133, "killed": 90, "survived": 43, "invalid": 0}}\n'
+            "Mutating specs/branch-flow.fsl at depth 8\n"
+        )
+        with self.assertRaises(ValueError):
+            COLLECT.parse_mutate_log(text)
+
 
 class KillRateRoundingTests(unittest.TestCase):
     def test_matches_the_recorded_six_spec_run(self) -> None:
@@ -112,6 +136,10 @@ class KillRateRoundingTests(unittest.TestCase):
 
     def test_handles_a_perfect_run(self) -> None:
         self.assertEqual(COLLECT.expected_kill_rate(200, 200), (100, 0))
+
+    def test_carries_rounding_into_the_whole_percent(self) -> None:
+        self.assertEqual(COLLECT.expected_kill_rate(20000, 20001), (100, 0))
+        self.assertEqual(COLLECT.expected_kill_rate(19999, 20000), (100, 0))
 
 
 class FslcVersionParsingTests(unittest.TestCase):
@@ -208,6 +236,35 @@ class CliExitCodeTests(unittest.TestCase):
                 (output_dir / "fsl-killed.json").read_text(encoding="utf-8")
             )
             self.assertEqual(payload["message"], "726/842")
+
+    def test_truncated_trailing_document_exits_two(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mutate_log = (
+                "Mutating specs/review-flow.fsl at depth 8\n"
+                '{"fsl": "1.0", "result": "mutated", '
+                '"summary": {"total": 133, "killed": 90, "survived": 43, '
+                '"invalid": 0}}\n'
+                "Mutating specs/branch-flow.fsl at depth 8\n"
+                '{"fsl": "1.0", "result": "mutated", '
+                '"summary": {"total": 59, "killed": 50, "survived": 9, '
+                '"invalid": 0}}\n'
+                "Mutating specs/release-gate.fsl at depth 8\n"
+                '{"fsl": "1.0", "result": "mutated", "summary": {"total": '
+            )
+            mutate_path, test_path = self._write_inputs(root, mutate_log, TEST_LOG_OK)
+            with self.assertRaises(SystemExit) as ctx:
+                COLLECT.main(
+                    [
+                        "--mutate-log",
+                        str(mutate_path),
+                        "--test-log",
+                        str(test_path),
+                        "--output-dir",
+                        str(root / "payloads"),
+                    ]
+                )
+            self.assertEqual(ctx.exception.code, 2)
 
     def test_truncated_mutate_log_exits_two(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
