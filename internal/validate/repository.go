@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hidekitux/skills/internal/discover"
 	"gopkg.in/yaml.v3"
 )
 
@@ -196,20 +197,6 @@ func isSymlink(path string) bool {
 	return err == nil && info.Mode()&os.ModeSymlink != 0
 }
 
-// skillFilesUnder returns every SKILL.md path under root/skills in lexical
-// order via its parent directory, mirroring the Python sorted rglob result.
-func skillFilesUnder(root string) []string {
-	var files []string
-	_ = filepath.WalkDir(filepath.Join(root, "skills"), func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || d.Name() != "SKILL.md" {
-			return nil
-		}
-		files = append(files, path)
-		return nil
-	})
-	return files
-}
-
 // CheckRepository validates repository-wide metadata and skill authoring
 // conventions, returning 0 on success or 1 when validation fails.
 func CheckRepository(root string, out, errOut io.Writer) int {
@@ -250,11 +237,12 @@ func CheckRepository(root string, out, errOut io.Writer) int {
 		return 1
 	}
 
-	skillFiles := skillFilesUnder(root)
+	skillFiles := []string{}
 	skillByName := map[string][]string{}
-	for _, skillPath := range skillFiles {
-		parent := filepath.Base(filepath.Dir(skillPath))
-		skillByName[parent] = append(skillByName[parent], skillPath)
+	for _, skill := range discover.All(root) {
+		skillPath := filepath.Join(root, skill.Dir, "SKILL.md")
+		skillFiles = append(skillFiles, skillPath)
+		skillByName[skill.Name] = append(skillByName[skill.Name], skill.Dir)
 
 		content, readErr := os.ReadFile(skillPath)
 		if readErr != nil {
@@ -267,7 +255,7 @@ func CheckRepository(root string, out, errOut io.Writer) int {
 			continue
 		}
 		relativePath := rel(root, skillPath)
-		if name, _ := valueString(metadata["name"]); name != parent {
+		if name, _ := valueString(metadata["name"]); name != skill.Name {
 			errors = append(errors, fmt.Sprintf("%s: frontmatter name must match its directory", relativePath))
 		}
 		if description, ok := valueString(metadata["description"]); !ok || strings.TrimSpace(description) == "" {
@@ -307,10 +295,31 @@ func CheckRepository(root string, out, errOut io.Writer) int {
 		}
 		catalogNames[name] = true
 		matches := skillByName[name]
-		if len(matches) == 0 {
+		resolvedDir := ""
+		switch {
+		case len(matches) == 0:
 			errors = append(errors, fmt.Sprintf("%s: no skills/**/%s/SKILL.md found", prefix, name))
-		} else if len(matches) > 1 {
-			errors = append(errors, fmt.Sprintf("%s: skill name is ambiguous; add a unique catalog path", prefix))
+		case len(matches) == 1:
+			if path, has := valueString(entry["path"]); has && path != "" {
+				errors = append(errors, fmt.Sprintf("%s: catalog path %q is unnecessary for an unambiguous skill name", prefix, path))
+			} else {
+				resolvedDir = matches[0]
+			}
+		default:
+			path, has := valueString(entry["path"])
+			if !has || path == "" {
+				errors = append(errors, fmt.Sprintf("%s: skill name is ambiguous; add a unique catalog path", prefix))
+				break
+			}
+			for _, dir := range matches {
+				if dir == path {
+					resolvedDir = dir
+					break
+				}
+			}
+			if resolvedDir == "" {
+				errors = append(errors, fmt.Sprintf("%s: catalog path %q does not resolve to a discovered %s skill under skills/", prefix, path, name))
+			}
 		}
 
 		for _, field := range []string{"summary", "owner", "status", "license", "version"} {
@@ -363,14 +372,14 @@ func CheckRepository(root string, out, errOut io.Writer) int {
 		}
 		if !hasAdapters {
 			errors = append(errors, prefix+".host_adapters must be a list")
-		} else if len(matches) == 1 {
+		} else if resolvedDir != "" {
 			for _, rawHost := range adapters {
 				host, isStr := rawHost.(string)
 				if !isStr || host == "" {
 					errors = append(errors, prefix+".host_adapters contains an invalid host")
 					continue
 				}
-				adapter := filepath.Join(filepath.Dir(matches[0]), "references", "hosts", host+".md")
+				adapter := filepath.Join(root, resolvedDir, "references", "hosts", host+".md")
 				if info, statErr := os.Stat(adapter); statErr != nil || info.IsDir() {
 					errors = append(errors, fmt.Sprintf("%s: missing host adapter %s", prefix, rel(root, adapter)))
 				}

@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/hidekitux/skills/internal/discover"
 	"github.com/hidekitux/skills/internal/support"
 	"gopkg.in/yaml.v3"
 )
@@ -18,16 +19,13 @@ import (
 var tagPattern = regexp.MustCompile(`^v(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$`)
 
 // findSkillDirectories maps every discovered publishable skill name to its
-// directory.
+// repository-relative directory using the canonical recursive discovery
+// contract, so release checks agree with repository and host validation.
 func findSkillDirectories(root string) map[string]string {
 	discovered := map[string]string{}
-	_ = filepath.WalkDir(filepath.Join(root, "skills"), func(path string, d os.DirEntry, err error) error {
-		if err != nil || d.IsDir() || d.Name() != "SKILL.md" {
-			return nil
-		}
-		discovered[filepath.Base(filepath.Dir(path))] = filepath.Dir(path)
-		return nil
-	})
+	for _, skill := range discover.All(root) {
+		discovered[skill.Name] = skill.Dir
+	}
 	return discovered
 }
 
@@ -46,7 +44,7 @@ func FindCrossSkillReferences(root string, catalogNames map[string]bool) []strin
 		if !ok {
 			continue
 		}
-		content, err := os.ReadFile(filepath.Join(skillDir, "SKILL.md"))
+		content, err := os.ReadFile(filepath.Join(root, skillDir, "SKILL.md"))
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("%s: cannot read SKILL.md: %v", name, err))
 			continue
