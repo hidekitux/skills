@@ -101,6 +101,16 @@ func TestRegisterLocalSkillsIsRevisionKeyed(t *testing.T) {
 	}
 }
 
+func TestRegisterLocalSkillsDiscoversNestedSkillsRecursively(t *testing.T) {
+	script := readRepoFile(t, "scripts/setup/register-local-skills.sh")
+	if !strings.Contains(script, "find \"${source_root}\" -type f -name SKILL.md") {
+		t.Fatal("register-local-skills must discover SKILL.md files recursively under skills/")
+	}
+	if !strings.Contains(script, `target="../../skills/${skill_rel}"`) {
+		t.Fatal("register-local-skills must build the symlink target from the canonical repository-relative skill path")
+	}
+}
+
 func TestSetupLocalSkillsEnablesHooks(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/setup-local-skills.sh")
 	if !strings.Contains(script, "core.hooksPath") {

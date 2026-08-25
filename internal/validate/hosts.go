@@ -3,28 +3,19 @@ package validate
 import (
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 
+	"github.com/hidekitux/skills/internal/discover"
 	"github.com/hidekitux/skills/internal/support"
 )
 
-// skillNames returns the sorted publishable skill directory names under
-// root/skills.
+// skillNames returns the sorted, de-duplicated publishable skill directory
+// names under root/skills using the canonical recursive discovery contract, so
+// host validation matches repository validation and local registration.
 func skillNames(root string) []string {
-	var names []string
-	_ = filepath.WalkDir(filepath.Join(root, "skills"), func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || d.Name() != "SKILL.md" {
-			return nil
-		}
-		names = append(names, filepath.Base(filepath.Dir(path)))
-		return nil
-	})
-	sort.Strings(names)
-	return names
+	return discover.Names(root)
 }
 
 // CheckHosts validates that every published skill installs for each
