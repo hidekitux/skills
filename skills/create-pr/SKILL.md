@@ -29,7 +29,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Inspect status, commits, and the complete base diff. Compare them with the Issue scope and acceptance criteria; report scope drift before publishing it.
 - Check the diff for credentials, tokens, private URLs, generated noise, and accidental user data.
 - Run the repository-prescribed checks. Prefer its standard task runner and required validation command; do not substitute narrower commands for an available aggregate task.
-- Record every command and result. A Pull Request may be ready only when required validation succeeds and the agreed scope is complete.
+- Record every command and result, including the body and title preflight commands and their outcomes. A Pull Request may be ready only when required validation succeeds and the agreed scope is complete.
 - Use a draft when the user requests one or when validation is incomplete, unavailable, or failing. State every limitation in the Pull Request body; never describe an unrun check as passing.
 
 ## Commit and Push
@@ -65,16 +65,21 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
   branch-policy validator, using the resolved base and head branches. For this
   repository, run `go run ./cmd/validate-branch-policy --base <base>
   --head <head> --body "$final_body"` before the GitHub API call.
-- If that preflight fails, do not publish a ready Pull Request or diagnose the
-  body from the error message alone. Read the validator and its tests, revise
-  the finalized body, and rerun the preflight; keep or create a draft only when
-  the user explicitly asks to publish despite the unresolved failure.
+- Validate the exact finalized title against the repository title convention
+  before the GitHub API call. For this repository, run
+  `go run ./cmd/validate-work-item-title --title "$final_title"`; do not open a
+  ready Pull Request whose title fails preflight.
+- If a preflight fails, do not publish a ready Pull Request or diagnose the
+  body or title from the error message alone. Read the validator and its
+  tests, revise the finalized body or title, and rerun the preflight; keep or
+  create a draft only when the user explicitly asks to publish despite the
+  unresolved failure.
 - When the Pull Request opens, set the governing Issue's `phase:` label to `phase:in-progress` and keep it there for release Issues until publication; the update is idempotent with `implement-issue`.
 - Create a ready Pull Request only after the ready gate passes. Otherwise create or retain a draft.
 
 ## Handoff
 
-Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, validation commands and results, the governing Issue's label state, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
+Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, the body and title validation commands and their results, the governing Issue's label state, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
 
 Opening and maintaining the Pull Request happens in this session. Merge and
 release are later phases, not part of this skill.
