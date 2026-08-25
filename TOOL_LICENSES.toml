@@ -1,13 +1,5 @@
 # Development and CI tools used through mise. Each entry is reviewed when the
 # corresponding tool is added or updated.
-[tools.python]
-license = "Python-2.0"
-source = "https://github.com/python/cpython"
-
-[tools.uv]
-license = "Apache-2.0 OR MIT"
-source = "https://github.com/astral-sh/uv"
-
 [tools.go]
 license = "BSD-3-Clause"
 source = "https://go.dev/LICENSE"
