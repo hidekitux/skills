@@ -265,7 +265,14 @@ class CommitLintingTests(unittest.TestCase):
             LINT_COMMITS.main(runner)
         self.assertEqual(raised.exception.code, 2)
 
-    def test_is_dependabot_pull_request_matches_head_ref(self) -> None:
+    def test_is_dependabot_pull_request_matches_author(self) -> None:
+        with (
+            no_signature_prompt_environment(),
+            mock.patch.dict(os.environ, {"PR_AUTHOR": "dependabot[bot]"}),
+        ):
+            self.assertTrue(LINT_COMMITS.is_dependabot_pull_request())
+
+    def test_is_dependabot_pull_request_ignores_head_ref_without_author(self) -> None:
         with (
             no_signature_prompt_environment(),
             mock.patch.dict(
@@ -273,14 +280,7 @@ class CommitLintingTests(unittest.TestCase):
                 {"PR_HEAD_REF": "dependabot/github_actions/actions-checkout"},
             ),
         ):
-            self.assertTrue(LINT_COMMITS.is_dependabot_pull_request())
-
-    def test_is_dependabot_pull_request_matches_author(self) -> None:
-        with (
-            no_signature_prompt_environment(),
-            mock.patch.dict(os.environ, {"PR_AUTHOR": "dependabot[bot]"}),
-        ):
-            self.assertTrue(LINT_COMMITS.is_dependabot_pull_request())
+            self.assertFalse(LINT_COMMITS.is_dependabot_pull_request())
 
     def test_is_dependabot_pull_request_false_for_human_context(self) -> None:
         with (
@@ -295,13 +295,7 @@ class CommitLintingTests(unittest.TestCase):
         runner = FakeRunner()
         with (
             no_signature_prompt_environment(),
-            mock.patch.dict(
-                os.environ,
-                {
-                    "PR_HEAD_REF": "dependabot/example",
-                    "PR_AUTHOR": "dependabot[bot]",
-                },
-            ),
+            mock.patch.dict(os.environ, {"PR_AUTHOR": "dependabot[bot]"}),
             contextlib.redirect_stdout(io.StringIO()) as stdout,
         ):
             self.assertEqual(LINT_COMMITS.main(runner), 0)
@@ -346,6 +340,63 @@ class CommitLintingTests(unittest.TestCase):
         )
         self.assertNotIn(
             (["git", "show", "-s", "--format=%B", "deps123"], None), runner.calls
+        )
+
+    def test_main_lints_human_pull_request_with_dependabot_head_ref(self) -> None:
+        runner = FakeRunner(
+            rev_list_stdout="abc123\n",
+            author_outputs=("Jane Doe",),
+            show_outputs=("feat: add feature #1\n\n",),
+            commitlint_returncode=0,
+        )
+        with (
+            no_signature_prompt_environment(),
+            mock.patch.dict(
+                os.environ,
+                {
+                    "COMMITLINT_BIN": "/bin/commitlint",
+                    "PR_BASE_SHA": "base",
+                    "PR_HEAD_SHA": "head",
+                    "PR_HEAD_REF": "dependabot/example",
+                    "PR_AUTHOR": "octocat",
+                },
+            ),
+        ):
+            self.assertEqual(LINT_COMMITS.main(runner), 0)
+        self.assertIn(
+            (["git", "rev-list", "--no-merges", "base..head"], None), runner.calls
+        )
+        self.assertIn(
+            (["git", "show", "-s", "--format=%B", "abc123"], None), runner.calls
+        )
+
+    def test_main_rejects_dependabot_authored_commit_in_human_pr(self) -> None:
+        runner = FakeRunner(
+            rev_list_stdout="abc123\n",
+            author_outputs=("dependabot[bot]",),
+            show_outputs=("Bump actions/checkout from 4 to 5\n",),
+            commitlint_returncode=1,
+        )
+        with (
+            no_signature_prompt_environment(),
+            mock.patch.dict(
+                os.environ,
+                {
+                    "COMMITLINT_BIN": "/bin/commitlint",
+                    "PR_BASE_SHA": "base",
+                    "PR_HEAD_SHA": "head",
+                    "PR_HEAD_REF": "issue/123",
+                    "PR_AUTHOR": "octocat",
+                },
+            ),
+        ):
+            self.assertEqual(LINT_COMMITS.main(runner), 1)
+        self.assertIn(
+            (["git", "show", "-s", "--format=%B", "abc123"], None), runner.calls
+        )
+        self.assertIn(
+            (["/bin/commitlint", "lint"], "Bump actions/checkout from 4 to 5"),
+            runner.calls,
         )
 
 

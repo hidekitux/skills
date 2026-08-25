@@ -248,36 +248,20 @@ class WorkItemTitleTests(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
 
-    def test_accepts_dependabot_title_with_head_ref(self) -> None:
-        title = "Bump actions/checkout from 4 to 5"
-        self.assertEqual(
-            WORK_ITEM_TITLE.main_with_title(
-                title, head_ref="dependabot/github_actions/actions-checkout"
-            ),
-            0,
-        )
-
     def test_accepts_dependabot_title_with_author(self) -> None:
         title = "Bump actions/checkout from 4 to 5"
         self.assertEqual(
             WORK_ITEM_TITLE.main_with_title(title, author="dependabot[bot]"), 0
         )
 
-    def test_rejects_bot_style_title_for_human_branch(self) -> None:
+    def test_rejects_bot_style_title_without_dependabot_author(self) -> None:
         title = "Bump actions/checkout from 4 to 5"
-        self.assertEqual(
-            WORK_ITEM_TITLE.main_with_title(title, head_ref="issue/123"), 1
-        )
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title), 1)
+        self.assertEqual(WORK_ITEM_TITLE.main_with_title(title, author="octocat"), 1)
 
     def test_main_reads_dependabot_context_from_environment(self) -> None:
         with (
-            mock.patch.dict(
-                os.environ,
-                {
-                    "PR_HEAD_REF": "dependabot/example",
-                    "PR_AUTHOR": "dependabot[bot]",
-                },
-            ),
+            mock.patch.dict(os.environ, {"PR_AUTHOR": "dependabot[bot]"}),
             mock.patch.object(
                 sys,
                 "argv",
@@ -293,6 +277,29 @@ class WorkItemTitleTests(unittest.TestCase):
         self.assertIn(
             "Dependabot pull request title exemption applies.", stdout.getvalue()
         )
+
+    def test_main_rejects_human_author_title_with_dependabot_head_ref(self) -> None:
+        with (
+            mock.patch.dict(
+                os.environ,
+                {
+                    "PR_HEAD_REF": "dependabot/example",
+                    "PR_AUTHOR": "octocat",
+                },
+            ),
+            mock.patch.object(
+                sys,
+                "argv",
+                [
+                    "validate-work-item-title.py",
+                    "--title",
+                    "Bump actions/checkout from 4 to 5",
+                ],
+            ),
+            contextlib.redirect_stderr(io.StringIO()) as stderr,
+        ):
+            self.assertEqual(WORK_ITEM_TITLE.main(), 1)
+        self.assertIn("[Type]: Summary", stderr.getvalue())
 
 
 class IssueBodyTests(unittest.TestCase):
