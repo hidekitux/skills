@@ -1,0 +1,74 @@
+name: Policy (Pull request)
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  branch-policy:
+    name: Validate branch policy
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Go toolchain
+        uses: ./.github/actions/setup-go
+      - name: Validate pull-request direction and issue linkage
+        env:
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: go run ./cmd/validate-branch-policy
+  work-item-title:
+    name: Validate work item title
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Go toolchain
+        uses: ./.github/actions/setup-go
+      - name: Validate work item title
+        env:
+          WORK_ITEM_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: go run ./cmd/validate-work-item-title --title "$WORK_ITEM_TITLE"
+  commit-conventions:
+    name: Validate commit conventions
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Set up Go toolchain
+        uses: ./.github/actions/setup-go
+      - name: Install Go commitlint
+        run: GOBIN="$RUNNER_TEMP/bin" go install github.com/conventionalcommit/commitlint@v0.12.0
+      - name: Lint commits and pull request title
+        env:
+          COMMITLINT_BIN: ${{ runner.temp }}/bin/commitlint
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: go run ./cmd/lint-commits

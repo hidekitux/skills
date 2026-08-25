@@ -1,4 +1,4 @@
-name: Issue policy
+name: Policy (Issues)
 
 on:
   issues:

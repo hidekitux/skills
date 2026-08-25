@@ -1,4 +1,4 @@
-name: Workflow security
+name: Security
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   workflow-security:
-    name: Audit GitHub Actions
+    name: Audit workflow security
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262

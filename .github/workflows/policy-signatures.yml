@@ -1,4 +1,4 @@
-name: Commit signatures
+name: Policy (Signatures)
 
 on:
   # zizmor: ignore[dangerous-triggers] This checks out only the trusted base SHA and never executes PR code.
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   commit-signatures:
-    name: Validate signed pull-request commits
+    name: Validate commit signatures
     runs-on: ubuntu-latest
     steps:
       # Checkout stays inline (not in .github/actions/setup-go) so the
