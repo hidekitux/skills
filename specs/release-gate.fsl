@@ -2,7 +2,7 @@
 //
 // ASSUME-1: one release is modeled at a time.
 // ASSUME-2: semantic versions are represented by a finite release_version value;
-//           the concrete vX.Y.Z spelling is checked by verify-release.py.
+//           the concrete vX.Y.Z spelling is checked by `mise run verify-release` (cmd/verify-release).
 // ASSUME-3: a successful commit_release action represents a clean committed
 //           release; the implementation evidence is Git's actual state.
 // ASSUME-4: publish_executed records that the modeled publish command ran; it
