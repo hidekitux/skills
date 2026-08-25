@@ -1,0 +1,61 @@
+name: Badge data
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  # Minimum needed to publish the endpoint payloads to the unprotected
+  # badge-data branch; the workflow never touches main.
+  contents: write
+
+concurrency:
+  group: badge-data
+  cancel-in-progress: false
+
+jobs:
+  badges:
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      # v3 -> 5228313ee0372e111a38da051671ca30fc5a96db
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db
+        with:
+          install: true
+      - name: Capture FSL mutation results
+        run: |
+          set -euo pipefail
+          mise run mutate-fsl 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
+      - name: Capture test results
+        run: |
+          set -euo pipefail
+          mise run test 2>&1 | tee "${RUNNER_TEMP}/test.log" || true
+      - name: Collect badge payloads
+        run: |
+          set -euo pipefail
+          python scripts/badges/collect-badges.py \
+            --mutate-log "${RUNNER_TEMP}/mutate.log" \
+            --test-log "${RUNNER_TEMP}/test.log" \
+            --output-dir "${RUNNER_TEMP}/badges"
+      - name: Publish badge payloads to badge-data
+        run: |
+          set -euo pipefail
+          if git fetch --depth 1 origin badge-data:refs/heads/badge-data 2>/dev/null; then
+            git switch badge-data
+          else
+            git switch --orphan badge-data
+          fi
+          cp "${RUNNER_TEMP}"/badges/*.json .
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Badge payloads unchanged; skipping commit and push."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "chore: update badge data"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:badge-data
