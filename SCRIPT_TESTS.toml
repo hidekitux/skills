@@ -11,6 +11,7 @@
 "cmd/check-tool-licenses" = "./internal/check"
 "cmd/check-mutation-badges" = "./internal/check"
 "cmd/check-analyze-readonly" = "./internal/check"
+"cmd/check-repository" = "./cmd/check-repository"
 "cmd/validate-repository" = "./internal/validate"
 "cmd/validate-script-tests" = "./internal/validate"
 "cmd/validate-branch-policy" = "./internal/validate"

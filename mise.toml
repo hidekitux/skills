@@ -77,7 +77,7 @@ run = "go test -json ./..."
 
 [tasks.test]
 description = "Run repository tests"
-run = "go test ./..."
+depends = ["test:go"]
 
 [tasks."lint:shell"]
 description = "Lint Bash and POSIX shell scripts"
@@ -111,14 +111,7 @@ run = "go run ./cmd/publish-release \"$@\""
 
 [tasks."check:repository"]
 description = "Validate repository policy, sensitive content, licenses, and test evidence"
-run = '''
-go run ./cmd/validate-repository
-go run ./cmd/check-tool-licenses
-go run ./cmd/validate-script-tests
-go run ./cmd/check-sensitive-content
-go run ./cmd/check-mutation-badges
-go run ./cmd/check-analyze-readonly
-'''
+run = "go run ./cmd/check-repository"
 
 [tasks."check:diff"]
 description = "Reject whitespace errors in local changes and the committed CI diff"
