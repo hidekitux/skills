@@ -23,6 +23,7 @@ FSLC_VERSION_PATTERN = re.compile(r'\bfsl_version="([^"]+)"')
 TEST_COUNT_PATTERN = re.compile(r"\bRan (\d+) tests?\b")
 TEST_FAILED_PATTERN = re.compile(r"\bFAILED\b")
 TEST_OK_PATTERN = re.compile(r"^OK$", re.MULTILINE)
+MUTATING_PATTERN = re.compile(r"(?m)^Mutating \S+ at depth \d+\r?$")
 
 PAYLOAD_NAMES = (
     "fsl-killed.json",
@@ -48,7 +49,12 @@ class TestSummary:
 
 
 def parse_mutate_log(text: str) -> MutationSummary:
-    """Aggregate the summary block of every mutation document in the log."""
+    """Aggregate the summary block of every mutation document in the log.
+
+    Every `Mutating <spec> at depth N` line must be followed by exactly one
+    mutation document, so a log that ends with a truncated or missing document
+    fails loudly instead of silently publishing partial aggregates.
+    """
     decoder = json.JSONDecoder()
     summaries: list[MutationSummary] = []
     index = 0
@@ -76,6 +82,13 @@ def parse_mutate_log(text: str) -> MutationSummary:
             )
         except (KeyError, TypeError, ValueError) as exc:
             raise ValueError(f"malformed summary block: {exc}") from exc
+    mutation_runs = len(MUTATING_PATTERN.findall(text))
+    if mutation_runs != len(summaries):
+        raise ValueError(
+            f"mutate-fsl log parsed {len(summaries)} document(s) for "
+            f"{mutation_runs} mutation run(s); the output is truncated or missing "
+            "a document"
+        )
     if not summaries:
         raise ValueError("mutate-fsl log contains no mutation documents")
     return MutationSummary(
@@ -107,9 +120,8 @@ def parse_test_log(text: str) -> TestSummary:
 
 def expected_kill_rate(killed: int, total: int) -> tuple[int, int]:
     """Return the (whole, fraction) kill rate to two decimal places."""
-    value = killed / total * 100
-    fraction = int(round(value * 100) % 100)
-    return int(value), fraction
+    hundredths = round(killed / total * 10_000)
+    return hundredths // 100, hundredths % 100
 
 
 def render_payloads(
