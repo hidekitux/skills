@@ -1,7 +1,7 @@
 ---
 name: Release
 about: Prepare a published release and its changelog.
-title: "[Release]: v"
+title: "[Release]: v1.2.3"
 labels: ["phase:backlog", "priority:medium", "scope:release"]
 assignees: []
 ---

@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    commit-message:
+      # Keep bot commits Conventional Commits where Dependabot supports it:
+      # the commit message and pull request title become `ci: Bump ...`.
+      prefix: "ci"
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5

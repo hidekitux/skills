@@ -1,0 +1,101 @@
+// Formalization memo for the pull-request review flow state machine.
+//
+// ASSUME-1: one Pull Request and one review cycle are modeled at a time.
+// ASSUME-2: a single combined review outcome is modeled; parallel reviewer
+//           threads are not represented here.
+// ASSUME-3: revision work happens outside this model; revise() only records
+//           that the author returned a revised Pull Request for re-review.
+// ASSUME-4: merge and closure are implementation-phase actions outside this
+//           review-flow model; it records the permission to merge, not the
+//           merge itself.
+spec ReviewFlow {
+  enum Status {
+    Draft,
+    ReadyForReview,
+    UnderReview,
+    ChangesRequested,
+    Approved,
+    Merged,
+    Blocked
+  }
+
+  state {
+    status: Status,
+    reviewed: Bool,
+    approved: Bool,
+    merge_ready: Bool
+  }
+
+  init {
+    status = Draft
+    reviewed = false
+    approved = false
+    merge_ready = false
+  }
+
+  action submit() {
+    requires status == Draft
+    status = ReadyForReview
+  }
+
+  action block_no_review() {
+    requires status == Draft
+    status = Blocked
+  }
+
+  action start_review() {
+    requires status == ReadyForReview
+    reviewed = true
+    status = UnderReview
+  }
+
+  action approve() {
+    requires status == UnderReview
+    requires reviewed
+    approved = true
+    merge_ready = true
+    status = Approved
+  }
+
+  action request_changes() {
+    requires status == UnderReview
+    requires reviewed
+    status = ChangesRequested
+  }
+
+  action revise() {
+    requires status == ChangesRequested
+    status = ReadyForReview
+  }
+
+  action merge() {
+    requires status == Approved
+    requires approved
+    requires merge_ready
+    status = Merged
+  }
+
+  invariant ApprovedOnlyAfterReview {
+    approved => reviewed
+  }
+
+  invariant MergedOnlyAfterApproval {
+    status == Merged => approved
+  }
+
+  invariant MergedOnlyWhenMergeReady {
+    status == Merged => merge_ready
+  }
+
+  invariant ChangesRequestedIsNotApproved {
+    status == ChangesRequested => not approved
+  }
+
+  terminal {
+    status == Merged or status == Blocked
+  }
+
+  reachable ApprovedPendingMerge { status == Approved }
+  reachable MergedAfterApproval { status == Merged }
+  reachable ReworkLoop { status == ChangesRequested }
+}

@@ -1,6 +1,6 @@
 # Skill creation brief
 
-When requesting a new or substantially updated skill, complete this brief and pass it to the available authoring workflow. Use `skill-creator` in Codex when available. Leave unresolved decisions as questions; do not fill them by assumption.
+When requesting a new or substantially updated skill, complete this brief and pass it to the available authoring workflow. Use `skill-creator` in Codex when available. Name the skill's layer, boundaries, related skills, and handoff target per the [skill-set map in README](../README.md#skill-set-map) and [docs/skill-layers.md](../docs/skill-layers.md). Leave unresolved decisions as questions; do not fill them by assumption.
 
 ```markdown
 Create or update a publishable skill in skills/. When the host provides
@@ -21,6 +21,12 @@ validation workflow.
 - Safety, approval, or privacy constraints:
 - License: Apache-2.0 (project standard)
 - Copyright attribution: use the confirmed repository owner in `NOTICE`; update covered years only when copyrightable material changes.
+
+## Layer, boundaries, and handoff
+- Layer (process, analyze, fix, or govern) per the skill-set map in README:
+- Related skills in the same or adjacent layers, and how they share or hand off state:
+- Intentional boundaries — work this skill must not do, and the adjacent skill that owns that work:
+- Handoff target — next-owner skill that receives this skill's output, and what the handoff must contain:
 
 ## Todo List
 - Initial Todo List items (include discovery, implementation, validation, and handoff when applicable):

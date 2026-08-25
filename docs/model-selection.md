@@ -1,6 +1,6 @@
 # Model selection
 
-This document is the shared convention for role-specific model selection. Skills and host notes reference it instead of hard-coding model names, so a project can change any role's model in one place.
+This document is the shared convention for role-specific model selection. Skills and host notes reference it instead of hard-coding model names, so a project can change any role's model in one place. For the skill-set map and layer vocabulary, see the [README](../README.md#skill-set-map).
 
 ## Role tiers
 

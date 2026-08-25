@@ -1,0 +1,127 @@
+// Formalization memo for the debug loop state machine.
+//
+// CONFIRMED: the repository owner confirmed this memo during implementation
+//            of issue #68 (debug-code skill). States are FailureObserved ->
+//            Reproduced -> Isolated -> Hypothesized -> MinimallyReproduced ->
+//            FixApplied -> Verified, with per-transition evidence flags.
+// ASSUME-1: one defect is modeled at a time; parallel or multiple defects
+//           are not represented here.
+// ASSUME-2: evidence is modeled as Boolean flags; the evidence itself
+//           (commands, outputs, artifacts) lives outside this model and is
+//           recorded by the skill body.
+// ASSUME-3: regression tests and refactoring happen outside this model; the
+//           model covers only reproduction, root cause, fix, and verification
+//           of the isolated defect.
+// ASSUME-4: a stopped or abandoned investigation (failure cannot be
+//           reproduced, root cause cannot be evidenced) is an
+//           implementation-phase report outside this model; it is not a
+//           modeled transition.
+// OPEN: whether a Blocked/Abandoned terminal state should model stopped
+//       investigations.
+spec DebugLoop {
+  enum Status {
+    FailureObserved,
+    Reproduced,
+    Isolated,
+    Hypothesized,
+    MinimallyReproduced,
+    FixApplied,
+    Verified
+  }
+
+  state {
+    status: Status,
+    reproduction_evidence: Bool,
+    root_cause_evidence: Bool,
+    hypothesis_stated: Bool,
+    hypothesis_confirmed: Bool,
+    fix_applied: Bool,
+    verification_evidence: Bool
+  }
+
+  init {
+    status = FailureObserved
+    reproduction_evidence = false
+    root_cause_evidence = false
+    hypothesis_stated = false
+    hypothesis_confirmed = false
+    fix_applied = false
+    verification_evidence = false
+  }
+
+  action record_reproduction() {
+    requires status == FailureObserved
+    reproduction_evidence = true
+    status = Reproduced
+  }
+
+  action isolate() {
+    requires status == Reproduced
+    requires reproduction_evidence
+    root_cause_evidence = true
+    status = Isolated
+  }
+
+  action hypothesize() {
+    requires status == Isolated
+    requires root_cause_evidence
+    hypothesis_stated = true
+    status = Hypothesized
+  }
+
+  action minimize() {
+    requires status == Hypothesized
+    hypothesis_confirmed = true
+    status = MinimallyReproduced
+  }
+
+  action apply_fix() {
+    requires status == MinimallyReproduced
+    requires hypothesis_confirmed
+    fix_applied = true
+    status = FixApplied
+  }
+
+  action verify() {
+    requires status == FixApplied
+    requires fix_applied
+    verification_evidence = true
+    status = Verified
+  }
+
+  invariant FixRequiresReproduction {
+    status == FixApplied => reproduction_evidence
+  }
+
+  invariant FixRequiresRootCauseEvidence {
+    status == FixApplied => root_cause_evidence
+  }
+
+  invariant MinimizationRequiresReproduction {
+    hypothesis_confirmed => reproduction_evidence
+  }
+
+  invariant MinimizationRequiresHypothesis {
+    hypothesis_confirmed => hypothesis_stated
+  }
+
+  invariant VerifyOnlyAfterFixApplied {
+    verification_evidence => status == Verified
+  }
+
+  invariant VerifiedOnlyAfterFixApplication {
+    status == Verified => fix_applied
+  }
+
+  invariant VerifiedHasFullEvidence {
+    status == Verified => reproduction_evidence and root_cause_evidence and hypothesis_confirmed and verification_evidence
+  }
+
+  terminal {
+    status == Verified
+  }
+
+  reachable RootCauseConfirmed { status == Isolated }
+  reachable FixAppliedAfterMinimalReproduction { status == FixApplied }
+  reachable FixVerified { status == Verified }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Tests"
+  short_description: "Design focused tests with failure evidence"
+  default_prompt: "Use $write-tests to design focused, proportionate tests for this change, with completion and failure evidence per test case."

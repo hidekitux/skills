@@ -24,6 +24,7 @@ SENSITIVE = load_script("scripts/check/check-sensitive-content.py")
 TOOL_LICENSES = load_script("scripts/check/check-tool-licenses.py")
 SCRIPT_TESTS = load_script("scripts/validate/validate-script-tests.py")
 MUTATION_BADGES = load_script("scripts/check/check-mutation-badges.py")
+ANALYZE_READONLY = load_script("scripts/check/check-analyze-readonly.py")
 
 
 RECORDED_SUMMARY = (
@@ -128,6 +129,55 @@ class MutationBadgeTests(unittest.TestCase):
             stale = CURRENT_BADGES.replace("164%2F200", "522%2F586")
             (root / "README.md").write_text(stale, encoding="utf-8")
             self.assertEqual(MUTATION_BADGES.main_with_root(root), 1)
+
+
+class AnalyzeReadonlyCheckTests(unittest.TestCase):
+    def test_accepts_analyze_skill_without_creation_instructions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill_dir = root / "skills" / "analyze-project"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: analyze-project\n---\n"
+                "Inspect the code and report findings.\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(ANALYZE_READONLY.main_with_root(root), 0)
+
+    def test_rejects_analyze_skill_instructing_issue_creation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill_dir = root / "skills" / "analyze-project"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: analyze-project\n---\n"
+                "Create a GitHub issue to track the finding.\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(ANALYZE_READONLY.main_with_root(root), 1)
+
+    def test_rejects_analyze_skill_instructing_pr_creation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill_dir = root / "skills" / "analyze-baseline"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: analyze-baseline\n---\n"
+                "Open a pull request with the suggested change.\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(ANALYZE_READONLY.main_with_root(root), 1)
+
+    def test_ignores_creation_instructions_in_non_analyze_skill(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill_dir = root / "skills" / "create-issue"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: create-issue\n---\nCreate a GitHub issue for the work.\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(ANALYZE_READONLY.main_with_root(root), 0)
 
 
 if __name__ == "__main__":
