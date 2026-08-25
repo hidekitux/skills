@@ -157,3 +157,41 @@ func TestCatalogDocsRejectsMissingCatalogSkill(t *testing.T) {
 		t.Fatalf("missing inventory-drift finding:\n%s", errOut)
 	}
 }
+
+func TestCatalogDocsAcceptsPlannedBulletOutsideCatalog(t *testing.T) {
+	// A "- Planned:" bullet lists a non-catalog skill as its subject and
+	// mentions a catalog skill only as context; the README count matches, so
+	// the check must pass and must not flag the context mention.
+	layers := catalogDocLayers + "\n- Planned: `demo-skill`, related to `plan-issue`\n"
+	readme := strings.Replace(catalogDocReadme, "tracks 0 planned", "tracks 1 planned", 1)
+	root := writeCatalogDocRepo(t, readme, layers, catalogDocContract())
+	if code, errOut := runCatalogDocs(t, root); code != 0 {
+		t.Fatalf("expected pass, got exit %d: %s", code, errOut)
+	}
+}
+
+func TestCatalogDocsRejectsCatalogSkillInPlannedBullet(t *testing.T) {
+	// A "- Planned:" bullet whose subject is a catalog skill is stale status
+	// drift and must fail the check.
+	layers := catalogDocLayers + "\n- Planned: `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69))\n"
+	root := writeCatalogDocRepo(t, catalogDocReadme, layers, catalogDocContract())
+	if code, errOut := runCatalogDocs(t, root); code != 1 {
+		t.Fatalf("expected failure, got exit %d", code)
+	} else if !strings.Contains(errOut, "write-tests is listed as planned, but it exists in CATALOG.yml") {
+		t.Fatalf("missing planned-bullet finding:\n%s", errOut)
+	}
+}
+
+func TestCatalogDocsRejectsPlannedCountMismatch(t *testing.T) {
+	// The README counts one planned skill, but a wrapped two-entry bullet
+	// lists two; continuation lines join the bullet and the count must match
+	// every documented planned subject.
+	layers := catalogDocLayers + "\n- Planned: `demo-skill` ([#69](https://github.com/hidekitux/skills/issues/69)),\n  `demo-skill2` ([#70](https://github.com/hidekitux/skills/issues/70))\n"
+	readme := strings.Replace(catalogDocReadme, "tracks 0 planned", "tracks 1 planned", 1)
+	root := writeCatalogDocRepo(t, readme, layers, catalogDocContract())
+	if code, errOut := runCatalogDocs(t, root); code != 1 {
+		t.Fatalf("expected failure, got exit %d", code)
+	} else if !strings.Contains(errOut, "README.md states 1 planned skills, but the documents list 2") {
+		t.Fatalf("missing planned-count finding:\n%s", errOut)
+	}
+}

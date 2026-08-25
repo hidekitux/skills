@@ -37,6 +37,13 @@ var (
 	// plannedCountRE matches the README's tracked planned-skill count, e.g.
 	// "and tracks 0 planned next-generation skills".
 	plannedCountRE = regexp.MustCompile(`tracks?\s+(\d+)\s+planned`)
+	// plannedBulletRE matches one subject entry of a "- Planned:" bullet: a
+	// backticked skill name optionally followed by its feature-Issue link,
+	// e.g. "`write-tests` ([#69](...))".
+	plannedBulletRE = regexp.MustCompile("^`([a-z0-9]+(?:-[a-z0-9]+)*)`(?:\\s*\\(\\[#[0-9]+\\]\\([^)]*\\)\\))?")
+	// plannedMarkerRE matches a skill name immediately followed by a
+	// "(planned)" marker, tolerating the backticks the docs use around names.
+	plannedMarkerRE = regexp.MustCompile("`?([a-z0-9]+(?:-[a-z0-9]+)*)`?\\s*\\(\\s*planned\\s*\\)")
 )
 
 // readCatalog loads the authoritative skill entries from CATALOG.yml, keyed by
@@ -171,6 +178,33 @@ func tableClaims(lines []string) []docClaim {
 	return claims
 }
 
+// plannedBulletSubjects returns the skill names listed as subjects of a
+// "- Planned:" bullet: comma-separated backticked names, each optionally
+// followed by a parenthesized feature-Issue link. Parsing stops at the first
+// text that is not a list entry, so context prose such as "related to
+// `plan-issue`" does not count as a planned subject.
+func plannedBulletSubjects(line string) []string {
+	content := strings.TrimSpace(line)
+	if idx := strings.Index(strings.ToLower(content), ":"); idx >= 0 {
+		content = strings.TrimSpace(content[idx+1:])
+	}
+	var subjects []string
+	for content != "" {
+		m := plannedBulletRE.FindStringSubmatchIndex(content)
+		if m == nil || m[0] != 0 {
+			return subjects
+		}
+		subjects = append(subjects, content[m[2]:m[3]])
+		content = content[m[1]:]
+		content = strings.TrimLeft(content, " \t")
+		if !strings.HasPrefix(content, ",") {
+			return subjects
+		}
+		content = strings.TrimLeft(content[1:], " \t")
+	}
+	return subjects
+}
+
 // checkDocTables verifies the documented claims of one contributor-facing
 // document against the catalog. mapping reports whether the document's table
 // is a current-inventory mapping table (with layer and status columns) that
@@ -218,23 +252,35 @@ func checkDocTables(docName, tableLabel, text string, mapping bool, catalog map[
 }
 
 // checkPlannedText rejects any catalog skill that is described as planned in
-// the document, whether in a "Planned:" bullet or in a "(planned)" marker.
-func checkPlannedText(docName, text string, catalog map[string]catalogSkill, findings *[]string) {
-	for _, line := range strings.Split(text, "\n") {
-		trimmed := strings.ToLower(strings.TrimSpace(line))
-		if !strings.HasPrefix(trimmed, "- planned:") {
+// the document and records every planned skill the document names, whether in
+// a "Planned:" bullet or in a "(planned)" marker, so the README planned count
+// is compared against the same set.
+func checkPlannedText(docName, text string, catalog map[string]catalogSkill, findings *[]string, plannedAbsent map[string]bool) {
+	lines := strings.Split(text, "\n")
+	for i := 0; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if !strings.HasPrefix(strings.ToLower(trimmed), "- planned:") {
 			continue
 		}
-		for name := range catalog {
-			if strings.Contains(trimmed, name) {
-				*findings = append(*findings, fmt.Sprintf("%s: %s is listed as planned, but it exists in CATALOG.yml", docName, name))
+		bullet := trimmed
+		for i+1 < len(lines) && lines[i+1] != "" && (lines[i+1][0] == ' ' || lines[i+1][0] == '\t') {
+			bullet += " " + strings.TrimSpace(lines[i+1])
+			i++
+		}
+		for _, subject := range plannedBulletSubjects(bullet) {
+			if _, ok := catalog[subject]; ok {
+				*findings = append(*findings, fmt.Sprintf("%s: %s is listed as planned, but it exists in CATALOG.yml", docName, subject))
+			} else {
+				plannedAbsent[subject] = true
 			}
 		}
 	}
-	for name := range catalog {
-		marker := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(name) + `\s*\(\s*planned\s*\)`)
-		if marker.MatchString(text) {
-			*findings = append(*findings, fmt.Sprintf("%s: %s is described as planned, but it exists in CATALOG.yml", docName, name))
+	for _, m := range plannedMarkerRE.FindAllStringSubmatch(text, -1) {
+		subject := m[1]
+		if _, ok := catalog[subject]; ok {
+			*findings = append(*findings, fmt.Sprintf("%s: %s is described as planned, but it exists in CATALOG.yml", docName, subject))
+		} else {
+			plannedAbsent[subject] = true
 		}
 	}
 }
@@ -292,9 +338,9 @@ func CheckCatalogDocs(root string, out, errOut io.Writer) int {
 	checkDocTables("README.md", "the skill-set map table", readme, true, catalog, &findings, plannedAbsent)
 	checkDocTables("docs/skill-layers.md", "the skill-set mapping table", layers, true, catalog, &findings, plannedAbsent)
 	checkDocTables("docs/skill-contract.md", "the ownership boundary table", contract, false, catalog, &findings, plannedAbsent)
-	checkPlannedText("README.md", readme, catalog, &findings)
-	checkPlannedText("docs/skill-layers.md", layers, catalog, &findings)
-	checkPlannedText("docs/skill-contract.md", contract, catalog, &findings)
+	checkPlannedText("README.md", readme, catalog, &findings, plannedAbsent)
+	checkPlannedText("docs/skill-layers.md", layers, catalog, &findings, plannedAbsent)
+	checkPlannedText("docs/skill-contract.md", contract, catalog, &findings, plannedAbsent)
 	checkReadmeCounts(readme, catalog, plannedAbsent, &findings)
 
 	sort.Strings(findings)
