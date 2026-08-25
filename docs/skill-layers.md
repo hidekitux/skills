@@ -6,7 +6,12 @@ Every skill in this repository belongs to one of four layers: process, analyze,
 fix, or govern. The layer states the skill's naming pattern, what it may and may
 not do, and where its results go. Published skills declare their `layer` and
 `related` skills in `CATALOG.yml`; planned skills follow the same vocabulary in
-their feature Issues. Issue #98 establishes this model for the whole skill set.
+their feature Issues. The current inventory, layer, and status claims in this
+document and the README derive from `CATALOG.yml`: presence in its `skills:`
+list is the current publishable inventory, and each entry's `layer` and
+`status` fields drive the layer and status documentation. A skill is planned
+only when it is absent from the catalog. Issue #98 establishes this model for
+the whole skill set.
 
 ## The four layers
 
@@ -43,8 +48,7 @@ refactoring against a test baseline without changing behavior. They work from a
 defined task or Issue and hand their result to the next owner or into the
 governed flow at `create-issue` instead of inventing scope.
 
-- Published: `debug-code`
-- Planned: `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
+- Published: `debug-code`, `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
   `refactor-code` ([#70](https://github.com/hidekitux/skills/issues/70))
 
 ### govern
@@ -57,19 +61,19 @@ missing; they do not implement the audited rules themselves.
 
 ## Skill-set mapping
 
-| Layer | Skill | Status | Issue |
-| --- | --- | --- | --- |
-| process | create-issue | published | |
-| process | plan-issue | published | |
-| process | implement-issue | published | |
-| process | create-pr | published | |
-| process | review-pr | published | |
-| analyze | analyze-project | published | |
-| fix | debug-code | published | |
-| fix | write-tests | planned | #69 |
-| fix | refactor-code | planned | #70 |
-| govern | bootstrap-project | published | |
-| govern | audit-workflow-enforcement | published | |
+| Layer | Skill | Status |
+| --- | --- | --- |
+| process | create-issue | experimental |
+| process | plan-issue | experimental |
+| process | implement-issue | experimental |
+| process | create-pr | experimental |
+| process | review-pr | experimental |
+| analyze | analyze-project | experimental |
+| fix | debug-code | experimental |
+| fix | write-tests | experimental |
+| fix | refactor-code | experimental |
+| govern | bootstrap-project | experimental |
+| govern | audit-workflow-enforcement | experimental |
 
 ## Process versus fix
 

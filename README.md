@@ -70,7 +70,7 @@ skills/<skill-name>/SKILL.md
 skills/<namespace>/<skill-name>/SKILL.md
 ```
 
-Every skill requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
+Every skill requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/` with shared packages under `internal/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
@@ -78,21 +78,21 @@ Every skill belongs to one of four layers — process, analyze, fix, or govern. 
 
 ## Skill-set map
 
-The repository publishes seven skills today and tracks three planned next-generation skills. [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current and planned skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
+The repository publishes 11 skills today and tracks 0 planned next-generation skills. Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer` and `status` fields drive the layer and status documentation below and in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
 
 | Skill | Layer | Status |
 | --- | --- | --- |
-| create-issue | process | published |
-| plan-issue | process | published |
-| implement-issue | process | published |
-| create-pr | process | published |
-| review-pr | process | planned |
-| analyze-project | analyze | planned |
-| debug-code | fix | published |
-| write-tests | fix | planned |
-| refactor-code | fix | planned |
-| bootstrap-project | govern | published |
-| audit-workflow-enforcement | govern | published |
+| create-issue | process | experimental |
+| plan-issue | process | experimental |
+| implement-issue | process | experimental |
+| create-pr | process | experimental |
+| review-pr | process | experimental |
+| analyze-project | analyze | experimental |
+| debug-code | fix | experimental |
+| write-tests | fix | experimental |
+| refactor-code | fix | experimental |
+| bootstrap-project | govern | experimental |
+| audit-workflow-enforcement | govern | experimental |
 
 Where the related guides live:
 
@@ -113,7 +113,7 @@ Where the related guides live:
 4. Run `mise run validate-skill-creator` when it is available in Codex.
 5. Follow the [release procedure](docs/releasing.md) after review.
 
-`mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, and the script-to-test mapping. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
+`mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, the script-to-test mapping, and catalog-versus-documentation drift. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
 
 ## Installation and compatibility
 
