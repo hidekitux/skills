@@ -25,6 +25,76 @@ Mutating specs/skills/debug-code/debug-loop.fsl at depth 8
 {"fsl": "1.0", "result": "mutated", "summary": {"total": 200, "killed": 164, "survived": 36, "invalid": 0}}
 `
 
+// multiLineMutateLog mirrors the pretty-printed multi-line JSON that the pinned
+// fslc emits for each `Mutating <spec> at depth N` block. It is trimmed from
+// real `fslc mutate` output but keeps the document structure, including summary
+// blocks whose values must aggregate exactly like the Python collector's.
+const multiLineMutateLog = `Mutating specs/review-flow.fsl at depth 8
+{
+  "fsl": "1.0",
+  "result": "mutated",
+  "spec": "ReviewFlow",
+  "depth": 8,
+  "baseline": "verified",
+  "mutants": [
+    {
+      "op": "assignment_remove",
+      "loc": {
+        "line": 30,
+        "column": 5
+      },
+      "target": "init assignment",
+      "status": "killed",
+      "killed_by": "_bounds_status",
+      "requirement": null,
+      "source": "builtin"
+    }
+  ],
+  "summary": {
+    "total": 133,
+    "killed": 90,
+    "survived": 43,
+    "invalid": 0,
+    "kill_rate": 0.6767
+  },
+  "by_requirement": {},
+  "notes": [
+    "possible equivalent mutants should be reviewed manually"
+  ]
+}
+Mutating specs/branch-flow.fsl at depth 8
+{
+  "fsl": "1.0",
+  "result": "mutated",
+  "spec": "BranchFlow",
+  "depth": 8,
+  "baseline": "verified",
+  "mutants": [
+    {
+      "op": "requires_remove",
+      "loc": {
+        "line": 12,
+        "column": 5
+      },
+      "target": "submit requires #1",
+      "status": "killed",
+      "killed_by": "ChangesRequestedIsNotApproved",
+      "requirement": null,
+      "source": "builtin"
+    }
+  ],
+  "summary": {
+    "total": 59,
+    "killed": 50,
+    "survived": 9,
+    "invalid": 0,
+    "kill_rate": 0.8475
+  },
+  "by_requirement": {},
+  "notes": []
+}
+`
+
 const fslcScriptText = `fsl_version="4.2.0"
 download_base="https://github.com/ymm-oss/fsl/releases/download/v${fsl_version}"
 `
@@ -50,6 +120,17 @@ func TestParseMutateLogAggregatesEverySpecSummary(t *testing.T) {
 	}
 	if summary, err := ParseMutateLog(fullRunMutateLog); err != nil || summary.Total != 842 || summary.Killed != 726 || summary.Survived != 116 {
 		t.Fatalf("unexpected full summary %+v err=%v", summary, err)
+	}
+}
+
+func TestParseMutateLogAcceptsMultilineDocument(t *testing.T) {
+	summary, err := ParseMutateLog(multiLineMutateLog)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// review-flow + branch-flow, matching the fslc summaries above.
+	if summary.Total != 192 || summary.Killed != 140 || summary.Survived != 52 {
+		t.Fatalf("unexpected summary %+v", summary)
 	}
 }
 
@@ -180,6 +261,39 @@ func TestCollectBadgesWritesSixPayloads(t *testing.T) {
 	content, _ := os.ReadFile(filepath.Join(outputDir, "fsl-killed.json"))
 	if err := json.Unmarshal(content, &killed); err != nil || killed.Message != "726/842" {
 		t.Fatalf("unexpected killed payload %+v err=%v", killed, err)
+	}
+}
+
+func TestCollectBadgesAcceptsMultilineMutationLog(t *testing.T) {
+	root := t.TempDir()
+	mutatePath, testPath := writeCollectInputs(t, root, multiLineMutateLog, testJSONOK)
+	fslcPath := filepath.Join(root, "install-fslc.sh")
+	if err := os.WriteFile(fslcPath, []byte(fslcScriptText), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	outputDir := filepath.Join(root, "payloads")
+	var out, errOut bytes.Buffer
+	if code := CollectBadges(mutatePath, testPath, fslcPath, outputDir, &out, &errOut); code != 0 {
+		t.Fatalf("expected 0, got %d: %s", code, errOut.String())
+	}
+	entries, _ := os.ReadDir(outputDir)
+	if len(entries) != len(payloadNames) {
+		t.Fatalf("expected %d payload files, got %d", len(payloadNames), len(entries))
+	}
+	var killed payload
+	content, _ := os.ReadFile(filepath.Join(outputDir, "fsl-killed.json"))
+	if err := json.Unmarshal(content, &killed); err != nil || killed.Message != "140/192" {
+		t.Fatalf("unexpected killed payload %+v err=%v", killed, err)
+	}
+	var survived payload
+	content, _ = os.ReadFile(filepath.Join(outputDir, "fsl-survived.json"))
+	if err := json.Unmarshal(content, &survived); err != nil || survived.Message != "52" {
+		t.Fatalf("unexpected survived payload %+v err=%v", survived, err)
+	}
+	var killRate payload
+	content, _ = os.ReadFile(filepath.Join(outputDir, "fsl-kill-rate.json"))
+	if err := json.Unmarshal(content, &killRate); err != nil || killRate.Message != "72.92%" {
+		t.Fatalf("unexpected kill-rate payload %+v err=%v", killRate, err)
 	}
 }
 
