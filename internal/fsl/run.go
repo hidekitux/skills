@@ -36,11 +36,25 @@ func depth() string {
 	return support.EnvOr("FSL_DEPTH", "8")
 }
 
-// specFiles returns the .fsl specs under specs/ then skills/**/specs/ in
-// repository-relative lexical order, matching the two find commands of the
-// former shell wrappers.
-func specFiles(root string) []string {
-	var specs []string
+// specFiles returns the repository-relative display paths of every unique
+// logical FSL specification, deduplicated by canonical physical identity and
+// ordered specs/ before skills/**/specs/ (both in lexical order).
+//
+// Skill-owned specs under skills/<name>/specs/ are also exposed through
+// repository-level symbolic links under specs/<name>/. Both paths resolve to
+// the same physical file, so each logical source is returned exactly once and
+// the first-seen path is used as the stable display path that verification and
+// mutation output reports.
+//
+// A candidate that cannot be resolved (a broken symlink) or that resolves
+// outside the repository (an incorrectly targeted link) is returned as an
+// error so broken FSL links still fail repository validation.
+func specFiles(root string) ([]string, error) {
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return nil, err
+	}
+	var candidates []string
 	collect := func(base string, match func(rel string) bool) {
 		_ = filepath.WalkDir(filepath.Join(root, base), func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
@@ -54,7 +68,7 @@ func specFiles(root string) []string {
 			}
 			rel, _ := filepath.Rel(root, path)
 			if match(rel) {
-				specs = append(specs, filepath.ToSlash(rel))
+				candidates = append(candidates, filepath.ToSlash(rel))
 			}
 			return nil
 		})
@@ -63,7 +77,36 @@ func specFiles(root string) []string {
 	collect("skills", func(rel string) bool {
 		return strings.Contains(rel, string(filepath.Separator)+"specs"+string(filepath.Separator))
 	})
-	return specs
+
+	var specs []string
+	seen := make(map[string]bool, len(candidates))
+	for _, rel := range candidates {
+		canon, err := filepath.EvalSymlinks(filepath.Join(absRoot, filepath.FromSlash(rel)))
+		if err != nil {
+			return nil, fmt.Errorf("resolve FSL spec %q: %w", rel, err)
+		}
+		if !pathWithin(absRoot, canon) {
+			return nil, fmt.Errorf("FSL spec %q resolves outside the repository at %q", rel, canon)
+		}
+		if seen[canon] {
+			continue
+		}
+		seen[canon] = true
+		specs = append(specs, rel)
+	}
+	return specs, nil
+}
+
+// pathWithin reports whether path is root or a descendant of root.
+func pathWithin(root, path string) bool {
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return false
+	}
+	if rel == "." {
+		return true
+	}
+	return !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && rel != ".."
 }
 
 // runFslc invokes the pinned fslc binary directly at its install path. The
@@ -80,11 +123,17 @@ func runFslc(out, errOut io.Writer, args ...string) int {
 
 // VerifyFSL checks and verifies every FSL spec with the pinned fslc binary.
 func VerifyFSL(root string, out, errOut io.Writer) int {
-	specs := specFiles(root)
+	specs, err := specFiles(root)
+	if err != nil {
+		fmt.Fprintf(errOut, "error: %v\n", err)
+		return 1
+	}
 	depthValue := depth()
-	found := 0
+	if len(specs) == 0 {
+		fmt.Fprintln(out, "No repository-owned or skill-owned FSL specs found.")
+		return 0
+	}
 	for _, spec := range specs {
-		found = 1
 		fmt.Fprintf(out, "Checking %s\n", spec)
 		if code := runFslc(out, errOut, "check", spec); code != 0 {
 			return code
@@ -94,26 +143,28 @@ func VerifyFSL(root string, out, errOut io.Writer) int {
 			return code
 		}
 	}
-	if found == 0 {
-		fmt.Fprintln(out, "No repository-owned or skill-owned FSL specs found.")
-	}
+	fmt.Fprintf(out, "Verified %d FSL spec(s).\n", len(specs))
 	return 0
 }
 
 // MutateFSL measures mutation detection for every FSL spec.
 func MutateFSL(root string, out, errOut io.Writer) int {
-	specs := specFiles(root)
+	specs, err := specFiles(root)
+	if err != nil {
+		fmt.Fprintf(errOut, "error: %v\n", err)
+		return 1
+	}
 	depthValue := depth()
-	found := 0
+	if len(specs) == 0 {
+		fmt.Fprintln(out, "No repository-owned or skill-owned FSL specs found.")
+		return 0
+	}
 	for _, spec := range specs {
-		found = 1
 		fmt.Fprintf(out, "Mutating %s at depth %s\n", spec, depthValue)
 		if code := runFslc(out, errOut, "mutate", spec, "--depth", depthValue); code != 0 {
 			return code
 		}
 	}
-	if found == 0 {
-		fmt.Fprintln(out, "No repository-owned or skill-owned FSL specs found.")
-	}
+	fmt.Fprintf(out, "Mutated %d FSL spec(s).\n", len(specs))
 	return 0
 }

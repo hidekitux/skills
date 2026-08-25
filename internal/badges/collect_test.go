@@ -17,11 +17,11 @@ Mutating specs/branch-flow.fsl at depth 8
 
 const fullRunMutateLog = twoSpecMutateLog + `Mutating specs/release-gate.fsl at depth 8
 {"fsl": "1.0", "result": "mutated", "summary": {"total": 127, "killed": 108, "survived": 19, "invalid": 0}}
-Mutating specs/skills/create-issue/issue-creation.fsl at depth 8
+Mutating specs/create-issue/issue-creation.fsl at depth 8
 {"fsl": "1.0", "result": "mutated", "summary": {"total": 200, "killed": 200, "survived": 0, "invalid": 0}}
-Mutating specs/skills/create-pr/pull-request-creation.fsl at depth 8
+Mutating specs/create-pr/pull-request-creation.fsl at depth 8
 {"fsl": "1.0", "result": "mutated", "summary": {"total": 123, "killed": 114, "survived": 9, "invalid": 0}}
-Mutating specs/skills/debug-code/debug-loop.fsl at depth 8
+Mutating specs/debug-code/debug-loop.fsl at depth 8
 {"fsl": "1.0", "result": "mutated", "summary": {"total": 200, "killed": 164, "survived": 36, "invalid": 0}}
 `
 
@@ -120,6 +120,23 @@ func TestParseMutateLogAggregatesEverySpecSummary(t *testing.T) {
 	}
 	if summary, err := ParseMutateLog(fullRunMutateLog); err != nil || summary.Total != 842 || summary.Killed != 726 || summary.Survived != 116 {
 		t.Fatalf("unexpected full summary %+v err=%v", summary, err)
+	}
+}
+
+func TestParseMutateLogOneDocumentPerUniqueSource(t *testing.T) {
+	// The deduplicated mutate-fsl run emits exactly one mutation document per
+	// unique logical source (six sources, six runs), so the aggregate equals the
+	// sum of one contribution from each source.
+	summary, err := ParseMutateLog(fullRunMutateLog)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runs := len(mutatingLineRE.FindAllString(fullRunMutateLog, -1))
+	if runs != 6 {
+		t.Fatalf("expected 6 runs (one per unique source), got %d", runs)
+	}
+	if summary.Total != 842 || summary.Killed != 726 || summary.Survived != 116 {
+		t.Fatalf("unexpected aggregate %+v", summary)
 	}
 }
 
