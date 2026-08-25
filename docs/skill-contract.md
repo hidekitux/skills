@@ -41,6 +41,13 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `bootstrap-project` | Runnable foundation with protected branch flow and FSL adoption plan | The project's governed change flow | Initialization only |
 | `audit-workflow-enforcement` | Bounded subagent audit of enforcement rules | The requester and subsequent governed fixes | Audits only; fixes are governed changes |
 
+Process-versus-fix ownership follows the criterion in
+[skill-layers.md](skill-layers.md): `implement-issue` owns the implementation
+stage of the artifact flow and is the process layer's only editor of target
+source code, editing only in-scope files from a verified plan; fix-layer skills
+edit in isolated, task-scoped work outside that stage and hand results into the
+governed flow.
+
 ## Debug loop
 
 `debug-code` owns the loop from reproduction to verification:
