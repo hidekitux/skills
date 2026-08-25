@@ -1,22 +1,29 @@
 name: Branch policy
+
 on:
   pull_request:
     types: [opened, reopened, synchronize, edited]
+
 permissions:
   contents: read
   pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   branch-policy:
     name: Validate branch policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
-        with:
-          go-version: '1.26.5'
+      - name: Set up Go toolchain
+        uses: ./.github/actions/setup-go
       - name: Validate pull-request direction and issue linkage
         env:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}

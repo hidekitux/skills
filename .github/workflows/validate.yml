@@ -1,4 +1,4 @@
-name: Validate skills
+name: Validate
 
 on:
   pull_request:
@@ -8,8 +8,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  validate:
+  repository-checks:
+    name: Validate repository checks
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
@@ -17,11 +22,82 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      # v3 -> 5228313ee0372e111a38da051671ca30fc5a96db
+      # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
         with:
           install: true
-      - name: Run supported-platform validation
+          cache: true
+      - name: Validate repository metadata
+        run: mise run check:repository
+      - name: Validate host installations
+        run: mise run check:hosts
+      - name: Validate branch policy configuration
+        run: mise run check:branch-policy
+      - name: Check diff whitespace
         env:
           CHECK_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: mise run validate
+        run: mise run check:diff
+  lint:
+    name: Validate lint
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+      - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+        with:
+          install: true
+          cache: true
+      - name: Lint workflows, Python, shell, and Go sources
+        run: mise run lint
+  test:
+    name: Validate tests
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+      - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+        with:
+          install: true
+          cache: true
+      - name: Run repository tests
+        run: mise run test
+  verify-fsl:
+    name: Validate FSL specifications
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+      - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+        with:
+          install: true
+          cache: true
+      - name: Verify FSL specifications
+        run: mise run verify-fsl
+  skill-checks:
+    name: Validate skills
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+      - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+        with:
+          install: true
+          cache: true
+      - name: Validate repository skills
+        run: mise run check:skills

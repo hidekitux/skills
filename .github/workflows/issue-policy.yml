@@ -9,22 +9,27 @@ permissions:
   issues: read
 
 jobs:
-  policy:
+  issue-policy:
     name: Validate issue policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
-        with:
-          go-version: '1.26.5'
-      - env:
+      - name: Set up Go toolchain
+        uses: ./.github/actions/setup-go
+      - name: Validate issue title
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: go run ./cmd/validate-work-item-title --title "$ISSUE_TITLE"
+      - name: Validate issue body
+        env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+        run: go run ./cmd/validate-issue-body --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
+      - name: Validate issue labels
+        env:
           ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
-        run: |
-          go run ./cmd/validate-work-item-title --title "$ISSUE_TITLE"
-          go run ./cmd/validate-issue-body --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
-          go run ./cmd/validate-issue-labels --labels "$ISSUE_LABELS"
+        run: go run ./cmd/validate-issue-labels --labels "$ISSUE_LABELS"
