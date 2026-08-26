@@ -2,11 +2,10 @@
 name: Release
 about: Prepare a published release and its changelog.
 title: "[Release]: v1.2.3"
-labels: ["phase:backlog", "priority:medium", "scope:release"]
 assignees: []
 ---
 
-<!-- Triage this Release Issue: confirm the priority and keep exactly one priority:, one scope:, and one phase: label before working it. Assign it to its owner. -->
+<!-- New Release Issues are added to the repository's GitHub Project with Status Backlog, Scope Release, and the declared default Priority. The workflow skills keep the Status non-terminal until publication succeeds; the built-in Project workflow moves a closed Issue to Done. Assign the Issue to its owner. -->
 
 ## Context
 
