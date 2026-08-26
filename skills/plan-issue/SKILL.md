@@ -11,7 +11,7 @@ license: Apache-2.0
 1. **in progress:** Resolve the repository, the governing change Issue, and its `Scope` and `Acceptance criteria`.
 2. Derive plan tasks that cover the Issue scope and acceptance criteria; order them for implementation.
 3. Record every task in a Todo List with observable completion evidence.
-4. Complete the list only when the plan is posted as a comment on the governing Change Issue and its comment URL is available; do not write or execute code.
+4. Complete the list only when the plan is posted as a comment on the governing Change Issue, its comment URL is available, and the governing Issue's Project Status is `Planned`; do not write or execute code.
 
 Keep exactly one item in progress. Mark an item complete only after its stated evidence exists. Add or revise items when the agreed scope changes.
 
@@ -41,7 +41,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 ## Handoff
 
-- After posting the plan comment on the governing Change Issue, set its `phase:` label to `phase:planned` and keep exactly one `priority:` and one `scope:` label; include the updated label state in the handoff.
+- After posting the plan comment on the governing Change Issue, set its Project Status to `Planned` using the repository-declared Project configuration: confirm one item exists (`gh project item-list`), resolve the Status field and option IDs from their declared names (`gh project field-list`), and apply them with `gh project field-set`; never create a duplicate item. Include the resulting Project Status in the handoff.
 - Deliver the plan as a comment on the governing Change Issue. Keep the comment self-contained: ordered tasks with completion evidence, out-of-scope items, residual risk, and the next-phase handoff. Report the Issue URL and the comment URL.
 - Do not hand off through a temporary or local file, and do not rely on the host's native task tracking to carry the plan.
 - Complete the Todo List only after the comment is posted and its URL is available. Do not write code, create commits, or execute the plan unless separately requested.
