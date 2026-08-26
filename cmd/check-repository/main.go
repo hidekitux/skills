@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/hidekitux/skills/internal/check"
+	"github.com/hidekitux/skills/internal/eval"
 	"github.com/hidekitux/skills/internal/support"
 	"github.com/hidekitux/skills/internal/validate"
 )
@@ -38,6 +39,7 @@ var repoChecks = []repoCheck{
 	{name: "check-analyze-readonly", fn: check.CheckAnalyzeReadonly},
 	{name: "check-guided-paths", fn: check.CheckGuidedPaths},
 	{name: "check-catalog-docs", fn: check.CheckCatalogDocs},
+	{name: "check-evaluation", fn: eval.CheckCorpus},
 }
 
 type checkResult struct {
