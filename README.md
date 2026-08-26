@@ -34,6 +34,8 @@ mise tasks ls
 | Static analysis | `mise run lint` |
 | FSL verification | `mise run verify-fsl` |
 | FSL mutation check | `mise run mutate-fsl` |
+| Behavioral evaluation smoke set | `mise run evaluate:smoke` |
+| Behavioral evaluation suite | `mise run evaluate` |
 | Release-candidate verification | `mise run verify-release -- vX.Y.Z` |
 | Publish a verified release | `mise run release:publish -- vX.Y.Z` |
 
@@ -99,6 +101,7 @@ Where the related guides live:
 - [docs/skill-layers.md](docs/skill-layers.md) — the layer model, naming pattern, boundaries, and the skill-set mapping.
 - [docs/analysis-skill-common.md](docs/analysis-skill-common.md) — the shared analyze-* core contract.
 - [docs/skill-contract.md](docs/skill-contract.md) — the cross-skill handoff and boundary rules: which skill owns each phase, where every skill sends its result, and the debug, review, and analyze-to-change loops.
+- [docs/evaluation.md](docs/evaluation.md) — outcome-based behavioral evaluation, the promotion threshold for catalog status, and how regressions block promotion.
 - [docs/skill-brief-template.md](docs/skill-brief-template.md) — the authoring brief, including boundaries, related skills, and handoff targets.
 - [docs/releasing.md](docs/releasing.md) — the release procedure.
 - [docs/fsl.md](docs/fsl.md) — the FSL specification boundary and verification.
