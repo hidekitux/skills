@@ -1,0 +1,33 @@
+id: debug-code-success
+skill: debug-code
+kind: positive
+smoke: true
+title: Reproduce, root-cause, fix, and verify a failing leap-year check
+fixture: debug-target
+prompt: |
+  The leap-year check fails for the year 1900. Debug the failure and leave the
+  test suite green.
+expectations:
+  handoff: write-tests-or-refactor-code
+  transcript_must:
+    - "reproduce"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains:
+    - path: "src/leap.go"
+      pattern: "400"
+  unchanged_files: []
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Selects the debugging workflow for a reproduced failure."
+  task_completion: "Records reproduction and root cause, fixes the century rule, and verifies the suite."
+  evidence_quality: "Each step cites the failing test output and the fix verification."
+  scope_control: "Fixes only the isolated defect."
+  safety: "No unsafe commands or credential handling."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the test-writing follow-up for the verified fix."
+corrections: []

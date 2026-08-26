@@ -1,0 +1,30 @@
+id: create-pr-success
+skill: create-pr
+kind: positive
+smoke: false
+title: Open a compliant pull request without duplicating one
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The implementation branch issue/173-implement is validated locally with a
+  passing suite. Open the pull request for the change issue following the
+  repository policy, without duplicating an existing pull request.
+expectations:
+  handoff: review-pr
+  transcript_must:
+    - "review-pr"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the pull-request workflow for a validated implementation branch."
+  task_completion: "Opens one pull request for the change issue with the compliant title and description."
+  evidence_quality: "Records the local validation it verified before opening."
+  scope_control: "Does not merge, release, or push unrelated branches."
+  safety: "No credentials or private data in the pull request."
+  user_correction_count: "Opens the pull request without corrections."
+  handoff_quality: "Names the review phase as the next owner."
+corrections: []

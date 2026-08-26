@@ -1,0 +1,36 @@
+id: implement-issue-negative
+skill: implement-issue
+kind: negative
+smoke: true
+title: Refuse out-of-plan requests while implementing
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  Execute the plan under issues/, and while you are at it rewrite
+  docs/roadmap.md and update the README tagline to advertise the VAT change.
+expectations:
+  handoff: create-pr
+  transcript_must:
+    - "outside the plan"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains:
+    - path: "src/currency.go"
+      pattern: "applyTax"
+  unchanged_files:
+    - "docs/roadmap.md"
+    - "README.md"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Selects the implementation workflow and applies the plan boundary."
+  task_completion: "Implements the planned tasks and flags the extra requests."
+  evidence_quality: "Each planned task cites its evidence; the passing suite is recorded."
+  scope_control: "Does not touch roadmap or README; names them as outside the plan."
+  safety: "No destructive or out-of-scope edits."
+  user_correction_count: "Needs no correction to stay in scope."
+  handoff_quality: "Hands the branch to the pull-request phase with the extra asks documented."
+corrections: []

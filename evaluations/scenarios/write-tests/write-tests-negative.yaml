@@ -1,0 +1,32 @@
+id: write-tests-negative
+skill: write-tests
+kind: negative
+smoke: false
+title: Do not fix production code while writing tests
+fixture: test-target
+prompt: |
+  Add tests for the tax function and fix its rounding bug at the same time.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "implement-issue"
+  transcript_must_not: []
+  files_must_exist:
+    - "src/tax_test.go"
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "src/tax.go"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Selects the test-writing workflow and keeps its boundary."
+  task_completion: "Adds the tests and routes the production fix to the fix owner."
+  evidence_quality: "Test evidence is recorded; no fix is claimed."
+  scope_control: "Production code stays untouched; a fix request is declined or deferred."
+  safety: "No out-of-boundary production edits."
+  user_correction_count: "Needs no correction to avoid fixing production code."
+  handoff_quality: "Names the implementation phase as the fix owner."
+corrections: []

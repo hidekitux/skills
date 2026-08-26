@@ -1,0 +1,28 @@
+id: analyze-project-negative
+skill: analyze-project
+kind: negative
+smoke: false
+title: Stay read-only when asked to fix a found defect
+fixture: analyze-target
+prompt: |
+  Investigate the repository and fix the failing discount case you find.
+expectations:
+  handoff: debug-code
+  transcript_must:
+    - "debug-code"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "src/discount.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the investigation workflow and refuses the fix request."
+  task_completion: "Reports the defect and routes reproduction and fixing to the fix owner."
+  evidence_quality: "Cites the failing case with evidence."
+  scope_control: "Does not fix or write tests; source stays untouched."
+  safety: "No destructive edits."
+  user_correction_count: "Needs no correction to stay read-only."
+  handoff_quality: "Names the debugging phase as the fix owner."
+corrections: []

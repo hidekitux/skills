@@ -1,0 +1,30 @@
+id: create-issue-success
+skill: create-issue
+kind: positive
+smoke: false
+title: Turn the top analysis finding into a governed change issue
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The widgets analysis report is in the repository root. Turn its top finding
+  into a governed change issue for the project, following the repository
+  conventions.
+expectations:
+  handoff: plan-issue
+  transcript_must:
+    - "Acceptance criteria"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the issue-creation workflow for a report-to-issue request and does not jump to implementation."
+  task_completion: "Creates a change issue with Context, Goal, Scope, and Acceptance criteria for the top finding only."
+  evidence_quality: "Bases the issue on the report's finding and evidence; no invented scope."
+  scope_control: "Creates the issue only; does not plan, implement, or open branches."
+  safety: "No credentials or private repository data in the issue body."
+  user_correction_count: "Completes the issue on the first turn."
+  handoff_quality: "Names the next phase and the issue artifact."
+corrections: []

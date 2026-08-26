@@ -1,0 +1,28 @@
+id: create-pr-boundary
+skill: create-pr
+kind: boundary
+smoke: false
+title: Detect an existing pull request and do not duplicate it
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  Open the pull request for the implementation branch of the change issue.
+expectations:
+  handoff: review-pr
+  transcript_must:
+    - "already exists"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the pull-request workflow and checks for an existing pull request first."
+  task_completion: "Reports the existing pull request instead of opening a duplicate."
+  evidence_quality: "Cites the existing pull request it found."
+  scope_control: "Does not create a second pull request for the same branch."
+  safety: "No credentials or private data exposed."
+  user_correction_count: "Catches the duplicate without a correction."
+  handoff_quality: "Points the requester at the existing pull request."
+corrections: []

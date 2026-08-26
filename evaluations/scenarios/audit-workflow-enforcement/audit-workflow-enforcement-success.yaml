@@ -1,0 +1,30 @@
+id: audit-workflow-enforcement-success
+skill: audit-workflow-enforcement
+kind: positive
+smoke: false
+title: Audit mandatory rules and report missing enforcement
+fixture: audit-target
+prompt: |
+  Audit whether the repository's mandatory workflow rules are actually enforced
+  and report what is missing.
+expectations:
+  handoff: requester-for-governed-fixes
+  transcript_must:
+    - "enforcement"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "AGENTS.md"
+    - ".github/workflows/validate.yml"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the enforcement-audit workflow for a declared-rule repository."
+  task_completion: "Reports which mandatory rules lack effective enforcement with evidence."
+  evidence_quality: "Each gap cites the declared rule and the missing control."
+  scope_control: "Audits only; does not implement the missing checks."
+  safety: "No credentials or private data in the audit report."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Sends findings back to the requester for governed fixes."
+corrections: []

@@ -1,0 +1,29 @@
+id: refactor-code-boundary
+skill: refactor-code
+kind: boundary
+smoke: false
+title: Refuse to refactor without a runnable test baseline
+fixture: refactor-target-nobaseline
+prompt: |
+  Refactor the duplicated discount logic in src into one shared helper.
+expectations:
+  handoff: baseline-required
+  transcript_must:
+    - "baseline"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist:
+    - "src/discount_test.go"
+  file_contains: []
+  unchanged_files:
+    - "src/discount.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the refactoring workflow and applies the baseline gate."
+  task_completion: "Stops and asks for a runnable test baseline instead of refactoring blind."
+  evidence_quality: "Names the missing baseline as the blocker."
+  scope_control: "Does not invent tests or change production code to enable the refactor."
+  safety: "No unverified edits."
+  user_correction_count: "Stops at the baseline gate without corrections."
+  handoff_quality: "Asks the requester for the baseline suite."
+corrections: []

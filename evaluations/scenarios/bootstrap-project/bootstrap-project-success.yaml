@@ -1,0 +1,29 @@
+id: bootstrap-project-success
+skill: bootstrap-project
+kind: positive
+smoke: false
+title: Initialize a runnable foundation with protected branch flow and validation
+fixture: bootstrap-target
+prompt: |
+  Initialize this directory as a runnable project with a PR-only protected
+  branch flow, proportionate validation, and an FSL adoption plan.
+expectations:
+  handoff: governed-change-flow
+  transcript_must:
+    - "pull request"
+  transcript_must_not: []
+  files_must_exist:
+    - "mise.toml"
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the project-initialization workflow for an empty repository."
+  task_completion: "Produces a runnable foundation, branch-flow protection, validation, and an FSL adoption plan."
+  evidence_quality: "Names the generated files and how the branch policy is enforced."
+  scope_control: "Stays at initialization scope; does not implement application features."
+  safety: "No credentials or private data generated."
+  user_correction_count: "Initializes without corrections."
+  handoff_quality: "Names the governed change flow as the next phase."
+corrections: []

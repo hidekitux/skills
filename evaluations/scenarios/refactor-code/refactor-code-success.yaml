@@ -1,0 +1,35 @@
+id: refactor-code-success
+skill: refactor-code
+kind: positive
+smoke: false
+title: Refactor duplicated logic against a passing test baseline
+fixture: refactor-target
+prompt: |
+  Refactor the duplicated discount logic in src into one shared helper without
+  changing behavior, keeping the existing tests green as your before-and-after
+  baseline.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "baseline"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains:
+    - path: "src/discount.go"
+      pattern: "func discount("
+  unchanged_files:
+    - "src/discount_test.go"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Selects the refactoring workflow for a baseline-backed structure change."
+  task_completion: "Extracts a shared helper without changing observable behavior."
+  evidence_quality: "Records the baseline and post-refactor test results."
+  scope_control: "Changes structure only; tests and behavior stay intact."
+  safety: "No unrelated feature additions."
+  user_correction_count: "Refactors without corrections."
+  handoff_quality: "Names the implementation phase for the behavior-preserving change."
+corrections: []
