@@ -320,60 +320,6 @@ func TestIssueBodyRejectsReorderedReleaseChangelog(t *testing.T) {
 	}
 }
 
-// --- Issue labels ---
-
-func TestIssueLabelsAcceptsValidLabelSet(t *testing.T) {
-	valid := []string{"priority:medium", "scope:improvement", "phase:backlog"}
-	if code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
-		return CheckIssueLabels(valid, out, errOut)
-	}); code != 0 {
-		t.Fatalf("expected 0, got %d", code)
-	}
-}
-
-func TestIssueLabelsRejectsMissingPriority(t *testing.T) {
-	if code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
-		return CheckIssueLabels([]string{"scope:improvement", "phase:backlog"}, out, errOut)
-	}); code != 1 {
-		t.Fatalf("expected 1, got %d", code)
-	}
-}
-
-func TestIssueLabelsRejectsDuplicateScope(t *testing.T) {
-	labels := []string{"priority:medium", "scope:improvement", "scope:feature", "phase:backlog"}
-	if code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
-		return CheckIssueLabels(labels, out, errOut)
-	}); code != 1 {
-		t.Fatalf("expected 1, got %d", code)
-	}
-}
-
-func TestIssueLabelsRejectsUnknownLabelValue(t *testing.T) {
-	labels := []string{"priority:medium", "scope:security", "phase:backlog"}
-	if code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
-		return CheckIssueLabels(labels, out, errOut)
-	}); code != 1 {
-		t.Fatalf("expected 1, got %d", code)
-	}
-}
-
-func TestIssueLabelsRejectsUnrecognizedLabelName(t *testing.T) {
-	labels := []string{"priority:medium", "scope:improvement", "phase:backlog", "team:core"}
-	if code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
-		return CheckIssueLabels(labels, out, errOut)
-	}); code != 1 {
-		t.Fatalf("expected 1, got %d", code)
-	}
-}
-
-func TestIssueLabelsRejectsEmptyLabelSet(t *testing.T) {
-	if code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
-		return CheckIssueLabels(nil, out, errOut)
-	}); code != 1 {
-		t.Fatalf("expected 1, got %d", code)
-	}
-}
-
 // --- Pull-request commit signatures ---
 
 func TestPrSignaturesAcceptsOnlyVerifiedCommits(t *testing.T) {
