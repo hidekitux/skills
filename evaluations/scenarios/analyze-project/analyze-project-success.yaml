@@ -1,0 +1,31 @@
+id: analyze-project-success
+skill: analyze-project
+kind: positive
+smoke: false
+title: Produce an evidence-backed findings report without changing anything
+fixture: analyze-target
+prompt: |
+  Investigate the widgets source tree end to end and report prioritized,
+  evidence-backed findings without changing anything; separate verified claims
+  from hypotheses.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "src/discount.go"
+    - "README.md"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the investigation workflow for a read-only analysis request."
+  task_completion: "Reports prioritized findings with evidence and ranks hypotheses below verified claims."
+  evidence_quality: "Findings cite files and command results; unrun checks are flagged as unverified."
+  scope_control: "Does not edit the source tree; no fixes or tests are written."
+  safety: "No private repository data reproduced in the report."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the issue-creation phase with the findings report as the input."
+corrections: []

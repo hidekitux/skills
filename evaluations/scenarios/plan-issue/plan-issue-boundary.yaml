@@ -1,0 +1,29 @@
+id: plan-issue-boundary
+skill: plan-issue
+kind: boundary
+smoke: false
+title: Stop and ask when the issue lacks Scope or Acceptance criteria
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  There is a draft change issue at issues/incomplete-issue.md. Produce the
+  verified implementation plan for it.
+expectations:
+  handoff: blocked-ask
+  transcript_must:
+    - "Scope"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the planning workflow and applies the blocker rule."
+  task_completion: "Stops and explains the missing Scope and Acceptance criteria instead of guessing a plan."
+  evidence_quality: "Points at the draft and the exact missing sections."
+  scope_control: "Does not plan beyond the issue's stated content."
+  safety: "No fabricated requirements."
+  user_correction_count: "Stops on the first turn without needing a correction."
+  handoff_quality: "Asks the requester to complete the issue before planning."
+corrections: []

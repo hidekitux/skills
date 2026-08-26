@@ -1,0 +1,30 @@
+id: plan-issue-success
+skill: plan-issue
+kind: positive
+smoke: true
+title: Produce a verified implementation plan from a ready change issue
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The project has a change issue ready for the VAT work. Produce a verified,
+  ordered implementation plan before anyone starts coding, and post it where
+  the team can review it.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "implement-issue"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the planning workflow for a ready change issue instead of implementing or opening a pull request."
+  task_completion: "Posts an ordered plan whose tasks map to the issue Scope and Acceptance criteria."
+  evidence_quality: "Each task names an observable completion condition; nothing is planned from intent alone."
+  scope_control: "Plans only the issue scope; does not invent extra work."
+  safety: "No private data in the plan."
+  user_correction_count: "Completes the plan without corrections."
+  handoff_quality: "Names the implementation phase and the plan artifact location."
+corrections: []

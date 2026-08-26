@@ -1,0 +1,36 @@
+id: implement-issue-success
+skill: implement-issue
+kind: positive
+smoke: false
+title: Execute a verified plan with per-task evidence and stop before the pull request
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The change issue and its verified plan are committed under issues/. Execute
+  the plan: implement only the in-scope tasks, record per-task evidence, and
+  stop before opening a pull request.
+expectations:
+  handoff: create-pr
+  transcript_must:
+    - "create-pr"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains:
+    - path: "src/currency.go"
+      pattern: "applyTax"
+  unchanged_files:
+    - "docs/roadmap.md"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Selects the implementation workflow for a planned change."
+  task_completion: "Implements the planned tasks; the VAT change is present and the suite passes."
+  evidence_quality: "Records a command result for each task, including the passing test run."
+  scope_control: "Edits only in-scope files; roadmap and release work stay untouched."
+  safety: "No credentials or private data introduced."
+  user_correction_count: "Stays on the plan without corrections."
+  handoff_quality: "Names the pull-request phase and the branch artifact."
+corrections: []

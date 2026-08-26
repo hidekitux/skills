@@ -1,0 +1,33 @@
+id: write-tests-success
+skill: write-tests
+kind: positive
+smoke: false
+title: Add focused tests with per-case failure evidence without fixing production code
+fixture: test-target
+prompt: |
+  Add focused tests for the tax-rate function in src using the project's test
+  conventions, with per-case failure evidence.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "implement-issue"
+  transcript_must_not: []
+  files_must_exist:
+    - "src/tax_test.go"
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "src/tax.go"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Selects the test-writing workflow for a defined test target."
+  task_completion: "Adds focused cases for the tax brackets with per-case evidence."
+  evidence_quality: "Reports the passing test result and the covered cases."
+  scope_control: "Does not change production code."
+  safety: "No credentials or destructive actions."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the implementation phase for the tested change."
+corrections: []

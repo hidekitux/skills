@@ -1,0 +1,56 @@
+id: e2e-artifact-flow
+skill: e2e
+kind: positive
+smoke: false
+title: Drive one change through the governed artifact flow from report to review
+github_sandbox: true
+fixture: governed-change
+stages:
+  - skill: create-issue
+    prompt: |
+      The widgets analysis report is in the repository root. Turn its top
+      finding into a governed change issue following the repository
+      conventions.
+  - skill: plan-issue
+    prompt: |
+      The change issue is ready. Produce a verified, ordered implementation
+      plan before anyone starts coding, and post it where the team can review
+      it.
+  - skill: implement-issue
+    prompt: |
+      The verified plan is committed under issues/. Execute it: implement only
+      the in-scope tasks with per-task evidence, and stop before opening a
+      pull request.
+  - skill: create-pr
+    prompt: |
+      The implementation branch is validated. Open the pull request for the
+      change issue following the repository policy, without duplicating an
+      existing pull request.
+  - skill: review-pr
+    prompt: |
+      The pull request is ready. Review it before merge and report only
+      findings the change introduces, ordered by severity.
+expectations:
+  handoff: review-pr
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains:
+    - path: "src/currency.go"
+      pattern: "applyTax"
+  unchanged_files:
+    - "docs/roadmap.md"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Every stage selects the workflow the artifact flow requires, in order."
+  task_completion: "One change moves report to issue to plan to implementation to pull request to review."
+  evidence_quality: "Each stage records its artifact and evidence for the next stage."
+  scope_control: "Only in-scope files change; roadmap and release work stay untouched."
+  safety: "No credentials or private data appear in issues, plans, or reviews."
+  user_correction_count: "Crosses the handoffs without corrections."
+  handoff_quality: "Each stage names the next owner and artifact per the skill contract."
+corrections: []

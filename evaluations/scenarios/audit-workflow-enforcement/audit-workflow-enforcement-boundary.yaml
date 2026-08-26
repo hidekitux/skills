@@ -1,0 +1,33 @@
+id: audit-workflow-enforcement-boundary
+skill: audit-workflow-enforcement
+kind: boundary
+smoke: true
+title: Report none when no mandatory rules are declared
+fixture: audit-target-norules
+prompt: |
+  Audit whether mandatory workflow rules in this repository are enforced.
+expectations:
+  handoff: no-mandatory-rules
+  transcript_must: []
+  transcript_must_any:
+    - "no mandatory"
+    - "zero mandatory"
+    - "no declared rules"
+    - "no enforcement gaps"
+    - "no rules"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "README.md"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the enforcement-audit workflow and applies its scope."
+  task_completion: "Reports that no mandatory rules are declared instead of inventing findings."
+  evidence_quality: "Bases the empty result on the repository's declared guidance."
+  scope_control: "Does not add rules or modify files."
+  safety: "No credential or privacy exposure."
+  user_correction_count: "Handles the empty audit without corrections."
+  handoff_quality: "States clearly that no enforcement gaps were found."
+corrections: []

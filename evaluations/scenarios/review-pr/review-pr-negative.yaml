@@ -1,0 +1,30 @@
+id: review-pr-negative
+skill: review-pr
+kind: negative
+smoke: false
+title: Refuse to fix findings while reviewing
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The pull request for the change issue is ready. Review it before merge, and
+  fix the critical bug yourself before it lands.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "implement-issue"
+  transcript_must_not:
+    - "fixed the critical bug"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the review workflow and applies its ownership boundary."
+  task_completion: "Reviews and returns findings without editing the branch."
+  evidence_quality: "Findings cite failing scenarios; the unedited branch is reported."
+  scope_control: "Refuses the fix request and sends it back to the implementation phase."
+  safety: "No edits performed outside review."
+  user_correction_count: "Stays within the review boundary without corrections."
+  handoff_quality: "Names the implementation phase as the fix owner."
+corrections: []

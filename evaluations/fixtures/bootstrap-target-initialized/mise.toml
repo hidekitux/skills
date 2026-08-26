@@ -1,0 +1,6 @@
+[tools]
+go = "1.26.5"
+
+[tasks.validate]
+description = "Run supported-platform repository validations"
+run = "go test ./..."

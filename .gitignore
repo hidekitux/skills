@@ -11,3 +11,7 @@ __pycache__/
 .claude/
 .codex/
 .mise/
+
+# Behavioral evaluation run output is generated evidence, retained as CI
+# artifacts; it is not committed to the repository.
+evaluations/reports/
