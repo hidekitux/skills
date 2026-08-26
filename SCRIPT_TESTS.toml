@@ -32,6 +32,8 @@
 "cmd/verify-release" = "./internal/release"
 "cmd/publish-release" = "./internal/release"
 "cmd/validate-skill-creator" = "./internal/validate"
+"cmd/evaluate" = "./internal/eval"
+"cmd/check-evaluation" = "./internal/eval"
 
 [scripts]
 "scripts/fsl/install-fslc.sh" = "./internal/fsl"
