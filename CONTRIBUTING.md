@@ -60,21 +60,20 @@ workflow skills advance Status automatically: `create-issue` adds a new Issue
 with Status `Backlog` and the derived Scope and Priority, `plan-issue` moves a
 planned Issue to `Planned`, `implement-issue` moves started work to
 `In progress`, `create-pr` moves an Issue to `In review` when its Pull
-Request opens, the Project's built-in workflow moves a closed Issue to
-`Done`, and the `Issue Project Status` workflow restores `Backlog` when an
-Issue is reopened. Field and option IDs are resolved from the declared names
-at runtime; never hard-code Project identities in skills.
+Request opens, the Project's built-in Item closed workflow moves a closed
+Issue to `Done`, and its built-in Item reopened workflow restores `Backlog`
+when an Issue is reopened. Field and option IDs are resolved from the
+declared names at runtime; never hard-code Project identities in skills.
 
 Interactive `gh` authentication needs `read:project` to read Projects and
 `project` to mutate them. Automation uses least-privilege PATs stored only as
 repository secrets (`PROJECTS_READ_TOKEN` when the default token cannot read
-Projects, `PROJECTS_TOKEN` for mutations); never store credentials in tracked
-files. When Project access is unavailable, the tooling fails safely with an
-actionable diagnostic and does not mutate. The former `priority:`, `scope:`,
-and `phase:` triage labels are retired; unrelated classification labels such
-as `dependencies`, `github_actions`, `duplicate`, and accessibility or
-contributor labels remain available and are not a second copy of Project
-fields.
+Projects); never store credentials in tracked files. When Project access is
+unavailable, the tooling fails safely with an actionable diagnostic and does
+not mutate. The former `priority:`, `scope:`, and `phase:` triage labels are
+retired; unrelated classification labels such as `dependencies`,
+`github_actions`, `duplicate`, and accessibility or contributor labels
+remain available and are not a second copy of Project fields.
 
 ## Branch and Pull Request flow
 
