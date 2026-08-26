@@ -10,7 +10,7 @@ license: Apache-2.0
 
 1. **in progress:** Read the linked Change Issue and its implementation plan; confirm the repository, target branch, and in-scope boundary.
 2. Derive or confirm every implementation task from the Issue's Scope and Acceptance criteria, and record the task list.
-3. Implement each task by editing only in-scope files; record observable evidence for each completed task.
+3. Implement each task by editing only in-scope files, commit the completed task on the Issue branch, and record observable evidence including the commit hash for each completed task.
 4. Run the repository-required validation and record every command and result.
 5. Complete the list only when every task and validation item has evidence, or report the remaining unfinished tasks and risks in the handoff.
 
@@ -42,9 +42,24 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
 - For each completed task, record observable evidence: the files changed, the commands run, and the resulting output or artifact. Never claim completion from intent alone.
 - Re-read repository instructions and re-check scope when the plan changes or when the base revision changes. Do not reuse a stale plan.
 
+## Commit
+
+- Commit each completed task on the Issue branch at task granularity so the
+  branch history mirrors the plan. Stage only the task's in-scope files and
+  keep unrelated changes unstaged.
+- Follow the repository commit policy: a single-sentence header
+  `type: summary #<number>`, where `type` comes from the repository commitlint
+  enum and `<number>` is the governing Issue number for that commit. Do not
+  omit the suffix.
+- Never create validation-only adjustment commits. Resolve validation failures
+  inside the task's intended commit before moving to the next task.
+- Include the commit hash in the task's recorded evidence and in the handoff.
+- Do not push; pushing the Issue branch and opening the Pull Request belongs
+  to `create-pr` in a later session.
+
 ## Validate and Handoff
 
 - Run the repository-prescribed checks for the completed work. Prefer the standard task runner and aggregate validation command; do not substitute narrower commands for an available aggregate task.
 - Record every command and result in the handoff. State every skipped or failing check explicitly; never describe an unrun check as passing.
-- Report the Issue URL, the implemented tasks, the changed files, the validation commands and results, the governing Issue's label state, and any remaining unfinished tasks or risks.
+- Report the Issue URL, the implemented tasks with their commit hashes, the changed files, the validation commands and results, the governing Issue's label state, and any remaining unfinished tasks or risks.
 - Hand off completed work to `create-pr` only when the in-scope implementation and validation evidence are complete. Do not publish a Pull Request, merge, or release unless the user separately requests it.
