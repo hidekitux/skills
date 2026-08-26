@@ -16,6 +16,17 @@ source = "https://github.com/koalaman/shellcheck"
 license = "MIT"
 source = "https://github.com/cli/cli"
 
+[tools."aqua:google-antigravity/antigravity-cli"]
+# Reviewed 2026-08-26: the source repository ships no LICENSE file, so the
+# tool is treated as proprietary under Google's terms of service; it is a
+# development evaluation driver only and not bundled into published skills.
+license = "Proprietary"
+source = "https://github.com/google-antigravity/antigravity-cli"
+
+[tools."aqua:anomalyco/opencode"]
+license = "MIT"
+source = "https://github.com/opencode-ai/opencode"
+
 [tools.actionlint]
 license = "MIT"
 source = "https://github.com/rhysd/actionlint"
