@@ -2,11 +2,10 @@
 name: Change
 about: Propose a governed repository change.
 title: "[Feature]: Add analyze-project skill"
-labels: ["phase:backlog", "priority:medium", "scope:feature"]
 assignees: []
 ---
 
-<!-- Triage this Issue: pick the scope label that matches the Issue type, confirm the priority, and keep exactly one priority:, one scope:, and one phase: label before working it. Assign it to its owner. -->
+<!-- New Issues are added to the repository's GitHub Project with Status Backlog, Scope derived from the Issue type, and the declared default Priority. The workflow skills advance Status through planning, implementation, and Pull Request. Assign the Issue to its owner. -->
 
 ## Context
 
