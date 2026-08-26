@@ -80,7 +80,7 @@ func (c *Client) ProjectNumber(cfg *Config) (int64, error) {
 	if cfg.Project.Number != 0 {
 		return cfg.Project.Number, nil
 	}
-	out, err := c.run("project", "list", "--owner", c.Owner)
+	out, err := c.run("project", "list", "--owner", c.Owner, "--format", "json")
 	if err != nil {
 		return 0, err
 	}
@@ -124,7 +124,7 @@ type fieldListDTO struct {
 // options with their live IDs, failing before any mutation when a declared
 // field or option is missing from the configured Project.
 func (c *Client) resolvedFields(cfg *Config, number int64) (map[string]fieldDTO, error) {
-	out, err := c.run("project", "field-list", fmt.Sprint(number), "--owner", c.Owner)
+	out, err := c.run("project", "field-list", fmt.Sprint(number), "--owner", c.Owner, "--format", "json")
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ type itemListDTO struct {
 // ItemForIssue returns the sole Project item for an Issue URL or an error.
 // A missing item returns ok=false; more than one item is an ambiguity error.
 func (c *Client) ItemForIssue(number int64, issueURL string) (itemDTO, bool, error) {
-	out, err := c.run("project", "item-list", fmt.Sprint(number), "--owner", c.Owner)
+	out, err := c.run("project", "item-list", fmt.Sprint(number), "--owner", c.Owner, "--format", "json")
 	if err != nil {
 		return itemDTO{}, false, err
 	}
@@ -245,7 +245,7 @@ func (c *Client) AddItem(number int64, issueURL string) (string, error) {
 	if existing != "" {
 		return existing, nil
 	}
-	out, err := c.run("project", "item-add", fmt.Sprint(number), "--owner", c.Owner, "--url", issueURL)
+	out, err := c.run("project", "item-add", fmt.Sprint(number), "--owner", c.Owner, "--url", issueURL, "--format", "json")
 	if err != nil {
 		return "", err
 	}
