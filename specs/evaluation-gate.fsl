@@ -1,0 +1,77 @@
+// Catalog status promotion gate for behavioral evaluation evidence.
+//
+// Formalization memo (Issue 173, comment #issuecomment-5413886905):
+// ASSUME-1: status values match internal/validate/repository.go validStatuses
+//           (experimental, stable, deprecated).
+// ASSUME-2: evidence records retained machine-readable evaluation reports with
+//           passing verdicts under evaluations/reports/; the numeric threshold
+//           is documented in docs/evaluation.md and enforced by
+//           check-evaluation, not modeled here.
+// ASSUME-3: demote models a recorded deterministic regression; promotion back
+//           to stable requires a fresh passing record and is gated by the same
+//           evidence requirement.
+// ASSUME-4: deprecation is terminal in this model; publication ordering stays
+//           in release-gate.fsl and is not duplicated here.
+spec EvaluationGate {
+  enum Status { Experimental, Stable, Deprecated }
+
+  state {
+    status: Status,
+    evidence: Bool
+  }
+
+  init {
+    status = Experimental
+    evidence = false
+  }
+
+  // A passing behavioral evaluation is recorded while the skill is still
+  // experimental. Evidence may exist without promotion.
+  action record_evidence() {
+    requires status == Experimental
+    evidence = true
+  }
+
+  // Promotion from experimental to stable requires retained behavioral
+  // evidence per docs/evaluation.md.
+  action promote() {
+    requires status == Experimental
+    requires evidence
+    status = Stable
+  }
+
+  // A recorded regression demotes a stable skill and clears its evidence, so
+  // re-promotion needs a fresh passing record.
+  action demote() {
+    requires status == Stable
+    evidence = false
+    status = Experimental
+  }
+
+  // Experimental and stable skills may be deprecated; deprecation is terminal
+  // and clears the promotion evidence, so a deprecated skill never carries a
+  // live promotion gate.
+  action deprecate() {
+    requires status == Experimental or status == Stable
+    evidence = false
+    status = Deprecated
+  }
+
+  invariant StableRequiresEvidence {
+    status == Stable => evidence
+  }
+
+  invariant EvidenceRequiresExperimentalOrStable {
+    evidence => status != Deprecated
+  }
+
+  invariant DemotedIsNotStable {
+    status == Experimental => not (status == Stable)
+  }
+
+  terminal { status == Deprecated }
+
+  reachable StableSealedByEvidence { status == Stable }
+  reachable DemotionRestoresExperimental { status == Experimental }
+  reachable DeprecatedEnd { status == Deprecated }
+}
