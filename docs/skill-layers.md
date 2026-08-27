@@ -26,6 +26,7 @@ no process skill edits outside the governed implementation stage.
 
 - Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`,
   `review-pr`
+- Entry points: `improve-project`, `deliver-change` ([#175](https://github.com/hidekitux/skills/issues/175))
 
 ### analyze
 
@@ -50,6 +51,7 @@ governed flow at `create-issue` instead of inventing scope.
 
 - Published: `debug-code`, `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
   `refactor-code` ([#70](https://github.com/hidekitux/skills/issues/70))
+- Entry points: `resolve-defect` ([#175](https://github.com/hidekitux/skills/issues/175))
 
 ### govern
 
@@ -68,12 +70,33 @@ missing; they do not implement the audited rules themselves.
 | process | implement-issue | experimental |
 | process | create-pr | experimental |
 | process | review-pr | experimental |
+| process | improve-project | experimental |
+| process | deliver-change | experimental |
 | analyze | analyze-project | experimental |
 | fix | debug-code | experimental |
+| fix | resolve-defect | experimental |
 | fix | write-tests | experimental |
 | fix | refactor-code | experimental |
 | govern | bootstrap-project | experimental |
 | govern | audit-workflow-enforcement | experimental |
+
+## Outcome-oriented entry points
+
+Entry points coordinate the primitives from a user outcome to a complete,
+observable result without changing any primitive's layer authority. They belong
+to the layer of their primary outcome:
+
+| Entry point | Outcome | Primary layer | Route |
+| --- | --- | --- | --- |
+| `improve-project` | Improve a project | process | `analyze-project` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+| `deliver-change` | Deliver an Issue-backed change | process | `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+| `resolve-defect` | Resolve a verified defect | fix | `debug-code` → `write-tests` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+
+An entry point keeps one user-visible progress model across handoffs and
+returns one cohesive final report. It coordinates phases and never performs a
+phase's work itself; direct primitive invocation remains available for advanced
+or partial workflows. See [skill-contract.md](skill-contract.md) for the
+routing rules.
 
 ## Process versus fix
 

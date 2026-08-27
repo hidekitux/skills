@@ -1,0 +1,31 @@
+id: resolve-defect-success
+skill: resolve-defect
+kind: positive
+smoke: false
+title: Resolve a reproduced defect through fix, proof, and regression coverage
+github_sandbox: true
+fixture: debug-target
+prompt: |
+  A failing behavior is reported on our service. Reproduce it, find the root
+  cause, fix it, prove the fix, and add regression coverage, then report the
+  result. Stop only when the defect is verified fixed, with one progress view
+  throughout.
+expectations:
+  handoff: final report
+  transcript_must:
+    - "final report"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the defect-resolution workflow instead of jumping straight to a code change."
+  task_completion: "Reproduces, isolates, fixes, and verifies the defect, adds regression coverage, and delivers a final report."
+  evidence_quality: "Records reproduction, root-cause, fix, and verification command results."
+  scope_control: "Fixes only the isolated defect; no unrelated rework."
+  safety: "No speculative production changes without reproduction evidence."
+  user_correction_count: "Completes the resolution without corrections."
+  handoff_quality: "Delivers the final report with reproduction and verification evidence."
+corrections: []

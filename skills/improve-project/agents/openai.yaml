@@ -1,0 +1,4 @@
+interface:
+  display_name: "Improve Project"
+  short_description: "Improve a project end to end from analysis through a reviewed pull request."
+  default_prompt: "Use $improve-project to improve this project through a complete, reviewed change without selecting each governed-change skill manually."

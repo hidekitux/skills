@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deliver Change"
+  short_description: "Deliver a governed change issue end to end through a reviewed pull request."
+  default_prompt: "Use $deliver-change to take this Change Issue from its plan through a reviewed pull request."

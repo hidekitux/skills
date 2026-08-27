@@ -1,0 +1,31 @@
+id: improve-project-success
+skill: improve-project
+kind: positive
+smoke: false
+title: Deliver a reviewed improvement end to end from one coordinated run
+github_sandbox: true
+fixture: analyze-target
+prompt: |
+  Our repository has grown fragile and the maintainers want a clear, reviewed
+  improvement from investigation to done. Investigate, then carry the agreed
+  improvement all the way to a finished, reviewed change and stop only when the
+  whole job is complete, with one progress view throughout.
+expectations:
+  handoff: final report
+  transcript_must:
+    - "final report"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the end-to-end improvement workflow instead of a single phase."
+  task_completion: "Reaches a reviewed change and delivers one cohesive final report covering every phase."
+  evidence_quality: "Records each phase artifact (findings, issue, plan, in-scope changes, pull request, review) with URLs or command results."
+  scope_control: "Improves only what the request bounds; no unrelated refactors or rewrites."
+  safety: "External work items appear only through the owning primitives with the user's confirmation."
+  user_correction_count: "Completes the whole flow without corrections."
+  handoff_quality: "Delivers the final report as the end state with all evidence."
+corrections: []
