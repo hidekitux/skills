@@ -275,12 +275,43 @@ func planValue(plan BackfillPlan, role string) string {
 }
 
 // VerifyBackfill checks that every planned Issue has exactly one Project item
-// with valid Status, Priority, and Scope values, returning the first error.
+// with valid Status, Priority, and Scope values using one Project, field, and
+// item read, so repository-wide reconciliation stays cheap under the
+// Projects API rate budget.
 func VerifyBackfill(run Runner, cfg *Config, plans []BackfillPlan) error {
 	client := NewClient(run, cfg.Project.Owner)
+	number, err := client.ProjectNumber(cfg)
+	if err != nil {
+		return err
+	}
+	fields, err := client.resolvedFields(cfg, number)
+	if err != nil {
+		return err
+	}
+	items, err := client.Items(number)
+	if err != nil {
+		return err
+	}
+	byURL := map[string]itemDTO{}
+	for _, item := range items {
+		byURL[item.Content.URL] = item
+	}
 	for _, plan := range plans {
-		if err := client.VerifyIssue(cfg, plan.Issue.URL); err != nil {
+		item, exists := byURL[plan.Issue.URL]
+		if !exists {
+			return fmt.Errorf("Issue %s has no item in the declared Project; expected exactly one", plan.Issue.URL)
+		}
+		current, err := itemFieldNames(item, fields)
+		if err != nil {
 			return err
+		}
+		for _, role := range RequiredFields {
+			if current[role] == "" {
+				return fmt.Errorf("Issue %s Project item has no valid %s value", plan.Issue.URL, roleTitles[role])
+			}
+			if !cfg.HasOption(role, current[role]) {
+				return fmt.Errorf("Issue %s Project item has an undeclared %s value %q", plan.Issue.URL, roleTitles[role], current[role])
+			}
 		}
 	}
 	return nil
