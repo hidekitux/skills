@@ -1,6 +1,6 @@
 // Command set-issue-project-status sets the governing Issue's Project Status
 // in the repository-declared Project, adding the item exactly once when
-// missing. It is used by the Pull Request Project Status automation: pass
+// missing. It is used by the Policy (Project) automation: pass
 // --pr-type (plus --pr-draft and --pr-merged) to derive the Status from a
 // pull_request event, or pass --status directly. Identifiers are resolved
 // from declared names before any mutation, and a closed Issue is never moved

@@ -6,7 +6,7 @@
 // ASSUME-2: issue_created, plan_posted, and implementation_started model the
 //           create-issue, plan-issue, and implement-issue flow effects.
 // ASSUME-3: the pull_request actions model the create-pr flow and the
-//           Pull Request Project Status automation event mapping.
+//           Policy (Project) automation event mapping.
 // ASSUME-4: issue_closed models the built-in Item closed workflow and
 //           issue_reopened the built-in Item reopened workflow.
 // ASSUME-5: a merged Pull Request has no direct transition in this model:
