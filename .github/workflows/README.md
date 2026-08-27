@@ -42,10 +42,11 @@ reasons:
 - `Security` (`security.yml`) — audit role (zizmor), not a validation check.
 - `Targeted` (`targeted.yml`) — change-scoped Tier 2 validation: the job
   always runs, and the targeted command scopes work to the changed files
-  (currently targeted FSL mutation on changed specifications), so unrelated
-  pull requests are fast and a future required-context promotion cannot leave
-  checks pending. It is not a required context; required contexts are the ten
-  listed in `CONTRIBUTING.md`.
+  (currently targeted FSL mutation on changed specifications and Go dependency
+  security for changed Go files), so unrelated pull requests are fast and a
+  future required-context promotion cannot leave checks pending. It is not a
+  required context; required contexts are the ten listed in
+  `CONTRIBUTING.md`.
 - `Publish` (`publish.yml`) — publishing the six badge payloads and the
   retained mutation report to the `badge-data` branch; it needs
   `contents: write` and must never be cancelled, so it stays separate from the
@@ -55,7 +56,7 @@ reasons:
 ## Runtime setup
 
 - Go-based policy checks use `.github/actions/setup-go`, which centralizes
-  `actions/setup-go` (`go-version: 1.26.5` matching `go.mod` and `mise.toml`,
+  `actions/setup-go` (`go-version: 1.26.6` matching `go.mod` and `mise.toml`,
   caching on, `go.sum` cache key). Checkout runs as a separate named step
   before it, because GitHub loads local actions from the checked-out
   workspace.
@@ -67,7 +68,8 @@ reasons:
   only trusted base code; moving the checkout into the shared action would
   hide the trusted-base checkout from the security audit.
 - `security.yml` needs no external runtime setup; it runs the pinned zizmor
-  action.
+  action without uploading SARIF, so the named `Audit workflow security` job
+  remains the single workflow-security check.
 
 ## Caching
 
@@ -97,7 +99,8 @@ reasons:
   `.github/workflows/**`, so unrelated pull requests skip the audit while the
   required check still reports success (a job whose step is conditional
   reports success).
-- `targeted.yml` follows the same rule for Tier 2: its job always runs, and
-  `mutate-fsl --changed-base <base>` scopes mutation to specs changed under
-  `specs/` or `skills/**/specs/`, exiting successfully with an explicit
-  "no FSL specifications selected" message when the change is unrelated.
+`targeted.yml` follows the same rule for Tier 2: its jobs always run, and
+  each step scopes work to changed files. `mutate-fsl --changed-base <base>`
+  scopes mutation to specs changed under `specs/` or `skills/**/specs/`, while
+  `check:go-vuln` runs only when `go.mod`, `go.sum`, or `*.go` changed. Both
+  paths remain successful no-ops when unrelated.

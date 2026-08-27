@@ -129,11 +129,11 @@ func TestRunRepositoryChecksAgainstRepositoryRoot(t *testing.T) {
 	if code := run(root, &out, &errOut, repoChecks); code != 0 {
 		t.Fatalf("repository checks failed (%d):\n%s%s", code, out.String(), errOut.String())
 	}
-	want := "all 11 repository checks passed"
+	want := "all 12 repository checks passed"
 	if !strings.Contains(out.String(), want) {
 		t.Fatalf("output missing %q:\n%s", want, out.String())
 	}
-	for _, label := range []string{"[validate-repository]", "[check-tool-licenses]", "[validate-script-tests]", "[check-sensitive-content]", "[check-mutation-badges]", "[check-mutation-triage]", "[check-analyze-readonly]", "[check-guided-paths]", "[check-catalog-docs]", "[check-public-status]", "[check-evaluation]"} {
+	for _, label := range []string{"[validate-repository]", "[check-tool-licenses]", "[validate-script-tests]", "[check-sensitive-content]", "[check-mutation-badges]", "[check-mutation-triage]", "[check-analyze-readonly]", "[check-guided-paths]", "[check-catalog-docs]", "[check-dependabot-config]", "[check-public-status]", "[check-evaluation]"} {
 		if !strings.Contains(out.String(), label) {
 			t.Fatalf("output missing check label %q:\n%s", label, out.String())
 		}

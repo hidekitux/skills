@@ -144,8 +144,8 @@ workstation with the same mise toolchain. `git diff`-targeted runs used
   distinguishes killed, survived, invalid, and infrastructure-error results);
   `mise run mutate-fsl:changed` wraps the changed-base mode.
 - `check:repository` gained `check-mutation-triage` (validates
-  `docs/mutation-triage.md`, ten checks total including the #173 evaluation
-  and #182 catalog-docs checks that landed on `main`).
+  `docs/mutation-triage.md`, eleven checks total including the #173 evaluation,
+  #182 catalog-docs, and #178 Dependabot-config checks that landed on `main`).
 - `publish.yml` moved from every `main` push to a weekly `schedule` plus
   `workflow_dispatch`, and now publishes the retained `fsl-mutation-report.json`
   alongside the six badge payloads.
