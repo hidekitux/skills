@@ -1,0 +1,31 @@
+# Repository-owned configuration for the GitHub Project that tracks Issue
+# workflow status, priority, and scope. Repository tooling and the workflow
+# skills read this file to resolve the mutable Project identity and field and
+# option IDs from declared names at runtime; no repository-specific Project
+# identity is embedded in publishable skill behavior.
+#
+# Resolution rules:
+# - Project number: when `number` is 0, the Project is resolved by matching
+#   `title` against `gh project list` for the owner; zero or multiple matches
+#   fail before any live mutation.
+# - Field and option IDs: resolved from the declared `name` values with
+#   `gh project field-list`.
+# - Default priority: `default_priority` must name one of
+#   fields.priority.options.
+
+[project]
+owner = "hidekitux"
+title = "Skills Issues"
+default_priority = "Medium"
+
+[fields.status]
+name = "Status"
+options = ["Backlog", "Planned", "In progress", "In review", "Done"]
+
+[fields.priority]
+name = "Priority"
+options = ["High", "Medium", "Low"]
+
+[fields.scope]
+name = "Scope"
+options = ["Feature", "Bug", "Docs", "Maintenance", "Improvement", "Security", "Release"]

@@ -29,7 +29,7 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: go run ./cmd/validate-issue-body --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
-      - name: Validate issue labels
+      - name: Validate issue project
         env:
-          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
-        run: go run ./cmd/validate-issue-labels --labels "$ISSUE_LABELS"
+          GH_TOKEN: ${{ secrets.PROJECTS_READ_TOKEN || github.token }}
+        run: go run ./cmd/validate-issue-project --root . --repo "${{ github.repository }}" --issue "${{ github.event.issue.number }}"

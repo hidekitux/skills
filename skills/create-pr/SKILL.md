@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: Create or update compliant GitHub Pull Requests from completed Issue-branch work. Use when asked to inspect changes, run repository validation, commit and push the intended files, and open a draft or ready Pull Request without duplicating an existing one.
+description: Create or update compliant GitHub Pull Requests from completed Issue-branch work. Use when asked to inspect changes, run repository validation, push the head branch, and open a draft or ready Pull Request without duplicating an existing one.
 license: Apache-2.0
 ---
 
@@ -11,7 +11,7 @@ license: Apache-2.0
 1. **in progress:** Resolve the repository, linked Issue, head and base branches, branch policy, and any existing Pull Request.
 2. Review the worktree, commits, and base diff against the linked Issue scope.
 3. Run the repository-required validation and record the evidence; decide whether the Pull Request can be ready or must be draft.
-4. Commit and push only the intended changes, then create or update the Pull Request.
+4. Push the resolved head branch, then create or update the Pull Request.
 5. Complete the list only when the Pull Request URL, base and head branches, linked Issues, and validation evidence are available; hand off all of them.
 
 Keep exactly one item in progress. Mark an item complete only after its stated evidence exists. Add or revise items when the agreed scope changes.
@@ -27,20 +27,18 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 ## Review and Validate
 
 - Inspect status, commits, and the complete base diff. Compare them with the Issue scope and acceptance criteria; report scope drift before publishing it.
+- Confirm the branch commits follow the repository commit-message policy: a
+  single-sentence header `type: summary #<number>` with the governing Issue
+  number. Commits are authored by `implement-issue` during implementation.
 - Check the diff for credentials, tokens, private URLs, generated noise, and accidental user data.
 - Run the repository-prescribed checks. Prefer its standard task runner and required validation command; do not substitute narrower commands for an available aggregate task.
 - Record every command and result, including the body and title preflight commands and their outcomes. A Pull Request may be ready only when required validation succeeds and the agreed scope is complete.
 - Use a draft when the user requests one or when validation is incomplete, unavailable, or failing. State every limitation in the Pull Request body; never describe an unrun check as passing.
 
-## Commit and Push
+## Push
 
-- Stage only the intended files and follow the repository's commit-message policy. Keep unrelated changes unstaged.
-- End every single-sentence commit message with ` #<number>` in the header, using the governing Issue for that commit; one Pull Request may handle multiple Issues, so the number need not match the branch name. Do not omit the suffix.
-- Split Pull Request commits at implementation-layer boundaries or at the
-  boundaries of the Issue's implementation tasks; one Pull Request is not
-  required to be one commit. Do not create validation-only adjustment commits:
-  resolve validation failures in the intended commits before the final commit
-  is pushed.
+- Commits are authored by `implement-issue` during implementation. Do not
+  stage, create, or amend commits here; push the resolved head branch as it is.
 - Push the resolved head branch before creating the Pull Request.
 - When an author-owned Issue branch must be rebased, resolve the exact remote branch and obtain any approval required by the host before rewriting it. Push only with `--force-with-lease`; never use plain `--force`.
 - After a rebase changes the base revision, re-read the current repository
@@ -74,12 +72,12 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
   tests, revise the finalized body or title, and rerun the preflight; keep or
   create a draft only when the user explicitly asks to publish despite the
   unresolved failure.
-- When the Pull Request opens, set the governing Issue's `phase:` label to `phase:in-progress` and keep it there for release Issues until publication; the update is idempotent with `implement-issue`.
+- When the Pull Request opens, set the governing Issue's Project Status to `In review` using the repository-declared Project configuration and keep it there for release Issues until publication; resolve the Status field and option IDs from their declared names (`gh project field-list`) and apply them with `gh project item-edit` using the declared field and option names (one call per field). The update is idempotent with `implement-issue`. The `Pull Request Project Status` workflow keeps later PR events in sync (draft and ready transitions, synchronize, and unmerged close), the Project's built-in Item closed workflow moves a closed Issue to `Done`, and its built-in Item reopened workflow restores `Backlog` on reopen.
 - Create a ready Pull Request only after the ready gate passes. Otherwise create or retain a draft.
 
 ## Handoff
 
-Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, the body and title validation commands and their results, the governing Issue's label state, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
+Report the Pull Request URL, ready or draft state, base and head branches, linked Issues, the body and title validation commands and their results, the governing Issue's Project Status, and any remaining risk or follow-up. Do not merge, release, or begin review remediation unless the user separately requests it.
 
 Opening and maintaining the Pull Request happens in this session. Merge and
 release are later phases, not part of this skill.

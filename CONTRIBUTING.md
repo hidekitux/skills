@@ -42,22 +42,46 @@ Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type i
 
 Create Issues from the Change or Release template. Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` exactly once in that order. Use one ordered `In`/`Out` pair in Scope and non-empty acceptance and validation checklists. Follow the common Release sections with `Changelog`, then `Added`, `Changed`, `Fixed`, and `Removed` exactly once in that order. Use `vX.Y.Z` for a public release and `vX.Y.Z+N` for an artifact build identifier.
 
-## Issue triage
+## Issue planning
 
-Every open Issue carries exactly one `priority:`, one `scope:`, and one `phase:` label from the defined set and is assigned to its owner. The label set covers three dimensions:
+Every open Issue is tracked in the repository's GitHub Project declared by
+`.github/issue-project.toml`. Each Issue has exactly one Project item carrying
+values from the declared single-select fields:
 
-- **Priority** — `priority:high`, `priority:medium`, `priority:low`.
-- **Scope** — `scope:feature`, `scope:bug`, `scope:docs`, `scope:maintenance`, `scope:improvement`, `scope:release`.
-- **Phase** — `phase:backlog`, `phase:planned`, `phase:in-progress`.
+- **Status** — `Backlog`, `Planned`, `In progress`, `In review`, `Done`.
+- **Priority** — `High`, `Medium`, `Low`; confirm it with the Issue owner or
+  use the declared default.
+- **Scope** — `Feature`, `Bug`, `Docs`, `Maintenance`, `Improvement`,
+  `Security`, `Release`; derive it from the Issue type.
 
-Triage an Issue when it is created and whenever its status changes:
+The Project is the operational source of truth for planning; GitHub Issues
+remain the source of truth for requirements, discussion, and closure. The
+workflow skills advance Status automatically: `create-issue` adds a new Issue
+with Status `Backlog` and the derived Scope and Priority, `plan-issue` moves a
+It plans to `Planned`, `implement-issue` moves started work to
+`In progress`, `create-pr` moves an Issue to `In review` when its Pull
+Request opens, the Project's built-in Item closed workflow moves a closed
+Issue to `Done`, and its built-in Item reopened workflow restores `Backlog`
+when an Issue is reopened. The `Pull Request Project Status` workflow keeps
+PR-driven transitions in sync afterwards: ready `opened`, `reopened`, and
+`synchronize` events stay `In review`; draft, `ready_for_review`, and
+`converted_to_draft` events switch between `In progress` and `In review`; an
+unmerged `closed` event returns to `In progress`; and a merged `closed` event
+makes no change because the linked Issue closes and reaches `Done` through
+the built-in Item closed workflow, while a release Issue tracked with
+`Tracks` stays non-terminal until publication. Field and option IDs are
+resolved from the declared names at runtime; never hard-code Project
+identities in skills.
 
-1. Add one `scope:` label matching the Issue type.
-2. Add one `priority:` label for its urgency.
-3. Set the `phase:` label: `phase:backlog` when it is queued, `phase:planned` when it has a plan or is scheduled, and `phase:in-progress` while it is being worked.
-4. Assign the Issue to its known owner; leave it unassigned when no owner is known.
-
-The Change and Release templates default new Issues to `phase:backlog`, apply a default `priority:` and matching `scope:` label, and instruct assignment, so a new Issue starts triaged. The `policy-issues.yml` workflow check (`Policy (Issues)`) enforces the exact one-of-each convention on issue events; update the labels whenever an Issue's triage or phase changes.
+Interactive `gh` authentication needs `read:project` to read Projects and
+`project` to mutate them. Automation uses least-privilege PATs stored only as
+repository secrets (`PROJECTS_READ_TOKEN` when the default token cannot read
+Projects); never store credentials in tracked files. When Project access is
+unavailable, the tooling fails safely with an actionable diagnostic and does
+not mutate. The former `priority:`, `scope:`, and `phase:` triage labels are
+retired; unrelated classification labels such as `dependencies`,
+`github_actions`, `duplicate`, and accessibility or contributor labels
+remain available and are not a second copy of Project fields.
 
 ## Branch and Pull Request flow
 

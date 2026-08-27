@@ -1,0 +1,86 @@
+name: Pull Request Project Status
+
+# Keeps the governing Issue Project Status in sync with every pull_request
+# state transition, not just creation. Mapping:
+# - ready opened/reopened/synchronize -> In review; draft -> In progress
+# - ready_for_review -> In review; converted_to_draft -> In progress
+# - closed (unmerged) -> In progress; closed (merged) -> no change: the linked
+#   Issue closes and the built-in Item closed workflow reaches Done, while a
+#   release Issue tracked with Tracks stays non-terminal until publication.
+#
+# The default GITHUB_TOKEN cannot mutate Projects v2, so the step needs a
+# least-privilege PAT with `project` scope in the PROJECTS_TOKEN secret.
+# Without it the step skips with a diagnostic (fail-safe); it never stores a
+# credential in the repository. The workflow runs on pull_request_target but
+# checks out only the trusted base SHA and never executes Pull Request code,
+# mirroring policy-signatures.yml.
+
+on:
+  # zizmor: ignore[dangerous-triggers] This checks out only the trusted base SHA and never executes PR code.
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  sync-status:
+    name: Sync Issue Project Status
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout stays inline (not in .github/actions/setup-go) so the
+      # trusted-base checkout of pull_request_target remains visible to the
+      # security audit; see .github/workflows/README.md.
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out trusted base commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.26.5'
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Sync Project Status from Pull Request event
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PR_TYPE: ${{ github.event.action }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PROJECTS_TOKEN" ]; then
+            echo "PROJECTS_TOKEN secret is not configured; skipping (fail-safe)."
+            exit 0
+          fi
+          case "$PR_HEAD" in
+            issue/[0-9]*)
+              ISSUE="${PR_HEAD#issue/}"
+              case "$ISSUE" in
+                *[!0-9]*)
+                  echo "head branch ${PR_HEAD} does not encode a numeric Issue; skipping."
+                  exit 0
+                  ;;
+              esac
+              ;;
+            *)
+              echo "head branch ${PR_HEAD} has no Issue encoding; skipping."
+              exit 0
+              ;;
+          esac
+          go run ./cmd/set-issue-project-status --root . --repo "$REPOSITORY" \
+            --issue "$ISSUE" \
+            --pr-type "$PR_TYPE" \
+            --pr-draft "$PR_DRAFT" \
+            --pr-merged "$PR_MERGED"
