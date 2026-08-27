@@ -24,8 +24,23 @@ mise run release:publish -- vX.Y.Z
 
 The task finally runs `gh skill publish --tag vX.Y.Z`. It cannot technically prevent direct execution by a user with shell and GitHub permissions, so use this task as the standard publication entry point. After publication, verify the tag and Release contents, and install a pinned version such as `skill-name@vX.Y.Z` in consuming projects.
 
+`mise run check:skills` (the `gh skill publish --dry-run` gate) warns when no active tag-target Ruleset protects release tags. Keep the `Protect release tags` Ruleset active so published `v` tags stay immutable.
+
 ## Version rules
 
 - Use minor for backward-compatible features, patch for fixes, and major for breaking changes.
 - The repository publishes every skill under one tag, so align every `CATALOG.yml` entry with the tag even when only one skill changed.
 - Never overwrite a published tag; publish a new patch release to correct it.
+
+## Correcting a release (rollback)
+
+Release tags are immutable. The repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving any `v*` tag (deletion and non-fast-forward restrictions, active enforcement, no bypass actors), so a published version always points at the same verified commit and cannot be removed to undo a release. Once a tag is published, tag replacement is not available; a bad release is corrected with a new patch version under the rules below.
+
+To correct or roll back a bad release:
+
+1. Leave the released tag (and its GitHub Release) untouched.
+2. Align every `CATALOG.yml` version to the next patch version and commit.
+3. Run the pre-release checks and `mise run release:publish -- vX.Y.Z` for the new version (for example `v0.1.1`).
+4. Install the corrected pinned version in consuming projects.
+
+The faulty release remains installable and immutable by design; consumers migrate by pinning the corrected version. Never delete, move, or reuse a release tag.
