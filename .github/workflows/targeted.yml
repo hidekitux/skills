@@ -1,4 +1,4 @@
-name: Targeted
+name: Validate (Targeted)
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   fsl-mutation:
-    name: Mutate changed FSL specifications
+    name: Validate FSL mutation
     runs-on: ubuntu-latest
     steps:
       # v4 -> 11d5960a326750d5838078e36cf38b85af677262
