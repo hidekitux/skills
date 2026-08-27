@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 // CommandReviewer delegates rubric review to an external bounded command. The
@@ -41,10 +42,20 @@ func (r *CommandReviewer) Review(ctx context.Context, sc *Scenario, transcript, 
 	if err := json.Unmarshal(output, &scores); err != nil {
 		return nil, fmt.Errorf("reviewer output is not a JSON score object: %v", err)
 	}
-	for dimension, score := range scores {
+	// Every dimension documented in evaluations/rubric.md must be present with
+	// a 1-5 score and no unknown keys: an empty or partial score object would
+	// otherwise be recorded by the caller as rubric review complete.
+	for _, dimension := range scoreOrder {
+		score, ok := scores[dimension]
+		if !ok {
+			return nil, fmt.Errorf("reviewer output is missing dimension %q", dimension)
+		}
 		if score < 1 || score > 5 {
 			return nil, fmt.Errorf("reviewer score for %s (%d) is outside 1-5", dimension, score)
 		}
+	}
+	if len(scores) != len(scoreOrder) {
+		return nil, fmt.Errorf("reviewer output has %d dimensions, want the seven rubric dimensions (%s)", len(scores), strings.Join(scoreOrder, ", "))
 	}
 	return scores, nil
 }

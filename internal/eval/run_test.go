@@ -126,6 +126,39 @@ func TestRunOneInfraOnSkillInstall(t *testing.T) {
 	}
 }
 
+// failingRubricReviewer simulates a reviewer command that fails (for example
+// a headless reviewer invocation exiting non-zero), exercising the path a
+// `--reviewer-cmd false` run takes.
+type failingRubricReviewer struct{}
+
+func (failingRubricReviewer) Review(ctx context.Context, sc *Scenario, transcript, sandboxDir string) (map[string]int, error) {
+	return nil, fmt.Errorf("reviewer command failed: exit status 1")
+}
+
+func TestRunOneInfraOnReviewerFailure(t *testing.T) {
+	sc := &Scenario{
+		ID:     "debug-code-success",
+		Skill:  "debug-code",
+		Kind:   KindPositive,
+		Prompt: "The leap-year check fails for 1900; debug the failure.",
+		Expectations: Expectations{
+			Handoff:        "write-tests",
+			TranscriptMust: []string{"write-tests"},
+		},
+	}
+	host := passingFake("codex")
+	record := runOneForTest(t, sc, host, &Options{Commit: "test-commit", Reviewer: failingRubricReviewer{}})
+	if record.Verdict != VerdictInfra {
+		t.Fatalf("verdict = %s, want infrastructure_error (reviewer failure is not a pass)", record.Verdict)
+	}
+	if !strings.Contains(record.InfraError, "rubric review") {
+		t.Fatalf("infra error = %q, want rubric review failure", record.InfraError)
+	}
+	if record.RubricReview != RubricPending {
+		t.Fatalf("rubric review = %s, want pending", record.RubricReview)
+	}
+}
+
 func TestRunOneAppliesCorrections(t *testing.T) {
 	sc := &Scenario{
 		ID:          "x",
@@ -371,6 +404,30 @@ func TestCommandReviewerRejectsOutOfRangeScore(t *testing.T) {
 	sc := &Scenario{ID: "x", Skill: "plan-issue", Kind: KindPositive, Prompt: "p"}
 	if _, err := reviewer.Review(context.Background(), sc, "t", t.TempDir()); err == nil {
 		t.Fatal("expected out-of-range score to be rejected")
+	}
+}
+
+func TestCommandReviewerRejectsEmptyScores(t *testing.T) {
+	reviewer := &CommandReviewer{Command: `printf '{}'`}
+	sc := &Scenario{ID: "x", Skill: "plan-issue", Kind: KindPositive, Prompt: "p"}
+	if _, err := reviewer.Review(context.Background(), sc, "t", t.TempDir()); err == nil {
+		t.Fatal("expected empty score object to be rejected")
+	}
+}
+
+func TestCommandReviewerRejectsPartialScores(t *testing.T) {
+	reviewer := &CommandReviewer{Command: `printf '{"trigger_selection":4,"task_completion":5}'`}
+	sc := &Scenario{ID: "x", Skill: "plan-issue", Kind: KindPositive, Prompt: "p"}
+	if _, err := reviewer.Review(context.Background(), sc, "t", t.TempDir()); err == nil {
+		t.Fatal("expected partial score object to be rejected")
+	}
+}
+
+func TestCommandReviewerRejectsUnknownDimension(t *testing.T) {
+	reviewer := &CommandReviewer{Command: `printf '{"trigger_selection":4,"task_completion":5,"evidence_quality":4,"scope_control":5,"safety":5,"user_correction_count":5,"handoff_quality":4,"star_rating":5}'`}
+	sc := &Scenario{ID: "x", Skill: "plan-issue", Kind: KindPositive, Prompt: "p"}
+	if _, err := reviewer.Review(context.Background(), sc, "t", t.TempDir()); err == nil {
+		t.Fatal("expected unknown dimension to be rejected")
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -220,6 +221,9 @@ func (h *cliHost) InstallSkills(ctx context.Context, root, sandboxDir string, ou
 	if _, err := support.GitOutputIn(sandboxDir, "init", "--quiet"); err != nil {
 		return fmt.Errorf("cannot initialize sandbox repository: %w", err)
 	}
+	if err := wireGithubRepo(sandboxDir); err != nil {
+		return err
+	}
 	cmd := exec.CommandContext(ctx, "gh", "skill", "install", root, "--from-local", "--all",
 		"--agent", clampedAgent(h.name), "--scope", "project")
 	cmd.Dir = sandboxDir
@@ -236,6 +240,27 @@ func (h *cliHost) InstallSkills(ctx context.Context, root, sandboxDir string, ou
 // Local evaluation defaults to the logged-in Google account (keyring); the
 // key mode exists for headless/CI runs where no account session exists.
 const keyModeEnv = "EVAL_ANTIGRAVITY_KEY_MODE"
+
+// githubRepoEnv selects the evaluation repository for GitHub-dependent
+// scenarios. The value is a GH_REPO-style owner/repository pair; the harness
+// registers the sandbox Git origin and passes GH_REPO to the child so the
+// evaluated gh commands resolve a real target.
+const githubRepoEnv = "EVAL_GITHUB_REPO"
+
+// wireGithubRepo registers the configured evaluation repository as the
+// sandbox Git origin so GitHub-dependent skills resolve a real target.
+// Without EVAL_GITHUB_REPO the sandbox stays a local-only repository and
+// GitHub-dependent scenarios are skipped upstream by shouldSkip.
+func wireGithubRepo(sandboxDir string) error {
+	repo := os.Getenv(githubRepoEnv)
+	if repo == "" {
+		return nil
+	}
+	if _, err := support.GitOutputIn(sandboxDir, "remote", "add", "origin", "https://github.com/"+repo+".git"); err != nil {
+		return fmt.Errorf("cannot configure sandbox repository: %w", err)
+	}
+	return nil
+}
 
 // prepareRuntime writes driver-specific configuration into the sandbox. The
 // antigravity driver switches to Gemini API key authentication only when the
@@ -259,15 +284,48 @@ func (h *cliHost) prepareRuntime(sandboxDir string) error {
 	return os.WriteFile(filepath.Join(settingsDir, "settings.json"), content, 0o644)
 }
 
-// runEnv returns the child environment: the repository's GitEnv plus, for
-// the antigravity driver in opt-in API key mode, an isolated HOME so the CLI
-// reads settings.json from the sandbox and never the user's real
-// configuration. Without the opt-in the driver keeps the real HOME and uses
-// the logged-in Google account.
+// credentialEnvPattern matches environment variable names that carry secrets.
+// The evaluated agent can read its own environment, so credential-like
+// variables never reach a driver child: opencode runs with --auto and
+// antigravity with --dangerously-skip-permissions inside a plain
+// temporary-directory sandbox, and a model could echo them into the
+// transcript. Only the antigravity key-mode process receives GEMINI_API_KEY,
+// added explicitly below.
+var credentialEnvPattern = regexp.MustCompile(`(?i)(key|token|secret|password|credential)`)
+
+// filterCredentialEnv removes credential-like variables from a child
+// environment. Harness-side commands (skill installation, assertion commands)
+// keep the full GitEnv; this filter applies only to the evaluated model's
+// processes.
+func filterCredentialEnv(env []string) []string {
+	filtered := make([]string, 0, len(env))
+	for _, kv := range env {
+		name, _, ok := strings.Cut(kv, "=")
+		if ok && credentialEnvPattern.MatchString(name) {
+			continue
+		}
+		filtered = append(filtered, kv)
+	}
+	return filtered
+}
+
+// runEnv returns the child environment: the repository's GitEnv with
+// credential-like variables filtered, the configured evaluation repository
+// exposed to gh via GH_REPO when EVAL_GITHUB_REPO is set, and, for the
+// antigravity driver in opt-in API key mode, an isolated HOME plus
+// GEMINI_API_KEY so the CLI reads settings.json from the sandbox and never
+// the user's real configuration. Without the opt-in the driver keeps the
+// real HOME and uses the logged-in Google account.
 func (h *cliHost) runEnv(sandboxDir string) []string {
-	env := support.GitEnv()
+	env := filterCredentialEnv(support.GitEnv())
+	if repo := os.Getenv(githubRepoEnv); repo != "" {
+		env = append(env, "GH_REPO="+repo)
+	}
 	if h.name == HostAntigravity && os.Getenv(keyModeEnv) == "1" && os.Getenv("GEMINI_API_KEY") != "" {
-		env = append(env, "HOME="+sandboxDir)
+		env = append(env,
+			"HOME="+sandboxDir,
+			"GEMINI_API_KEY="+os.Getenv("GEMINI_API_KEY"),
+		)
 	}
 	return env
 }

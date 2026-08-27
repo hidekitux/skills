@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 func TestDriverConfigsCoverEveryHost(t *testing.T) {
@@ -100,6 +102,62 @@ func containsPrefix(kvs []string, prefix string) bool {
 		}
 	}
 	return false
+}
+
+func TestRunEnvFiltersCredentialVariables(t *testing.T) {
+	sandbox := t.TempDir()
+	host := newCliHost(HostCodex)
+	t.Setenv("GEMINI_API_KEY", "gl-test-credential")
+	t.Setenv("GH_TOKEN", "ghp_test-credential")
+	t.Setenv("AWS_SECRET_ACCESS_KEY", "aws-test-credential")
+	t.Setenv("EVAL_GITHUB_REPO", "hidekitux/sandbox")
+	env := host.runEnv(sandbox)
+	for _, kv := range env {
+		if strings.HasPrefix(kv, "GEMINI_API_KEY=") || strings.HasPrefix(kv, "GH_TOKEN=") || strings.HasPrefix(kv, "AWS_SECRET_ACCESS_KEY=") {
+			t.Fatalf("credential leaked into evaluated-agent environment: %s", kv)
+		}
+	}
+	if !containsPrefix(env, "GH_REPO=hidekitux/sandbox") {
+		t.Fatalf("expected GH_REPO repository context, env = %v", env)
+	}
+}
+
+func TestRunEnvKeyModeExposesGeminiKeyToAntigravityOnly(t *testing.T) {
+	sandbox := t.TempDir()
+	t.Setenv("GEMINI_API_KEY", "gl-test-credential")
+	t.Setenv("EVAL_ANTIGRAVITY_KEY_MODE", "1")
+	env := newCliHost(HostAntigravity).runEnv(sandbox)
+	if !containsPrefix(env, "GEMINI_API_KEY=gl-test-credential") {
+		t.Fatalf("antigravity key mode must receive GEMINI_API_KEY, env = %v", env)
+	}
+	if !containsPrefix(env, "HOME="+sandbox) {
+		t.Fatalf("antigravity key mode must isolate HOME, env = %v", env)
+	}
+	env = newCliHost(HostCodex).runEnv(sandbox)
+	for _, kv := range env {
+		if strings.HasPrefix(kv, "GEMINI_API_KEY=") {
+			t.Fatalf("non-antigravity driver inherited GEMINI_API_KEY: %s", kv)
+		}
+	}
+}
+
+func TestWireGithubRepoRegistersConfiguredOrigin(t *testing.T) {
+	sandbox := t.TempDir()
+	if _, err := support.GitOutputIn(sandbox, "init", "--quiet"); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("EVAL_GITHUB_REPO", "")
+	if err := wireGithubRepo(sandbox); err != nil {
+		t.Fatalf("unconfigured repo must not fail: %v", err)
+	}
+	t.Setenv("EVAL_GITHUB_REPO", "hidekitux/sandbox")
+	if err := wireGithubRepo(sandbox); err != nil {
+		t.Fatal(err)
+	}
+	out, err := support.GitOutputIn(sandbox, "remote", "get-url", "origin")
+	if err != nil || strings.TrimSpace(out) != "https://github.com/hidekitux/sandbox.git" {
+		t.Fatalf("origin = %q, err = %v", out, err)
+	}
 }
 
 func TestModelFlagPinsModelForEveryDriver(t *testing.T) {

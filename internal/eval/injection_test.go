@@ -14,7 +14,9 @@ import (
 
 // TestInjectionContractViolationDetected removes the expected handoff from the
 // agent transcript and confirms the scenario's deterministic assertions
-// fail.
+// fail. The scenario declares the handoff only, with no transcript_must
+// duplication, so the handoff assertion itself must catch the dropped
+// handoff.
 func TestInjectionContractViolationDetected(t *testing.T) {
 	sc := &Scenario{
 		ID:     "implement-issue-success",
@@ -22,17 +24,16 @@ func TestInjectionContractViolationDetected(t *testing.T) {
 		Kind:   KindPositive,
 		Prompt: "Execute the plan and stop before a pull request.",
 		Expectations: Expectations{
-			Handoff:        "create-pr",
-			TranscriptMust: []string{"create-pr"},
+			Handoff: "create-pr",
 		},
 	}
 	// Injected violation: the transcript names no handoff to create-pr.
 	host := &fakeHost{name: "claude-code", available: true, line: "plan executed"}
-	record := runOneForTest(t, sc, host, &Options{})
+	record := runOneForTest(t, sc, host, &Options{HandoffNames: map[string]bool{"create-pr": true}})
 	if record.Verdict != VerdictFail {
 		t.Fatalf("verdict = %s, want fail", record.Verdict)
 	}
-	if len(record.Failures) == 0 || !strings.Contains(record.Failures[0], `does not contain "create-pr"`) {
+	if len(record.Failures) == 0 || !strings.Contains(record.Failures[0], `does not name the expected handoff "create-pr"`) {
 		t.Fatalf("failures = %v, want missing-handoff finding", record.Failures)
 	}
 }
