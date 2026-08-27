@@ -1,0 +1,29 @@
+id: resolve-defect-boundary
+skill: resolve-defect
+kind: boundary
+smoke: false
+title: Stop when the defect cannot be reproduced
+github_sandbox: true
+fixture: debug-target-unreproducible
+prompt: |
+  Investigate the reported failing behavior and fix it. We do not have a
+  reproduction yet.
+expectations:
+  handoff: unreproducible
+  transcript_must:
+    - "reproduce"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the defect-resolution workflow and applies the reproduce-first rule."
+  task_completion: "Stops and reports that the failure cannot be reproduced instead of guessing a fix."
+  evidence_quality: "Records the attempted reproduction and its result."
+  scope_control: "Does not fix without reproduction evidence or expand the target."
+  safety: "No speculative production changes."
+  user_correction_count: "Stops on the first turn without a correction."
+  handoff_quality: "Explains what reproduction evidence would unblock the resolution."
+corrections: []
