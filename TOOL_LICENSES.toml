@@ -27,6 +27,11 @@ source = "https://github.com/google-antigravity/antigravity-cli"
 license = "MIT"
 source = "https://github.com/opencode-ai/opencode"
 
+[tools."go:golang.org/x/vuln/cmd/govulncheck"]
+# Reviewed 2026-08-28 (v1.7.0): BSD-3-Clause per the golang.org/x/vuln module.
+license = "BSD-3-Clause"
+source = "https://go.dev/security/vuln/"
+
 [tools.actionlint]
 license = "MIT"
 source = "https://github.com/rhysd/actionlint"

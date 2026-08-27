@@ -33,7 +33,7 @@ do not by themselves block).
 
 | Command / job | Tier | Trigger | Owner | Expected duration | Failure policy |
 | --- | --- | --- | --- | --- | --- |
-| `check:repository` (ten repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.4s warm (see `docs/validation-timings.md`) | blocking |
+| `check:repository` (eleven repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.4s warm (see `docs/validation-timings.md`) | blocking |
 | `check:hosts` (`cmd/validate-hosts`) | 1 | every PR / `main` push | repository owner | ~0.4s warm | blocking |
 | `check:branch-policy` (`cmd/validate-branch-policy`) | 1 | every PR / `main` push | repository owner | ~0.2s | blocking |
 | `check:diff` (`cmd/check-whitespace`) | 1 | every PR / `main` push | repository owner | ~0.5s | blocking |
@@ -45,6 +45,7 @@ do not by themselves block).
 | `Audit workflow security` (zizmor, `security.yml`) | 1 | every PR / `main` push; step is scoped to `.github/workflows/**` changes | repository owner | seconds | blocking |
 | `Validate commit signatures` (`policy-signatures.yml`) | 1 | every PR (`pull_request_target`) | repository owner | seconds | blocking |
 | `mutate-fsl --changed-base <rev>` (Tier 2 targeted mutation, `targeted.yml`) | 2 | every PR; step runs only when `specs/**` or `skills/**/specs/**` changes | repository owner | ~1s per changed spec, no-op in <1s when none match | blocking on infrastructure errors; surviving mutants are triaged, not a silent pass |
+| `check:go-vuln` (`targeted.yml`, Go dependency security) | 2 | every PR; step runs only when `go.mod`, `go.sum`, or `*.go` changes | repository owner | depends on vulnerability database and module graph | reachable findings and infrastructure errors are blocking; non-reachable findings are reported |
 | behavioral smoke for skill changes (`targeted.yml`) | 2 | every PR; step runs only when `skills/**` changes | repository owner | defined by the #173 evaluation harness (not yet wired into a job) | blocking per the #173 smoke contract |
 | `mutate-fsl` (full) + `test:json` + `collect-badges` (`publish.yml`, badge-data) | 3 | weekly `schedule` + `workflow_dispatch` (not every `main` push) | repository owner | ~37s for full mutation (measured at depth 8) + `go test` | observability; the retained report distinguishes categories |
 | `mise run validate` (full Tier 1 surface) | 4 | release | repository owner | ~2.1s warm / ~19s cold | blocking |
@@ -62,6 +63,7 @@ files), so evidence is present either way.
 | Workflow / CI | `.github/**` | Tier 1 (including zizmor audit) |
 | Skill change | `skills/**` (excluding specs) | Tier 1 + Tier 2 smoke (when #173 provides the entry point) |
 | FSL change | `specs/**/*.fsl`, `skills/**/specs/*.fsl` (+ symlink exposures) | Tier 1 + Tier 2 targeted mutation |
+| Go source or module change | `*.go`, `go.mod`, `go.sum` | Tier 1 + Tier 2 Go dependency security |
 | Release candidate | release tag / Release | Tier 1 + Tier 4 |
 
 ## Constraints
@@ -77,7 +79,9 @@ files), so evidence is present either way.
 - Tier 2 currently adds no new required contexts: the ten required checks
   listed in `CONTRIBUTING.md` stay stable, and the Ruleset is updated only
   together with (or after) a workflow change lands on `main`, never before,
-  so no pull request waits forever on a context that does not exist yet.
+  so no pull request waits forever on a context that does not exist yet. The
+  Go dependency-security job is evidence for changed Go code, not a new
+  required context.
 - Behavioral smoke in Tier 2 is not wired into a job yet: Issue #173 landed
 the evaluation corpus and harness, and integrating the harness into a Tier 2
 smoke job on skill changes is a tracked follow-up of #176. Until then, skill
