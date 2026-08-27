@@ -69,11 +69,11 @@ func TestDeriveFieldValuesFailsOnUnknownStateOrUnusableScope(t *testing.T) {
 func TestPlanBackfillFiltersUntouchedIssues(t *testing.T) {
 	cfg := mustConfig(t)
 	runner := newFakeRunner().respond(
-		[]string{"issue", "list", "--repo", "hidekitux/skills", "--state", "all", "--limit", "1000",
+		[]string{"issue", "list", "--repo", "acme/sample", "--state", "all", "--limit", "1000",
 			"--json", "number,title,state,url,labels"},
 		`[{"number":1,"title":"[Improvement]: A","state":"OPEN","url":"u1","labels":[{"name":"priority:medium"},{"name":"scope:improvement"},{"name":"phase:backlog"}]},
 		  {"number":2,"title":"[Feature]: B","state":"OPEN","url":"u2","labels":[{"name":"dependencies"}]}]`)
-	plans, untouched, err := PlanBackfill(runner, cfg, "hidekitux/skills")
+	plans, untouched, err := PlanBackfill(runner, cfg, "acme/sample")
 	if err != nil {
 		t.Fatalf("PlanBackfill: %v", err)
 	}
@@ -88,28 +88,28 @@ func TestPlanBackfillFiltersUntouchedIssues(t *testing.T) {
 func TestApplyAndVerifyBackfill(t *testing.T) {
 	cfg := mustConfig(t)
 	plans := []BackfillPlan{
-		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/hidekitux/skills/issues/205",
+		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/acme/sample/issues/205",
 			"priority:medium", "scope:improvement", "phase:backlog"),
 			Values: FieldValues{Status: "Backlog", Priority: "Medium", Scope: "Improvement"}},
-		{Issue: triageIssue(2, "[Feature]: B", "OPEN", "https://github.com/hidekitux/skills/issues/201",
+		{Issue: triageIssue(2, "[Feature]: B", "OPEN", "https://github.com/acme/sample/issues/201",
 			"priority:medium", "scope:feature", "phase:planned"),
 			Values: FieldValues{Status: "Planned", Priority: "Medium", Scope: "Feature"}},
-		{Issue: triageIssue(3, "[Docs]: C", "OPEN", "https://github.com/hidekitux/skills/issues/202",
+		{Issue: triageIssue(3, "[Docs]: C", "OPEN", "https://github.com/acme/sample/issues/202",
 			"priority:low", "scope:docs", "phase:backlog"),
 			Values: FieldValues{Status: "Backlog", Priority: "Low", Scope: "Docs"}},
 	}
-	itemsJSON := `{"items":[{"id":"ITEM_1","content":{"url":"https://github.com/hidekitux/skills/issues/205"},
+	itemsJSON := `{"items":[{"id":"ITEM_1","content":{"url":"https://github.com/acme/sample/issues/205"},
 	  "fieldValues":[{"field":{"id":"F_STATUS","name":"Status"},"optionId":"O_BACKLOG"},
 	                  {"field":{"id":"F_PRIORITY","name":"Priority"},"optionId":"O_MEDIUM"},
 	                  {"field":{"id":"F_SCOPE","name":"Scope"},"optionId":"O_IMPROV"}]},
-	 {"id":"ITEM_2","content":{"url":"https://github.com/hidekitux/skills/issues/201"},"fieldValues":[]}]}`
+	 {"id":"ITEM_2","content":{"url":"https://github.com/acme/sample/issues/201"},"fieldValues":[]}]}`
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, itemsJSON).
-		respond([]string{"project", "item-add", "3", "--owner", "hidekitux",
-			"--url", "https://github.com/hidekitux/skills/issues/202", "--format", "json"},
-			`{"id":"ITEM_3","content":{"url":"https://github.com/hidekitux/skills/issues/202"}}`)
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemsJSON).
+		respond([]string{"project", "item-add", "3", "--owner", "acme",
+			"--url", "https://github.com/acme/sample/issues/202", "--format", "json"},
+			`{"id":"ITEM_3","content":{"url":"https://github.com/acme/sample/issues/202"}}`)
 	for _, edit := range [][]string{
 		{"project", "item-edit", "--id", "ITEM_2", "--field-id", "F_STATUS", "--project-id", "PVT_1", "--single-select-option-id", "O_PLANNED"},
 		{"project", "item-edit", "--id", "ITEM_2", "--field-id", "F_PRIORITY", "--project-id", "PVT_1", "--single-select-option-id", "O_MEDIUM"},
@@ -141,21 +141,21 @@ func TestApplyAndVerifyBackfill(t *testing.T) {
 func TestVerifyBackfillChecksEveryPlannedItem(t *testing.T) {
 	cfg := mustConfig(t)
 	valid := []BackfillPlan{
-		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/hidekitux/skills/issues/205",
+		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/acme/sample/issues/205",
 			"priority:medium", "scope:improvement", "phase:backlog"),
 			Values: FieldValues{Status: "Backlog", Priority: "Medium", Scope: "Improvement"}},
 	}
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
 	if err := VerifyBackfill(runner, cfg, valid); err != nil {
 		t.Fatalf("VerifyBackfill on valid items: %v", err)
 	}
 	incomplete := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, `{"items":[]}`)
 	if err := VerifyBackfill(incomplete, cfg, valid); err == nil {
 		t.Fatal("expected missing item to fail verification")
 	}
@@ -164,14 +164,14 @@ func TestVerifyBackfillChecksEveryPlannedItem(t *testing.T) {
 func TestApplyBackfillFailsBeforeMutationOnUndeclaredOption(t *testing.T) {
 	cfg := mustConfig(t)
 	plans := []BackfillPlan{
-		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/hidekitux/skills/issues/205",
+		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/acme/sample/issues/205",
 			"priority:medium", "scope:improvement", "phase:backlog"),
 			Values: FieldValues{Status: "Backlog", Priority: "Medium", Scope: "nonsense"}},
 	}
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, `{"items":[]}`)
 	if count, err := ApplyBackfill(runner, cfg, plans); err == nil {
 		t.Fatal("expected undeclared option to fail")
 	} else if count != 0 {
@@ -187,28 +187,28 @@ func TestRemoveMigratedLabelsKeepsUnrelatedLabels(t *testing.T) {
 		"priority:medium", "scope:improvement", "phase:backlog", "dependencies", "accessibility")
 	runner := newFakeRunner()
 	for _, label := range []string{"priority:medium", "scope:improvement", "phase:backlog"} {
-		runner.respond([]string{"issue", "edit", "1", "--repo", "hidekitux/skills",
+		runner.respond([]string{"issue", "edit", "1", "--repo", "acme/sample",
 			"--remove-label", label}, fmt.Sprintf(`{"number":1,"title":"[Improvement]: A"}`))
 	}
-	removed, err := RemoveMigratedLabels(runner, "hidekitux/skills", issue)
+	removed, err := RemoveMigratedLabels(runner, "acme/sample", issue)
 	if err != nil {
 		t.Fatalf("RemoveMigratedLabels: %v", err)
 	}
 	if len(removed) != 3 {
 		t.Fatalf("expected 3 removed, got %v", removed)
 	}
-	if runner.called("issue", "edit", "1", "--repo", "hidekitux/skills", "--remove-label", "dependencies") ||
-		runner.called("issue", "edit", "1", "--repo", "hidekitux/skills", "--remove-label", "accessibility") {
+	if runner.called("issue", "edit", "1", "--repo", "acme/sample", "--remove-label", "dependencies") ||
+		runner.called("issue", "edit", "1", "--repo", "acme/sample", "--remove-label", "accessibility") {
 		t.Fatal("unrelated labels must not be removed")
 	}
 }
 
 func TestVerifyLabelsGone(t *testing.T) {
 	clean := newFakeRunner().respond(
-		[]string{"issue", "list", "--repo", "hidekitux/skills", "--state", "all", "--limit", "1000",
+		[]string{"issue", "list", "--repo", "acme/sample", "--state", "all", "--limit", "1000",
 			"--json", "number,title,state,url,labels"},
 		`[{"number":1,"title":"[Docs]: X","state":"CLOSED","url":"u1","labels":[{"name":"documentation"}]}]`)
-	offenders, err := VerifyLabelsGone(clean, "hidekitux/skills")
+	offenders, err := VerifyLabelsGone(clean, "acme/sample")
 	if err != nil {
 		t.Fatalf("VerifyLabelsGone: %v", err)
 	}
@@ -216,10 +216,10 @@ func TestVerifyLabelsGone(t *testing.T) {
 		t.Fatalf("expected no offenders, got %v", offenders)
 	}
 	dirty := newFakeRunner().respond(
-		[]string{"issue", "list", "--repo", "hidekitux/skills", "--state", "all", "--limit", "1000",
+		[]string{"issue", "list", "--repo", "acme/sample", "--state", "all", "--limit", "1000",
 			"--json", "number,title,state,url,labels"},
 		`[{"number":7,"title":"[Bug]: X","state":"OPEN","url":"u7","labels":[{"name":"priority:low"}]}]`)
-	offenders, err = VerifyLabelsGone(dirty, "hidekitux/skills")
+	offenders, err = VerifyLabelsGone(dirty, "acme/sample")
 	if err != nil {
 		t.Fatalf("VerifyLabelsGone: %v", err)
 	}
@@ -231,9 +231,9 @@ func TestVerifyLabelsGone(t *testing.T) {
 func TestRetireLabelDefinitionsDeletesTriageLabels(t *testing.T) {
 	runner := newFakeRunner()
 	for _, label := range migratedLabelDefinitions() {
-		runner.respond([]string{"label", "delete", label, "--repo", "hidekitux/skills", "--yes"}, "")
+		runner.respond([]string{"label", "delete", label, "--repo", "acme/sample", "--yes"}, "")
 	}
-	retired, err := RetireLabelDefinitions(runner, "hidekitux/skills")
+	retired, err := RetireLabelDefinitions(runner, "acme/sample")
 	if err != nil {
 		t.Fatalf("RetireLabelDefinitions: %v", err)
 	}
@@ -256,10 +256,10 @@ func TestMigratedLabelDefinitionsAreClosed(t *testing.T) {
 }
 
 func TestListIssuesPropagatesAccessFailure(t *testing.T) {
-	runner := newFakeRunner().fail([]string{"issue", "list", "--repo", "hidekitux/skills",
+	runner := newFakeRunner().fail([]string{"issue", "list", "--repo", "acme/sample",
 		"--state", "all", "--limit", "1000", "--json", "number,title,state,url,labels"},
 		errors.New("gh issue list: boom"))
-	if _, _, err := PlanBackfill(runner, mustConfig(t), "hidekitux/skills"); err == nil {
+	if _, _, err := PlanBackfill(runner, mustConfig(t), "acme/sample"); err == nil {
 		t.Fatal("expected list failure to propagate")
 	}
 }
