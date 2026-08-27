@@ -58,12 +58,20 @@ The Project is the operational source of truth for planning; GitHub Issues
 remain the source of truth for requirements, discussion, and closure. The
 workflow skills advance Status automatically: `create-issue` adds a new Issue
 with Status `Backlog` and the derived Scope and Priority, `plan-issue` moves a
-planned Issue to `Planned`, `implement-issue` moves started work to
+It plans to `Planned`, `implement-issue` moves started work to
 `In progress`, `create-pr` moves an Issue to `In review` when its Pull
 Request opens, the Project's built-in Item closed workflow moves a closed
 Issue to `Done`, and its built-in Item reopened workflow restores `Backlog`
-when an Issue is reopened. Field and option IDs are resolved from the
-declared names at runtime; never hard-code Project identities in skills.
+when an Issue is reopened. The `Pull Request Project Status` workflow keeps
+PR-driven transitions in sync afterwards: ready `opened`, `reopened`, and
+`synchronize` events stay `In review`; draft, `ready_for_review`, and
+`converted_to_draft` events switch between `In progress` and `In review`; an
+unmerged `closed` event returns to `In progress`; and a merged `closed` event
+makes no change because the linked Issue closes and reaches `Done` through
+the built-in Item closed workflow, while a release Issue tracked with
+`Tracks` stays non-terminal until publication. Field and option IDs are
+resolved from the declared names at runtime; never hard-code Project
+identities in skills.
 
 Interactive `gh` authentication needs `read:project` to read Projects and
 `project` to mutate them. Automation uses least-privilege PATs stored only as
