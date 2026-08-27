@@ -40,9 +40,17 @@ reasons:
   checkout, so it stays separate for security isolation.
 - `Policy (Issues)` (`policy-issues.yml`) — `issues`-event policy checks.
 - `Security` (`security.yml`) — audit role (zizmor), not a validation check.
-- `Publish` (`publish.yml`) — publishing; it needs `contents: write` and must
-  never be cancelled, so it stays separate from the read-only validation
-  checks.
+- `Targeted` (`targeted.yml`) — change-scoped Tier 2 validation: the job
+  always runs, and the targeted command scopes work to the changed files
+  (currently targeted FSL mutation on changed specifications), so unrelated
+  pull requests are fast and a future required-context promotion cannot leave
+  checks pending. It is not a required context; required contexts are the ten
+  listed in `CONTRIBUTING.md`.
+- `Publish` (`publish.yml`) — publishing the six badge payloads and the
+  retained mutation report to the `badge-data` branch; it needs
+  `contents: write` and must never be cancelled, so it stays separate from the
+  read-only validation checks. It runs on a weekly schedule and on demand
+  (full mutation no longer runs after every `main` push).
 
 ## Runtime setup
 
@@ -89,3 +97,7 @@ reasons:
   `.github/workflows/**`, so unrelated pull requests skip the audit while the
   required check still reports success (a job whose step is conditional
   reports success).
+- `targeted.yml` follows the same rule for Tier 2: its job always runs, and
+  `mutate-fsl --changed-base <base>` scopes mutation to specs changed under
+  `specs/` or `skills/**/specs/`, exiting successfully with an explicit
+  "no FSL specifications selected" message when the change is unrelated.

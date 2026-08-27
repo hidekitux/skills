@@ -45,9 +45,14 @@ description = "Install the pinned FSL verifier with checksum verification"
 run = "bash scripts/fsl/install-fslc.sh"
 
 [tasks.mutate-fsl]
-description = "Measure mutation detection for every FSL specification"
+description = "Measure mutation detection for every selected FSL specification; pass options after --"
 depends = ["fsl:install"]
-run = "go run ./cmd/mutate-fsl"
+run = "go run ./cmd/mutate-fsl \"$@\""
+
+[tasks."mutate-fsl:changed"]
+description = "Run FSL mutation only on specifications changed since a git revision"
+depends = ["fsl:install"]
+run = "go run ./cmd/mutate-fsl --changed-base \"$@\""
 
 [tasks."lint:actions"]
 description = "Lint GitHub Actions workflows"
