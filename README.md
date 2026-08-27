@@ -111,6 +111,33 @@ Where the related guides live:
 - [docs/model-selection.md](docs/model-selection.md) — role-tier model selection.
 - [docs/model-routing.md](docs/model-routing.md) — how each host consumes and verifies the selected models.
 
+<!-- BEGIN generated: public-status -->
+
+## Public status
+
+This section is generated from `CATALOG.yml` and `docs/release-evidence.yml` by `mise run generate:public-status` and mechanically verified by `check:repository`. Do not edit by hand. See [`docs/public-skill-status.md`](docs/public-skill-status.md) for the authority and evidence contract.
+
+### Outcome-oriented entry points
+
+The evaluated entry points coordinate the primitive skills from a user request to a complete observable result; direct primitive invocation remains available for advanced or partial workflows.
+
+| Entry point | Outcome | Status | Version |
+| --- | --- | --- | --- |
+| `improve-project` | Improve a project end to end from read-only analysis through an Issue-backed, reviewed change. | experimental | 0.1.0 |
+| `deliver-change` | Deliver a governed Change Issue end to end from its verified plan through a reviewed Pull Request. | experimental | 0.1.0 |
+| `resolve-defect` | Resolve a verified defect from reproduction through fix, regression tests, and any required governed change. | experimental | 0.1.0 |
+
+### Preview stability
+
+Every cataloged skill is `experimental` until behavioral and release evidence qualify promotion ([docs/evaluation.md](docs/evaluation.md)).
+
+No verified release exists yet ([Issue #174](https://github.com/hidekitux/skills/issues/174)); until the preview release is published, any `@vX.Y.Z` installation resolves to the default branch head.
+
+### Pinned installation
+
+Pinned installation is documented from retained release evidence only. No verified release exists yet, so no pinned installation is claimed; the release flow ([Issue #174](https://github.com/hidekitux/skills/issues/174)) records the preview tag, commit, and Codex and Claude Code installation results in `docs/release-evidence.yml` before this section can state them.
+<!-- END generated: public-status -->
+
 ## Development workflow
 
 1. Add `skills/<skill-name>/SKILL.md`.
