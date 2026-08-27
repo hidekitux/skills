@@ -124,6 +124,10 @@ run = "go run ./cmd/verify-release \"$@\""
 description = "Run release gates, then publish a verified release tag"
 run = "go run ./cmd/publish-release \"$@\""
 
+[tasks."generate:public-status"]
+description = "Regenerate the README public status section from CATALOG.yml and release evidence"
+run = "go run ./cmd/generate-public-status --write"
+
 [tasks."check:repository"]
 description = "Validate repository policy, sensitive content, licenses, and test evidence"
 run = "go run ./cmd/check-repository"
