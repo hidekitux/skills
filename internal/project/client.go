@@ -67,42 +67,63 @@ func (c *Client) run(args ...string) (string, error) {
 type projectListEntry struct {
 	Number int64  `json:"number"`
 	Title  string `json:"title"`
+	ID     string `json:"id"`
 }
 
 type projectListDTO struct {
 	Projects []projectListEntry `json:"projects"`
 }
 
-// ProjectNumber resolves the declared Project number, preferring the
-// configured number and otherwise requiring the title to match exactly one
-// Project visible to the current authentication.
-func (c *Client) ProjectNumber(cfg *Config) (int64, error) {
+// ProjectTarget resolves the declared Project number and node id, preferring
+// the configured number and otherwise requiring the title to match exactly
+// one Project visible to the current authentication.
+func (c *Client) ProjectTarget(cfg *Config) (int64, string, error) {
 	if cfg.Project.Number != 0 {
-		return cfg.Project.Number, nil
+		out, err := c.run("project", "view", fmt.Sprint(cfg.Project.Number), "--owner", c.Owner, "--format", "json")
+		if err != nil {
+			return 0, "", err
+		}
+		var view struct {
+			Number int64  `json:"number"`
+			ID     string `json:"id"`
+		}
+		if err := json.Unmarshal([]byte(out), &view); err != nil {
+			return 0, "", fmt.Errorf("project view output cannot be parsed: %w", err)
+		}
+		if view.ID == "" {
+			return 0, "", errors.New("project view returned no project id")
+		}
+		return view.Number, view.ID, nil
 	}
 	out, err := c.run("project", "list", "--owner", c.Owner, "--format", "json")
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 	var list projectListDTO
 	if err := json.Unmarshal([]byte(out), &list); err != nil {
-		return 0, fmt.Errorf("project list output cannot be parsed: %w", err)
+		return 0, "", fmt.Errorf("project list output cannot be parsed: %w", err)
 	}
-	matches := []int64{}
+	matches := []projectListEntry{}
 	for _, project := range list.Projects {
 		if project.Title == cfg.Project.Title {
-			matches = append(matches, project.Number)
+			matches = append(matches, project)
 		}
 	}
 	switch len(matches) {
 	case 0:
-		return 0, fmt.Errorf("no Project titled %q found for owner %q", cfg.Project.Title, c.Owner)
+		return 0, "", fmt.Errorf("no Project titled %q found for owner %q", cfg.Project.Title, c.Owner)
 	case 1:
-		return matches[0], nil
+		return matches[0].Number, matches[0].ID, nil
 	default:
-		return 0, fmt.Errorf("Project title %q for owner %q is ambiguous; found %d Projects",
+		return 0, "", fmt.Errorf("Project title %q for owner %q is ambiguous; found %d Projects",
 			cfg.Project.Title, c.Owner, len(matches))
 	}
+}
+
+// ProjectNumber resolves the declared Project number.
+func (c *Client) ProjectNumber(cfg *Config) (int64, error) {
+	number, _, err := c.ProjectTarget(cfg)
+	return number, err
 }
 
 type fieldOption struct {
@@ -177,6 +198,13 @@ func optionID(fields map[string]fieldDTO, role, option string) (string, error) {
 	return "", fmt.Errorf("option %q is not configured for field role %q", option, role)
 }
 
+// itemLimit keeps one Project item-list read bounded while covering the
+// supported migration size.
+const itemLimit = "100"
+
+// fieldValueDTO is one entry of the fieldValues array that older gh versions
+// emit; newer gh versions flatten known single-select values into top-level
+// item fields instead.
 type fieldValueDTO struct {
 	Field struct {
 		ID   string `json:"id"`
@@ -186,9 +214,15 @@ type fieldValueDTO struct {
 	Value    any    `json:"value"`
 }
 
+// itemDTO is one Project item from "gh project item-list". Newer gh versions
+// expose the Status, Priority, and Scope option names as top-level string
+// fields; older versions nest them in fieldValues.
 type itemDTO struct {
-	ID      string `json:"id"`
-	Content struct {
+	ID       string `json:"id"`
+	Status   string `json:"status"`
+	Priority string `json:"priority"`
+	Scope    string `json:"scope"`
+	Content  struct {
 		URL string `json:"url"`
 	} `json:"content"`
 	FieldValues []fieldValueDTO `json:"fieldValues"`
@@ -198,10 +232,41 @@ type itemListDTO struct {
 	Items []itemDTO `json:"items"`
 }
 
+// Items returns every Project item with its content URL and field values.
+func (c *Client) Items(number int64) ([]itemDTO, error) {
+	out, err := c.run("project", "item-list", fmt.Sprint(number), "--owner", c.Owner, "--limit", itemLimit, "--format", "json")
+	if err != nil {
+		return nil, err
+	}
+	var list itemListDTO
+	if err := json.Unmarshal([]byte(out), &list); err != nil {
+		return nil, fmt.Errorf("project item-list output cannot be parsed: %w", err)
+	}
+	return list.Items, nil
+}
+
+// addItemUnchecked adds the Issue to the Project without a duplicate
+// pre-check. Callers that already listed items must guarantee the Issue has
+// no existing item before calling it.
+func (c *Client) addItemUnchecked(number int64, issueURL string) (string, error) {
+	out, err := c.run("project", "item-add", fmt.Sprint(number), "--owner", c.Owner, "--url", issueURL, "--format", "json")
+	if err != nil {
+		return "", err
+	}
+	var item itemDTO
+	if err := json.Unmarshal([]byte(out), &item); err != nil {
+		return "", fmt.Errorf("project item-add output cannot be parsed: %w", err)
+	}
+	if item.ID == "" {
+		return "", errors.New("project item-add returned no item id")
+	}
+	return item.ID, nil
+}
+
 // ItemForIssue returns the sole Project item for an Issue URL or an error.
 // A missing item returns ok=false; more than one item is an ambiguity error.
 func (c *Client) ItemForIssue(number int64, issueURL string) (itemDTO, bool, error) {
-	out, err := c.run("project", "item-list", fmt.Sprint(number), "--owner", c.Owner, "--format", "json")
+	out, err := c.run("project", "item-list", fmt.Sprint(number), "--owner", c.Owner, "--limit", itemLimit, "--format", "json")
 	if err != nil {
 		return itemDTO{}, false, err
 	}
@@ -245,24 +310,14 @@ func (c *Client) AddItem(number int64, issueURL string) (string, error) {
 	if existing != "" {
 		return existing, nil
 	}
-	out, err := c.run("project", "item-add", fmt.Sprint(number), "--owner", c.Owner, "--url", issueURL, "--format", "json")
-	if err != nil {
-		return "", err
-	}
-	var item itemDTO
-	if err := json.Unmarshal([]byte(out), &item); err != nil {
-		return "", fmt.Errorf("project item-add output cannot be parsed: %w", err)
-	}
-	if item.ID == "" {
-		return "", errors.New("project item-add returned no item id")
-	}
-	return item.ID, nil
+	return c.addItemUnchecked(number, issueURL)
 }
 
-// SetSingleSelect sets one single-select field value on a Project item.
-func (c *Client) SetSingleSelect(number int64, itemID, fieldID, optionID string) error {
-	_, err := c.run("project", "field-set", fmt.Sprint(number), "--owner", c.Owner,
-		"--item-id", itemID, "--field-id", fieldID, "--single-select-option-id", optionID)
+// SetSingleSelect sets one single-select field value on a Project item by
+// GraphQL node IDs, the documented machine form of `gh project item-edit`.
+func (c *Client) SetSingleSelect(projectID, itemID, fieldID, optionID string) error {
+	_, err := c.run("project", "item-edit", "--id", itemID, "--field-id", fieldID,
+		"--project-id", projectID, "--single-select-option-id", optionID)
 	return err
 }
 
@@ -273,53 +328,15 @@ type FieldValues struct {
 	Scope    string
 }
 
-// ReconcileIssue ensures the Issue has exactly one Project item carrying the
-// declared field values. Every mutable ID is resolved before the first
-// mutation, item addition is idempotent, and repeating a value is safe.
-func (c *Client) ReconcileIssue(cfg *Config, issueURL string, values FieldValues) (string, error) {
-	number, err := c.ProjectNumber(cfg)
-	if err != nil {
-		return "", err
-	}
-	fields, err := c.resolvedFields(cfg, number)
-	if err != nil {
-		return "", err
-	}
-	statusID, err := optionID(fields, "status", values.Status)
-	if err != nil {
-		return "", err
-	}
-	priorityID, err := optionID(fields, "priority", values.Priority)
-	if err != nil {
-		return "", err
-	}
-	scopeID, err := optionID(fields, "scope", values.Scope)
-	if err != nil {
-		return "", err
-	}
-	itemID, err := c.AddItem(number, issueURL)
-	if err != nil {
-		return "", err
-	}
-	mutations := []struct {
-		fieldID  string
-		optionID string
-	}{
-		{fields["status"].ID, statusID},
-		{fields["priority"].ID, priorityID},
-		{fields["scope"].ID, scopeID},
-	}
-	for _, mutation := range mutations {
-		if err := c.SetSingleSelect(number, itemID, mutation.fieldID, mutation.optionID); err != nil {
-			return "", err
-		}
-	}
-	return itemID, nil
-}
-
 // itemFieldNames resolves the current option name for every field role on an
-// item, using the resolved field IDs from resolvedFields.
+// item, preferring the flattened status/priority/scope fields newer gh
+// versions emit and falling back to the fieldValues array.
 func itemFieldNames(item itemDTO, fields map[string]fieldDTO) (map[string]string, error) {
+	flattened := map[string]string{
+		"status":   item.Status,
+		"priority": item.Priority,
+		"scope":    item.Scope,
+	}
 	optionNames := map[string]string{}
 	for _, role := range RequiredFields {
 		field := fields[role]
@@ -329,8 +346,11 @@ func itemFieldNames(item itemDTO, fields map[string]fieldDTO) (map[string]string
 	}
 	current := map[string]string{}
 	for _, role := range RequiredFields {
+		if value := flattened[role]; value != "" {
+			current[role] = value
+			continue
+		}
 		declaredName := fields[role].Name
-		value := ""
 		for _, fieldValue := range item.FieldValues {
 			if fieldValue.Field.Name != declaredName {
 				continue
@@ -341,15 +361,14 @@ func itemFieldNames(item itemDTO, fields map[string]fieldDTO) (map[string]string
 					return nil, fmt.Errorf("Project item carries an unknown option id %q for field %q",
 						fieldValue.OptionID, declaredName)
 				}
-				value = name
+				current[role] = name
 				break
 			}
 			if text, ok := fieldValue.Value.(string); ok && text != "" {
-				value = text
+				current[role] = text
 				break
 			}
 		}
-		current[role] = value
 	}
 	return current, nil
 }

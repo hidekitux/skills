@@ -88,29 +88,97 @@ func TestPlanBackfillFiltersUntouchedIssues(t *testing.T) {
 func TestApplyAndVerifyBackfill(t *testing.T) {
 	cfg := mustConfig(t)
 	plans := []BackfillPlan{
-		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", issueURL205, "priority:medium", "scope:improvement", "phase:backlog"),
+		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/hidekitux/skills/issues/205",
+			"priority:medium", "scope:improvement", "phase:backlog"),
 			Values: FieldValues{Status: "Backlog", Priority: "Medium", Scope: "Improvement"}},
+		{Issue: triageIssue(2, "[Feature]: B", "OPEN", "https://github.com/hidekitux/skills/issues/201",
+			"priority:medium", "scope:feature", "phase:planned"),
+			Values: FieldValues{Status: "Planned", Priority: "Medium", Scope: "Feature"}},
+		{Issue: triageIssue(3, "[Docs]: C", "OPEN", "https://github.com/hidekitux/skills/issues/202",
+			"priority:low", "scope:docs", "phase:backlog"),
+			Values: FieldValues{Status: "Backlog", Priority: "Low", Scope: "Docs"}},
 	}
+	itemsJSON := `{"items":[{"id":"ITEM_1","content":{"url":"https://github.com/hidekitux/skills/issues/205"},
+	  "fieldValues":[{"field":{"id":"F_STATUS","name":"Status"},"optionId":"O_BACKLOG"},
+	                  {"field":{"id":"F_PRIORITY","name":"Priority"},"optionId":"O_MEDIUM"},
+	                  {"field":{"id":"F_SCOPE","name":"Scope"},"optionId":"O_IMPROV"}]},
+	 {"id":"ITEM_2","content":{"url":"https://github.com/hidekitux/skills/issues/201"},"fieldValues":[]}]}`
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux"}, itemListJSON("ITEM_1")).
-		respond([]string{"project", "field-set", "3", "--owner", "hidekitux",
-			"--item-id", "ITEM_1", "--field-id", "F_STATUS", "--single-select-option-id", "O_BACKLOG"}, "").
-		respond([]string{"project", "field-set", "3", "--owner", "hidekitux",
-			"--item-id", "ITEM_1", "--field-id", "F_PRIORITY", "--single-select-option-id", "O_MEDIUM"}, "").
-		respond([]string{"project", "field-set", "3", "--owner", "hidekitux",
-			"--item-id", "ITEM_1", "--field-id", "F_SCOPE", "--single-select-option-id", "O_IMPROV"}, "")
+		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, itemsJSON).
+		respond([]string{"project", "item-add", "3", "--owner", "hidekitux",
+			"--url", "https://github.com/hidekitux/skills/issues/202", "--format", "json"},
+			`{"id":"ITEM_3","content":{"url":"https://github.com/hidekitux/skills/issues/202"}}`)
+	for _, edit := range [][]string{
+		{"project", "item-edit", "--id", "ITEM_2", "--field-id", "F_STATUS", "--project-id", "PVT_1", "--single-select-option-id", "O_PLANNED"},
+		{"project", "item-edit", "--id", "ITEM_2", "--field-id", "F_PRIORITY", "--project-id", "PVT_1", "--single-select-option-id", "O_MEDIUM"},
+		{"project", "item-edit", "--id", "ITEM_2", "--field-id", "F_SCOPE", "--project-id", "PVT_1", "--single-select-option-id", "O_FEATURE"},
+		{"project", "item-edit", "--id", "ITEM_3", "--field-id", "F_STATUS", "--project-id", "PVT_1", "--single-select-option-id", "O_BACKLOG"},
+		{"project", "item-edit", "--id", "ITEM_3", "--field-id", "F_PRIORITY", "--project-id", "PVT_1", "--single-select-option-id", "O_LOW"},
+		{"project", "item-edit", "--id", "ITEM_3", "--field-id", "F_SCOPE", "--project-id", "PVT_1", "--single-select-option-id", "O_DOCS"},
+	} {
+		runner.respond(edit, "")
+	}
 
 	count, err := ApplyBackfill(runner, cfg, plans)
 	if err != nil {
 		t.Fatalf("ApplyBackfill: %v", err)
 	}
-	if count != 1 {
-		t.Fatalf("expected 1 applied, got %d", count)
+	if count != 3 {
+		t.Fatalf("expected 3 processed, got %d", count)
 	}
-	if err := VerifyBackfill(runner, cfg, plans); err != nil {
-		t.Fatalf("VerifyBackfill: %v", err)
+	// ITEM_1 already carries every desired value: no mutation may run for it.
+	if runner.called("project", "item-edit", "--id", "ITEM_1") {
+		t.Fatal("ITEM_1 must not be mutated when its values already match")
+	}
+	// A single item-list read covers the whole migration (no per-Issue reads).
+	if got := len(runner.calls); got > 12 {
+		t.Fatalf("expected a bounded call count, got %d (call log: %v)", got, runner.calls)
+	}
+}
+
+func TestVerifyBackfillChecksEveryPlannedItem(t *testing.T) {
+	cfg := mustConfig(t)
+	valid := []BackfillPlan{
+		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/hidekitux/skills/issues/205",
+			"priority:medium", "scope:improvement", "phase:backlog"),
+			Values: FieldValues{Status: "Backlog", Priority: "Medium", Scope: "Improvement"}},
+	}
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
+	if err := VerifyBackfill(runner, cfg, valid); err != nil {
+		t.Fatalf("VerifyBackfill on valid items: %v", err)
+	}
+	incomplete := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+	if err := VerifyBackfill(incomplete, cfg, valid); err == nil {
+		t.Fatal("expected missing item to fail verification")
+	}
+}
+
+func TestApplyBackfillFailsBeforeMutationOnUndeclaredOption(t *testing.T) {
+	cfg := mustConfig(t)
+	plans := []BackfillPlan{
+		{Issue: triageIssue(1, "[Improvement]: A", "OPEN", "https://github.com/hidekitux/skills/issues/205",
+			"priority:medium", "scope:improvement", "phase:backlog"),
+			Values: FieldValues{Status: "Backlog", Priority: "Medium", Scope: "nonsense"}},
+	}
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+	if count, err := ApplyBackfill(runner, cfg, plans); err == nil {
+		t.Fatal("expected undeclared option to fail")
+	} else if count != 0 {
+		t.Fatalf("expected no processed Issues, got %d", count)
+	}
+	if runner.called("project", "item-add") || runner.called("project", "item-edit") {
+		t.Fatal("no mutation may happen before option resolution")
 	}
 }
 
