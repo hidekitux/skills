@@ -1,8 +1,10 @@
 name: Publish
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    # Weekly full-tier refresh: full mutation plus badge publication run on a
+    # schedule and on demand, not after every unrelated main push (Issue #176).
+    - cron: "0 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -33,7 +35,7 @@ jobs:
       - name: Capture FSL mutation results
         run: |
           set -euo pipefail
-          mise run mutate-fsl 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
+          mise run mutate-fsl -- --report "${RUNNER_TEMP}/fsl-mutation-report.json" 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
       - name: Capture test results
         run: |
           set -euo pipefail
@@ -57,11 +59,13 @@ jobs:
           else
             git switch --orphan badge-data
           fi
-          # Keep the branch limited to the six payloads: drop every checked-out
-          # or ignored file before copying the fresh payloads.
+          # Keep the branch limited to the six badge payloads plus the retained
+          # mutation report: drop every checked-out or ignored file before
+          # copying the fresh outputs.
           git rm -rf --quiet --ignore-unmatch .
           git clean -fdx --quiet
           cp "${RUNNER_TEMP}"/badges/*.json .
+          cp "${RUNNER_TEMP}/fsl-mutation-report.json" .
           git add -A
           if git diff --cached --quiet; then
             echo "Badge payloads unchanged; skipping commit and push."

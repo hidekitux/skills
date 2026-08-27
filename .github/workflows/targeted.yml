@@ -1,0 +1,38 @@
+name: Targeted
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fsl-mutation:
+    name: Mutate changed FSL specifications
+    runs-on: ubuntu-latest
+    steps:
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+      - name: Set up mise toolchain
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
+        with:
+          install: true
+          cache: true
+      # The job always runs so a future required-context promotion cannot leave
+      # a pull request pending; the targeted command is a successful no-op when
+      # no spec under specs/ or skills/**/specs/ changed. Surviving mutants are
+      # reported, not hidden: the mutation log and exit code surface them, and
+      # the triage register tracks them.
+      - name: Mutate changed FSL specifications
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: mise run mutate-fsl:changed -- "$BASE_SHA"

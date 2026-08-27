@@ -3,6 +3,7 @@
 package fsl
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -156,23 +157,99 @@ func VerifyFSL(root string, out, errOut io.Writer) int {
 	return 0
 }
 
-// MutateFSL measures mutation detection for every FSL spec.
-func MutateFSL(root string, out, errOut io.Writer) int {
-	specs, err := specFiles(root)
+// MutateOptions configures a mutation run.
+type MutateOptions struct {
+	// ChangedBase, when non-empty, restricts mutation to specs changed since
+	// this git revision (ChangedSpecs); a run with no changed specs is a
+	// successful no-op so the tied workflow job never goes pending.
+	ChangedBase string
+	// ReportPath, when non-empty, writes the retained MutationReport here.
+	ReportPath string
+}
+
+// MutateFSL measures mutation detection for every FSL spec (or only the specs
+// changed since opts.ChangedBase). An fslc failure for one spec is recorded as
+// an infrastructure error in the report and the remaining specs still run; the
+// command still exits non-zero so failures stay visible. On success it exits 0
+// and writes the report when opts.ReportPath is set.
+func MutateFSL(root string, out, errOut io.Writer, opts MutateOptions) int {
+	var specs []string
+	var err error
+	if opts.ChangedBase != "" {
+		specs, err = ChangedSpecs(root, opts.ChangedBase)
+	} else {
+		specs, err = specFiles(root)
+	}
 	if err != nil {
 		fmt.Fprintf(errOut, "error: %v\n", err)
 		return 1
 	}
 	depthValue := depth()
 	if len(specs) == 0 {
-		fmt.Fprintln(out, "No repository-owned or skill-owned FSL specs found.")
+		fmt.Fprintln(out, "No FSL specifications selected for mutation.")
+		if opts.ReportPath != "" {
+			report := MutationReport{Depth: depthValue}
+			if err := WriteMutationReport(opts.ReportPath, report); err != nil {
+				fmt.Fprintf(errOut, "error: write mutation report: %v\n", err)
+				return 1
+			}
+		}
 		return 0
 	}
+
+	report := MutationReport{Depth: depthValue}
+	failed := 0
 	for _, spec := range specs {
 		fmt.Fprintf(out, "Mutating %s at depth %s\n", spec, depthValue)
-		if code := runFslc(out, errOut, "mutate", spec, "--depth", depthValue); code != 0 {
-			return code
+		var buffer bytes.Buffer
+		fmt.Fprintf(&buffer, "Mutating %s at depth %s\n", spec, depthValue)
+		code := runFslc(io.MultiWriter(out, &buffer), errOut, "mutate", spec, "--depth", depthValue)
+		if code != 0 {
+			failed++
+			if opts.ReportPath != "" {
+				report.Specs = append(report.Specs, SpecReport{
+					Spec:   spec,
+					Status: "error",
+					Error:  fmt.Sprintf("fslc exited with status %d", code),
+				})
+			}
+			continue
 		}
+		if opts.ReportPath != "" {
+			parsed, err := parseMutationDocuments(buffer.String())
+			if err != nil {
+				fmt.Fprintf(errOut, "error: parse mutation output for %s: %v\n", spec, err)
+				return 1
+			}
+			if len(parsed) != 1 {
+				fmt.Fprintf(errOut, "error: expected one mutation document for %s, got %d\n", spec, len(parsed))
+				return 1
+			}
+			specReport := parsed[0]
+			specReport.Spec = spec
+			report.Specs = append(report.Specs, specReport)
+		}
+	}
+
+	if opts.ReportPath != "" {
+		report.Totals.Specs = len(report.Specs)
+		for _, spec := range report.Specs {
+			report.Totals.Killed += spec.Killed
+			report.Totals.Survived += spec.Survived
+			report.Totals.Invalid += spec.Invalid
+			if spec.Status == "error" {
+				report.Totals.InfrastructureError++
+			}
+		}
+		if err := WriteMutationReport(opts.ReportPath, report); err != nil {
+			fmt.Fprintf(errOut, "error: write mutation report: %v\n", err)
+			return 1
+		}
+		fmt.Fprintf(out, "Mutation report written to %s.\n", opts.ReportPath)
+	}
+	if failed > 0 {
+		fmt.Fprintf(errOut, "Mutation infrastructure error: %d spec(s) failed to mutate.\n", failed)
+		return 1
 	}
 	fmt.Fprintf(out, "Mutated %d FSL spec(s).\n", len(specs))
 	return 0
