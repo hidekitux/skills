@@ -62,7 +62,7 @@ It plans to `Planned`, `implement-issue` moves started work to
 `In progress`, `create-pr` moves an Issue to `In review` when its Pull
 Request opens, the Project's built-in Item closed workflow moves a closed
 Issue to `Done`, and its built-in Item reopened workflow restores `Backlog`
-when an Issue is reopened. The `Pull Request Project Status` workflow keeps
+when an Issue is reopened. The `Policy (Project)` workflow keeps
 PR-driven transitions in sync afterwards: ready `opened`, `reopened`, and
 `synchronize` events stay `In review`; draft, `ready_for_review`, and
 `converted_to_draft` events switch between `In progress` and `In review`; an
