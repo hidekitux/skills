@@ -8,7 +8,7 @@ import (
 
 func TestCheckIssueProjectFailSafeSkipsOnMissingAccess(t *testing.T) {
 	cfg := mustConfig(t)
-	runner := newFakeRunner().fail([]string{"project", "list", "--owner", "hidekitux"},
+	runner := newFakeRunner().fail([]string{"project", "list", "--owner", "hidekitux", "--format", "json"},
 		errors.New("gh project list --owner hidekitux: your authentication token is missing required scopes [read:project]"))
 	var out, errOut bytes.Buffer
 	if code := CheckIssueProject(runner, cfg, "hidekitux/skills", 205, &out, &errOut); code != 0 {
@@ -22,9 +22,9 @@ func TestCheckIssueProjectFailSafeSkipsOnMissingAccess(t *testing.T) {
 func TestCheckIssueProjectRejectsInvalidContract(t *testing.T) {
 	cfg := mustConfig(t)
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux"}, `{"items":[]}`)
+		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, `{"items":[]}`)
 	var out, errOut bytes.Buffer
 	if code := CheckIssueProject(runner, cfg, "hidekitux/skills", 205, &out, &errOut); code != 1 {
 		t.Fatalf("expected invalid contract code 1, got %d", code)
@@ -34,9 +34,9 @@ func TestCheckIssueProjectRejectsInvalidContract(t *testing.T) {
 func TestCheckIssueProjectAcceptsValidContract(t *testing.T) {
 	cfg := mustConfig(t)
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux"}, itemListJSON("ITEM_1"))
+		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
 	var out, errOut bytes.Buffer
 	if code := CheckIssueProject(runner, cfg, "hidekitux/skills", 205, &out, &errOut); code != 0 {
 		t.Fatalf("expected valid contract code 0, got %d: %s", code, errOut.String())

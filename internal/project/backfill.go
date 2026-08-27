@@ -196,16 +196,82 @@ func PlanBackfill(run Runner, cfg *Config, repo string) ([]BackfillPlan, []Issue
 	return plans, untouched, nil
 }
 
-// ApplyBackfill reconciles every planned Issue into the Project, returning
-// the number of Issues mutated.
+// ApplyBackfill reconciles every planned Issue into the Project using one
+// item-list read, returning the number of Issues whose item was added or
+// updated. Items that already carry the desired field values are left
+// untouched, so repeated runs are idempotent and cheap.
 func ApplyBackfill(run Runner, cfg *Config, plans []BackfillPlan) (int, error) {
 	client := NewClient(run, cfg.Project.Owner)
-	for _, plan := range plans {
-		if _, err := client.ReconcileIssue(cfg, plan.Issue.URL, plan.Values); err != nil {
-			return 0, err
-		}
+	number, projectID, err := client.ProjectTarget(cfg)
+	if err != nil {
+		return 0, err
 	}
-	return len(plans), nil
+	fields, err := client.resolvedFields(cfg, number)
+	if err != nil {
+		return 0, err
+	}
+	items, err := client.Items(number)
+	if err != nil {
+		return 0, err
+	}
+	byURL := map[string]itemDTO{}
+	for _, item := range items {
+		byURL[item.Content.URL] = item
+	}
+
+	processed := 0
+	for _, plan := range plans {
+		// Resolve every desired option before any mutation so an unknown or
+		// missing option never leaves a partially mutated item.
+		desiredIDs := map[string]string{}
+		for _, role := range RequiredFields {
+			optionID, err := optionID(fields, role, planValue(plan, role))
+			if err != nil {
+				return processed, err
+			}
+			desiredIDs[role] = optionID
+		}
+
+		item, exists := byURL[plan.Issue.URL]
+		current := map[string]string{}
+		itemID := ""
+		if exists {
+			itemID = item.ID
+			current, err = itemFieldNames(item, fields)
+			if err != nil {
+				return processed, err
+			}
+		} else {
+			itemID, err = client.addItemUnchecked(number, plan.Issue.URL)
+			if err != nil {
+				return processed, err
+			}
+			byURL[plan.Issue.URL] = itemDTO{ID: itemID}
+		}
+
+		for _, role := range RequiredFields {
+			if exists && current[role] == planValue(plan, role) {
+				continue
+			}
+			if err := client.SetSingleSelect(projectID, itemID, fields[role].ID, desiredIDs[role]); err != nil {
+				return processed, err
+			}
+		}
+		processed++
+	}
+	return processed, nil
+}
+
+// planValue returns the desired field value for one plan role.
+func planValue(plan BackfillPlan, role string) string {
+	switch role {
+	case "status":
+		return plan.Values.Status
+	case "priority":
+		return plan.Values.Priority
+	default:
+		return plan.Values.Scope
+	}
 }
 
 // VerifyBackfill checks that every planned Issue has exactly one Project item
