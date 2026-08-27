@@ -1,0 +1,11 @@
+# Retained release evidence for the public status documentation.
+#
+# The release flow (Issue 174) sets released: true and records the verified
+# tag, GitHub Release URL, and verified commit only after the release gate
+# (mise run verify-release) and publishing succeed. Until then the public
+# status section must not claim a verified release or a pinned installation;
+# check-public-status enforces that boundary.
+released: false
+tag: ""
+release_url: ""
+commit: ""
