@@ -34,6 +34,7 @@
 "cmd/validate-skill-creator" = "./internal/validate"
 "cmd/evaluate" = "./internal/eval"
 "cmd/check-evaluation" = "./internal/eval"
+"cmd/generate-public-status" = "./internal/publicstatus"
 
 [scripts]
 "scripts/fsl/install-fslc.sh" = "./internal/fsl"
