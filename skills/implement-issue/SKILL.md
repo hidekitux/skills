@@ -36,7 +36,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
 ## Implement
 
 - Track every implementation task on the Todo List; keep exactly one task item in progress.
-- When implementation starts (resolving or creating the Issue branch), set the governing Issue's Project Status to `In progress` using the repository-declared Project configuration: resolve the Status field and option IDs from their declared names (`gh project field-list`) and apply them with `gh project item-edit` using the declared field and option names (one call per field); never create a duplicate Project item.
+- When implementation starts (resolving or creating the Issue branch), ensure the governing Issue's Project Status is `In progress`. The parent Agent may delegate this as one explicit, bounded Subagent operation containing only the repository, Issue number, Project configuration, and requested Status. The Subagent must verify the single existing item, change only the Status field idempotently, and return command/API evidence. The parent Agent authorizes the operation, verifies the result, handles ambiguity or failure, and remains responsible for the handoff; no Subagent may infer this transition or mutate other fields.
 - Start from the current work branch and the plan's base revision. When the plan calls for a fresh Issue branch, create it only after confirming the Issue-backed branch convention and the upstream base.
 - Edit only the files required by the task. Prefer the repository's existing patterns, local helper APIs, and module boundaries.
 - For each completed task, record observable evidence: the files changed, the commands run, and the resulting output or artifact. Never claim completion from intent alone.

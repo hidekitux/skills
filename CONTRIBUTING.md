@@ -55,19 +55,21 @@ values from the declared single-select fields:
   `Security`, `Release`; derive it from the Issue type.
 
 The Project is the operational source of truth for planning; GitHub Issues
-remain the source of truth for requirements, discussion, and closure. The
-workflow skills advance Status automatically: `create-issue` adds a new Issue
-with Status `Backlog` and the derived Scope and Priority, `plan-issue` moves a
-It plans to `Planned`, `implement-issue` moves started work to
-`In progress`, `create-pr` moves an Issue to `In review` when its Pull
-Request opens, the Project's built-in Item closed workflow moves a closed
-Issue to `Done`, and its built-in Item reopened workflow restores `Backlog`
-when an Issue is reopened. The `Policy (Project)` workflow keeps
-PR-driven transitions in sync afterwards: ready `opened`, `reopened`, and
+remain the source of truth for requirements, discussion, and closure. Status
+ownership is split by observable evidence: `create-issue` creates a new Issue
+with Status `Backlog` and the derived Scope and Priority; `plan-issue` emits an
+authoritative machine-readable plan-comment marker and the `Policy (Project)`
+workflow advances it to `Planned`; `implement-issue` may delegate the explicit
+implementation-start update to `In progress`; the `Policy (Project)` workflow
+owns PR-observable transitions and moves ready Pull Requests to `In review`
+without a second `create-pr` mutation. The Project's built-in Item closed
+workflow moves a closed Issue to `Done`, and its built-in Item reopened workflow
+restores `Backlog` when an Issue is reopened. The `Policy (Project)` workflow
+keeps PR-driven transitions in sync: ready `opened`, `reopened`, and
 `synchronize` events stay `In review`; draft, `ready_for_review`, and
-`converted_to_draft` events switch between `In progress` and `In review`; an
-unmerged `closed` event returns to `In progress`; and a merged `closed` event
-makes no change because the linked Issue closes and reaches `Done` through
+`converted_to_draft` events switch between `In progress` and `In review`;
+an unmerged `closed` event returns to `In progress`; and a merged `closed`
+event makes no change because the linked Issue closes and reaches `Done` through
 the built-in Item closed workflow, while a release Issue tracked with
 `Tracks` stays non-terminal until publication. Field and option IDs are
 resolved from the declared names at runtime; never hard-code Project
