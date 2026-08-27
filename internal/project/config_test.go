@@ -8,7 +8,7 @@ import (
 )
 
 const validConfigTOML = `[project]
-owner = "hidekitux"
+owner = "acme"
 title = "Skills Issues"
 default_priority = "Medium"
 
@@ -40,7 +40,7 @@ func loadTestConfig(t *testing.T, text string) *Config {
 
 func TestLoadConfigAcceptsRepositoryContract(t *testing.T) {
 	cfg := loadTestConfig(t, validConfigTOML)
-	if cfg.Project.Owner != "hidekitux" || cfg.Project.Title != "Skills Issues" {
+	if cfg.Project.Owner != "acme" || cfg.Project.Title != "Skills Issues" {
 		t.Fatalf("unexpected project identity: %+v", cfg.Project)
 	}
 	for _, role := range RequiredFields {
@@ -55,7 +55,7 @@ func TestLoadConfigAcceptsRepositoryContract(t *testing.T) {
 
 func TestLoadConfigRejectsIncompleteContract(t *testing.T) {
 	cases := map[string]string{
-		"missing owner":        strings.Replace(validConfigTOML, `owner = "hidekitux"`, "", 1),
+		"missing owner":        strings.Replace(validConfigTOML, `owner = "acme"`, "", 1),
 		"missing title":        strings.Replace(validConfigTOML, `title = "Skills Issues"`, "", 1),
 		"missing status field": strings.Replace(validConfigTOML, "[fields.status]", "[fields.status-typo]", 1),
 		"empty options":        strings.Replace(validConfigTOML, `options = ["High", "Medium", "Low"]`, "options = []", 1),

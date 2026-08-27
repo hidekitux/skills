@@ -74,7 +74,7 @@ func itemListJSON(itemID string, values ...string) string {
 	if len(values) == 0 {
 		values = []string{"O_BACKLOG", "O_MEDIUM", "O_IMPROV"}
 	}
-	return fmt.Sprintf(`{"items":[{"id":%q,"content":{"url":"https://github.com/hidekitux/skills/issues/205"},
+	return fmt.Sprintf(`{"items":[{"id":%q,"content":{"url":"https://github.com/acme/sample/issues/205"},
       "fieldValues":[
         {"field":{"id":"F_STATUS","name":"Status"},"optionId":%q},
         {"field":{"id":"F_PRIORITY","name":"Priority"},"optionId":%q},
@@ -82,15 +82,15 @@ func itemListJSON(itemID string, values ...string) string {
 		itemID, values[0], values[1], values[2])
 }
 
-const issueURL205 = "https://github.com/hidekitux/skills/issues/205"
+const issueURL205 = "https://github.com/acme/sample/issues/205"
 
 func defaultScriptedRunner(t *testing.T, itemJSON string) (*fakeRunner, *Client, *Config) {
 	t.Helper()
 	cfg := mustConfig(t)
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"}, itemJSON)
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemJSON)
 	return runner, NewClient(runner, cfg.Project.Owner), cfg
 }
 
@@ -98,7 +98,7 @@ func TestProjectNumberPrefersConfiguredNumber(t *testing.T) {
 	cfg := mustConfig(t)
 	cfg.Project.Number = 7
 	runner := newFakeRunner().respond(
-		[]string{"project", "view", "7", "--owner", "hidekitux", "--format", "json"},
+		[]string{"project", "view", "7", "--owner", "acme", "--format", "json"},
 		`{"id":"PVT_7","number":7,"title":"Skills Issues"}`)
 	client := NewClient(runner, cfg.Project.Owner)
 	number, err := client.ProjectNumber(cfg)
@@ -108,7 +108,7 @@ func TestProjectNumberPrefersConfiguredNumber(t *testing.T) {
 	if number != 7 {
 		t.Fatalf("expected configured number 7, got %d", number)
 	}
-	if !runner.called("project", "view", "7", "--owner", "hidekitux", "--format", "json") {
+	if !runner.called("project", "view", "7", "--owner", "acme", "--format", "json") {
 		t.Fatal("configured number must still resolve the node id")
 	}
 }
@@ -116,7 +116,7 @@ func TestProjectNumberPrefersConfiguredNumber(t *testing.T) {
 func TestProjectNumberResolvesUniqueTitle(t *testing.T) {
 	cfg := mustConfig(t)
 	runner := newFakeRunner().respond(
-		[]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON)
+		[]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON)
 	client := NewClient(runner, cfg.Project.Owner)
 	number, err := client.ProjectNumber(cfg)
 	if err != nil {
@@ -129,12 +129,12 @@ func TestProjectNumberResolvesUniqueTitle(t *testing.T) {
 
 func TestProjectNumberFailsOnMissingOrAmbiguousTitle(t *testing.T) {
 	cfg := mustConfig(t)
-	missing := newFakeRunner().respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"},
+	missing := newFakeRunner().respond([]string{"project", "list", "--owner", "acme", "--format", "json"},
 		`{"totalCount":1,"projects":[{"number":3,"title":"Other","id":"PVT_1"}]}`)
 	if _, err := NewClient(missing, cfg.Project.Owner).ProjectNumber(cfg); err == nil {
 		t.Fatal("expected missing title to fail")
 	}
-	ambiguous := newFakeRunner().respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"},
+	ambiguous := newFakeRunner().respond([]string{"project", "list", "--owner", "acme", "--format", "json"},
 		`{"totalCount":2,"projects":[{"number":1,"title":"Skills Issues","id":"PVT_1"},{"number":2,"title":"Skills Issues","id":"PVT_2"}]}`)
 	if _, err := NewClient(ambiguous, cfg.Project.Owner).ProjectNumber(cfg); err == nil {
 		t.Fatal("expected ambiguous title to fail")
@@ -144,13 +144,13 @@ func TestProjectNumberFailsOnMissingOrAmbiguousTitle(t *testing.T) {
 func TestResolvedFieldsFailsBeforeMutationOnMissingFieldOrOption(t *testing.T) {
 	cfg := mustConfig(t)
 	missingField := newFakeRunner().respond(
-		[]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"},
+		[]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"},
 		`{"fields":[{"id":"F_STATUS","name":"Phase","dataType":"SINGLE_SELECT","options":[]}]}`)
 	if _, err := NewClient(missingField, cfg.Project.Owner).resolvedFields(cfg, 3); err == nil {
 		t.Fatal("expected missing declared field to fail")
 	}
 	missingOption := newFakeRunner().respond(
-		[]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"},
+		[]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"},
 		`{"fields":[{"id":"F_STATUS","name":"Status","dataType":"SINGLE_SELECT","options":[
 		   {"id":"O_BACKLOG","name":"Backlog"}]},
 		  {"id":"F_PRIORITY","name":"Priority","dataType":"SINGLE_SELECT","options":[
@@ -171,14 +171,14 @@ func TestAddItemReusesExistingItemWithoutDuplicate(t *testing.T) {
 	if itemID != "ITEM_1" {
 		t.Fatalf("expected existing item ITEM_1, got %q", itemID)
 	}
-	if runner.called("project", "item-add", "3", "--owner", "hidekitux", "--url", issueURL205, "--format", "json") {
+	if runner.called("project", "item-add", "3", "--owner", "acme", "--url", issueURL205, "--format", "json") {
 		t.Fatal("existing item must not be added again")
 	}
 }
 
 func TestAddItemCreatesMissingItemOnce(t *testing.T) {
 	runner, client, _ := defaultScriptedRunner(t, `{"items":[]}`)
-	runner.respond([]string{"project", "item-add", "3", "--owner", "hidekitux",
+	runner.respond([]string{"project", "item-add", "3", "--owner", "acme",
 		"--url", issueURL205, "--format", "json"}, fmt.Sprintf(`{"id":"ITEM_2","content":{"url":%q}}`, issueURL205))
 	itemID, err := client.AddItem(3, issueURL205)
 	if err != nil {
@@ -187,15 +187,15 @@ func TestAddItemCreatesMissingItemOnce(t *testing.T) {
 	if itemID != "ITEM_2" {
 		t.Fatalf("expected new item ITEM_2, got %q", itemID)
 	}
-	if !runner.called("project", "item-add", "3", "--owner", "hidekitux", "--url", issueURL205, "--format", "json") {
+	if !runner.called("project", "item-add", "3", "--owner", "acme", "--url", issueURL205, "--format", "json") {
 		t.Fatal("missing item must be added once")
 	}
 }
 
 func TestItemForIssueFailsOnAmbiguity(t *testing.T) {
-	runner := newFakeRunner().respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"},
+	runner := newFakeRunner().respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"},
 		`{"items":[{"id":"A","content":{"url":"`+issueURL205+`"}},{"id":"B","content":{"url":"`+issueURL205+`"}}]}`)
-	client := NewClient(runner, "hidekitux")
+	client := NewClient(runner, "acme")
 	if _, _, err := client.ItemForIssue(3, issueURL205); err == nil {
 		t.Fatal("expected duplicate item to fail")
 	}
@@ -203,8 +203,8 @@ func TestItemForIssueFailsOnAmbiguity(t *testing.T) {
 
 func TestAccessErrorClassifiesMissingScopes(t *testing.T) {
 	cfg := mustConfig(t)
-	runner := newFakeRunner().fail([]string{"project", "list", "--owner", "hidekitux", "--format", "json"},
-		errors.New("gh project list --owner hidekitux: your authentication token is missing required scopes [read:project]"))
+	runner := newFakeRunner().fail([]string{"project", "list", "--owner", "acme", "--format", "json"},
+		errors.New("gh project list --owner acme: your authentication token is missing required scopes [read:project]"))
 	_, err := NewClient(runner, cfg.Project.Owner).ProjectNumber(cfg)
 	target := &AccessError{}
 	if !errors.As(err, &target) {
@@ -224,9 +224,9 @@ func TestVerifyIssueAcceptsFlattenedFieldShape(t *testing.T) {
 	// fields instead of the fieldValues array; both shapes must verify.
 	cfg := mustConfig(t)
 	runner := newFakeRunner().
-		respond([]string{"project", "list", "--owner", "hidekitux", "--format", "json"}, projectListJSON).
-		respond([]string{"project", "field-list", "3", "--owner", "hidekitux", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "hidekitux", "--limit", "100", "--format", "json"},
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"},
 			`{"items":[{"id":"ITEM_1","status":"Backlog","priority":"Medium","scope":"Improvement","content":{"url":"`+issueURL205+`"}}]}`)
 	client := NewClient(runner, cfg.Project.Owner)
 	if err := client.VerifyIssue(cfg, issueURL205); err != nil {
