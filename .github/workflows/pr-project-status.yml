@@ -19,17 +19,20 @@ on:
   # zizmor: ignore[dangerous-triggers] This checks out only the trusted base SHA and never executes PR code.
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
   issues: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: true
 
 jobs:
   sync-status:
+    if: github.event_name == 'pull_request_target'
     name: Validate Issue Project Status
     runs-on: ubuntu-latest
     steps:
@@ -84,3 +87,43 @@ jobs:
             --pr-type "$PR_TYPE" \
             --pr-draft "$PR_DRAFT" \
             --pr-merged "$PR_MERGED"
+
+  sync-planned:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request == null
+    name: Validate planned Issue status
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout is pinned to the trusted default branch; Issue comment text is
+      # data only and is never executed as workflow code.
+      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out trusted default branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+      # v5 -> 40f1582b2485089dde7abd97c1529aa768e1baff
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.26.6'
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Set Project Status from authoritative plan comment
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PROJECTS_TOKEN" ]; then
+            echo "PROJECTS_TOKEN secret is not configured; skipping (fail-safe)."
+            exit 0
+          fi
+          if ! go run ./cmd/validate-plan-comment --issue "$ISSUE" --body-env COMMENT_BODY; then
+            echo "Comment is not an authoritative plan comment; leaving Project Status unchanged."
+            exit 0
+          fi
+          go run ./cmd/set-issue-project-status --root . --repo "$REPOSITORY" \
+            --issue "$ISSUE" --status "Planned"

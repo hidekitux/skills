@@ -64,8 +64,9 @@ reasons:
 - `Policy (Issues)` (`policy-issues.yml`) — `issues`-event policy checks.
 - `Policy (Project)` (`pr-project-status.yml`) — keeps the governing
   Issue's Project Status in sync with every pull_request state transition on
-  `pull_request_target`; it checks out only the trusted base SHA and never
-  executes Pull Request code.
+  `pull_request_target`, and advances an Issue to `Planned` from an
+  authoritative `plan-issue` comment on `issue_comment`; it checks out only
+  trusted repository content and never executes comment or Pull Request code.
 - `Security` (`security.yml`) — audit role (zizmor), not a validation check.
 - `Validate (Targeted)` (`targeted.yml`) — change-scoped Tier 2 validation:
   the jobs `Validate FSL mutation` and `Audit Go dependency security` always

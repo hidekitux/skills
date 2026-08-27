@@ -41,8 +41,8 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 ## Handoff
 
-- After posting the plan comment on the governing Change Issue, set its Project Status to `Planned` using the repository-declared Project configuration: confirm one item exists (`gh project item-list`), resolve the Status field and option IDs from their declared names (`gh project field-list`), and apply them with `gh project item-edit` using the declared field and option names (one call per field); never create a duplicate item. Include the resulting Project Status in the handoff.
-- Deliver the plan as a comment on the governing Change Issue. Keep the comment self-contained: ordered tasks with completion evidence, out-of-scope items, residual risk, and the next-phase handoff. Report the Issue URL and the comment URL.
+- Post the plan comment with the machine-readable marker `<!-- skills:plan-issue issue=<number> -->` as the first line (replacing `<number>` with the governing Issue number), followed by the required ordered plan sections. The trusted `Policy (Project)` workflow advances the governing Project item to `Planned` from this marker; do not issue a second Agent-side Status mutation.
+- Deliver the plan as a comment on the governing Change Issue. Keep the comment self-contained: the marker, ordered tasks with completion evidence, out-of-scope items, residual risk, and the next-phase handoff. Report the Issue URL and the comment URL; the Project workflow's `Planned` update may be asynchronous and must be verified before handoff.
 - Do not hand off through a temporary or local file, and do not rely on the host's native task tracking to carry the plan.
 - Complete the Todo List only after the comment is posted and its URL is available. Do not write code, create commits, or execute the plan unless separately requested.
 - Simple Issues may skip this planning step. When a plan is needed, the next
