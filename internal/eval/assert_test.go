@@ -27,7 +27,7 @@ func TestEvaluateAssertions(t *testing.T) {
 			UnchangedFiles:    []string{"src/app.go"},
 			CommandRun:        []CommandRun{{Run: "true", Dir: "", Exit: 0}},
 		}}
-		failures := evaluateAssertions(context.Background(), sc, "handing to implement-issue", sandbox, before)
+		failures := evaluateAssertions(context.Background(), sc, "handing to implement-issue", sandbox, before, map[string]bool{"implement-issue": true})
 		if len(failures) != 0 {
 			t.Fatalf("expected no failures, got %v", failures)
 		}
@@ -47,8 +47,9 @@ func TestEvaluateAssertions(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer writeTestFile(t, sandbox, "src/app.go", "package app\nfunc Apply() {}\n")
-		failures := evaluateAssertions(context.Background(), sc, "no handoff here ghp_123", sandbox, before)
+		failures := evaluateAssertions(context.Background(), sc, "no handoff here ghp_123", sandbox, before, map[string]bool{"implement-issue": true})
 		want := []string{
+			`transcript does not name the expected handoff "implement-issue"`,
 			`transcript does not contain "implement-issue"`,
 			`transcript does not contain "missing-pattern"`,
 			`transcript contains forbidden "ghp_"`,
@@ -66,7 +67,7 @@ func TestEvaluateAssertions(t *testing.T) {
 		sc := &Scenario{Expectations: Expectations{
 			CommandRun: []CommandRun{{Run: "exit 3", Dir: "", Exit: 0}},
 		}}
-		failures := evaluateAssertions(context.Background(), sc, "", sandbox, nil)
+		failures := evaluateAssertions(context.Background(), sc, "", sandbox, nil, nil)
 		if len(failures) == 0 {
 			t.Fatal("expected command exit mismatch to fail")
 		}
@@ -77,14 +78,14 @@ func TestEvaluateAssertions(t *testing.T) {
 			sc := &Scenario{Expectations: Expectations{
 				TranscriptMustAny: []string{"no mandatory", "zero mandatory", "no enforcement gaps"},
 			}}
-			if failures := evaluateAssertions(context.Background(), sc, transcript, sandbox, nil); len(failures) != 0 {
+			if failures := evaluateAssertions(context.Background(), sc, transcript, sandbox, nil, nil); len(failures) != 0 {
 				t.Fatalf("transcript %q should match an alternative, got %v", transcript, failures)
 			}
 		}
 		sc := &Scenario{Expectations: Expectations{
 			TranscriptMustAny: []string{"no mandatory", "zero mandatory", "no enforcement gaps"},
 		}}
-		failures := evaluateAssertions(context.Background(), sc, "all rules are documented only", sandbox, nil)
+		failures := evaluateAssertions(context.Background(), sc, "all rules are documented only", sandbox, nil, nil)
 		if len(failures) == 0 || !strings.Contains(failures[0], "none of the alternatives") {
 			t.Fatalf("expected unmatched-alternatives failure, got %v", failures)
 		}
@@ -92,9 +93,30 @@ func TestEvaluateAssertions(t *testing.T) {
 
 	t.Run("unchanged file absent before is vacuous", func(t *testing.T) {
 		sc := &Scenario{Expectations: Expectations{UnchangedFiles: []string{"never-existed.go"}}}
-		failures := evaluateAssertions(context.Background(), sc, "", sandbox, nil)
+		failures := evaluateAssertions(context.Background(), sc, "", sandbox, nil, nil)
 		if len(failures) != 0 {
 			t.Fatalf("expected vacuous pass, got %v", failures)
+		}
+	})
+
+	t.Run("handoff names a cataloged skill as transcript assertion", func(t *testing.T) {
+		names := map[string]bool{"create-pr": true}
+		sc := &Scenario{Expectations: Expectations{Handoff: "create-pr"}}
+		failures := evaluateAssertions(context.Background(), sc, "implemented, stopping before the pull request", sandbox, nil, names)
+		if len(failures) == 0 || !strings.Contains(failures[0], `does not name the expected handoff "create-pr"`) {
+			t.Fatalf("expected handoff failure, got %v", failures)
+		}
+		failures = evaluateAssertions(context.Background(), sc, "handing the branch to create-pr", sandbox, nil, names)
+		if len(failures) != 0 {
+			t.Fatalf("expected pass when the next owner is named, got %v", failures)
+		}
+	})
+
+	t.Run("outcome marker handoffs stay expectation-driven", func(t *testing.T) {
+		sc := &Scenario{Expectations: Expectations{Handoff: "blocked-ask"}}
+		names := map[string]bool{"blocked-ask": false}
+		if failures := evaluateAssertions(context.Background(), sc, "stopping and asking the requester", sandbox, nil, names); len(failures) != 0 {
+			t.Fatalf("marker handoff must not be asserted, got %v", failures)
 		}
 	})
 }

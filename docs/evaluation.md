@@ -42,10 +42,22 @@ all of the following hold, verified against a retained evaluation run:
    now is a regression that blocks promotion and triggers demotion review.
 4. **Bounded variance.** Re-running an unchanged scenario produces identical
    deterministic verdicts and rubric scores within ±1 per dimension.
-5. **Retained evidence.** A machine-readable report recording passing verdicts
-   for the skill exists under `evaluations/reports/`. This is enforced by
-   `check-evaluation` (part of `check:repository`): a catalog entry with
-   `status: stable` and no passing evidence fails repository validation.
+5. **Retained evidence.** A machine-readable report recording a qualifying
+   pass for the skill exists under `evaluations/reports/`: a record whose
+   `verdict` is `pass` for that skill **and** whose `rubric_review` is
+   `complete` with all seven `rubric_scores` present (a pass for another
+   skill in the same file, or a pass without a completed rubric review, is
+   not retained evidence). This is enforced by `check-evaluation` (part of
+   `check:repository`): a catalog entry with `status: stable` and no
+   qualifying evidence fails repository validation. The remaining threshold
+   items (rubric floor, regression-free, bounded variance) are verified by
+   the release flow against the retained runs.
+
+Skills also contract to **name the next owner**: when a scenario's `handoff`
+is a cataloged skill name (per `docs/skill-contract.md`), the transcript
+must contain it, so a flow that stops before its documented handoff fails
+deterministically. Outcome markers such as boundary stop conditions are
+asserted through `transcript_must` / `transcript_must_any`.
 
 Changing a skill's actual `status` is release-flow work (and later Sub-issues
 of Issue 165); this document defines the threshold that the release flow must
@@ -93,7 +105,15 @@ scenario gate passes when at least one driver produced a deterministic pass,
 so a rate-limited or credit-depleted provider (HTTP 429) does not block the
 run. GitHub-dependent scenarios require a sandbox repository via
 `EVAL_GITHUB_REPO`; without it they record `skipped` with reason
-`sandbox_repo_not_configured`.
+`sandbox_repo_not_configured`. When set, the harness registers the repository
+as the sandbox Git origin and passes `GH_REPO` to the driver children so `git`
+and `gh` resolve the same target. Driver processes never inherit
+credential-like environment variables (`*KEY*`, `*TOKEN*`, `*SECRET*`,
+`*PASSWORD*`, `*CREDENTIAL*`): the evaluated model can read its own
+environment, and only the antigravity key-mode process receives
+`GEMINI_API_KEY`. Account mode for antigravity keeps the real HOME, so the
+evaluated agent also sees the developer's global `~/.gemini` skills; prefer
+the opt-in key mode for reproducible runs.
 
 ## Validation of this system (Issue 173)
 

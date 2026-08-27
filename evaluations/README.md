@@ -52,7 +52,9 @@ stages:                         # e2e flows only (skill: e2e)
       Second stage prompt.
 fixture: governed-change        # key into fixtures/<key>/ (optional)
 expectations:
-  handoff: plan-issue           # named next-owner per docs/skill-contract.md
+  handoff: plan-issue           # named next-owner per docs/skill-contract.md;
+                                 # asserted against the transcript when it
+                                 # names a cataloged skill
   transcript_must:              # deterministic substrings the transcript needs
     - "plan-issue"
   transcript_must_any:          # alternatives; at least one must appear
@@ -91,8 +93,15 @@ Contract rules enforced by `cmd/check-evaluation` (wired into
   stage prompts (expected-answer leak guard).
 - Every cataloged skill has at least one `positive` and one `negative` or
   `boundary` scenario.
+- A `handoff` that names a cataloged skill is asserted against the transcript:
+  the evaluated agent must name the documented next owner. Outcome markers
+  (for example a boundary stop condition such as `blocked-ask`) are asserted
+  through `transcript_must` / `transcript_must_any` instead.
 - A catalog entry with `status: stable` requires machine-readable evaluation
-  evidence under `evaluations/reports/` naming the skill.
+  evidence under `evaluations/reports/`: a record with a `pass` verdict for
+  that skill and a completed seven-dimension rubric review (`rubric_review:
+  complete` with all `rubric_scores` present). A passing verdict for another
+  skill in the same file does not count.
 
 ## Running evaluation locally
 
@@ -159,6 +168,19 @@ human-readable Markdown summary, written under `--output` (default
   disposable, so the driver uses `--dangerously-skip-permissions` to run
   headless.
 
+  Account mode keeps the real HOME, so the evaluated agent sees the
+  developer's global `~/.gemini` skills, plugins, and built-ins (for example
+  the firebase and chrome-devtools plugin skills) in its available-skill
+  list. That pollutes trigger-selection context and makes account-mode runs
+  differ from an isolated key-mode run; prefer the opt-in key mode for
+  reproducible runs, or restrict global skills.
+
+Because the evaluated model can read its own environment, credential-like
+variables (`*KEY*`, `*TOKEN*`, `*SECRET*`, `*PASSWORD*`, `*CREDENTIAL*`) are
+filtered from every driver child process. Only the antigravity key-mode
+process receives `GEMINI_API_KEY`, and only from the harness's own process;
+commit nothing that would let a model echo a secret into a transcript.
+
 When the driver binary is absent or, for antigravity, the Gemini project
 behind `GEMINI_API_KEY` has exhausted its credits (HTTP 429), scenarios record
 `skipped` or `infrastructure_error` with the concrete reason instead of a
@@ -181,6 +203,14 @@ Process-layer skills (`create-issue`, `implement-issue`, `create-pr`,
 the `artifact-flow` e2e stages requires a documented sandbox repository and is
 otherwise recorded as `skipped` (reason `sandbox_repo_not_configured`). A
 sandbox repository is an environment concern, not part of this corpus.
+
+Set `EVAL_GITHUB_REPO=owner/repo` to configure one: the harness registers
+the repository as the sandbox Git origin (`origin` →
+`https://github.com/<owner/repo>.git`) and passes `GH_REPO` to the driver
+children, so `git` and `gh` resolve the same target. The sandbox itself
+stays a throwaway local clone of the fixtures; skills and their prompts
+never receive credentials, and the harness's own `gh` calls keep the
+developer's authentication.
 
 ## Deterministic versus rubric
 

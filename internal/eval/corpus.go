@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -141,9 +142,87 @@ func validatePromptLeaks(sc *Scenario, catalogNames map[string]bool, findings *[
 	}
 }
 
+// catalogHandoffNames returns the cataloged skill names used to decide which
+// scenario handoffs are deterministic transcript assertions: only a handoff
+// that names a cataloged skill is the next-owner contract in
+// docs/skill-contract.md. A missing or unreadable catalog disables the
+// assertion without failing the run.
+func catalogHandoffNames(root string) map[string]bool {
+	catalog, err := loadCatalogSkills(root)
+	if err != nil {
+		return nil
+	}
+	names := make(map[string]bool, len(catalog))
+	for _, skill := range catalog {
+		names[skill.Name] = true
+	}
+	return names
+}
+
+// qualifyingRecord reports whether a decoded report record satisfies the
+// documented promotion evidence (docs/evaluation.md): a pass verdict for the
+// skill with a completed seven-dimension rubric review. A passing verdict for
+// another skill in the same file, or a pass without rubric evidence, does not
+// count.
+func qualifyingRecord(skill string, record map[string]any) bool {
+	if record["verdict"] != VerdictPass || record["skill"] != skill {
+		return false
+	}
+	if record["rubric_review"] != RubricComplete {
+		return false
+	}
+	scores, ok := record["rubric_scores"].(map[string]any)
+	if !ok {
+		return false
+	}
+	for _, dimension := range scoreOrder {
+		value, ok := scores[dimension].(float64)
+		if !ok || value < 1 || value > 5 {
+			return false
+		}
+	}
+	return true
+}
+
+// reportRecords decodes a machine-readable report file into records. JSONL
+// reports carry one record per line; .json reports may be a single record or
+// an array of records. Unreadable or malformed files yield no records so a
+// broken report cannot satisfy the promotion gate.
+func reportRecords(path string) []map[string]any {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	if filepath.Ext(path) == ".jsonl" {
+		var records []map[string]any
+		for _, line := range strings.Split(string(content), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			var record map[string]any
+			if err := json.Unmarshal([]byte(line), &record); err != nil {
+				return nil
+			}
+			records = append(records, record)
+		}
+		return records
+	}
+	var records []map[string]any
+	if err := json.Unmarshal(content, &records); err == nil {
+		return records
+	}
+	var record map[string]any
+	if err := json.Unmarshal(content, &record); err != nil {
+		return nil
+	}
+	return []map[string]any{record}
+}
+
 // hasStableEvidence reports whether a machine-readable evaluation report
-// under evaluations/reports/ records a passing verdict for the skill,
-// satisfying the documented promotion gate for status: stable entries.
+// under evaluations/reports/ records a qualifying pass for the skill,
+// satisfying the documented promotion gate for status: stable entries. The
+// skill and the pass verdict must belong to the same record.
 func hasStableEvidence(root, skill string) bool {
 	reportsDir := filepath.Join(root, "evaluations", "reports")
 	found := false
@@ -155,14 +234,11 @@ func hasStableEvidence(root, skill string) bool {
 		if ext != ".jsonl" && ext != ".json" {
 			return nil
 		}
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return nil
-		}
-		text := string(content)
-		if strings.Contains(text, `"skill":"`+skill+`"`) && strings.Contains(text, `"verdict":"pass"`) {
-			found = true
-			return filepath.SkipAll
+		for _, record := range reportRecords(path) {
+			if qualifyingRecord(skill, record) {
+				found = true
+				return filepath.SkipAll
+			}
 		}
 		return nil
 	})
@@ -213,7 +289,7 @@ func CheckCorpus(root string, out, errOut io.Writer) int {
 		if !kinds[KindPositive] {
 			findings = append(findings, fmt.Sprintf("skill %q has no positive success scenario", skill.Name))
 		}
-		if !kinds[KindNegative] && !kinds[KindBoundary] && !kinds[KindSafety] {
+		if !kinds[KindNegative] && !kinds[KindBoundary] {
 			findings = append(findings, fmt.Sprintf("skill %q has no failure or boundary scenario", skill.Name))
 		}
 		if skill.Status == "stable" && !hasStableEvidence(root, skill.Name) {

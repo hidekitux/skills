@@ -40,6 +40,11 @@ type Options struct {
 	// provides the real drivers.
 	RunnerFor func(name string) HostRunner
 	Reviewer  RubricReviewer
+	// HandoffNames is the set of cataloged skill names used to decide which
+	// scenario handoffs are asserted against the transcript (a handoff that
+	// names a cataloged skill is the deterministic next-owner contract in
+	// docs/skill-contract.md). Populated from CATALOG.yml by Run when nil.
+	HandoffNames map[string]bool
 }
 
 // selectScenarios applies the scenario, skills, and smoke filters in order.
@@ -211,7 +216,7 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 	correctionsUsed := runCorrections(ctx, sc, host, sandboxDir, &transcript)
 	record.CorrectionsUsed = correctionsUsed
 
-	failures := evaluateAssertions(ctx, sc, transcript.String(), sandboxDir, before)
+	failures := evaluateAssertions(ctx, sc, transcript.String(), sandboxDir, before, opts.HandoffNames)
 	if len(failures) > 0 {
 		record.Verdict = VerdictFail
 		record.Failures = failures
@@ -222,6 +227,11 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 	if opts.Reviewer != nil {
 		scores, err := opts.Reviewer.Review(ctx, sc, transcript.String(), sandboxDir)
 		if err != nil {
+			// A failing reviewer is an infrastructure condition of the run
+			// (Acceptance criterion 3), not a passing outcome: the scenario
+			// cannot produce rubric evidence, so the record must not report
+			// pass and must not block the either-pass gate as a success.
+			record.Verdict = VerdictInfra
 			record.InfraError = "rubric review: " + err.Error()
 			record.RubricReview = RubricPending
 			return record
@@ -313,6 +323,9 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	opts.Commit = repoCommit(opts.Root)
 	if opts.Model == "" {
 		opts.Model = resolveModel(opts.Root)
+	}
+	if opts.HandoffNames == nil {
+		opts.HandoffNames = catalogHandoffNames(opts.Root)
 	}
 	// Pin the evaluation-level tier model for the tier-driven opencode driver
 	// so the invoked CLI never falls back to an unspecified default. The

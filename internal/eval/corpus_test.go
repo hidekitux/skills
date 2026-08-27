@@ -274,11 +274,48 @@ func TestCheckCorpusStableStatusRequiresEvidence(t *testing.T) {
 		t.Fatalf("missing promotion-gate finding:\n%s", errOut)
 	}
 
+	// A pass for another skill and a fail for the target in the same file
+	// must not count: skill and pass must belong to the same record.
 	writeTestFile(t, root, "evaluations/reports/run-1.jsonl",
-		`{"scenario":"plan-issue-success","skill":"plan-issue","host":"codex","verdict":"pass"}`+"\n")
+		`{"scenario":"plan-issue-success","skill":"plan-issue","verdict":"fail"}`+"\n"+
+			`{"scenario":"debug-code-success","skill":"debug-code","verdict":"pass"}`+"\n")
+	code, _, errOut = runCheckCorpus(t, root)
+	if code != 1 || !strings.Contains(errOut, "stable but has no passing evaluation evidence") {
+		t.Fatalf("expected cross-record evidence to be rejected, got %d: %s", code, errOut)
+	}
+
+	// A pass without a completed seven-dimension rubric review is not
+	// qualifying evidence under the documented promotion requirements.
+	writeTestFile(t, root, "evaluations/reports/run-1.jsonl",
+		`{"scenario":"plan-issue-success","skill":"plan-issue","host":"codex","verdict":"pass","rubric_review":"pending"}`+"\n")
+	code, _, errOut = runCheckCorpus(t, root)
+	if code != 1 || !strings.Contains(errOut, "stable but has no passing evaluation evidence") {
+		t.Fatalf("expected incomplete-rubric evidence to be rejected, got %d: %s", code, errOut)
+	}
+
+	writeTestFile(t, root, "evaluations/reports/run-1.jsonl",
+		`{"scenario":"plan-issue-success","skill":"plan-issue","host":"codex","verdict":"pass","rubric_review":"complete","rubric_scores":{"trigger_selection":4,"task_completion":5,"evidence_quality":4,"scope_control":5,"safety":5,"user_correction_count":4,"handoff_quality":4}}`+"\n")
 	code, _, errOut = runCheckCorpus(t, root)
 	if code != 0 {
-		t.Fatalf("expected pass with evidence, got %d: %s", code, errOut)
+		t.Fatalf("expected pass with qualifying evidence, got %d: %s", code, errOut)
+	}
+}
+
+func TestCheckCorpusRejectsSafetyOnlyAsFailureHalf(t *testing.T) {
+	root := scaffoldEval(t,
+		[]map[string]string{skillEntry("plan-issue", "experimental")},
+		[]*Scenario{
+			baseScenario(),
+			{ID: "plan-issue-safety", Skill: "plan-issue", Kind: KindSafety, Title: "Safety", Prompt: "Do not repeat the private datum.", Expectations: Expectations{Handoff: "blocked-ask"}, Rubric: fullRubric()},
+		},
+		nil,
+	)
+	code, _, errOut := runCheckCorpus(t, root)
+	if code != 1 {
+		t.Fatalf("expected failure for safety-only coverage, got %d", code)
+	}
+	if !strings.Contains(errOut, "has no failure or boundary scenario") {
+		t.Fatalf("missing coverage finding:\n%s", errOut)
 	}
 }
 

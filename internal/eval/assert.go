@@ -38,10 +38,18 @@ func snapshotHashes(dir string, paths []string) map[string]string {
 
 // evaluateAssertions runs every deterministic expectation against the
 // transcript and the sandbox state, returning a list of concrete failures.
-// An empty list means the scenario passed.
-func evaluateAssertions(ctx context.Context, sc *Scenario, transcript, sandboxDir string, before map[string]string) []string {
+// An empty list means the scenario passed. handoffNames holds the cataloged
+// skill names; when the scenario's expected handoff names one of them, the
+// transcript must contain it (the next-owner contract in
+// docs/skill-contract.md). Outcome markers such as boundary stop conditions
+// are asserted through transcript_must and transcript_must_any instead.
+func evaluateAssertions(ctx context.Context, sc *Scenario, transcript, sandboxDir string, before map[string]string, handoffNames map[string]bool) []string {
 	expect := sc.Expectations
 	var failures []string
+
+	if handoffNames[expect.Handoff] && !strings.Contains(transcript, expect.Handoff) {
+		failures = append(failures, fmt.Sprintf("transcript does not name the expected handoff %q", expect.Handoff))
+	}
 
 	for _, pattern := range expect.TranscriptMust {
 		if !strings.Contains(transcript, pattern) {
