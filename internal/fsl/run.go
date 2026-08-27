@@ -127,7 +127,7 @@ func runFslc(out, errOut io.Writer, args ...string) int {
 	cmd := exec.Command(filepath.Join(binPath(), "fslc"), args...)
 	cmd.Stdout = out
 	cmd.Stderr = errOut
-	cmd.Env = os.Environ()
+	cmd.Env = support.GitEnv()
 	return support.ExitError(cmd.Run())
 }
 
