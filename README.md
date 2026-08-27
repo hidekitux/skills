@@ -123,7 +123,7 @@ Where the related guides live:
 
 ## Installation and compatibility
 
-`gh skill` supports Codex and Claude Code:
+`gh skill` supports Codex and Claude Code. Install the latest catalog snapshot for both hosts:
 
 ```bash
 gh skill install hidekitux/skills --all --agent codex --scope user
@@ -131,6 +131,13 @@ gh skill install hidekitux/skills --all --agent claude-code --scope user
 ```
 
 Use `--scope project` for a project install and `skill-name@vX.Y.Z` to pin a release. `--agent` selects one host, so run each command to install for both.
+
+Pinning changes how an install resolves:
+
+- **Unpinned** (`hidekitux/skills`) resolves to the default branch head, so it tracks the latest unreleased catalog snapshot.
+- **Pinned** (`skill-name@vX.Y.Z`) resolves to the immutable release tag, so it is reproducible and stable.
+
+Each released tag matches a GitHub Release at `https://github.com/hidekitux/skills/releases` and the `CATALOG.yml` versions for that release. Published `v` release tags are immutable: the repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving them, so a released version always points at the same verified commit. To correct a bad release, publish a new patch release; never replace or reuse an existing tag. See [docs/releasing.md](docs/releasing.md) for the release procedure.
 
 Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` content for a host. When a material execution difference exists, add `references/hosts/<host>.md` that states the available capability, preferred path, fallback, and verification method. `agents/openai.yaml` is Codex UI metadata only. The tracked `hosts/` directory contains repository-level examples; `.codex/`, `.claude/`, and `.agents/` are generated local state and are not tracked.
 
