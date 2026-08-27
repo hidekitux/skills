@@ -1,0 +1,155 @@
+// Confirmed formalization memo for the Issue Project Status workflow.
+//
+// ASSUME-1: this model covers the Project Status state machine only; GitHub
+//           Issues remain the source of truth for requirement content,
+//           discussion, and closure, and the Project is the planning view.
+// ASSUME-2: issue_created, plan_posted, and implementation_started model the
+//           create-issue, plan-issue, and implement-issue flow effects.
+// ASSUME-3: the pull_request actions model the create-pr flow and the
+//           Pull Request Project Status automation event mapping.
+// ASSUME-4: issue_closed models the built-in Item closed workflow and
+//           issue_reopened the built-in Item reopened workflow.
+// ASSUME-5: a merged Pull Request has no direct transition in this model:
+//           the linked Issue closes (issue_closed) and reaches Done, which
+//           keeps release Issues non-terminal until publication.
+// ASSUME-6: draft pull requests map to InProgress and ready ones to InReview;
+//           metadata events (edited, labeled, review_requested) never change
+//           Status and are outside this model.
+spec IssueProjectStatus {
+  enum Status { Backlog, Planned, InProgress, InReview, Done }
+
+  state {
+    status: Status,
+    issue_exists: Bool,
+    plan_posted: Bool,
+    implementation_started: Bool,
+    review_started: Bool,
+    closed: Bool,
+    reopened: Bool
+  }
+
+  init {
+    status = Backlog
+    issue_exists = false
+    plan_posted = false
+    implementation_started = false
+    review_started = false
+    closed = false
+    reopened = false
+  }
+
+  action issue_created() {
+    requires status == Backlog
+    requires issue_exists == false
+    issue_exists = true
+  }
+
+  action plan_posted() {
+    requires status == Backlog
+    requires issue_exists
+    plan_posted = true
+    status = Planned
+  }
+
+  action implementation_started() {
+    requires status == Planned
+    requires issue_exists
+    implementation_started = true
+    status = InProgress
+  }
+
+  action pr_opened_ready() {
+    requires status == InProgress
+    requires issue_exists
+    review_started = true
+    status = InReview
+  }
+
+  action pr_opened_draft() {
+    requires (status == Planned or status == InProgress)
+    requires issue_exists
+    implementation_started = true
+    status = InProgress
+  }
+
+  action pr_ready_for_review() {
+    requires status == InProgress
+    requires issue_exists
+    review_started = true
+    status = InReview
+  }
+
+  action pr_synchronize_ready() {
+    requires status == InReview
+    requires issue_exists
+    status = InReview
+  }
+
+  action pr_synchronize_draft() {
+    requires status == InReview
+    requires issue_exists
+    status = InProgress
+  }
+
+  action pr_converted_to_draft() {
+    requires status == InReview
+    requires issue_exists
+    status = InProgress
+  }
+
+  action pr_closed_unmerged() {
+    requires status == InReview
+    requires issue_exists
+    status = InProgress
+  }
+
+  action issue_closed() {
+    requires issue_exists
+    closed = true
+    status = Done
+  }
+
+  action issue_reopened() {
+    requires status == Done
+    requires closed
+    reopened = true
+    status = Backlog
+  }
+
+  invariant PlannedRequiresPlan {
+    status == Planned => plan_posted
+  }
+
+  invariant InProgressRequiresWorkStarted {
+    status == InProgress => implementation_started
+  }
+
+  invariant ReviewRequiresWorkStarted {
+    status == InReview => implementation_started
+  }
+
+  invariant ReviewRequiresReviewStarted {
+    status == InReview => review_started
+  }
+
+  invariant DoneRequiresClosure {
+    status == Done => closed
+  }
+
+  invariant ClosedIsDoneOrReopened {
+    closed => (status == Done or reopened)
+  }
+
+  invariant ReopenedWasClosed {
+    reopened => closed
+  }
+
+  terminal { status == Done or reopened }
+
+  reachable CreatedBacklog { status == Backlog and issue_exists }
+  reachable PlannedWork { status == Planned }
+  reachable InProgressWork { status == InProgress }
+  reachable UnderReview { status == InReview }
+  reachable DoneWork { status == Done }
+  reachable ReopenedBacklog { status == Backlog and reopened }
+}
