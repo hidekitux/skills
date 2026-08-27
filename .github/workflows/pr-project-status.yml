@@ -1,4 +1,4 @@
-name: Pull Request Project Status
+name: Policy (Project)
 
 # Keeps the governing Issue Project Status in sync with every pull_request
 # state transition, not just creation. Mapping:
@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   sync-status:
-    name: Sync Issue Project Status
+    name: Validate Issue Project Status
     runs-on: ubuntu-latest
     steps:
       # Checkout stays inline (not in .github/actions/setup-go) so the
