@@ -19,13 +19,14 @@ the whole skill set.
 
 Skills that drive the governed change workflow: issues, plans, implementations,
 pull requests, and reviews. They create and update work items, branches, and
-pull requests. The implementation stage (`implement-issue`) is the process
-layer's only editor of the target project's source code, and it edits only
-files inside a governed Issue's in-scope boundary derived from a verified plan;
-no process skill edits outside the governed implementation stage.
+pull requests. The implementation stage (`implement-issue`) owns substantive changes to the
+process layer's target-project source code. `merge-pr` may make narrowly scoped
+conflict-resolution edits while rebasing an explicitly authorized Pull Request,
+but it must not invent feature behavior or apply review fixes; substantive drift
+returns to `implement-issue`.
 
 - Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`,
-  `review-pr`
+  `review-pr`, `merge-pr`
 - Entry points: `improve-project`, `deliver-change` ([#175](https://github.com/hidekitux/skills/issues/175))
 
 ### analyze
@@ -70,6 +71,7 @@ missing; they do not implement the audited rules themselves.
 | process | implement-issue | experimental |
 | process | create-pr | experimental |
 | process | review-pr | experimental |
+| process | merge-pr | experimental |
 | process | improve-project | experimental |
 | process | deliver-change | experimental |
 | analyze | analyze-project | experimental |

@@ -6,7 +6,7 @@ Every skill states where its result goes and which skill owns the next phase. Th
 
 The governed change flow moves one artifact through owner skills:
 
-report → issue → plan → implementation → pull request → review
+report → issue → plan → implementation → pull request → review → merge
 
 | Stage | Owner skill | Result artifact | Handed to |
 | --- | --- | --- | --- |
@@ -16,6 +16,7 @@ report → issue → plan → implementation → pull request → review
 | Implementation | `implement-issue` | In-scope changes committed per task with evidence | `create-pr` |
 | Pull request | `create-pr` | Issue-backed Pull Request | `review-pr` |
 | Review | `review-pr` | Severity-ordered findings | `implement-issue` |
+| Merge | `merge-pr` | Merged Pull Request and linked-work outcome evidence | Post-merge verification or release publication |
 
 Rules:
 
@@ -35,6 +36,7 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `implement-issue` | In-scope edits committed per task with evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
 | `review-pr` | Severity-ordered findings | `implement-issue` | Reviews; does not edit the branch or merge |
+| `merge-pr` | Merged Pull Request and linked-work outcome evidence | Post-merge verification or release publication | Merges only after review and required checks; may resolve narrowly scoped conflicts after explicit authorization, but does not apply substantive fixes or publish releases |
 | `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
 | `write-tests` | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
 | `refactor-code` | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
