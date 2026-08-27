@@ -1,10 +1,13 @@
 package fsl
 
 import (
-	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 func TestIsScopedFSLPath(t *testing.T) {
@@ -34,7 +37,7 @@ func gitTest(t *testing.T, root string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
 	cmd.Dir = root
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(support.GitEnv(),
 		"GIT_AUTHOR_NAME=test", "GIT_AUTHOR_EMAIL=test"+"@"+"example.invalid",
 		"GIT_COMMITTER_NAME=test", "GIT_COMMITTER_EMAIL=test"+"@"+"example.invalid",
 		"GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null",
@@ -51,11 +54,75 @@ func baseCommit(t *testing.T, root string) string {
 	t.Helper()
 	gitTest(t, root, "add", "-A")
 	gitTest(t, root, "commit", "-m", "base")
-	out, err := exec.Command("git", "-C", root, "rev-parse", "HEAD").Output()
+	out, err := support.GitOutputIn(root, "rev-parse", "HEAD")
 	if err != nil {
 		t.Fatalf("rev-parse HEAD: %v", err)
 	}
-	return string(out)[:len(out)-1]
+	return strings.TrimSpace(out)
+}
+
+type gitSnapshot struct {
+	head     string
+	refs     string
+	index    string
+	worktree string
+	tracked  string
+}
+
+func snapshotGitState(t *testing.T, root string) gitSnapshot {
+	t.Helper()
+	read := func(args ...string) string {
+		out, err := support.GitOutputIn(root, args...)
+		if err != nil {
+			t.Fatalf("git %v: %v", args, err)
+		}
+		return out
+	}
+	return gitSnapshot{
+		head:     read("rev-parse", "HEAD"),
+		refs:     read("for-each-ref", "--format=%(refname)=%(objectname)", "refs/heads"),
+		index:    read("ls-files", "-s"),
+		worktree: read("status", "--porcelain=v1", "--untracked-files=all"),
+		tracked:  read("ls-files", "-z"),
+	}
+}
+
+func TestFixtureCommitsIgnoreInheritedCallerRepository(t *testing.T) {
+	caller := t.TempDir()
+	gitTest(t, caller, "init")
+	write(t, caller, "caller.txt", "caller")
+	baseCommit(t, caller)
+	callerBefore := snapshotGitState(t, caller)
+
+	fixture := t.TempDir()
+	t.Setenv("GIT_DIR", filepath.Join(caller, ".git"))
+	t.Setenv("GIT_WORK_TREE", caller)
+	t.Setenv("GIT_INDEX_FILE", filepath.Join(caller, ".git", "index"))
+
+	gitTest(t, fixture, "init")
+	write(t, fixture, "fixture.txt", "fixture")
+	write(t, fixture, "specs/fixture.fsl", "initial")
+	fixtureHead := baseCommit(t, fixture)
+	write(t, fixture, "specs/fixture.fsl", "changed")
+	specs, err := ChangedSpecs(fixture, fixtureHead)
+	if err != nil {
+		t.Fatalf("read changed fixture specs: %v", err)
+	}
+	if !reflect.DeepEqual(specs, []string{"specs/fixture.fsl"}) {
+		t.Fatalf("unexpected changed fixture specs: %v", specs)
+	}
+
+	callerAfter := snapshotGitState(t, caller)
+	if !reflect.DeepEqual(callerAfter, callerBefore) {
+		t.Fatalf("fixture commit changed caller repository:\nbefore=%+v\nafter=%+v", callerBefore, callerAfter)
+	}
+	fixtureHeadAfter, err := support.GitOutputIn(fixture, "rev-parse", "HEAD")
+	if err != nil {
+		t.Fatalf("read fixture HEAD after fixture commit: %v", err)
+	}
+	if strings.TrimSpace(fixtureHeadAfter) != fixtureHead {
+		t.Fatalf("fixture HEAD changed unexpectedly from %s to %s", fixtureHead, strings.TrimSpace(fixtureHeadAfter))
+	}
 }
 
 func TestChangedSpecsScopesToFSLPaths(t *testing.T) {

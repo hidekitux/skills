@@ -2,11 +2,12 @@ package fsl
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 // isScopedFSLPath reports whether rel is a repository-owned spec under specs/
@@ -28,7 +29,7 @@ func isScopedFSLPath(rel string) bool {
 func gitDiffNames(root, rev string) ([]string, error) {
 	cmd := exec.Command("git", "diff", "--name-only", rev)
 	cmd.Dir = root
-	cmd.Env = os.Environ()
+	cmd.Env = support.GitEnv()
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("git diff --name-only %s: %w", rev, err)
@@ -37,7 +38,7 @@ func gitDiffNames(root, rev string) ([]string, error) {
 
 	untracked := exec.Command("git", "ls-files", "--others", "--exclude-standard")
 	untracked.Dir = root
-	untracked.Env = os.Environ()
+	untracked.Env = support.GitEnv()
 	out, err = untracked.Output()
 	if err != nil {
 		return nil, fmt.Errorf("git ls-files --others: %w", err)
