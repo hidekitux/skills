@@ -107,6 +107,33 @@ skills:
     version: 0.1.0
     layer: fix
     related: [debug-code, implement-issue, refactor-code]
+  - name: improve-project
+    summary: Improve a project end to end from read-only analysis through an Issue-backed, reviewed change.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: process
+    related: [analyze-project, create-issue, plan-issue, implement-issue, create-pr, review-pr]
+  - name: deliver-change
+    summary: Deliver a governed Change Issue end to end from its verified plan through a reviewed Pull Request.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: process
+    related: [plan-issue, implement-issue, create-pr, review-pr]
+  - name: resolve-defect
+    summary: Resolve a verified defect from reproduction through fix, regression tests, and any required governed change.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: fix
+    related: [debug-code, write-tests, create-issue, plan-issue, implement-issue]
 
 # Example entry:
 # - name: pr-review

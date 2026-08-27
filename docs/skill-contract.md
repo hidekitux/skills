@@ -78,3 +78,28 @@ The reviewer does not edit the branch; `implement-issue` owns the fixes.
 - `analyze-*` skills investigate and recommend. Their report is the input to a candidate Issue, not an Issue itself.
 - Only `create-issue` may turn a candidate into an Issue.
 - `analyze-*` must not create Issues, document Issue-creation rules, or edit code.
+
+## Outcome-oriented entry points
+
+Entry points coordinate the artifact flow without changing stage ownership:
+
+| Entry point | Outcome | Route |
+| --- | --- | --- |
+| `improve-project` | Improve a project | `analyze-project` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+| `deliver-change` | Deliver an Issue-backed change | `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+| `resolve-defect` | Resolve a verified defect | `debug-code` → `write-tests` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+
+Rules:
+
+- Each phase still runs inside its owning primitive with that primitive's
+  authority; the entry point only routes phases and tracks one user-visible
+  progress model, then returns one cohesive final report.
+- Approval boundaries and external mutation authority are unchanged: only
+  `create-issue` and `create-pr` create external work items, and read-only
+  phases stay read-only.
+- Direct primitive invocation remains documented and functional; entry points
+  are optional coordinators, not replacements.
+- Entry points terminate their loops deterministically (bounded rework passes)
+  and stop with actionable evidence when a handoff fails.
+- Behavioral evaluation of entry-point routing and loop termination belongs to
+  the behavioral evaluation system.
