@@ -63,6 +63,9 @@ func (c *Client) VerifyIssue(cfg *Config, issueURL string) error {
 		if current[role] == "" {
 			return &ContractError{Message: fmt.Sprintf("Issue %s Project item has no valid %s value", issueURL, roleTitles[role])}
 		}
+		if !cfg.HasOption(role, current[role]) {
+			return &ContractError{Message: fmt.Sprintf("Issue %s Project item has an undeclared %s value %q", issueURL, roleTitles[role], current[role])}
+		}
 	}
 	return nil
 }
