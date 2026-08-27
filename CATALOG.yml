@@ -24,6 +24,15 @@ skills:
     version: 0.1.0
     layer: process
     related: [implement-issue, review-pr]
+  - name: merge-pr
+    summary: Merge approved, validated Pull Requests through protected-branch policy and verify linked work outcomes.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: process
+    related: [create-pr, review-pr]
   - name: create-issue
     summary: Create compliant GitHub change and release Issues before governed work.
     owner: hidekitux
