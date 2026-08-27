@@ -72,7 +72,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
   tests, revise the finalized body or title, and rerun the preflight; keep or
   create a draft only when the user explicitly asks to publish despite the
   unresolved failure.
-- When the Pull Request opens, set the governing Issue's Project Status to `In review` using the repository-declared Project configuration and keep it there for release Issues until publication; resolve the Status field and option IDs from their declared names (`gh project field-list`) and apply them with `gh project field-set`. The update is idempotent with `implement-issue`. The Project's built-in workflows move a closed Issue to `Done` and restore `Backlog` on reopen.
+- When the Pull Request opens, set the governing Issue's Project Status to `In review` using the repository-declared Project configuration and keep it there for release Issues until publication; resolve the Status field and option IDs from their declared names (`gh project field-list`) and apply them with `gh project item-edit` using the declared field and option names (one call per field). The update is idempotent with `implement-issue`. The Project's built-in workflows move a closed Issue to `Done` and restore `Backlog` on reopen.
 - Create a ready Pull Request only after the ready gate passes. Otherwise create or retain a draft.
 
 ## Handoff
