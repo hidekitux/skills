@@ -1,7 +1,7 @@
 // Command check-repository runs the independent repository checks
 // concurrently and reports each result under a labeled section, so a failing
 // check stays identifiable while the aggregate task still fails. It replaces
-// the former sequential series of six separate "go run" commands in the
+// the former sequential series of separate "go run" commands in the
 // check:repository mise task.
 package main
 
@@ -36,6 +36,7 @@ var repoChecks = []repoCheck{
 	{name: "validate-script-tests", fn: validate.CheckScriptTests},
 	{name: "check-sensitive-content", fn: check.CheckSensitiveContent},
 	{name: "check-mutation-badges", fn: check.CheckMutationBadges},
+	{name: "check-mutation-triage", fn: check.CheckMutationTriage},
 	{name: "check-analyze-readonly", fn: check.CheckAnalyzeReadonly},
 	{name: "check-guided-paths", fn: check.CheckGuidedPaths},
 	{name: "check-catalog-docs", fn: check.CheckCatalogDocs},
