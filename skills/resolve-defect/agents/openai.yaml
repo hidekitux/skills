@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resolve Defect"
+  short_description: "Resolve a verified defect from reproduction through fix, tests, and review."
+  default_prompt: "Use $resolve-defect to debug and fix this defect and see it through to a verified result."

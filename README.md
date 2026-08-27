@@ -76,11 +76,11 @@ Every skill requires `SKILL.md`; its `name` matches the parent directory and use
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
-Every skill belongs to one of four layers — process, analyze, fix, or govern. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design.
+Every skill belongs to one of four layers — process, analyze, fix, or govern. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design. Outcome-oriented entry points (`improve-project`, `deliver-change`, `resolve-defect`) coordinate the primitives from a user outcome to a complete result; direct primitive invocation remains available for advanced or partial workflows.
 
 ## Skill-set map
 
-The repository publishes 11 skills today and tracks 0 planned next-generation skills. Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer` and `status` fields drive the layer and status documentation below and in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
+The repository publishes 14 skills today and tracks 0 planned next-generation skills. Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer` and `status` fields drive the layer and status documentation below and in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
 
 | Skill | Layer | Status |
 | --- | --- | --- |
@@ -89,8 +89,11 @@ The repository publishes 11 skills today and tracks 0 planned next-generation sk
 | implement-issue | process | experimental |
 | create-pr | process | experimental |
 | review-pr | process | experimental |
+| improve-project | process | experimental |
+| deliver-change | process | experimental |
 | analyze-project | analyze | experimental |
 | debug-code | fix | experimental |
+| resolve-defect | fix | experimental |
 | write-tests | fix | experimental |
 | refactor-code | fix | experimental |
 | bootstrap-project | govern | experimental |
