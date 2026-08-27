@@ -115,3 +115,45 @@ the other Go-consuming tasks in the graph.
 - GitHub Actions on `ubuntu-latest` invokes `mise run validate`; the
   optimized graph is exercised by the same command locally. The CI run
   itself is confirmed after the branch is pushed by `create-pr`.
+
+## Risk-tiered validation (Issue 176)
+
+Measured during the Issue 176 change on the same macOS Apple Silicon
+workstation with the same mise toolchain. `git diff`-targeted runs used
+`origin/main` as the base revision and the mutation depth remains 8.
+
+### Tier 2 targeted mutation
+
+| Run | Cache | Total | Notes |
+| --- | --- | --- | --- |
+| `mise run mutate-fsl:changed -- origin/main` (no spec changed) | warm | ~0.9s | prints "No FSL specifications selected for mutation." and exits 0 |
+| `mise run mutate-fsl:changed -- origin/main` (one spec touched) | warm | ~1.1s | mutates only `specs/branch-flow.fsl` |
+| `mise run mutate-fsl -- --report <path>` (all eight specs) | warm | ~37s | full Tier 3 / release run with retained report (861 killed / 203 survivors measured on the post-#173/#205 `main`) |
+
+### Tier 1 unchanged surface
+
+| Task | Cache | Before (Issue 156) | After (Issue 176) |
+| --- | --- | --- | --- |
+| `mise run validate` | warm | 2.14s | 2.30s (bounded by `check:skills` 2.28s) |
+| `mise run validate` | cold | 18.84s | 18.91s (a fresh `GOCACHE`, `GOMODCACHE`, `RUFF_CACHE_DIR`, and `FSLC_BIN_DIR`) |
+
+### What changed
+
+- `mutate-fsl` accepts `--changed-base <rev>` (Tier 2: changed specs only,
+  no-op success when none match) and `--report <path>` (retained report that
+  distinguishes killed, survived, invalid, and infrastructure-error results);
+  `mise run mutate-fsl:changed` wraps the changed-base mode.
+- `check:repository` gained `check-mutation-triage` (validates
+  `docs/mutation-triage.md`, ten checks total including the #173 evaluation
+  and #182 catalog-docs checks that landed on `main`).
+- `publish.yml` moved from every `main` push to a weekly `schedule` plus
+  `workflow_dispatch`, and now publishes the retained `fsl-mutation-report.json`
+  alongside the six badge payloads.
+- `targeted.yml` added the always-running Tier 2 mutation job; it is not a
+  required context, so the ten required checks stay stable.
+
+### GitHub Actions timing
+
+The Tier 2 job timing on `ubuntu-latest` is recorded from the first CI run
+after the Issue 176 branch is pushed (`create-pr` session); the local warm
+measurements above bound the expected delta of the always-success no-op path.
