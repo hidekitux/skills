@@ -40,3 +40,10 @@ jobs:
       - name: Audit GitHub Actions workflows
         if: steps.changed.outputs.workflows-changed == 'true'
         uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054
+        with:
+          # advanced-security: true uploads SARIF to GitHub Code Scanning,
+          # which adds the unnameable `Code scanning results / zizmor` check.
+          # Per the naming rules in .github/workflows/README.md, that check is
+          # an accepted informational side effect — never a required context;
+          # the named job stays the required check identity.
+          advanced-security: true
