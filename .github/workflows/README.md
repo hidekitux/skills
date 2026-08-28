@@ -134,3 +134,23 @@ reasons:
   scopes mutation to specs changed under `specs/` or `skills/**/specs/`, while
   `check:go-vuln` runs only when `go.mod`, `go.sum`, or `*.go` changed. Both
   paths remain successful no-ops when unrelated.
+
+## Plan-comment synchronization
+
+- `plan-issue` must post the exact first-line marker
+  `<!-- skills:plan-issue issue=<number> -->`, with the governing Issue number
+  substituted, followed by the ordered plan sections. The validator accepts the
+  current `## Ordered implementation plan` heading and the original
+  `## Implementation plan` heading for backward compatibility; all required
+  sections must occur once, in order, and contain non-empty content.
+- The `Policy (Project)` comment job validates the marker before any Project
+  mutation. Malformed comments fail with an actionable error and cannot change
+  Status. Missing Project items are added only after an exact Issue-URL lookup;
+  duplicate items, missing fields/options, permission errors, and API failures
+  fail without selecting an unrelated item.
+- Project updates are retried up to three times with short backoff to cover
+  delayed item propagation and transient API failures. Each attempt is logged;
+  an eventual failure exits non-success and the run URL plus the Issue number,
+  Project lookup, item lookup, and API error are the required evidence for
+  diagnosis. Replays are safe because an existing `Planned` item is left
+  unchanged and duplicate items are rejected.
