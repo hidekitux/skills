@@ -2,7 +2,30 @@ package project
 
 import "testing"
 
-func TestIsAuthoritativePlanComment(t *testing.T) {
+func TestIsAuthoritativePlanCommentAcceptsCurrentPlanIssueOutput(t *testing.T) {
+	body := PlanCommentMarker(226) + `
+
+## Ordered implementation plan
+
+1. Do the work.
+
+## Out of scope
+
+- Do not release.
+
+## Residual risk
+
+- Events can be delayed.
+
+## Next-phase handoff
+
+Use implement-issue.`
+	if !IsAuthoritativePlanComment(body, 226) {
+		t.Fatal("expected complete plan comment to be authoritative")
+	}
+}
+
+func TestIsAuthoritativePlanCommentKeepsOriginalHeadingCompatible(t *testing.T) {
 	body := PlanCommentMarker(226) + `
 
 ## Implementation plan
@@ -21,7 +44,7 @@ func TestIsAuthoritativePlanComment(t *testing.T) {
 
 Use implement-issue.`
 	if !IsAuthoritativePlanComment(body, 226) {
-		t.Fatal("expected complete plan comment to be authoritative")
+		t.Fatal("expected original plan heading to remain authoritative")
 	}
 }
 
