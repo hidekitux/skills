@@ -26,27 +26,44 @@ func IsAuthoritativePlanComment(body string, issueNumber int64) bool {
 	if len(lines) == 0 || lines[0] != fmt.Sprintf(planCommentMarkerFormat, issueNumber) {
 		return false
 	}
-	seen := map[string]bool{}
+	headingCounts := map[string]int{}
 	for _, line := range lines[1:] {
-		if _, required := requiredHeadingSet[line]; required {
-			seen[line] = true
+		headingCounts[line]++
+	}
+	positions := make([]int, 0, len(requiredPlanCommentHeadings))
+	for _, heading := range requiredPlanCommentHeadings {
+		if headingCounts[heading] != 1 {
+			return false
+		}
+		for index := 1; index < len(lines); index++ {
+			if lines[index] == heading {
+				positions = append(positions, index)
+				break
+			}
 		}
 	}
-	for _, heading := range requiredPlanCommentHeadings {
-		if !seen[heading] {
+	if len(positions) != len(requiredPlanCommentHeadings) {
+		return false
+	}
+	for index, position := range positions {
+		if index > 0 && position <= positions[index-1] {
+			return false
+		}
+	}
+	if strings.TrimSpace(strings.Join(lines[1:positions[0]], "\n")) != "" {
+		return false
+	}
+	for index, position := range positions {
+		end := len(lines)
+		if index+1 < len(positions) {
+			end = positions[index+1]
+		}
+		if strings.TrimSpace(strings.Join(lines[position+1:end], "\n")) == "" {
 			return false
 		}
 	}
 	return true
 }
-
-var requiredHeadingSet = func() map[string]struct{} {
-	set := make(map[string]struct{}, len(requiredPlanCommentHeadings))
-	for _, heading := range requiredPlanCommentHeadings {
-		set[heading] = struct{}{}
-	}
-	return set
-}()
 
 // PlanCommentMarker returns the marker that plan-issue must put on the first
 // line of its authoritative plan comment.

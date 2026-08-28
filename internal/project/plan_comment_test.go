@@ -31,6 +31,9 @@ func TestIsAuthoritativePlanCommentRejectsSpoofedOrIncompleteComments(t *testing
 		"wrong issue":        PlanCommentMarker(225) + valid[len(PlanCommentMarker(226)):],
 		"marker not first":   "intro\n" + valid,
 		"missing heading":    PlanCommentMarker(226) + "\n## Implementation plan\n## Out of scope\n## Residual risk",
+		"empty sections":     valid,
+		"out of order":       PlanCommentMarker(226) + "\n## Out of scope\ncontent\n## Implementation plan\ncontent\n## Residual risk\ncontent\n## Next-phase handoff\ncontent",
+		"duplicate heading":  PlanCommentMarker(226) + "\n## Implementation plan\ncontent\n## Out of scope\ncontent\n## Residual risk\ncontent\n## Next-phase handoff\ncontent\n## Out of scope",
 		"edited marker text": PlanCommentMarker(226) + " extra\n## Implementation plan\n## Out of scope\n## Residual risk\n## Next-phase handoff",
 	}
 	for name, body := range cases {
