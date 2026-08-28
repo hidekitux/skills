@@ -121,6 +121,13 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
+          case "$COMMENT_BODY" in
+            *"<!-- skills:plan-issue"*) ;;
+            *)
+              echo "Comment is not a plan-issue comment; leaving Project Status unchanged."
+              exit 0
+              ;;
+          esac
           if [ -z "$PROJECTS_TOKEN" ]; then
             echo "::error::PROJECTS_TOKEN secret is not configured; cannot update Project Status safely."
             exit 1
