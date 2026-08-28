@@ -58,8 +58,9 @@ The Project is the operational source of truth for planning; GitHub Issues
 remain the source of truth for requirements, discussion, and closure. Status
 ownership is split by observable evidence: `create-issue` creates a new Issue
 with Status `Backlog` and the derived Scope and Priority; `plan-issue` emits an
-authoritative machine-readable plan-comment marker and the `Policy (Project)`
-workflow advances it to `Planned`; `implement-issue` may delegate the explicit
+authoritative machine-readable plan-comment marker, posted by the
+repository owner, and the `Policy (Project)` workflow advances it to `Planned`;
+`implement-issue` may delegate the explicit
 implementation-start update to `In progress`; the `Policy (Project)` workflow
 owns PR-observable transitions and moves ready Pull Requests to `In review`
 without a second `create-pr` mutation. The Project's built-in Item closed

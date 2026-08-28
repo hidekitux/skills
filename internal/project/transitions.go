@@ -86,13 +86,40 @@ func SetIssueStatus(run Runner, cfg *Config, repo string, issueNumber int64, sta
 	if err != nil {
 		return hardFailure(err, out, errOut)
 	}
+	var item itemDTO
+	present := false
+	if status == "Planned" {
+		item, present, err = client.ItemForIssue(number, issueURL)
+		if err != nil {
+			return hardFailure(err, out, errOut)
+		}
+	}
+	if present && status == "Planned" {
+		current, err := itemFieldNames(item, fields)
+		if err != nil {
+			return hardFailure(err, out, errOut)
+		}
+		switch current["status"] {
+		case "Planned":
+			fmt.Fprintf(out, "Issue %s already has Project Status %q; leaving it unchanged.\n", issueURL, status)
+			return 0
+		case "In progress", "In review", "Done":
+			fmt.Fprintf(out, "Issue %s already has Project Status %q; refusing to regress it to %q.\n", issueURL, current["status"], status)
+			return 0
+		}
+	}
 	if dryRun {
 		fmt.Fprintf(out, "dry-run: Issue %s would get exactly one Project item with Status %q\n", issueURL, status)
 		return 0
 	}
-	itemID, err := client.AddItem(number, issueURL)
-	if err != nil {
-		return hardFailure(err, out, errOut)
+	itemID := ""
+	if present {
+		itemID = item.ID
+	} else {
+		itemID, err = client.AddItem(number, issueURL)
+		if err != nil {
+			return hardFailure(err, out, errOut)
+		}
 	}
 	if err := client.SetSingleSelect(projectID, itemID, fields["status"].ID, statusID); err != nil {
 		return hardFailure(err, out, errOut)
