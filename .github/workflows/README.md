@@ -143,9 +143,12 @@ reasons:
   current `## Ordered implementation plan` heading and the original
   `## Implementation plan` heading for backward compatibility; all required
   sections must occur once, in order, and contain non-empty content.
-- The `Policy (Project)` comment job validates the marker before any Project
-  mutation. Malformed comments fail with an actionable error and cannot change
-  Status. Missing Project items are added only after an exact Issue-URL lookup;
+- The `Policy (Project)` comment job considers only comments containing the
+  `<!-- skills:plan-issue` marker prefix. Unrelated owner comments are skipped
+  successfully without requiring Project credentials. Candidate comments are
+  validated before any Project mutation; malformed comments fail with an
+  actionable error and cannot change Status. Missing Project items are added
+  only after an exact Issue-URL lookup;
   duplicate items, missing fields/options, permission errors, and API failures
   fail without selecting an unrelated item.
 - Project updates are retried up to three times with short backoff to cover
