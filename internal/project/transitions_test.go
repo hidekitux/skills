@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -90,6 +91,39 @@ func TestSetIssueStatusSetsStatusAndAddsItemOnce(t *testing.T) {
 	if !runner.called("project", "item-edit", "--id", "ITEM_9", "--field-id", "F_STATUS",
 		"--project-id", "PVT_1", "--single-select-option-id", "O_BACKLOG") {
 		t.Fatal("expected Status mutation")
+	}
+}
+
+func TestSetIssueStatusDoesNotRegressPlannedFromLaterLifecycleState(t *testing.T) {
+	cfg := mustConfig(t)
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1", "O_INPROGRESS", "O_MEDIUM", "O_IMPROV"))
+	var out, errOut bytes.Buffer
+	if code := SetIssueStatus(runner, cfg, "acme/sample", 205, "Planned", false, false, &out, &errOut); code != 0 {
+		t.Fatalf("expected success, got %d (out=%s err=%s)", code, out.String(), errOut.String())
+	}
+	if runner.called("project", "item-edit") {
+		t.Fatal("Planned must not regress an In progress item")
+	}
+	if !strings.Contains(out.String(), "refusing to regress") {
+		t.Fatalf("expected regression diagnostic, got %q", out.String())
+	}
+}
+
+func TestSetIssueStatusDoesNotMutateAlreadyPlannedItem(t *testing.T) {
+	cfg := mustConfig(t)
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1", "O_PLANNED", "O_MEDIUM", "O_IMPROV"))
+	var out, errOut bytes.Buffer
+	if code := SetIssueStatus(runner, cfg, "acme/sample", 205, "Planned", false, false, &out, &errOut); code != 0 {
+		t.Fatalf("expected success, got %d (out=%s err=%s)", code, out.String(), errOut.String())
+	}
+	if runner.called("project", "item-edit") {
+		t.Fatal("already Planned item must not be mutated")
 	}
 }
 

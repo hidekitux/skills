@@ -7,6 +7,8 @@ name: Policy (Project)
 # - closed (unmerged) -> In progress; closed (merged) -> no change: the linked
 #   Issue closes and the built-in Item closed workflow reaches Done, while a
 #   release Issue tracked with Tracks stays non-terminal until publication.
+# - issue_comment.created from the repository owner with the complete
+#   plan-issue marker and required headings -> Planned; other comments are ignored.
 #
 # The default GITHUB_TOKEN cannot mutate Projects v2, so the step needs a
 # least-privilege PAT with `project` scope in the PROJECTS_TOKEN secret.
@@ -26,15 +28,14 @@ permissions:
   contents: read
   issues: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
-
 jobs:
   sync-status:
     if: github.event_name == 'pull_request_target'
     name: Validate Issue Project Status
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       # Checkout stays inline (not in .github/actions/setup-go) so the
       # trusted-base checkout of pull_request_target remains visible to the
@@ -89,9 +90,12 @@ jobs:
             --pr-merged "$PR_MERGED"
 
   sync-planned:
-    if: github.event_name == 'issue_comment' && github.event.issue.pull_request == null
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.user.login == github.repository_owner
     name: Validate planned Issue status
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-plan-${{ github.event.comment.id }}
+      cancel-in-progress: true
     steps:
       # Checkout is pinned to the trusted default branch; Issue comment text is
       # data only and is never executed as workflow code.
