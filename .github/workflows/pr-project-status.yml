@@ -122,12 +122,25 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$PROJECTS_TOKEN" ]; then
-            echo "PROJECTS_TOKEN secret is not configured; skipping (fail-safe)."
-            exit 0
+            echo "::error::PROJECTS_TOKEN secret is not configured; cannot update Project Status safely."
+            exit 1
           fi
           if ! go run ./cmd/validate-plan-comment --issue "$ISSUE" --body-env COMMENT_BODY; then
-            echo "Comment is not an authoritative plan comment; leaving Project Status unchanged."
-            exit 0
+            echo "::error::Issue comment is not an authoritative plan comment for Issue #$ISSUE; expected the exact marker and required non-empty sections."
+            exit 1
           fi
-          go run ./cmd/set-issue-project-status --root . --repo "$REPOSITORY" \
-            --issue "$ISSUE" --status "Planned"
+          attempt=1
+          while [ "$attempt" -le 3 ]; do
+            if go run ./cmd/set-issue-project-status --root . --repo "$REPOSITORY" \
+              --issue "$ISSUE" --status "Planned"; then
+              echo "Project Status synchronization succeeded on attempt $attempt for Issue #$ISSUE."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Project Status synchronization failed after $attempt attempts for Issue #$ISSUE; inspect the preceding Project, item, permission, and API diagnostics."
+              exit 1
+            fi
+            echo "::warning::Project Status synchronization attempt $attempt failed for Issue #$ISSUE; retrying after propagation/API backoff."
+            sleep $((attempt * 2))
+            attempt=$((attempt + 1))
+          done
