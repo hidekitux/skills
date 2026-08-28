@@ -8,11 +8,14 @@ import (
 
 const planCommentMarkerFormat = "<!-- skills:plan-issue issue=%d -->"
 
-var requiredPlanCommentHeadings = []string{
-	"## Implementation plan",
-	"## Out of scope",
-	"## Residual risk",
-	"## Next-phase handoff",
+// requiredPlanCommentHeadingGroups keeps the emitted heading compatible with
+// both the original contract and the heading currently produced by plan-issue.
+// Each group must contribute exactly one heading, in this order.
+var requiredPlanCommentHeadingGroups = [][]string{
+	{"## Implementation plan", "## Ordered implementation plan"},
+	{"## Out of scope"},
+	{"## Residual risk"},
+	{"## Next-phase handoff"},
 }
 
 // IsAuthoritativePlanComment reports whether body is a complete plan comment
@@ -30,19 +33,28 @@ func IsAuthoritativePlanComment(body string, issueNumber int64) bool {
 	for _, line := range lines[1:] {
 		headingCounts[line]++
 	}
-	positions := make([]int, 0, len(requiredPlanCommentHeadings))
-	for _, heading := range requiredPlanCommentHeadings {
-		if headingCounts[heading] != 1 {
-			return false
-		}
-		for index := 1; index < len(lines); index++ {
-			if lines[index] == heading {
-				positions = append(positions, index)
-				break
+	positions := make([]int, 0, len(requiredPlanCommentHeadingGroups))
+	for _, group := range requiredPlanCommentHeadingGroups {
+		position := 0
+		matches := 0
+		for _, heading := range group {
+			if headingCounts[heading] != 1 {
+				continue
+			}
+			matches++
+			for index := 1; index < len(lines); index++ {
+				if lines[index] == heading {
+					position = index
+					break
+				}
 			}
 		}
+		if matches != 1 || position == 0 {
+			return false
+		}
+		positions = append(positions, position)
 	}
-	if len(positions) != len(requiredPlanCommentHeadings) {
+	if len(positions) != len(requiredPlanCommentHeadingGroups) {
 		return false
 	}
 	for index, position := range positions {
