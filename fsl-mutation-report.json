@@ -1,0 +1,1308 @@
+{
+  "depth": "8",
+  "specs": [
+    {
+      "spec": "specs/branch-flow.fsl",
+      "status": "mutated",
+      "total": 59,
+      "killed": 50,
+      "survived": 9,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "enum_constant_swap",
+          "target": "init assignment Draft-\u003eIssueCreated",
+          "line": 5,
+          "column": 10
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "init assignment Draft-\u003eWorkBranch",
+          "line": 5,
+          "column": 10
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 5,
+          "column": 25
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "create_issue assignment IssueCreated-\u003eWorkBranch",
+          "line": 6,
+          "column": 52
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "create_issue_branch requires #1 IssueCreated-\u003eDraft",
+          "line": 7,
+          "column": 34
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "open_issue_pr requires #1 WorkBranch-\u003eDraft",
+          "line": 8,
+          "column": 28
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "open_issue_pr requires #1 WorkBranch-\u003eIssueCreated",
+          "line": 8,
+          "column": 28
+        },
+        {
+          "op": "requires_remove",
+          "target": "merge_to_main requires #1",
+          "line": 9,
+          "column": 28
+        },
+        {
+          "op": "requires_remove",
+          "target": "merge_to_main requires #2",
+          "line": 9,
+          "column": 59
+        }
+      ]
+    },
+    {
+      "spec": "specs/create-issue/issue-creation.fsl",
+      "status": "mutated",
+      "total": 200,
+      "killed": 200,
+      "survived": 0,
+      "invalid": 0
+    },
+    {
+      "spec": "specs/create-pr/pull-request-creation.fsl",
+      "status": "mutated",
+      "total": 200,
+      "killed": 164,
+      "survived": 36,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 44,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 47,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 48,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "resolve_context requires #1 Start-\u003eBlocked",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eContextResolved",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eNoExistingPullRequest",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eScopeReviewed",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eReadyToPush",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eDraftToPush",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003ePushedReady",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003ePushedDraft",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eBlocked",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "block_missing_context assignment",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eStart",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eNoExistingPullRequest",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eScopeReviewed",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eReadyToPush",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eDraftToPush",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003ePushedReady",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003ePushedDraft",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eNoExistingPullRequest",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eScopeReviewed",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eReadyToPush",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eDraftToPush",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePushedReady",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePushedDraft",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePullRequest",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "review_scope requires #1 NoExistingPullRequest-\u003eBlocked",
+          "line": 81,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "validate_ready requires #1 ScopeReviewed-\u003eDraftToPush",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "validate_ready requires #1 ScopeReviewed-\u003ePushedDraft",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "prepare_draft requires #1 ScopeReviewed-\u003eReadyToPush",
+          "line": 96,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "prepare_draft requires #1 ScopeReviewed-\u003ePushedReady",
+          "line": 96,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "spec": "specs/debug-code/debug-loop.fsl",
+      "status": "mutated",
+      "total": 123,
+      "killed": 114,
+      "survived": 9,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 44,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 45,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 48,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "isolate requires #2",
+          "line": 60,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "hypothesize requires #2",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "apply_fix requires #2",
+          "line": 80,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify requires #1",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify requires #2",
+          "line": 87,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "spec": "specs/evaluation-gate.fsl",
+      "status": "mutated",
+      "total": 41,
+      "killed": 25,
+      "survived": 16,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 25,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "promote requires #1",
+          "line": 38,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "demote requires #1",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "demote requires #1",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "demote requires #1",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "demote requires #1 Stable-\u003eExperimental",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "demote requires #1 Stable-\u003eDeprecated",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "demote assignment",
+          "line": 47,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "demote assignment Experimental-\u003eDeprecated",
+          "line": 48,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "deprecate requires #1",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "deprecate requires #1",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "deprecate requires #1 Experimental-\u003eStable",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "deprecate requires #1 Experimental-\u003eDeprecated",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "deprecate requires #1",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "deprecate requires #1 Stable-\u003eExperimental",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "deprecate requires #1 Stable-\u003eDeprecated",
+          "line": 55,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "spec": "specs/issue-project-status.fsl",
+      "status": "mutated",
+      "total": 181,
+      "killed": 110,
+      "survived": 71,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 33,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 34,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 35,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 36,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "issue_created requires #1",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "issue_created requires #2",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "plan_posted requires #2",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "implementation_started requires #1 Planned-\u003eBacklog",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "implementation_started requires #1 Planned-\u003eInProgress",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "implementation_started requires #1 Planned-\u003eInReview",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "implementation_started requires #2",
+          "line": 56,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "implementation_started requires #2",
+          "line": 56,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "implementation_started assignment",
+          "line": 58,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "implementation_started assignment InProgress-\u003eBacklog",
+          "line": 58,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "implementation_started assignment InProgress-\u003ePlanned",
+          "line": 58,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_ready requires #1 InProgress-\u003eInReview",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_opened_ready requires #2",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_opened_ready requires #2",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_opened_ready assignment",
+          "line": 65,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_ready assignment InReview-\u003eBacklog",
+          "line": 65,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_ready assignment InReview-\u003ePlanned",
+          "line": 65,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_ready assignment InReview-\u003eInProgress",
+          "line": 65,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft requires #1 Planned-\u003eBacklog",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft requires #1 Planned-\u003eInProgress",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft requires #1 Planned-\u003eInReview",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft requires #1 InProgress-\u003eBacklog",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft requires #1 InProgress-\u003ePlanned",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft requires #1 InProgress-\u003eInReview",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_opened_draft requires #2",
+          "line": 70,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_opened_draft requires #2",
+          "line": 70,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_opened_draft assignment",
+          "line": 72,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft assignment InProgress-\u003eBacklog",
+          "line": 72,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_opened_draft assignment InProgress-\u003ePlanned",
+          "line": 72,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_ready_for_review requires #1 InProgress-\u003eInReview",
+          "line": 76,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_ready_for_review requires #2",
+          "line": 77,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_ready_for_review requires #2",
+          "line": 77,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_ready_for_review assignment",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_ready_for_review assignment InReview-\u003eBacklog",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_ready_for_review assignment InReview-\u003ePlanned",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_ready_for_review assignment InReview-\u003eInProgress",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_synchronize_ready requires #2",
+          "line": 84,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_synchronize_ready requires #2",
+          "line": 84,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_synchronize_ready assignment",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_ready assignment InReview-\u003eBacklog",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_ready assignment InReview-\u003ePlanned",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_ready assignment InReview-\u003eInProgress",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_draft requires #1 InReview-\u003eInProgress",
+          "line": 89,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_synchronize_draft requires #2",
+          "line": 90,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_synchronize_draft requires #2",
+          "line": 90,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_synchronize_draft assignment",
+          "line": 91,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_draft assignment InProgress-\u003eBacklog",
+          "line": 91,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_draft assignment InProgress-\u003ePlanned",
+          "line": 91,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_synchronize_draft assignment InProgress-\u003eInReview",
+          "line": 91,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_converted_to_draft requires #1 InReview-\u003eInProgress",
+          "line": 95,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_converted_to_draft requires #2",
+          "line": 96,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_converted_to_draft requires #2",
+          "line": 96,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_converted_to_draft assignment",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_converted_to_draft assignment InProgress-\u003eBacklog",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_converted_to_draft assignment InProgress-\u003ePlanned",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_converted_to_draft assignment InProgress-\u003eInReview",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_closed_unmerged requires #1 InReview-\u003eInProgress",
+          "line": 101,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pr_closed_unmerged requires #2",
+          "line": 102,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "pr_closed_unmerged requires #2",
+          "line": 102,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "pr_closed_unmerged assignment",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_closed_unmerged assignment InProgress-\u003eBacklog",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_closed_unmerged assignment InProgress-\u003ePlanned",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "pr_closed_unmerged assignment InProgress-\u003eInReview",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "issue_closed requires #1",
+          "line": 107,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "issue_closed requires #1",
+          "line": 107,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "issue_reopened requires #1",
+          "line": 113,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "issue_reopened requires #2",
+          "line": 114,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "spec": "specs/release-gate.fsl",
+      "status": "mutated",
+      "total": 127,
+      "killed": 108,
+      "survived": 19,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "type_bound_lo_minus1",
+          "target": "type Version lo",
+          "line": 0,
+          "column": 0
+        },
+        {
+          "op": "type_bound_hi_plus1",
+          "target": "type Version hi",
+          "line": 0,
+          "column": 0
+        },
+        {
+          "op": "integer_literal_plus1",
+          "target": "init assignment",
+          "line": 27,
+          "column": 5
+        },
+        {
+          "op": "integer_literal_minus1",
+          "target": "init assignment",
+          "line": 28,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 29,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 31,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "update_catalog requires #1",
+          "line": 37,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "validate requires #2",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "commit_release requires #1 Validated-\u003eDraft",
+          "line": 51,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "commit_release requires #2",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify_release requires #2",
+          "line": 59,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify_release requires #3",
+          "line": 60,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify_release requires #4",
+          "line": 61,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_tag requires #1 Committed-\u003eReleaseVerified",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "detect_existing_tag requires #2",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "detect_existing_tag assignment",
+          "line": 70,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "publish requires #2",
+          "line": 76,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "publish requires #3",
+          "line": 77,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "publish requires #4",
+          "line": 78,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "spec": "specs/review-flow.fsl",
+      "status": "mutated",
+      "total": 133,
+      "killed": 90,
+      "survived": 43,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "enum_constant_swap",
+          "target": "init assignment Draft-\u003eReadyForReview",
+          "line": 30,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "init assignment Draft-\u003eChangesRequested",
+          "line": 30,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 31,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 33,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "submit requires #1 Draft-\u003eBlocked",
+          "line": 37,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "submit assignment ReadyForReview-\u003eChangesRequested",
+          "line": 38,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "block_no_review requires #1",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "block_no_review requires #1",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "block_no_review requires #1",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eReadyForReview",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eUnderReview",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eChangesRequested",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eApproved",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eMerged",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eBlocked",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "block_no_review assignment",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review assignment Blocked-\u003eDraft",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review assignment Blocked-\u003eReadyForReview",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review assignment Blocked-\u003eUnderReview",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review assignment Blocked-\u003eChangesRequested",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review assignment Blocked-\u003eApproved",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "start_review requires #1 ReadyForReview-\u003eDraft",
+          "line": 47,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "start_review requires #1 ReadyForReview-\u003eBlocked",
+          "line": 47,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "approve requires #1",
+          "line": 53,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "approve requires #1",
+          "line": 53,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "approve requires #1",
+          "line": 53,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "approve requires #1 UnderReview-\u003eReadyForReview",
+          "line": 53,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "approve requires #1 UnderReview-\u003eChangesRequested",
+          "line": 53,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "approve requires #2",
+          "line": 54,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "request_changes requires #2",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise requires #1 ChangesRequested-\u003eDraft",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise requires #1 ChangesRequested-\u003eReadyForReview",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise requires #1 ChangesRequested-\u003eUnderReview",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise requires #1 ChangesRequested-\u003eBlocked",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "revise assignment",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise assignment ReadyForReview-\u003eDraft",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise assignment ReadyForReview-\u003eUnderReview",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise assignment ReadyForReview-\u003eChangesRequested",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise assignment ReadyForReview-\u003eApproved",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "revise assignment ReadyForReview-\u003eBlocked",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "merge requires #1",
+          "line": 72,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "merge requires #2",
+          "line": 73,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "merge requires #3",
+          "line": 74,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "specs": 8,
+    "killed": 861,
+    "survived": 203,
+    "invalid": 0,
+    "infrastructure_errors": 0
+  }
+}
