@@ -122,7 +122,7 @@ should document or verify its stateful workflows.
   Push the rewritten author-owned branch only with `--force-with-lease`; never
   use plain `--force`. Protected branches must never be force-pushed.
 - Add or update `mise.toml`. Pin only the tools the project actually needs and
-  expose applicable `format`, `lint`, `test`, and `check` tasks. Make `check`
+  expose applicable `format:all`, `lint:all`, `test:all`, and `check:all` tasks. Make `check:all`
   compose the relevant validations rather than duplicating their commands.
 - Document only the commands a contributor needs to run, test, and understand
   the project. Document `mise run <task>` as the standard invocation. Do not add
