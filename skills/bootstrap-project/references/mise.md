@@ -14,11 +14,11 @@ not known, ask or inspect existing project files rather than selecting one.
 
 Define only tasks that apply to the project:
 
-- `format` for formatting;
-- `lint` for static analysis;
-- `test` for automated tests;
+- `format:all` for formatting;
+- `lint:all` for static analysis;
+- `test:all` for automated tests;
 - `verify:fsl` for FSL checks when FSL is in scope; and
-- `check` to compose the applicable validation tasks.
+- `check:all` to compose the applicable validation tasks.
 
 Use `mise run <task>` in documentation, automation, and handoff notes. Do not
 invent empty tasks merely to match this list. Let a task fail on its first failing
