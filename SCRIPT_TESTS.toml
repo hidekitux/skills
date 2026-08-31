@@ -23,6 +23,7 @@
 "cmd/backfill-issue-project" = "./internal/project"
 "cmd/validate-work-item-title" = "./internal/validate"
 "cmd/validate-hosts" = "./internal/validate"
+"cmd/validate-mise-tasks" = "./cmd/validate-mise-tasks"
 "cmd/diagnose-worktree" = "./internal/diagnose"
 "cmd/validate-commit-message" = "./internal/commitlint"
 "cmd/lint-commits" = "./internal/commitlint"
