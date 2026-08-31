@@ -17,7 +17,7 @@ Define only tasks that apply to the project:
 - `format` for formatting;
 - `lint` for static analysis;
 - `test` for automated tests;
-- `verify-fsl` for FSL checks when FSL is in scope; and
+- `verify:fsl` for FSL checks when FSL is in scope; and
 - `check` to compose the applicable validation tasks.
 
 Use `mise run <task>` in documentation, automation, and handoff notes. Do not

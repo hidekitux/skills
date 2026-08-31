@@ -90,6 +90,30 @@ func declaredTasks(path string) ([]string, error) {
 	return tasks, nil
 }
 
+func taskReference(content, retired string) bool {
+	for _, marker := range []string{"mise run ", "depends = [", "depends = [\""} {
+		for start := 0; ; {
+			relative := strings.Index(content[start:], marker+retired)
+			if relative < 0 {
+				break
+			}
+			index := start + relative + len(marker) + len(retired)
+			if index == len(content) || !isTaskCharacter(content[index]) {
+				return true
+			}
+			start = index
+		}
+	}
+	if strings.Contains(content, "[tasks."+retired+"]") || strings.Contains(content, "[tasks.\""+retired+"\"]") {
+		return true
+	}
+	return false
+}
+
+func isTaskCharacter(value byte) bool {
+	return value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' || value >= '0' && value <= '9' || value == '-' || value == ':'
+}
+
 func findReference(root, retired string) (bool, string) {
 	var found string
 	_ = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
@@ -97,7 +121,7 @@ func findReference(root, retired string) (bool, string) {
 			return nil
 		}
 		if entry.IsDir() {
-			if entry.Name() == ".git" || entry.Name() == ".mise" {
+			if entry.Name() == ".git" || entry.Name() == ".mise" || entry.Name() == "__pycache__" {
 				return filepath.SkipDir
 			}
 			return nil
@@ -107,7 +131,7 @@ func findReference(root, retired string) (bool, string) {
 			return nil
 		}
 		data, readErr := os.ReadFile(path)
-		if readErr == nil && strings.Contains(string(data), retired) {
+		if readErr == nil && taskReference(string(data), retired) {
 			found = path
 		}
 		return nil

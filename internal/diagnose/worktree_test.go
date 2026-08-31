@@ -70,7 +70,7 @@ func TestDiagnoseWorktreeNotesMissingSetup(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected 0, got %d: %s", code, errOut.String())
 	}
-	if !strings.Contains(out.String(), "Run 'mise run setup' there before continuing") {
+	if !strings.Contains(out.String(), "Run 'mise run setup:all' there before continuing") {
 		t.Fatalf("expected missing-setup guidance: %q", out.String())
 	}
 }

@@ -64,7 +64,7 @@ func TestPreCommitRunsLocalChecks(t *testing.T) {
 
 func TestPrePushRunsFullValidation(t *testing.T) {
 	hook := readRepoFile(t, ".githooks/pre-push")
-	if !strings.Contains(hook, "mise run validate") {
+	if !strings.Contains(hook, "mise run validate:all") {
 		t.Fatalf("pre-push must run validate: %q", hook)
 	}
 }
@@ -74,7 +74,7 @@ func TestPostCheckoutOnlyRefreshesSetupOnBranchCheckouts(t *testing.T) {
 	if !strings.Contains(hook, `[ "$3" = "1" ]`) {
 		t.Fatalf("post-checkout must guard on the branch-checkout flag: %q", hook)
 	}
-	if !strings.Contains(hook, "mise run setup") {
+	if !strings.Contains(hook, "mise run setup:all") {
 		t.Fatalf("post-checkout must run setup: %q", hook)
 	}
 }

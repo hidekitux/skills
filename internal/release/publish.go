@@ -14,7 +14,7 @@ import (
 // a verified release tag. It is the Go port of publish-release.sh.
 func PublishRelease(args []string, out, errOut io.Writer) int {
 	if len(args) != 1 {
-		fmt.Fprintln(errOut, "Usage: mise run release:publish -- vX.Y.Z")
+		fmt.Fprintln(errOut, "Usage: mise run publish:release -- vX.Y.Z")
 		return 2
 	}
 	tag := args[0]

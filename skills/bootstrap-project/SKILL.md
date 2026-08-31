@@ -137,7 +137,7 @@ should document or verify its stateful workflows.
 - Classify each candidate flow as **in scope now**, **thin/low priority**, or
   **out of scope**. Do not equate low priority with out of scope.
 - If FSL fits, add only the verified foundation justified by confirmed rules:
-  the `specs/` location, a `mise run verify-fsl` task wrapping repeatable `fslc`
+  the `specs/` location, a `mise run verify:fsl` task wrapping repeatable `fslc`
   checks, and one
   prioritized flow. Do not create empty or invented `.fsl` specifications.
 - Before authoring a `.fsl` file, use an appropriate FSL authoring skill when

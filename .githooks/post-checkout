@@ -6,7 +6,7 @@ set -eu
 # changed.
 [ "$3" = "1" ] || exit 0
 
-if ! mise run setup; then
+if ! mise run setup:all; then
   echo "Warning: Local setup did not complete." >&2
   exit 0
 fi

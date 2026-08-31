@@ -7,14 +7,14 @@
 - Set the `NOTICE` copyright owner from the repository owner's confirmed identity. Update the year only when new copyrightable material is added or materially updated; do not create annual-only copyright commits.
 - Keep `SKILL.md` concise. Put optional scripts, detailed references, and output assets in `scripts/`, `references/`, and `assets/` below the skill root.
 - Do not put credentials, tokens, private URLs, or user data in the repository.
-- Use mise as the project command entry point. Run supported-platform repository checks with `mise run validate`; do not document or automate a direct replacement command when a mise task exists.
+- Use mise as the project command entry point. Run supported-platform repository checks with `mise run validate:all`; do not document or automate a direct replacement command when a mise task exists.
 - Keep the repository's required tools and their pinned versions in `mise.toml`. Do not add a tool, a version, or a task unless this repository actually needs it.
-- Before publishing, run `mise run validate` from the repository root. It
+- Before publishing, run `mise run validate:all` from the repository root. It
   includes installation validation for Codex and Claude Code. When
-  `skill-creator` is available, also run `mise run validate-skill-creator` as
+  `skill-creator` is available, also run `mise run validate:skill-creator` as
   additional Codex-specific authoring evidence; it is not required to use a
   skill in Claude Code.
-- Before publishing, align every catalog version with the release tag, commit the release contents, and run `mise run verify-release -- vX.Y.Z`. Publish only the verified commit with `gh skill publish --tag vX.Y.Z`; never overwrite an existing release tag.
+- Before publishing, align every catalog version with the release tag, commit the release contents, and run `mise run verify:release -- vX.Y.Z`. Publish only the verified commit with `gh skill publish --tag vX.Y.Z`; never overwrite an existing release tag.
 
 ## Todo List contract
 
@@ -37,7 +37,7 @@
 - Generate `agents/openai.yaml` through `skill-creator` when creating a Codex-facing skill. Read its `openai_yaml.md` reference first and keep the generated UI metadata aligned with `SKILL.md`.
 - Add `scripts/`, `references/`, and `assets/` only when they are reusable. Test every added script with a representative input.
 - Forward-test complex or high-impact skills with realistic requests that do not reveal the expected answer.
-- When bootstrapping a project, make mise the standard entry point. Define only the applicable `format`, `lint`, `test`, `check`, and `verify-fsl` tasks; `check` should compose the relevant validations.
+- When bootstrapping a project, make mise the standard entry point. Define only the applicable `format`, `lint`, `test`, `check`, and `verify:fsl` tasks; `check` should compose the relevant validations.
 
 ## Host compatibility
 
@@ -47,4 +47,4 @@
 - Do not put shared source in `.codex/`, `.claude/`, or `.agents/`. Those hidden directories are local installation state and are intentionally ignored.
 
 - Use FSL for stateful workflow contracts such as review, validation, publishing, versioning, and deprecation. Do not claim that FSL verifies the prose instructions in a `SKILL.md`.
-- Place a skill-owned FSL source file in `skills/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify-fsl` after changes.
+- Place a skill-owned FSL source file in `skills/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify:fsl` after changes.

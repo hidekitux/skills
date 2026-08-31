@@ -2,7 +2,7 @@
 //
 // ASSUME-1: one release is modeled at a time.
 // ASSUME-2: semantic versions are represented by a finite release_version value;
-//           the concrete vX.Y.Z spelling is checked by `mise run verify-release` (cmd/verify-release).
+//           the concrete vX.Y.Z spelling is checked by `mise run verify:release` (cmd/verify-release).
 // ASSUME-3: a successful commit_release action represents a clean committed
 //           release; the implementation evidence is Git's actual state.
 // ASSUME-4: publish_executed records that the modeled publish command ran; it
@@ -38,7 +38,7 @@ spec ReleaseGate {
     catalog_version = release_version
   }
 
-  // This represents mise run validate, including Codex and Claude Code
+  // This represents mise run validate:all, including Codex and Claude Code
   // installation checks. skill-creator validation is additional Codex authoring
   // evidence and is intentionally outside the portable publication gate.
   action validate() {

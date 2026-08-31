@@ -111,11 +111,11 @@ GitHub Actions; CI scheduling of evaluation belongs to Issue 176). mise is the
 entry point:
 
 ```text
-mise run evaluate --help
-mise run evaluate                          # full suite, all drivers
+mise run evaluate:all --help
+mise run evaluate:all                    # full suite, all drivers
 mise run evaluate:smoke                    # smoke set on opencode + antigravity
-mise run evaluate -- --host opencode      # one driver
-mise run evaluate -- --host opencode,antigravity --skills plan-issue
+mise run evaluate:all -- --host opencode      # one driver
+mise run evaluate:all -- --host opencode,antigravity --skills plan-issue
 ```
 
 The harness (`cmd/evaluate`, package `internal/eval`) stages `fixture` into an

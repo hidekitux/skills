@@ -17,14 +17,14 @@ docs: explain FSL verification boundary
 ci: validate commit messages
 ```
 
-Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `mise run setup` once to enable mise-managed Go commitlint and local hooks; the hooks stay active across branch switches without a manual re-run.
+Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `mise run setup:all` once to enable mise-managed Go commitlint and local hooks; the hooks stay active across branch switches without a manual re-run.
 
 Every commit on an Issue branch must be a single sentence and end with the
 Issue number in the header: `type(scope): summary #<number>`. Keep the number
 as the governing Issue for that commit; one Pull Request may handle multiple
 Issues, so the commit number need not match the branch name or the Pull
 Request's first Issue. `cmd/validate-commit-message` enforces the
-shape and commitlint validates the header. Run `mise run validate` or a local
+shape and commitlint validates the header. Run `mise run validate:all` or a local
 commit to confirm the message before pushing.
 
 One Pull Request is not required to be one commit. Split Pull Request commits
@@ -34,7 +34,7 @@ worktree development; resolve any validation failure in the intended commits
 before the final commit is pushed, so the pushed history contains only the
 implementation commits that belong in the Pull Request.
 
-GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run `mise run check:local` before commits and `mise run validate` before pushes. Fix a failed check before retrying.
+GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run `mise run check:local` before commits and `mise run validate:all` before pushes. Fix a failed check before retrying.
 
 ## Issue and Pull Request titles
 
@@ -92,7 +92,7 @@ Create an Issue and an `issue/<number>` branch before each human change. Define 
 
 Dependabot Pull Requests differ from the human flow in two ways: the `commitlint` and `work-item-title` checks exempt a pull request opened by the `dependabot[bot]` author, and commits authored by `dependabot[bot]` are skipped in push ranges, because Dependabot generates its own branch names, commit messages, and titles, which cannot carry the `#NNN` suffix or the `[Type]: Summary` shape. `.github/dependabot.yml` sets `commit-message.prefix: "ci"` so bot commits still carry a Conventional Commits type (`ci: Bump ...`) in the ecosystems where Dependabot supports commit message prefixes. Human branches keep every commit and title rule unchanged.
 
-Rebase a work branch onto its latest upstream and push the rewritten branch with `--force-with-lease`, never plain `--force`. Do not push directly, force-push, or delete `main` or another protected branch. Use rebase merge only so the Pull Request title does not replace compliant commit messages. The `Require pull requests on protected branches` GitHub Ruleset enforces this boundary on `main` with active enforcement and no bypass actors, requiring rebase-only merging, linear history, no force-pushes or deletions, and the `Validate repository checks`, `Validate lint`, `Validate tests`, `Validate FSL specifications`, `Validate skills`, `Validate branch policy`, `Validate work item title`, `Validate commit conventions`, `Audit workflow security`, and `Validate commit signatures` status checks. The `validate` job of `validate.yml` was split into the first five parallel jobs by #155; the policy checks are grouped under `policy.yml` and the signature check under `policy-signatures.yml` by #160. Keep the required contexts in sync with the live ruleset.
+Rebase a work branch onto its latest upstream and push the rewritten branch with `--force-with-lease`, never plain `--force`. Do not push directly, force-push, or delete `main` or another protected branch. Use rebase merge only so the Pull Request title does not replace compliant commit messages. The `Require pull requests on protected branches` GitHub Ruleset enforces this boundary on `main` with active enforcement and no bypass actors, requiring rebase-only merging, linear history, no force-pushes or deletions, and the `Validate repository checks`, `Validate lint`, `Validate tests`, `Validate FSL specifications`, `Validate skills`, `Validate branch policy`, `Validate work item title`, `Validate commit conventions`, `Audit workflow security`, and `Validate commit signatures` status checks. The `validate:all` job of `validate.yml` was split into the first five parallel jobs by #155; the policy checks are grouped under `policy.yml` and the signature check under `policy-signatures.yml` by #160. Keep the required contexts in sync with the live ruleset.
 
 Validation is tiered by change risk (see `docs/validation-tiers.md`): Tier 1 is the ten required checks above on every pull request; Tier 2 (`targeted.yml`) is change-scoped evidence (targeted FSL mutation and Go dependency security for changed Go files) that is not a required context, so the ten required contexts stay stable and no pull request waits indefinitely on a context that has not landed on `main` yet. The Go scan fails reachable findings and infrastructure errors, while reporting non-reachable findings. The full mutation and badge pipeline (`publish.yml`) runs on a weekly schedule and on demand instead of after every `main` push (Issue #176).
 

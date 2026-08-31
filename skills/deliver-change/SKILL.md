@@ -45,6 +45,6 @@ Run the phases in order. A phase is complete only when its primitive's artifact 
 
 ## Validate and Handoff
 
-- Run the repository-prescribed checks after implementation (`mise run validate`, plus `mise run validate-skill-creator` when available) and record every command and result; never describe an unrun check as passing.
+- Run the repository-prescribed checks after implementation (`mise run validate:all`, plus `mise run validate:skill-creator` when available) and record every command and result; never describe an unrun check as passing.
 - Deliver one cohesive final report: the achieved outcome, the plan URL, phase artifacts and their URLs, validation commands and results, the governing Issue's label state, and any remaining risks.
 - Hand off only when the change is implemented, validated, and reviewed. Do not merge, release, or expand scope unless the user separately requests it.

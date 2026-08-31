@@ -108,7 +108,7 @@ reasons:
   keyed on the mise configuration hash. Both default to enabled at the pinned
   SHAs and are set explicitly for clarity. Cache keys invalidate when the
   corresponding dependency metadata changes.
-- The fslc verifier download inside `mise run verify-fsl` is intentionally not
+- The fslc verifier download inside `mise run verify:fsl` is intentionally not
   cached; optimizing `mise.toml` task internals is tracked separately.
 
 ## Concurrency
@@ -130,7 +130,7 @@ reasons:
   required check still reports success (a job whose step is conditional
   reports success).
 - `targeted.yml` follows the same rule for Tier 2: its jobs always run, and
-  each step scopes work to changed files. `mutate-fsl --changed-base <base>`
+  each step scopes work to changed files. `mutate:fsl-changed --changed-base <base>`
   scopes mutation to specs changed under `specs/` or `skills/**/specs/`, while
   `check:go-vuln` runs only when `go.mod`, `go.sum`, or `*.go` changed. Both
   paths remain successful no-ops when unrelated.

@@ -19,7 +19,7 @@ Keep exactly one item in progress. Mark an item complete only after its evidence
 ## Workflow
 
 1. Read `AGENTS.md`, contributor guidance, Skills, workflow files, hooks, tasks, and validators. Treat server-side GitHub controls as separate evidence from local hooks.
-2. Run `mise run validate`. For release work, use `mise run release:publish -- vX.Y.Z`; do not replace its gate sequence with direct `gh skill publish`.
+2. Run `mise run validate:all`. For release work, use `mise run publish:release -- vX.Y.Z`; do not replace its gate sequence with direct `gh skill publish`.
 3. Do not ask subagents to rerun deterministic checks or edit files. Give each a distinct, read-only question and require file/line or command-output evidence.
 4. Combine the results in a matrix: rule, source, enforcement, status, remaining gap, and recommendation. `Enforced` means the control blocks or rejects violations; a checklist or prose instruction is `documented-only`.
 
@@ -37,6 +37,6 @@ Read the host note before selecting a subagent model: [Codex](references/hosts/c
 
 ## Boundaries
 
-- Scripts can reject known tokens, local/private network URLs, user paths, unreviewed `mise` tools, missing test mappings, and a release sequence invoked through `release:publish`.
+- Scripts can reject known tokens, local/private network URLs, user paths, unreviewed `mise` tools, missing test mappings, and a release sequence invoked through `publish:release`.
 - Scripts cannot reliably determine whether a public-looking URL, prose, or file is sensitive in its business context, whether an agent actually maintained a Todo List, or whether a user intended every changed file.
-- The `release:publish` task is the required automated path, but it cannot prevent a user with shell and GitHub authority from directly invoking `gh skill publish`. Report that residual bypass rather than claiming server-side enforcement.
+- The `publish:release` task is the required automated path, but it cannot prevent a user with shell and GitHub authority from directly invoking `gh skill publish`. Report that residual bypass rather than claiming server-side enforcement.

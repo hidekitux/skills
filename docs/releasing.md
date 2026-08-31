@@ -8,13 +8,13 @@ The public status and pinned-installation claims in the README are documented on
 
 1. Align every `CATALOG.yml` skill version with the target `vX.Y.Z`.
 2. Review the Todo List, validation results, and changes.
-3. Run `mise run validate` from the repository root. It verifies installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate-skill-creator`.
+3. Run `mise run validate:all` from the repository root. It verifies installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate:skill-creator`.
 4. Run the pinned Go vulnerability scan with `mise run check:go-vuln -- -out <retained-json-path>` and review reachable findings before release. Fix the affected Go version or module, or record an explicit reviewed exception with remediation evidence; non-reachable findings remain reported in the retained output.
-5. When `specs/**/*.fsl` or `skills/**/specs/*.fsl` changed, run `mise run mutate-fsl` and review survivors. The README FSL mutation badges and test badges refresh automatically after the change reaches `main`: the Publish workflow reruns `mise run mutate-fsl` and `mise run test`, publishes the six shields.io payloads to the `badge-data` branch, and the endpoint badges update without a manual edit. `mise run check:repository` verifies only that the six README badges point at the `badge-data` branch payloads.
+5. When `specs/**/*.fsl` or `skills/**/specs/*.fsl` changed, run `mise run mutate:fsl` and review survivors. The README FSL mutation badges and test badges refresh automatically after the change reaches `main`: the Publish workflow reruns `mise run mutate:fsl` and `mise run test:all`, publishes the six shields.io payloads to the `badge-data` branch, and the endpoint badges update without a manual edit. `mise run check:repository` verifies only that the six README badges point at the `badge-data` branch payloads.
 6. Update `docs/release-evidence.yml` to `released: true` and record the verified `tag`, the deterministic GitHub Release URL (`https://github.com/hidekitux/skills/releases/tag/<tag>`), and the verified `commit`. `check:repository` then fails unless the release tag version matches every catalog version.
 7. Commit the release contents.
-8. Run `mise run verify-release -- vX.Y.Z` from the committed state. It checks the tag format, every catalog version, the working and committed Git state, and the origin remote. It neither creates a tag nor reuses an existing local tag, and it fails when tracked or untracked changes are present.
-9. Publish with `mise run release:publish -- vX.Y.Z`. The task re-runs `mise run validate`, the available `skill-creator` validation, and `mise run verify-release`, then runs `gh skill publish --tag vX.Y.Z`. It cannot technically prevent direct execution by a user with shell and GitHub permissions, so use this task as the standard publication entry point.
+8. Run `mise run verify:release -- vX.Y.Z` from the committed state. It checks the tag format, every catalog version, the working and committed Git state, and the origin remote. It neither creates a tag nor reuses an existing local tag, and it fails when tracked or untracked changes are present.
+9. Publish with `mise run publish:release -- vX.Y.Z`. The task re-runs `mise run validate:all`, the available `skill-creator` validation, and `mise run verify:release`, then runs `gh skill publish --tag vX.Y.Z`. It cannot technically prevent direct execution by a user with shell and GitHub permissions, so use this task as the standard publication entry point.
 
 ## After publication
 
@@ -36,7 +36,7 @@ To correct or roll back a bad release:
 
 1. Leave the released tag (and its GitHub Release) untouched.
 2. Align every `CATALOG.yml` version to the next patch version and commit.
-3. Run the pre-release checks and `mise run release:publish -- vX.Y.Z` for the new version (for example `v0.1.1`).
+3. Run the pre-release checks and `mise run publish:release -- vX.Y.Z` for the new version (for example `v0.1.1`).
 4. Install the corrected pinned version in consuming projects.
 
 The faulty release remains installable and immutable by design; consumers migrate by pinning the corrected version. Never delete, move, or reuse a release tag.
