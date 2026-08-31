@@ -37,7 +37,7 @@
 - Generate `agents/openai.yaml` through `skill-creator` when creating a Codex-facing skill. Read its `openai_yaml.md` reference first and keep the generated UI metadata aligned with `SKILL.md`.
 - Add `scripts/`, `references/`, and `assets/` only when they are reusable. Test every added script with a representative input.
 - Forward-test complex or high-impact skills with realistic requests that do not reveal the expected answer.
-- When bootstrapping a project, make mise the standard entry point. Define only the applicable `format`, `lint`, `test`, `check`, and `verify:fsl` tasks; `check` should compose the relevant validations.
+- When bootstrapping a project, make mise the standard entry point. Define only the applicable `format:all`, `lint:all`, `test:all`, `check:all`, and `verify:fsl` tasks; `check` should compose the relevant validations.
 
 ## Host compatibility
 

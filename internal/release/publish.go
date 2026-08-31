@@ -19,7 +19,7 @@ func PublishRelease(args []string, out, errOut io.Writer) int {
 	}
 	tag := args[0]
 
-	if code := streamCommandSupport("mise", out, errOut, "run", "validate"); code != 0 {
+	if code := streamCommandSupport("mise", out, errOut, "run", "validate:all"); code != 0 {
 		return code
 	}
 
@@ -36,14 +36,14 @@ func PublishRelease(args []string, out, errOut io.Writer) int {
 		skillCreatorRoot = filepath.Join(codexHome, "skills", ".system", "skill-creator")
 	}
 	if _, err := os.Stat(filepath.Join(skillCreatorRoot, "scripts", "quick_validate.py")); err == nil {
-		if code := streamCommandSupport("mise", out, errOut, "run", "validate-skill-creator"); code != 0 {
+		if code := streamCommandSupport("mise", out, errOut, "run", "validate:skill-creator"); code != 0 {
 			return code
 		}
 	} else {
 		fmt.Fprintln(errOut, "skill-creator validator unavailable; skipping Codex-specific evidence.")
 	}
 
-	if code := streamCommandSupport("mise", out, errOut, "run", "verify-release", "--", tag); code != 0 {
+	if code := streamCommandSupport("mise", out, errOut, "run", "verify:release", "--", tag); code != 0 {
 		return code
 	}
 	return streamCommandSupport("gh", out, errOut, "skill", "publish", "--tag", tag)

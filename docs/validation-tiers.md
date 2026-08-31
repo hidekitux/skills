@@ -37,14 +37,14 @@ do not by themselves block).
 | `check:hosts` (`cmd/validate-hosts`) | 1 | every PR / `main` push | repository owner | ~0.4s warm | blocking |
 | `check:branch-policy` (`cmd/validate-branch-policy`) | 1 | every PR / `main` push | repository owner | ~0.2s | blocking |
 | `check:diff` (`cmd/check-whitespace`) | 1 | every PR / `main` push | repository owner | ~0.5s | blocking |
-| `lint` (workflows, Python, shell, Go) | 1 | every PR / `main` push | repository owner | ~0.2s warm | blocking |
-| `test` (`go test ./...`) | 1 | every PR / `main` push | repository owner | ~0.2s warm / ~18.7s cold | blocking |
+| `lint:all` (workflows, Python, shell, Go) | 1 | every PR / `main` push | repository owner | ~0.2s warm | blocking |
+| `test:all` (`go test ./...`) | 1 | every PR / `main` push | repository owner | ~0.2s warm / ~18.7s cold | blocking |
 | `verify:fsl` (`cmd/verify-fsl`) | 1 | every PR / `main` push | repository owner | ~0.3s warm | blocking |
 | `check:skills` (`gh skill publish --dry-run`) | 1 | every PR / `main` push | repository owner | ~2.1s warm | blocking |
 | `Validate branch policy` / `Validate work item title` / `Validate commit conventions` (`policy.yml`) | 1 | every PR | repository owner | seconds | blocking |
 | `Audit workflow security` (zizmor, `security.yml`) | 1 | every PR / `main` push; step is scoped to `.github/workflows/**` changes | repository owner | seconds | blocking |
 | `Validate commit signatures` (`policy-signatures.yml`) | 1 | every PR (`pull_request_target`) | repository owner | seconds | blocking |
-| `mutate-fsl --changed-base <rev>` (Tier 2 targeted mutation, `targeted.yml`) | 2 | every PR; step runs only when `specs/**` or `skills/**/specs/**` changes | repository owner | ~1s per changed spec, no-op in <1s when none match | blocking on infrastructure errors; surviving mutants are triaged, not a silent pass |
+| `mutate:fsl-changed --changed-base <rev>` (Tier 2 targeted mutation, `targeted.yml`) | 2 | every PR; step runs only when `specs/**` or `skills/**/specs/**` changes | repository owner | ~1s per changed spec, no-op in <1s when none match | blocking on infrastructure errors; surviving mutants are triaged, not a silent pass |
 | `check:go-vuln` (`targeted.yml`, Go dependency security) | 2 | every PR; step runs only when `go.mod`, `go.sum`, or `*.go` changes | repository owner | depends on vulnerability database and module graph | reachable findings and infrastructure errors are blocking; non-reachable findings are reported |
 | behavioral smoke for skill changes (`targeted.yml`) | 2 | every PR; step runs only when `skills/**` changes | repository owner | defined by the #173 evaluation harness (not yet wired into a job) | blocking per the #173 smoke contract |
 | `mutate:fsl` (full) + `test:json` + `collect-badges` (`publish.yml`, badge-data) | 3 | weekly `schedule` + `workflow_dispatch` (not every `main` push) | repository owner | ~37s for full mutation (measured at depth 8) + `go test` | observability; the retained report distinguishes categories |

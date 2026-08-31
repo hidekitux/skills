@@ -11,7 +11,7 @@ the per-task "Finished in" lines come from the mise task output.
 | Task | Cache | Total | Slowest contributors |
 | --- | --- | --- | --- |
 | `mise run validate:all` | warm | 2.16s | `check:skills` 2.13s, `check:repository` 694ms, `check:hosts` 566ms, `check:diff` 510ms |
-| `mise run validate:all` | cold | 22.14s | `check:repository` 22.11s, `test` 18.75s, `check:branch-policy` 17.94s, `check:hosts` 17.94s |
+| `mise run validate:all` | cold | 22.14s | `check:repository` 22.11s, `test:all` 18.75s, `check:branch-policy` 17.94s, `check:hosts` 17.94s |
 | `mise run check:repository` | warm | 0.48s | six sequential `go run ./cmd/...` commands |
 | `mise run lint:all` | warm | 0.31s | parallel lint tasks |
 | `mise run test:all` | warm | 0.33s in-graph | `go test ./...` |
@@ -58,7 +58,7 @@ the other Go-consuming tasks in the graph.
   concurrently, prints each result under a labeled section, and exits 1 if
   any check fails. The six individual commands remain and are unchanged.
 - `mise.toml`: `check:repository` now runs `go run ./cmd/check-repository`.
-- `mise.toml`: `test` now delegates to `test:go` (`depends = ["test:go"]`)
+- `mise.toml`: `test:all` now delegates to `test:go` (`depends = ["test:go"]`)
   instead of redefining the same `go test ./...` command; `test:json`
   (used by the badge workflow) is unchanged.
 - `SCRIPT_TESTS.toml`: `cmd/check-repository` maps to its own test package.
@@ -82,11 +82,11 @@ the other Go-consuming tasks in the graph.
   `check:repository: FAILED (1 of 6 repository checks failed:
   check-sensitive-content)`; the other five checks still ran and reported.
 - **FSL installation.** `mise` de-duplicates dependency tasks in one graph:
-  `mise run verify:fsl ::: fsl:install` executed the `fslc` install script
+  `mise run verify:fsl ::: install:fsl` executed the `fslc` install script
   once. The installer is already idempotent (checksum check, exit 0 when
-  present), so `fsl:install` needs no change.
-- **Duplicate tests.** `test` and `test:go` defined the identical command;
-  `test` now delegates to `test:go`, so one task graph runs the suite once.
+  present), so `install:fsl` needs no change.
+- **Duplicate tests.** `test:all` and `test:go` define the identical command;
+  `test:all` delegates to `test:go`, so one task graph runs the suite once.
   `test:json` remains for the badge workflow.
 - **Ruff cache.** `lint:python` keeps `RUFF_CACHE_DIR` under
   `RUNNER_TEMP`/`TMPDIR`, so local warm runs reuse the cache (lint:python
@@ -110,8 +110,8 @@ the other Go-consuming tasks in the graph.
 - Failure injection (untracked file containing a GitHub token pattern)
   fails `mise run check:repository` and names the failing check; removal
   restores a passing run.
-- Existing task names (`validate:all`, `lint`, `test`, `check:*`, `verify:fsl`,
-  `mutate:fsl`, `check:local`, `fsl:install`) work unchanged.
+- Canonical task names (`validate:all`, `lint:all`, `test:all`, `check:*`,
+  `verify:fsl`, `mutate:fsl`, `check:local`, `install:fsl`) work as documented.
 - GitHub Actions on `ubuntu-latest` invokes `mise run validate:all`; the
   optimized graph is exercised by the same command locally. The CI run
   itself is confirmed after the branch is pushed by `create-pr`.
