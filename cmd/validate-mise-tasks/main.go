@@ -19,7 +19,7 @@ var taskHeader = regexp.MustCompile(`^\[tasks\.(?:"([^"]+)"|([^]]+))\]$`)
 var taskName = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9-]*$`)
 
 var allowedVerbs = map[string]bool{
-	"check": true, "diagnose": true, "evaluate": true, "generate": true,
+	"check": true, "diagnose": true, "evaluate": true, "format": true, "generate": true,
 	"install": true, "lint": true, "mutate": true, "publish": true,
 	"setup": true, "test": true, "validate": true, "verify": true,
 }

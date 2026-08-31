@@ -63,7 +63,7 @@ git worktree add -b issue/<number> <path> origin/main
 
 Never use `--force` to check out `main` in multiple worktrees.
 
-`mise run validate:all` validates temporary installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate:all-skill-creator`. Linux x64 and macOS Apple Silicon are supported for full validation because it includes FSL verification.
+`mise run validate:all` validates temporary installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate:skill-creator`. Linux x64 and macOS Apple Silicon are supported for full validation because it includes FSL verification.
 
 ## Layout and skill contract
 

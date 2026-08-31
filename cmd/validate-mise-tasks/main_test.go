@@ -50,6 +50,15 @@ func TestValidateRejectsRetiredReference(t *testing.T) {
 	}
 }
 
+func TestValidateRejectsRetiredDependency(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"verify:fsl\"]\nrun = \"true\"\n[tasks.\"validate:all\"]\ndepends = [\"verify-fsl\"]\n", nil)
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"verify-fsl\"") {
+		t.Fatalf("expected retired dependency failure, got %v", errs)
+	}
+}
+
 func errorStrings(errs []error) []string {
 	result := make([]string, len(errs))
 	for i, err := range errs {
