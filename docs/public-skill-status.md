@@ -30,7 +30,7 @@ a single owner:
 | Entry-point set | The three outcome-oriented entry points named by Issue 175: `improve-project`, `deliver-change`, and `resolve-defect`. | merged entry-point contract and behavioral evaluation (`docs/evaluation.md`) |
 | Entry-point summary, lifecycle status, version | `CATALOG.yml` `summary`, `status`, and `version` fields of the entry-point skills. | committed catalog |
 | Lifecycle status of every cataloged skill | `CATALOG.yml` `status` field. | committed catalog; promotion to `stable` additionally requires retained behavioral-evaluation reports (`docs/evaluation.md`) |
-| Verified release, preview stability, pinned installation | `docs/release-evidence.yml` (`released`, `tag`, `release_url`, `commit`). | the release flow (Issue 174) records these only after `mise run verify-release` and publishing succeed on a verified tag |
+| Verified release, preview stability, pinned installation | `docs/release-evidence.yml` (`released`, `tag`, `release_url`, `commit`). | the release flow (Issue 174) records these only after `mise run verify:release` and publishing succeed on a verified tag |
 
 ## Fields and evidence rules
 

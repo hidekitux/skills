@@ -10,19 +10,19 @@ the per-task "Finished in" lines come from the mise task output.
 
 | Task | Cache | Total | Slowest contributors |
 | --- | --- | --- | --- |
-| `mise run validate` | warm | 2.16s | `check:skills` 2.13s, `check:repository` 694ms, `check:hosts` 566ms, `check:diff` 510ms |
-| `mise run validate` | cold | 22.14s | `check:repository` 22.11s, `test` 18.75s, `check:branch-policy` 17.94s, `check:hosts` 17.94s |
+| `mise run validate:all` | warm | 2.16s | `check:skills` 2.13s, `check:repository` 694ms, `check:hosts` 566ms, `check:diff` 510ms |
+| `mise run validate:all` | cold | 22.14s | `check:repository` 22.11s, `test` 18.75s, `check:branch-policy` 17.94s, `check:hosts` 17.94s |
 | `mise run check:repository` | warm | 0.48s | six sequential `go run ./cmd/...` commands |
-| `mise run lint` | warm | 0.31s | parallel lint tasks |
-| `mise run test` | warm | 0.33s in-graph | `go test ./...` |
-| `mise run verify-fsl` | warm | 0.18s in-graph | `go run ./cmd/verify-fsl` + `fslc` |
+| `mise run lint:all` | warm | 0.31s | parallel lint tasks |
+| `mise run test:all` | warm | 0.33s in-graph | `go test ./...` |
+| `mise run verify:fsl` | warm | 0.18s in-graph | `go run ./cmd/verify-fsl` + `fslc` |
 
 Cold-cache runs used a fresh `GOCACHE`, `GOMODCACHE`, `RUFF_CACHE_DIR`, and
 `FSLC_BIN_DIR` so Go, Ruff, and the pinned `fslc` verifier all started
 empty. `mise`-managed tools were already installed (they are setup, not a
 per-run cache).
 
-Warm `mise run validate` is bounded by `check:skills` (the `gh skill publish
+Warm `mise run validate:all` is bounded by `check:skills` (the `gh skill publish
 --dry-run` invocation, ~2.1s). The `mise` task graph already runs the
 top-level dependencies concurrently; the critical path is the slowest
 task, not a sum of task times.
@@ -31,12 +31,12 @@ task, not a sum of task times.
 
 | Task | Cache | Total | Slowest contributors |
 | --- | --- | --- | --- |
-| `mise run validate` | warm | 2.14s | `check:skills` 2.11s (unchanged, external `gh` invocation), `test:go` 715ms, `check:hosts` 421ms |
-| `mise run validate` | cold | 18.84s | `test:go` 18.73s, `check:repository` 15.97s, `check:branch-policy` 15.49s |
+| `mise run validate:all` | warm | 2.14s | `check:skills` 2.11s (unchanged, external `gh` invocation), `test:go` 715ms, `check:hosts` 421ms |
+| `mise run validate:all` | cold | 18.84s | `test:go` 18.73s, `check:repository` 15.97s, `check:branch-policy` 15.49s |
 | `mise run check:repository` | warm | 0.36s | single `go run ./cmd/check-repository` dispatcher |
-| `mise run lint` | warm | 0.21s | parallel lint tasks |
-| `mise run test` | warm | 0.20s | delegates to `test:go` |
-| `mise run verify-fsl` | warm | 0.29s | `go run ./cmd/verify-fsl` + `fslc` |
+| `mise run lint:all` | warm | 0.21s | parallel lint tasks |
+| `mise run test:all` | warm | 0.20s | delegates to `test:go` |
+| `mise run verify:fsl` | warm | 0.29s | `go run ./cmd/verify-fsl` + `fslc` |
 
 ### `check:repository` in-graph timing (warm and cold)
 
@@ -72,7 +72,7 @@ the other Go-consuming tasks in the graph.
   evaluated and not adopted: Go already reuses the shared `GOCACHE` across
   `go run`, `go test`, and `go vet`, the remaining Go tasks run
   concurrently and off the warm critical path (bounded by `check:skills`),
-  and cold `mise run validate` is bounded by the full `go test` compile
+  and cold `mise run validate:all` is bounded by the full `go test` compile
   (`test:go` 18.73s) regardless; pre-built binaries would add staleness and
   state management for a sub-second cold gain.
 - **Deterministic output.** The dispatcher buffers concurrent check output
@@ -82,7 +82,7 @@ the other Go-consuming tasks in the graph.
   `check:repository: FAILED (1 of 6 repository checks failed:
   check-sensitive-content)`; the other five checks still ran and reported.
 - **FSL installation.** `mise` de-duplicates dependency tasks in one graph:
-  `mise run verify-fsl ::: fsl:install` executed the `fslc` install script
+  `mise run verify:fsl ::: fsl:install` executed the `fslc` install script
   once. The installer is already idempotent (checksum check, exit 0 when
   present), so `fsl:install` needs no change.
 - **Duplicate tests.** `test` and `test:go` defined the identical command;
@@ -96,7 +96,7 @@ the other Go-consuming tasks in the graph.
   (gofmt + vet) and `lint:python` (check + format with the same cache) are
   unchanged; `go vet` and `go test` share `GOCACHE` and do not recompile
   shared packages twice.
-- **Documented bottleneck.** Warm `mise run validate` (2.14s) is bounded by
+- **Documented bottleneck.** Warm `mise run validate:all` (2.14s) is bounded by
   `check:skills` at ~2.1s, an external `gh skill publish --dry-run`
   invocation. Changing how that check works is outside this Issue's scope
   (workflow/tooling changes are tracked separately), so it is the
@@ -104,15 +104,15 @@ the other Go-consuming tasks in the graph.
 
 ## Validation evidence
 
-- `mise run validate`, `mise run lint`, `mise run test`,
+- `mise run validate:all`, `mise run lint:all`, `mise run test:all`,
   `mise run check:repository`, `mise run check:local`, and
-  `mise run verify-fsl` all pass locally before and after the change.
+  `mise run verify:fsl` all pass locally before and after the change.
 - Failure injection (untracked file containing a GitHub token pattern)
   fails `mise run check:repository` and names the failing check; removal
   restores a passing run.
-- Existing task names (`validate`, `lint`, `test`, `check:*`, `verify-fsl`,
-  `mutate-fsl`, `check:local`, `fsl:install`) work unchanged.
-- GitHub Actions on `ubuntu-latest` invokes `mise run validate`; the
+- Existing task names (`validate:all`, `lint`, `test`, `check:*`, `verify:fsl`,
+  `mutate:fsl`, `check:local`, `fsl:install`) work unchanged.
+- GitHub Actions on `ubuntu-latest` invokes `mise run validate:all`; the
   optimized graph is exercised by the same command locally. The CI run
   itself is confirmed after the branch is pushed by `create-pr`.
 
@@ -126,23 +126,23 @@ workstation with the same mise toolchain. `git diff`-targeted runs used
 
 | Run | Cache | Total | Notes |
 | --- | --- | --- | --- |
-| `mise run mutate-fsl:changed -- origin/main` (no spec changed) | warm | ~0.9s | prints "No FSL specifications selected for mutation." and exits 0 |
-| `mise run mutate-fsl:changed -- origin/main` (one spec touched) | warm | ~1.1s | mutates only `specs/branch-flow.fsl` |
-| `mise run mutate-fsl -- --report <path>` (all eight specs) | warm | ~37s | full Tier 3 / release run with retained report (861 killed / 203 survivors measured on the post-#173/#205 `main`) |
+| `mise run mutate:fsl-changed -- origin/main` (no spec changed) | warm | ~0.9s | prints "No FSL specifications selected for mutation." and exits 0 |
+| `mise run mutate:fsl-changed -- origin/main` (one spec touched) | warm | ~1.1s | mutates only `specs/branch-flow.fsl` |
+| `mise run mutate:fsl -- --report <path>` (all eight specs) | warm | ~37s | full Tier 3 / release run with retained report (861 killed / 203 survivors measured on the post-#173/#205 `main`) |
 
 ### Tier 1 unchanged surface
 
 | Task | Cache | Before (Issue 156) | After (Issue 176) |
 | --- | --- | --- | --- |
-| `mise run validate` | warm | 2.14s | 2.30s (bounded by `check:skills` 2.28s) |
-| `mise run validate` | cold | 18.84s | 18.91s (a fresh `GOCACHE`, `GOMODCACHE`, `RUFF_CACHE_DIR`, and `FSLC_BIN_DIR`) |
+| `mise run validate:all` | warm | 2.14s | 2.30s (bounded by `check:skills` 2.28s) |
+| `mise run validate:all` | cold | 18.84s | 18.91s (a fresh `GOCACHE`, `GOMODCACHE`, `RUFF_CACHE_DIR`, and `FSLC_BIN_DIR`) |
 
 ### What changed
 
-- `mutate-fsl` accepts `--changed-base <rev>` (Tier 2: changed specs only,
+- `mutate:fsl` accepts `--changed-base <rev>` (Tier 2: changed specs only,
   no-op success when none match) and `--report <path>` (retained report that
   distinguishes killed, survived, invalid, and infrastructure-error results);
-  `mise run mutate-fsl:changed` wraps the changed-base mode.
+  `mise run mutate:fsl-changed` wraps the changed-base mode.
 - `check:repository` gained `check-mutation-triage` (validates
   `docs/mutation-triage.md`, eleven checks total including the #173 evaluation,
   #182 catalog-docs, and #178 Dependabot-config checks that landed on `main`).

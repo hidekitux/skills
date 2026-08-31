@@ -17,36 +17,36 @@ The repository and published skills use the [Apache License 2.0](LICENSE). The `
 
 ## Development
 
-Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `setup` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. `setup` is safe to rerun, and it does not need to be run again by hand on every branch switch: the tracked `post-checkout` hook reruns it automatically.
+Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. `setup` is safe to rerun, and it does not need to be run again by hand on every branch switch: the tracked `post-checkout` hook reruns it automatically.
 
 ```bash
 mise trust
-mise run setup
+mise run setup:all
 mise tasks ls
 ```
 
 | Workflow | Command |
 | --- | --- |
-| Initial setup | `mise run setup` |
-| Full repository validation | `mise run validate` |
+| Initial setup | `mise run setup:all` |
+| Full repository validation | `mise run validate:all` |
 | Fast local-change check | `mise run check:local` |
-| Worktree diagnosis | `mise run worktree:diagnose -- --branch issue/123` |
-| Static analysis | `mise run lint` |
-| FSL verification | `mise run verify-fsl` |
-| FSL mutation check | `mise run mutate-fsl` |
+| Worktree diagnosis | `mise run diagnose:worktree -- --branch issue/123` |
+| Static analysis | `mise run lint:all` |
+| FSL verification | `mise run verify:fsl` |
+| FSL mutation check | `mise run mutate:fsl` |
 | Behavioral evaluation smoke set | `mise run evaluate:smoke` |
-| Behavioral evaluation suite | `mise run evaluate` |
-| Release-candidate verification | `mise run verify-release -- vX.Y.Z` |
-| Publish a verified release | `mise run release:publish -- vX.Y.Z` |
+| Behavioral evaluation suite | `mise run evaluate:all` |
+| Release-candidate verification | `mise run verify:release -- vX.Y.Z` |
+| Publish a verified release | `mise run publish:release -- vX.Y.Z` |
 
-`setup` enables `.githooks`. It reruns automatically on branch checkout; `check:local` runs before commits and `validate` before pushes. A failed check blocks the corresponding commit or push.
+`setup` enables `.githooks`. It reruns automatically on branch checkout; `check:local` runs before commits and `validate:all` before pushes. A failed check blocks the corresponding commit or push.
 
 ## Worktrees
 
-Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other. Inspect owner and setup state first:
+Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other. Inspect owner and setup state first:
 
 ```bash
-mise run worktree:diagnose -- --branch issue/123
+mise run diagnose:worktree -- --branch issue/123
 ```
 
 The diagnostic never removes a worktree automatically. Inspect changes with `git status`, and run `git worktree remove <path>` only after deciding it is no longer active. Do not run development commands from a bare repository entry point; use a registered non-bare worktree reported by the diagnostic.
@@ -63,7 +63,7 @@ git worktree add -b issue/<number> <path> origin/main
 
 Never use `--force` to check out `main` in multiple worktrees.
 
-`mise run validate` validates temporary installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate-skill-creator`. Linux x64 and macOS Apple Silicon are supported for full validation because it includes FSL verification.
+`mise run validate:all` validates temporary installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate:all-skill-creator`. Linux x64 and macOS Apple Silicon are supported for full validation because it includes FSL verification.
 
 ## Layout and skill contract
 
@@ -143,8 +143,8 @@ Pinned installation is documented from retained release evidence only. No verifi
 
 1. Add `skills/<skill-name>/SKILL.md`.
 2. Record its purpose, owner, and supported agents in `CATALOG.yml`.
-3. Run `mise run validate` before publishing.
-4. Run `mise run validate-skill-creator` when it is available in Codex.
+3. Run `mise run validate:all` before publishing.
+4. Run `mise run validate:all-skill-creator` when it is available in Codex.
 5. Follow the [release procedure](docs/releasing.md) after review.
 
 `mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, the script-to-test mapping, and catalog-versus-documentation drift. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
@@ -174,8 +174,8 @@ Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` con
 FSL verifies state transitions and publication conditions, not `SKILL.md` prose. Place a skill-owned source in `skills/<skill-name>/specs/*.fsl` and expose it with a relative symbolic link at `specs/<skill-name>/`; place repository-owned or cross-cutting sources directly in `specs/`. Confirm a formalization memo before adding or changing a specification, then run:
 
 ```bash
-mise run verify-fsl
-mise run mutate-fsl
+mise run verify:fsl
+mise run mutate:fsl
 ```
 
 The FSL and test badges at the top of this README are published to the `badge-data` branch by the [Publish workflow](.github/workflows/publish.yml); they auto-refresh after spec or test changes reach `main`. Do not hand-edit them.

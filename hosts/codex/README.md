@@ -24,7 +24,7 @@ rule, and name the fallback in the handoff.
 
 ## Local skill registration
 
-Run `mise run setup` once in each Git worktree. The command sets
+Run `mise run setup:all` once in each Git worktree. The command sets
 the worktree-local `core.hooksPath` to `.githooks` and registers each
 top-level published skill under the ignored `.agents/skills/` directory for
 Codex and `.claude/skills/` for Claude Code.
@@ -39,7 +39,7 @@ not appear.
 Worktrees share the pinned commitlint binary through the common Git directory,
 so setting up a new worktree does not rebuild it. The local skill registrations
 are snapshot-dependent: the `post-checkout` hook refreshes them when the branch
-changes, and `mise run worktree:diagnose -- --branch issue/<number>` reports
+changes, and `mise run diagnose:worktree -- --branch issue/<number>` reports
 which worktree owns a branch and whether its setup is current.
 
 The enabled hooks run `mise run check:local` before commits and `mise run

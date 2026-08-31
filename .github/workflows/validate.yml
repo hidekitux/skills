@@ -56,7 +56,7 @@ jobs:
           install: true
           cache: true
       - name: Lint workflows, Python, shell, and Go sources
-        run: mise run lint
+        run: mise run lint:all
   test:
     name: Validate tests
     runs-on: ubuntu-latest
@@ -74,7 +74,7 @@ jobs:
           install: true
           cache: true
       - name: Run repository tests
-        run: mise run test
+        run: mise run test:all
   verify-fsl:
     name: Validate FSL specifications
     runs-on: ubuntu-latest
@@ -92,7 +92,7 @@ jobs:
           install: true
           cache: true
       - name: Verify FSL specifications
-        run: mise run verify-fsl
+        run: mise run verify:fsl
   skill-checks:
     name: Validate skills
     runs-on: ubuntu-latest

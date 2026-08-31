@@ -34,7 +34,7 @@ active host is Codex.
 - Preserve the formalization memo and confirmed-assumption workflow. If a
   project rule is incomplete, report the gap instead of inventing a transition,
   invariant, or approval rule.
-- Run FSL checks through `mise run verify-fsl` when that task exists. Report
+- Run FSL checks through `mise run verify:fsl` when that task exists. Report
   whether a result is a checked specification property, generated test evidence,
   or implementation replay evidence; these are not interchangeable.
 

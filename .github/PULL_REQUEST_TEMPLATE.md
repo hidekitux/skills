@@ -22,4 +22,4 @@
 - [ ] No secrets, tokens, or private user data are included.
 - [ ] `CATALOG.yml` was updated when a publishable skill changed.
 - [ ] `gh skill publish --dry-run` passed.
-- [ ] When an FSL specification changed, `mise run mutate-fsl` was run and survivors were reviewed.
+- [ ] When an FSL specification changed, `mise run mutate:fsl` was run and survivors were reviewed.

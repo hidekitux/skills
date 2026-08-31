@@ -25,7 +25,7 @@ it out of scope merely because it has low verification risk.
 For a project with confirmed FSL scope:
 
 - Put source specifications in `specs/`.
-- Expose a `mise run verify-fsl` task that runs `fslc check` and `fslc verify --depth 8`.
+- Expose a `mise run verify:fsl` task that runs `fslc check` and `fslc verify --depth 8`.
 - Start with one real, prioritized flow rather than a placeholder specification.
 - Re-run the FSL checks on changes to the covered flow. Add CI only when `fslc`
   is available in that environment.

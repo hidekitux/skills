@@ -35,7 +35,7 @@ jobs:
       - name: Capture FSL mutation results
         run: |
           set -euo pipefail
-          mise run mutate-fsl -- --report "${RUNNER_TEMP}/fsl-mutation-report.json" 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
+          mise run mutate:fsl -- --report "${RUNNER_TEMP}/fsl-mutation-report.json" 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
       - name: Capture test results
         run: |
           set -euo pipefail

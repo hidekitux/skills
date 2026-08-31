@@ -35,7 +35,7 @@ validation workflow.
 
 ## Development environment
 - Required tools and exact versions to pin in `mise.toml`:
-- Applicable mise tasks (`format`, `lint`, `test`, `check`, `verify-fsl`):
+- Applicable mise tasks (`format`, `lint`, `test`, `check`, `verify:fsl`):
 
 ## Reusable resources
 - Deterministic scripts needed:

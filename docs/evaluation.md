@@ -82,10 +82,10 @@ corpus check runs in CI through `check:repository` on every pull request and
 push, free of model calls.
 
 ```text
-mise run evaluate --help
+mise run evaluate:all --help
 mise run evaluate:smoke      # smoke set on opencode + antigravity
-mise run evaluate -- --host codex
-mise run evaluate -- --host opencode,antigravity --skills plan-issue
+mise run evaluate:all -- --host codex
+mise run evaluate:all -- --host opencode,antigravity --skills plan-issue
 ```
 
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
@@ -123,5 +123,5 @@ the opt-in key mode for reproducible runs.
   deterministically; see `go test ./internal/eval -run Injection`.
 - Re-running an unchanged scenario keeps deterministic verdicts stable;
   rubric variance is bounded by the reviewer procedure in `evaluations/rubric.md`.
-- `mise run validate` covers the corpus statically through the
+- `mise run validate:all` covers the corpus statically through the
   `check-evaluation` repository check.

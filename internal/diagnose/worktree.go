@@ -131,7 +131,7 @@ func DiagnoseWorktree(branch, base string, out, errOut io.Writer) int {
 	}
 	fmt.Fprintf(out, "Do not remove the worktree automatically. Inspect its status, then run `git worktree remove %q` only when it is no longer active.\n", owner.Path)
 	if SetupState(owner) != "current" {
-		fmt.Fprintf(out, "Setup for %s did not finish. Run 'mise run setup' there before continuing.\n", owner.Path)
+		fmt.Fprintf(out, "Setup for %s did not finish. Run 'mise run setup:all' there before continuing.\n", owner.Path)
 	}
 	return 0
 }

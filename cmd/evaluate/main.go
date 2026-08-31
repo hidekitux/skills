@@ -2,7 +2,7 @@
 // locally: it drives one or more host CLIs headlessly in isolated sandboxes,
 // applies deterministic assertions, and writes machine-readable JSONL plus
 // human-readable Markdown reports. It is the mise task entry point for
-// `mise run evaluate` and `mise run evaluate:smoke`.
+// `mise run evaluate:all` and `mise run evaluate:smoke`.
 package main
 
 import (

@@ -35,7 +35,7 @@ of mise run check:repository):
 - reason: why the disposition applies to this survivor.
 
 Update the register after every full mutation run that changes the survivor
-set: run mise run mutate-fsl -- --report <path> and regenerate this block.
+set: run mise run mutate:fsl -- --report <path> and regenerate this block.
 
 ## Register
 

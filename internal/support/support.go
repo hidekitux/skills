@@ -80,7 +80,7 @@ func asExitError(err error, target **exec.ExitError) bool {
 // inheriting an outer Git hook's GIT_DIR, GIT_WORK_TREE, or similar. This
 // mirrors the repository's test-time isolation and keeps the Go commands
 // valid when invoked from inside a hook (for example the pre-push hook that
-// runs `mise run validate`).
+// runs `mise run validate:all`).
 func GitEnv() []string {
 	env := []string{}
 	for _, kv := range os.Environ() {
