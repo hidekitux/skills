@@ -38,10 +38,10 @@ Decide it from the branch name, and get the branch name from `git symbolic-ref`,
 branch="$(git symbolic-ref --quiet --short HEAD || true)"
 if [ -n "$branch" ]; then
   upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null | sed 's|^[^/]*/||')"
-  gh pr list --head "${upstream:-$branch}" --state open --json number,headRefName
+  gh pr list --head "${upstream:-$branch}" --state open --json number --jq 'length'
 else
   gh api "repos/{owner}/{repo}/commits/$(git rev-parse HEAD)/pulls" \
-    --jq '[.[] | select(.state == "open")]'
+    --jq '[.[] | select(.state == "open")] | length'
 fi
 ```
 
@@ -49,10 +49,10 @@ An attached branch always has a name, so a branch that was never pushed answers 
 
 Read the result as follows. The distinction between "no Pull Request" and "could not tell" is the whole point; collapsing them is what misroutes a branch.
 
-- One result — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
-- More than one result — ambiguous. Stop and report the Pull Request numbers instead of guessing which one to fix.
-- No results with `HEAD` attached — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
-- `HEAD` detached and the commit lookup cannot answer — undetermined, not absent. Stop and report what could not be resolved. That lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
+- `1` — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
+- Greater than `1` — ambiguous. Re-run without `--jq 'length'` and report the Pull Request numbers instead of guessing which one to fix.
+- `0` with `HEAD` attached — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
+- No number at all, because `HEAD` is detached and the commit lookup failed — undetermined, not absent. Stop and report what could not be resolved. That lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
 
 Read the condition on the branch's state, not on how the request was phrased. A request to "implement the plan" on a branch that already has an open Pull Request is still this skill's work, and a request to "fix the review findings" on a branch with no Pull Request still belongs to `implement-issue` and `create-pr`.
 
