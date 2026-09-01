@@ -70,12 +70,22 @@ files), so evidence is present either way.
 
 - Validation is added only when the cost of the check is below the cost of
   what it prevents; authoring, review, and maintenance all count as cost. A
-  check must not exceed in size the artifact it guards, counted in lines and
-  including the check's own tests, and a single tracked file with one
-  maintainer is guarded by a code comment or a `CONTRIBUTING.md` line rather
-  than a repository check. Record a declined mechanization in its Issue,
-  naming the check that was not added and the cheaper guard that replaced it,
-  so the rejected option stays visible.
+  check must not exceed in size the artifact it guards, counted in the check's
+  implementation lines and excluding its tests, and a single tracked file with
+  one maintainer is guarded by a code comment, a line in the document that
+  owns the topic, or a `CONTRIBUTING.md` line rather than a repository check.
+  Record a declined mechanization in its Issue, naming the check that was not
+  added and the cheaper guard that replaced it, so the rejected option stays
+  visible.
+- The threshold above governs a check being added. It does not retire a check
+  already listed in the tier assignments; retiring one needs its own Issue.
+  It also does not reach a single file that is machine-consumed configuration
+  or a generated artifact, where no maintainer reads the file and a wrong
+  value changes behavior beyond the document: `check-dependabot-config` and
+  `check-public-status` stay for that reason. `check-mutation-triage` is a
+  standing exception because the Tier 3 constraint below requires the triage
+  register it enforces, so dropping the check would leave that constraint
+  unenforced.
 - Workflow-level `paths:` filters are never used on required workflows: a
   skipped required workflow leaves its checks pending and blocks merging. Tier
   2 jobs therefore always run and scope the work in a step (see
