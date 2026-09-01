@@ -19,15 +19,18 @@ var taskHeader = regexp.MustCompile(`^\[tasks\.(?:"([^"]+)"|([^]]+))\]$`)
 var taskName = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9-]*$`)
 
 var allowedVerbs = map[string]bool{
-	"check": true, "diagnose": true, "evaluate": true, "format": true, "generate": true,
+	"check": true, "evaluate": true, "format": true, "generate": true,
 	"install": true, "lint": true, "mutate": true, "publish": true,
 	"setup": true, "test": true, "validate": true, "verify": true,
 }
 
+// retiredTasks are task names that must not be declared or invoked again. A
+// prose mention stays legal so a migration note can name what was removed;
+// only an executable reference or a redeclaration fails.
 var retiredTasks = []string{
-	"evaluate", "fsl:install", "lint", "mutate-fsl", "mutate-fsl:changed",
-	"release:publish", "setup", "test", "validate", "validate-skill-creator",
-	"verify-fsl", "verify-release", "worktree:diagnose",
+	"diagnose:worktree", "evaluate", "fsl:install", "lint", "mutate-fsl",
+	"mutate-fsl:changed", "release:publish", "setup", "test", "validate",
+	"validate-skill-creator", "verify-fsl", "verify-release", "worktree:diagnose",
 }
 
 func main() {

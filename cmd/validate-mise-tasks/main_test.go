@@ -59,6 +59,38 @@ func TestValidateRejectsRetiredDependency(t *testing.T) {
 	}
 }
 
+func TestValidateRejectsRetiredDiagnoseWorktree(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"check:local\"]\nrun = \"true\"\n", map[string]string{
+		"README.md": "mise run diagnose:worktree -- --branch issue/123\n",
+	})
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"diagnose:worktree\"") {
+		t.Fatalf("expected retired diagnose:worktree reference failure, got %v", errs)
+	}
+}
+
+func TestValidateRejectsRedeclaredDiagnoseWorktree(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"diagnose:worktree\"]\nrun = \"true\"\n", nil)
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"diagnose:worktree\"") {
+		t.Fatalf("expected retired declaration failure, got %v", errs)
+	}
+	if !strings.Contains(joined, "one-word verb category") {
+		t.Fatalf("expected the retired diagnose verb to leave the approved vocabulary, got %v", errs)
+	}
+}
+
+func TestValidateAllowsRetiredTaskInProse(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"check:local\"]\nrun = \"true\"\n", map[string]string{
+		"docs/worktrees.md": "The `diagnose:worktree` task was removed in favor of `wt list`.\n",
+	})
+	if errs := validate(root, filepath.Join(root, "mise.toml")); len(errs) != 0 {
+		t.Fatalf("expected a historical prose mention to pass, got %v", errs)
+	}
+}
+
 func errorStrings(errs []error) []string {
 	result := make([]string, len(errs))
 	for i, err := range errs {
