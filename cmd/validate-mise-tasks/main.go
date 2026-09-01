@@ -94,21 +94,61 @@ func declaredTasks(path string) ([]string, error) {
 }
 
 func taskReference(content, retired string) bool {
-	for _, marker := range []string{"mise run ", "depends = [", "depends = [\""} {
+	// Match against whitespace-normalized text so an invocation that Markdown
+	// wrapped across two lines is caught like an inline one. Documentation in
+	// this repository wraps prose, so `mise run` and the task name regularly
+	// land on different lines.
+	normalized := strings.Join(strings.Fields(content), " ")
+	if invocationReference(normalized, retired) || dependsReference(normalized, retired) {
+		return true
+	}
+	if strings.Contains(normalized, "[tasks."+retired+"]") || strings.Contains(normalized, "[tasks.\""+retired+"\"]") {
+		return true
+	}
+	return false
+}
+
+// invocationReference reports whether the retired task is invoked through
+// `mise run`. The trailing character must not extend the task name, so
+// `mise run setup:all` is not a reference to the retired `setup`.
+func invocationReference(content, retired string) bool {
+	const marker = "mise run "
+	for start := 0; ; {
+		relative := strings.Index(content[start:], marker+retired)
+		if relative < 0 {
+			return false
+		}
+		index := start + relative + len(marker) + len(retired)
+		if index == len(content) || !isTaskCharacter(content[index]) {
+			return true
+		}
+		start = index
+	}
+}
+
+// dependsReference reports whether the retired task appears as any element of a
+// depends array. Matching each element rather than the text right after the
+// opening bracket keeps a reintroduced dependency detectable wherever it is
+// listed, not only in first position.
+func dependsReference(content, retired string) bool {
+	for _, marker := range []string{"depends = [", "depends=["} {
 		for start := 0; ; {
-			relative := strings.Index(content[start:], marker+retired)
+			relative := strings.Index(content[start:], marker)
 			if relative < 0 {
 				break
 			}
-			index := start + relative + len(marker) + len(retired)
-			if index == len(content) || !isTaskCharacter(content[index]) {
-				return true
+			open := start + relative + len(marker)
+			end := strings.Index(content[open:], "]")
+			if end < 0 {
+				break
 			}
-			start = index
+			for _, element := range strings.Split(content[open:open+end], ",") {
+				if strings.Trim(strings.TrimSpace(element), "\"'") == retired {
+					return true
+				}
+			}
+			start = open + end
 		}
-	}
-	if strings.Contains(content, "[tasks."+retired+"]") || strings.Contains(content, "[tasks.\""+retired+"\"]") {
-		return true
 	}
 	return false
 }
