@@ -55,9 +55,15 @@ options, an evidence table, or a reviewed-version table is not operating
 policy: the Issue records why the change was made and which option was
 declined, and the Pull Request records the evidence that the change works. A
 document whose decision has landed keeps the policy and drops the history.
-Tool license attribution is the exception and stays with the policy that
-depends on the tool, because a license governs current use rather than a past
-decision.
+
+Two kinds of content are exceptions and stay in `docs/`. Tool license
+attribution stays with the policy that depends on the tool, because a license
+governs current use rather than a past decision. A register or a measurement
+baseline that a constraint, a repository check, or a tier assignment cites is
+reference data rather than decision history: `docs/mutation-triage.md` is
+required by the Tier 3 constraint in `docs/validation-tiers.md` and read by
+`check-mutation-triage`, and `docs/validation-timings.md` is the baseline the
+tier assignments cite for expected duration.
 
 `docs/` carries no compatibility or upgrade guidance. The repository always
 runs the current versions pinned in `mise.toml`, so there is no supported
@@ -65,8 +71,9 @@ older state to document and no migration to describe.
 
 A rule that needs enforcement is not automatically a repository check.
 `docs/validation-tiers.md` gives the threshold below which validation is not
-added; below it, the guard is a code comment or a line in this document, and
-the declined check is recorded in its Issue.
+added; below it, the guard is a code comment or a line in the document that
+owns the topic, which is this file for a repository-wide rule, and the
+declined check is recorded in its Issue.
 
 ## Issue planning
 
