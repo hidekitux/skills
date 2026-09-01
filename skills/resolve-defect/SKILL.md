@@ -11,7 +11,7 @@ license: Apache-2.0
 1. **in progress:** Resolve the defect report, the reproduction boundary, and whether the fix is a governed change.
 2. Run the debug loop with `debug-code` and record reproduction, root-cause, fix, and verification evidence.
 3. Add regression tests for the verified fix with `write-tests`.
-4. When the fix is a governed change, continue through `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, and `review-pr`.
+4. When the fix is a governed change, continue through `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, and `fix-pr`.
 5. Complete the list only when the defect is verified fixed and one cohesive final report is delivered; hand off the evidence and any Issue or Pull Request URLs.
 
 Keep exactly one item in progress. Mark an item complete only after its stated evidence exists: a file, a command result, an Issue or Pull Request URL, or another observable artifact. Add or revise items when the observed failure changes. Use the host's native Todo List when available; otherwise maintain this list as a Markdown checklist in the conversation.
@@ -37,6 +37,7 @@ Run the steps in order. A step is complete only when its primitive's artifact ex
 | Implement | `implement-issue` | no (edits in-scope files only) | per-task evidence recorded | in-scope changes |
 | Pull request | `create-pr` | no | Pull Request opened after user confirmation | Pull Request URL |
 | Review | `review-pr` | yes | findings returned | severity-ordered findings |
+| Fix | `fix-pr` | no (edits what findings justify) | fixed head pushed and body synced | published fixed head |
 
 ## State and authority contract
 
@@ -44,7 +45,7 @@ Run the steps in order. A step is complete only when its primitive's artifact ex
 - **External mutation authority:** only `create-issue` creates Issues and only `create-pr` creates Pull Requests, each pausing for user confirmation. `debug-code` and `write-tests` change the project only in isolated, task-scoped work justified by reproduction or test-target evidence.
 - **Read-only phases:** plan and review never mutate repository files or external work items.
 - **Handoff rule:** every step hands its artifact to the next owning primitive; an incomplete artifact returns to its owning primitive for rework, never to the entry point's own logic.
-- **Loop termination:** the debug loop terminates when `debug-code` verifies the fix against the reproduction. The review loop terminates when `review-pr` reports no blocking findings, or after two complete rework passes; then stop and report the unresolved findings with evidence instead of continuing.
+- **Loop termination:** the debug loop terminates when `debug-code` verifies the fix against the reproduction. The review loop sends findings to `fix-pr`, which fixes, validates, and pushes on the same branch in one pass, and terminates when `review-pr` reports no blocking findings, or after two complete rework passes; then stop and report the unresolved findings with evidence instead of continuing.
 
 ## Validate and Handoff
 
