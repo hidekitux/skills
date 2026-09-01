@@ -11,8 +11,8 @@ report → issue → plan → implementation → pull request → review → fix
 | Stage | Owner skill | Result artifact | Handed to |
 | --- | --- | --- | --- |
 | Report | `analyze-*` (`analyze-project`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
-| Issue | `create-issue` | Change or release Issue | `plan-issue` |
-| Plan | `plan-issue` | Verified implementation plan posted as an Issue comment | `implement-issue` |
+| Issue | `create-issue` | Problem statement in a Change or release Issue | `plan-issue` |
+| Plan | `plan-issue` | Investigated cause and chosen approach in a verified implementation plan posted as an Issue comment | `implement-issue` |
 | Implementation | `implement-issue` | In-scope changes committed per task with evidence | `create-pr` |
 | Pull request | `create-pr` | Issue-backed Pull Request | `review-pr` |
 | Review | `review-pr` | Severity-ordered findings | `fix-pr` |
@@ -32,8 +32,8 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | Skill | Produces | Handoff target | Ownership boundary |
 | --- | --- | --- | --- |
 | `analyze-*` (`analyze-project`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
-| `create-issue` | Compliant change or release Issue | `plan-issue` | Only Issue creator; does not plan or implement |
-| `plan-issue` | Verified implementation plan (Issue comment) | `implement-issue` | Plans only; does not implement |
+| `create-issue` | Problem statement in a compliant change or release Issue | `plan-issue` | Only Issue creator; records the problem and boundaries, but does not investigate the cause, choose an approach, or implement |
+| `plan-issue` | Verified implementation plan with investigated cause and resolved approach (Issue comment) | `implement-issue` | Investigates premises and surfaces decisions; plans only and does not implement |
 | `implement-issue` | In-scope edits committed per task with evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
 | `review-pr` | Severity-ordered findings | `fix-pr` | Reviews; does not edit the branch or merge |
