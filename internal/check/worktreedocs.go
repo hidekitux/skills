@@ -29,12 +29,19 @@ var worktreeDocRequirements = []struct {
 	{"git worktree", "the native fallback for when the tool is unavailable"},
 }
 
-// forcingFlags bypass the repository's worktree-removal rules. The document
-// must name each one so a reader recognizes it, and every paragraph naming one
-// must also forbid it. Requiring presence alone would pass a document that had
-// drifted from forbidding a flag to recommending it, which is the failure this
-// check exists to prevent.
-var forcingFlags = []string{"wt remove --force", "wt remove -D"}
+// forcingFlags are the operations that bypass the repository's worktree-removal
+// rules, each listed with every spelling the CLI accepts. `wt remove --help`
+// documents `-f, --force` and `-D, --force-delete`, so covering one spelling per
+// operation would leave the other free to appear in the guidance this check
+// exists to reject. The document must name each operation so a reader
+// recognizes it, and every paragraph naming one must also forbid it.
+var forcingFlags = []struct {
+	operation string
+	spellings []string
+}{
+	{"forced removal of a dirty worktree", []string{"wt remove --force", "wt remove -f"}},
+	{"deletion of an unmerged branch", []string{"wt remove --force-delete", "wt remove -D"}},
+}
 
 // prohibitionMarkers distinguish a paragraph that forbids an operation from one
 // that instructs the reader to perform it.
@@ -88,19 +95,42 @@ func forcingFlagFindings(text string) []string {
 	for _, flag := range forcingFlags {
 		named := false
 		for _, paragraph := range paragraphs {
-			if !strings.Contains(paragraph, flag) {
-				continue
-			}
-			named = true
-			if !forbids(paragraph) {
-				findings = append(findings, fmt.Sprintf("%s names %q outside a prohibition; the paragraph must forbid it with %q or %q", worktreeDoc, flag, prohibitionMarkers[0], prohibitionMarkers[1]))
+			for _, spelling := range flag.spellings {
+				if !namesFlag(paragraph, spelling) {
+					continue
+				}
+				named = true
+				if !forbids(paragraph) {
+					findings = append(findings, fmt.Sprintf("%s names %q outside a prohibition; the paragraph must forbid %s with %q or %q", worktreeDoc, spelling, flag.operation, prohibitionMarkers[0], prohibitionMarkers[1]))
+				}
 			}
 		}
 		if !named {
-			findings = append(findings, fmt.Sprintf("%s must name %q so the forbidden operation stays recognizable", worktreeDoc, flag))
+			findings = append(findings, fmt.Sprintf("%s must name %s (%s) so the forbidden operation stays recognizable", worktreeDoc, flag.operation, strings.Join(flag.spellings, " or ")))
 		}
 	}
 	return findings
+}
+
+// namesFlag reports whether the paragraph contains the spelling as a complete
+// flag rather than as the prefix of a longer one, so `wt remove --force` is not
+// attributed to a paragraph that only says `wt remove --force-delete`.
+func namesFlag(paragraph, spelling string) bool {
+	for start := 0; ; {
+		relative := strings.Index(paragraph[start:], spelling)
+		if relative < 0 {
+			return false
+		}
+		index := start + relative + len(spelling)
+		if index == len(paragraph) || !isFlagCharacter(paragraph[index]) {
+			return true
+		}
+		start = index
+	}
+}
+
+func isFlagCharacter(value byte) bool {
+	return value == '-' || value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' || value >= '0' && value <= '9'
 }
 
 func forbids(paragraph string) bool {
