@@ -29,18 +29,22 @@ var worktreeDocRequirements = []struct {
 	{"git worktree", "the native fallback for when the tool is unavailable"},
 }
 
-// forcingFlags are the operations that bypass the repository's worktree-removal
-// rules, each listed with every spelling the CLI accepts. `wt remove --help`
-// documents `-f, --force` and `-D, --force-delete`, so covering one spelling per
-// operation would leave the other free to appear in the guidance this check
-// exists to reject. The document must name each operation so a reader
-// recognizes it, and every paragraph naming one must also forbid it.
-var forcingFlags = []struct {
+// removalCommands remove a worktree, whichever tool performs it. The document
+// presents native Git as a supported fallback, so a guard scoped to one tool
+// would leave the other free to carry the same destructive instruction.
+var removalCommands = []string{"git worktree remove", "wt remove"}
+
+// forcedRemovals are the operations that bypass the repository's
+// worktree-removal rules, each listed with the flag tokens that request it.
+// Matching a command and a flag token separately, rather than enumerating whole
+// command spellings, keeps the guard from depending on which of the two is
+// written next to the other.
+var forcedRemovals = []struct {
 	operation string
-	spellings []string
+	tokens    []string
 }{
-	{"forced removal of a dirty worktree", []string{"wt remove --force", "wt remove -f"}},
-	{"deletion of an unmerged branch", []string{"wt remove --force-delete", "wt remove -D"}},
+	{"forced removal of a dirty worktree", []string{"--force", "-f"}},
+	{"deletion of an unmerged branch", []string{"--force-delete", "-D"}},
 }
 
 // prohibitionMarkers distinguish a paragraph that forbids an operation from one
@@ -56,7 +60,7 @@ func CheckWorktreeDocs(root string, out, errOut io.Writer) int {
 		fmt.Fprintf(errOut, "Worktree-docs check failed: cannot read %s: %v\n", worktreeDoc, err)
 		return 1
 	}
-	text := string(content)
+	text := unwrapCodeSpans(string(content))
 
 	errors := []string{}
 	for _, requirement := range worktreeDocRequirements {
@@ -64,7 +68,7 @@ func CheckWorktreeDocs(root string, out, errOut io.Writer) int {
 			errors = append(errors, fmt.Sprintf("%s is missing %s (%q)", worktreeDoc, requirement.reason, requirement.fragment))
 		}
 	}
-	errors = append(errors, forcingFlagFindings(text)...)
+	errors = append(errors, forcedRemovalFindings(text)...)
 
 	readme, err := os.ReadFile(filepath.Join(root, "README.md"))
 	if err != nil {
@@ -84,49 +88,132 @@ func CheckWorktreeDocs(root string, out, errOut io.Writer) int {
 	return 0
 }
 
-// forcingFlagFindings reports every forcing flag the document fails to name and
-// every paragraph that names one without forbidding it. Paragraph granularity
-// is deliberate: it is coarse enough to survive rewording and line wrapping,
-// and narrow enough that a prohibition elsewhere in the document cannot excuse
-// an instruction to run the flag here.
-func forcingFlagFindings(text string) []string {
-	paragraphs := strings.Split(text, "\n\n")
+// forcedRemovalFindings reports every invocation that runs a removal command
+// with a forcing flag outside a prohibition, and every forbidden operation the
+// document never forbids at all.
+//
+// A flag counts against a command only when it falls inside that command's
+// invocation span, so a paragraph may still describe a flag's behavior in
+// prose. Prohibition is judged per paragraph, which is coarse enough to survive
+// rewording and line wrapping, and narrow enough that a prohibition elsewhere
+// in the document cannot excuse an instruction here.
+func forcedRemovalFindings(text string) []string {
 	findings := []string{}
-	for _, flag := range forcingFlags {
-		named := false
-		for _, paragraph := range paragraphs {
-			for _, spelling := range flag.spellings {
-				if !namesFlag(paragraph, spelling) {
-					continue
+	forbidden := map[string]bool{}
+	for _, paragraph := range strings.Split(text, "\n\n") {
+		for _, command := range removalCommands {
+			for start := 0; ; {
+				relative := strings.Index(paragraph[start:], command)
+				if relative < 0 {
+					break
 				}
-				named = true
-				if !forbids(paragraph) {
-					findings = append(findings, fmt.Sprintf("%s names %q outside a prohibition; the paragraph must forbid %s with %q or %q", worktreeDoc, spelling, flag.operation, prohibitionMarkers[0], prohibitionMarkers[1]))
+				index := start + relative
+				span := invocationSpan(paragraph, index)
+				for _, removal := range forcedRemovals {
+					token := namedToken(span, removal.tokens)
+					if token == "" {
+						continue
+					}
+					if forbids(paragraph) {
+						forbidden[removal.operation] = true
+						continue
+					}
+					findings = append(findings, fmt.Sprintf("%s runs %q with %q outside a prohibition; the paragraph must forbid %s with %q or %q", worktreeDoc, command, token, removal.operation, prohibitionMarkers[0], prohibitionMarkers[1]))
 				}
+				start = index + len(command)
 			}
 		}
-		if !named {
-			findings = append(findings, fmt.Sprintf("%s must name %s (%s) so the forbidden operation stays recognizable", worktreeDoc, flag.operation, strings.Join(flag.spellings, " or ")))
+	}
+	for _, removal := range forcedRemovals {
+		if !forbidden[removal.operation] {
+			findings = append(findings, fmt.Sprintf("%s must forbid %s in a paragraph that runs a removal command with %s", worktreeDoc, removal.operation, strings.Join(removal.tokens, " or ")))
 		}
 	}
 	return findings
 }
 
-// namesFlag reports whether the paragraph contains the spelling as a complete
-// flag rather than as the prefix of a longer one, so `wt remove --force` is not
-// attributed to a paragraph that only says `wt remove --force-delete`.
-func namesFlag(paragraph, spelling string) bool {
-	for start := 0; ; {
-		relative := strings.Index(paragraph[start:], spelling)
-		if relative < 0 {
-			return false
+// unwrapCodeSpans joins the lines that Markdown wrapping split an inline code
+// span across, so a command and its flags stay inside one invocation span.
+// Prose in this repository wraps at roughly 76 characters and does split code
+// spans, so without this a wrapped `wt remove` / `-f` pair would never form.
+//
+// Fenced blocks are left alone. There a line break separates two commands, and
+// joining them would let a flag on one line pair with a command on another.
+//
+// Known limitation: this pattern-matches Markdown rather than parsing it, so a
+// syntax error upstream of the guard weakens the guard. An opening fence with
+// no closing fence leaves the document fenced to its end, and unwrapping stops
+// running, so a wrapped invocation after it is not paired. The prohibition
+// boundary itself still holds — `open` stays false, so no paragraph merges —
+// and every well-formed document is covered. Closing this would mean validating
+// the document's Markdown, which is deliberately out of scope here.
+func unwrapCodeSpans(text string) string {
+	var builder strings.Builder
+	fenced, open := false, false
+	for index, line := range strings.Split(text, "\n") {
+		// A CommonMark inline code span cannot contain a blank line, so a
+		// paragraph break always ends one. Without this reset, a single
+		// unterminated backtick would join the rest of the document into one
+		// paragraph and silently erase the boundary that keeps a prohibition
+		// from excusing a later instruction. Fenced blocks may contain blank
+		// lines, so `fenced` deliberately survives them.
+		if strings.TrimSpace(line) == "" {
+			open = false
 		}
-		index := start + relative + len(spelling)
-		if index == len(paragraph) || !isFlagCharacter(paragraph[index]) {
-			return true
+		if index > 0 {
+			if open {
+				builder.WriteString(" ")
+				line = strings.TrimLeft(line, " \t")
+			} else {
+				builder.WriteString("\n")
+			}
 		}
-		start = index
+		switch {
+		case strings.HasPrefix(strings.TrimSpace(line), "```"):
+			fenced = !fenced
+			open = false
+		case !fenced && strings.Count(line, "`")%2 == 1:
+			open = !open
+		}
+		builder.WriteString(line)
 	}
+	return builder.String()
+}
+
+// invocationSpan returns the command invocation beginning at index, ending at
+// the first backtick or line break. Commands here are written inside code spans
+// or fenced blocks, so that boundary stops a flag discussed later in the same
+// paragraph from being read as an argument of this command. It relies on
+// unwrapCodeSpans having already rejoined any code span split across lines.
+func invocationSpan(paragraph string, index int) string {
+	end := strings.IndexAny(paragraph[index:], "`\n")
+	if end < 0 {
+		return paragraph[index:]
+	}
+	return paragraph[index : index+end]
+}
+
+// namedToken returns the first token the span passes as a complete flag, or the
+// empty string. Boundaries on both sides keep `-f` from matching inside
+// `--force` and `--force` from matching inside `--force-delete`.
+func namedToken(span string, tokens []string) string {
+	for _, token := range tokens {
+		for start := 0; ; {
+			relative := strings.Index(span[start:], token)
+			if relative < 0 {
+				break
+			}
+			begin := start + relative
+			end := begin + len(token)
+			leading := begin == 0 || !isFlagCharacter(span[begin-1])
+			trailing := end == len(span) || !isFlagCharacter(span[end])
+			if leading && trailing {
+				return token
+			}
+			start = begin + 1
+		}
+	}
+	return ""
 }
 
 func isFlagCharacter(value byte) bool {

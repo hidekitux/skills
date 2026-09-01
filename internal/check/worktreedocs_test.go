@@ -74,8 +74,8 @@ func TestWorktreeDocsRejectsMissingSafeRemovalRule(t *testing.T) {
 	if code != 1 {
 		t.Fatalf("expected failure, got exit %d: %s", code, output)
 	}
-	if !strings.Contains(output, "wt remove --force") || !strings.Contains(output, "wt remove -D") {
-		t.Fatalf("expected both forced-removal prohibitions reported, got: %s", output)
+	if !strings.Contains(output, "forced removal of a dirty worktree") || !strings.Contains(output, "deletion of an unmerged branch") {
+		t.Fatalf("expected both forbidden operations reported, got: %s", output)
 	}
 }
 
@@ -106,35 +106,95 @@ func TestWorktreeDocsRejectsForcedRemovalDespiteDistantProhibition(t *testing.T)
 	}
 }
 
-// `wt remove --help` documents `-f, --force` and `-D, --force-delete`, so a
-// recommendation written with the alias must fail exactly like the long form.
-func TestWorktreeDocsRejectsAliasRecommendedForcedRemoval(t *testing.T) {
-	for _, alias := range []string{"wt remove -f", "wt remove --force-delete"} {
-		t.Run(alias, func(t *testing.T) {
-			doc := completeWorktreeDoc + "\nFor a stale worktree, run " + alias + " to clean up quickly.\n"
+// The rule pairs a removal command with a flag token, so it must catch every
+// alias `wt remove --help` documents and the native fallback the same document
+// recommends, without enumerating whole command spellings.
+func TestWorktreeDocsRejectsForcedRemovalAcrossCommandsAndAliases(t *testing.T) {
+	cases := []struct {
+		invocation string
+		command    string
+		token      string
+	}{
+		{"wt remove -f <branch>", "wt remove", "-f"},
+		{"wt remove --force <branch>", "wt remove", "--force"},
+		{"wt remove --force-delete <branch>", "wt remove", "--force-delete"},
+		{"wt remove -D <branch>", "wt remove", "-D"},
+		{"git worktree remove --force <path>", "git worktree remove", "--force"},
+		{"git worktree remove -f <path>", "git worktree remove", "-f"},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.invocation, func(t *testing.T) {
+			doc := completeWorktreeDoc + "\nFor a stale worktree, run `" + testCase.invocation + "` to clean up quickly.\n"
 			root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
 			code, output := runWorktreeDocsCheck(t, root)
 			if code != 1 || !strings.Contains(output, "outside a prohibition") {
-				t.Fatalf("expected the alias recommendation to fail, got exit %d: %s", code, output)
+				t.Fatalf("expected the recommendation to fail, got exit %d: %s", code, output)
 			}
-			if !strings.Contains(output, alias) {
-				t.Fatalf("expected the reported spelling to be %q, got: %s", alias, output)
+			want := "runs \"" + testCase.command + "\" with \"" + testCase.token + "\""
+			if !strings.Contains(output, want) {
+				t.Fatalf("expected the finding to report %s, got: %s", want, output)
 			}
 		})
 	}
 }
 
-// `wt remove --force` is a prefix of `wt remove --force-delete`; reporting the
-// prefix would name a flag the paragraph does not contain.
-func TestWorktreeDocsDoesNotAttributeForceToForceDelete(t *testing.T) {
-	doc := completeWorktreeDoc + "\nRun wt remove --force-delete to drop the branch.\n"
+// Markdown wrapping must not hide an invocation: prose here wraps at roughly 76
+// characters, and this repository has already had a wrapped command escape a
+// literal-matching guard.
+func TestWorktreeDocsRejectsWrappedForcedRemoval(t *testing.T) {
+	doc := completeWorktreeDoc + "\nFor a stale worktree, run `wt remove\n-f <branch>` to clean it up quickly.\n"
 	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
 	code, output := runWorktreeDocsCheck(t, root)
-	if code != 1 {
-		t.Fatalf("expected failure, got exit %d: %s", code, output)
+	if code != 1 || !strings.Contains(output, "outside a prohibition") {
+		t.Fatalf("expected the wrapped invocation to fail, got exit %d: %s", code, output)
 	}
-	if strings.Contains(output, "names \"wt remove --force\" outside") {
-		t.Fatalf("expected the finding to name --force-delete, not the --force prefix: %s", output)
+	if !strings.Contains(output, "runs \"wt remove\" with \"-f\"") {
+		t.Fatalf("expected the wrapped command and flag to be paired, got: %s", output)
+	}
+}
+
+// An unterminated code span must not join paragraphs. A blank line always ends
+// an inline code span, and without that reset one backtick typo would let an
+// unrelated prohibition excuse every later instruction in the document.
+func TestWorktreeDocsRejectsForcedRemovalAfterAnUnterminatedCodeSpan(t *testing.T) {
+	doc := completeWorktreeDoc +
+		"\nNote that the `--reap flag is experimental and Unix only.\n" +
+		"\nNever remove a worktree that still holds unpushed commits.\n" +
+		"\nFor a stale worktree, run `wt remove -f <branch>` to clean it up.\n"
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	code, output := runWorktreeDocsCheck(t, root)
+	if code != 1 || !strings.Contains(output, "runs \"wt remove\" with \"-f\"") {
+		t.Fatalf("expected the instruction to stay unexcused, got exit %d: %s", code, output)
+	}
+}
+
+// A fenced block may contain blank lines, so the blank-line reset must not end
+// the block and start treating its content as prose.
+func TestWorktreeDocsAcceptsAFencedBlockContainingABlankLine(t *testing.T) {
+	doc := completeWorktreeDoc + "\n```bash\nwt remove issue/1\n\ngit worktree list -f\n```\n"
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	if code, output := runWorktreeDocsCheck(t, root); code != 0 {
+		t.Fatalf("expected a fenced block with a blank line to pass, got exit %d: %s", code, output)
+	}
+}
+
+// Inside a fenced block a line break separates two commands, so the flag on one
+// line must not pair with the command on the previous one.
+func TestWorktreeDocsAcceptsAdjacentLinesInAFencedBlock(t *testing.T) {
+	doc := completeWorktreeDoc + "\n```bash\nwt remove issue/1\ngit worktree list -f\n```\n"
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	if code, output := runWorktreeDocsCheck(t, root); code != 0 {
+		t.Fatalf("expected adjacent fenced lines to stay separate, got exit %d: %s", code, output)
+	}
+}
+
+// A flag discussed in prose elsewhere in the paragraph is not an argument of
+// the command, so describing behavior must not be reported as an instruction.
+func TestWorktreeDocsAcceptsFlagDescribedOutsideAnInvocation(t *testing.T) {
+	doc := completeWorktreeDoc + "\n| `wt remove issue/999` | Kept the branch and reported that `-D` would delete it |\n"
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	if code, output := runWorktreeDocsCheck(t, root); code != 0 {
+		t.Fatalf("expected a described flag to pass, got exit %d: %s", code, output)
 	}
 }
 
