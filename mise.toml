@@ -30,10 +30,6 @@ depends = ["check:repository", "check:branch-policy", "check:diff", "check:tasks
 description = "Check repository metadata, branch policy, and whitespace"
 depends = ["check:repository", "check:branch-policy", "check:diff"]
 
-[tasks."diagnose:worktree"]
-description = "Report worktree branch ownership, setup state, and safe remediation"
-run = "go run ./cmd/diagnose-worktree \"$@\""
-
 [tasks."lint:all"]
 description = "Lint GitHub Actions, Python, shell, and Go sources"
 depends = ["lint:actions", "lint:python", "lint:shell", "lint:go"]
