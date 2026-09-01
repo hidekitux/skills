@@ -68,6 +68,14 @@ files), so evidence is present either way.
 
 ## Constraints
 
+- Validation is added only when the cost of the check is below the cost of
+  what it prevents; authoring, review, and maintenance all count as cost. A
+  check must not exceed in size the artifact it guards, counted in lines and
+  including the check's own tests, and a single tracked file with one
+  maintainer is guarded by a code comment or a `CONTRIBUTING.md` line rather
+  than a repository check. Record a declined mechanization in its Issue,
+  naming the check that was not added and the cheaper guard that replaced it,
+  so the rejected option stays visible.
 - Workflow-level `paths:` filters are never used on required workflows: a
   skipped required workflow leaves its checks pending and blocks merging. Tier
   2 jobs therefore always run and scope the work in a step (see
