@@ -20,7 +20,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
 
 - Read repository instructions and relevant templates before editing.
 - Resolve the linked Change Issue, the implementation plan, the current branch, and the allowed files from the plan. Do not guess a plan when one exists.
-- When the Issue has no implementation plan, derive the tasks directly from its `Scope` and `Acceptance criteria` sections; treat `Out` items and unticked acceptance boxes as non-goals for this invocation.
+- When the Issue has no implementation plan, derive the tasks directly from its `Scope` and `Acceptance criteria` sections only when the no-plan exemption below is satisfied; treat `Out` items and unticked acceptance boxes as non-goals for this invocation.
 - Branch creation and resolution are implementation-phase responsibilities.
   For change work, fetch the upstream default branch first, then create or
   resolve `issue/<number>` from that base. Start from the planned base
@@ -32,6 +32,15 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
   session with `create-issue`; when a plan exists, planning happened in an
   earlier session with `plan-issue`. Publishing a Pull Request is a separate
   session that belongs to `create-pr`.
+
+### No-plan exemption
+
+Proceed without an implementation plan only when both conditions are established and recorded with evidence in the handoff:
+
+1. The Issue states an established cause, and repository or Issue evidence confirms that cause rather than merely hypothesizing it.
+2. The change admits exactly one defensible implementation approach; no unresolved decision has more than one defensible answer.
+
+If either condition is absent, stop and route to `plan-issue` before editing. Re-evaluate the exemption whenever implementation reveals a decision with more than one defensible answer; stop the implementation and route to `plan-issue` at that point. For example, Issue #232 does not qualify: selecting between `worktrunk` and `git-worktree-runner` admitted more than one defensible answer, so it required planning.
 
 ## Implement
 
