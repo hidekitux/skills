@@ -10,10 +10,6 @@ actionlint = "1.7.12"
 "aqua:cli/cli" = "2.97.0"
 "aqua:google-antigravity/antigravity-cli" = "1.1.19"
 "aqua:anomalyco/opencode" = "1.18.22"
-# Git worktree workflow tool behind the documented Issue-worktree workflow
-# (docs/worktrees.md). It is a developer tool: no mise task and no CI job
-# invokes it, and it is not bundled into published skills.
-"aqua:max-sixty/worktrunk" = "0.75.0"
 # Pinned Go vulnerability scanner behind the check:go-vuln task (Issue #178);
 # updates are manual mise bumps because Dependabot does not cover mise tools.
 "go:golang.org/x/vuln/cmd/govulncheck" = "v1.7.0"
