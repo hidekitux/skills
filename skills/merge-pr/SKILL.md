@@ -24,7 +24,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Confirm the Pull Request is linked to the governing Issue. For human change work, require the Issue number encoded in the `issue/<number>` branch and the opening `Closes #<number>` reference. A release Pull Request uses `Tracks #<number>` and must not close the Release Issue.
 - Resolve the repository's review mode from explicit requester input, repository review policy, or the live Ruleset before applying the approval gate. In team mode, require approval from an eligible reviewer other than the PR author. In solo mode, require a completed self-review artifact while continuing to enforce the live Ruleset and every required check.
 - Do not infer solo mode merely because no reviewer is available. If the live Ruleset requires an approval that cannot be satisfied, stop and report the exact blocker; never use an administrative bypass.
-- Do not merge a Pull Request that is missing its governing Issue, has scope drift, has unresolved review findings, lacks the required review evidence or approval for its mode, or is still awaiting required checks. Route missing implementation or review work to `implement-issue`, `create-pr`, or `review-pr` instead of compensating here.
+- Do not merge a Pull Request that is missing its governing Issue, has scope drift, has unresolved review findings, lacks the required review evidence or approval for its mode, or is still awaiting required checks. Route unresolved review findings to `fix-pr`, and missing implementation or review work to `implement-issue`, `create-pr`, or `review-pr`, instead of compensating here.
 - Preserve unrelated work. Do not modify unrelated files, create substantive feature fixes, close Issues manually, or delete branches. Conflict resolution is allowed only after the requester explicitly authorizes it for this merge; if authorization is absent, stop and ask before rewriting the Pull Request branch.
 
 ## Merge Gate
@@ -43,7 +43,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Rebase the Pull Request branch onto the latest allowed base branch. For this repository, use the branch's exact remote and `--force-with-lease` after resolution; never use plain `--force` and never push the protected base branch.
 - Resolve each conflict from the Pull Request's Issue scope, existing behavior, and review evidence. Do not use blanket `ours` or `theirs`, discard review fixes, or invent feature behavior. If intent is ambiguous, abort the rebase and report the files and decision needed.
 - After resolving conflicts, inspect the complete new diff against the base, verify that only the intended conflict-resolution changes occurred, run the repository-prescribed validation, and record every command and result. Continue only if validation succeeds.
-- Because conflict resolution changes the reviewed commit graph or diff, require a fresh review or explicit repository-approved re-review evidence before merging. If the review identifies substantive drift, return the branch to `implement-issue` instead of proceeding.
+- Because conflict resolution changes the reviewed commit graph or diff, require a fresh review or explicit repository-approved re-review evidence before merging. If the review identifies substantive drift, return the branch to `fix-pr` instead of proceeding.
 - Re-read the Pull Request metadata and check runs after the force-with-lease update. The merge gate starts over against the new head SHA.
 
 ## Merge

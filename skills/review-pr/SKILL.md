@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: Review a GitHub Pull Request and report only findings the change introduces, grounded in the change's contract and backed by a concrete failure scenario, ordered by severity (bugs, regressions, and missing tests over style), applying standardized project-specific criteria when a project declares them. Use when asked to review, inspect, or evaluate a Pull Request or its changes before merge. Do not edit the reviewed branch, push fixes, or merge; findings return to implement-issue for fixes on the same Issue branch.
+description: Review a GitHub Pull Request and report only findings the change introduces, grounded in the change's contract and backed by a concrete failure scenario, ordered by severity (bugs, regressions, and missing tests over style), applying standardized project-specific criteria when a project declares them. Use when asked to review, inspect, or evaluate a Pull Request or its changes before merge. Do not edit the reviewed branch, push fixes, or merge; findings return to fix-pr for fixes on the same Issue branch.
 license: Apache-2.0
 ---
 
@@ -19,7 +19,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 - Read repository instructions and Pull Request templates before reviewing.
 - Resolve the repository, the target Pull Request, and its head and base branches from local and hosting context; link it to its governing Issue. Do not guess a Pull Request to review. Fetch or check out the base branch before judging causality.
-- Reviews only: never edit the reviewed branch, stage files, push fixes, rebase, or merge. `implement-issue` owns and applies the fixes on the same Issue branch.
+- Reviews only: never edit the reviewed branch, stage files, push fixes, rebase, or merge. `fix-pr` owns and applies the fixes on the same Issue branch and owns pushing the fixed head.
 - Do not plan or implement the reviewed change (`plan-issue` and `implement-issue` own those phases) and do not create Issues (`create-issue` owns Issue creation).
 - Stop and report when the target Pull Request or its diff cannot be resolved, or when the review boundary is unclear.
 
@@ -66,9 +66,9 @@ Review in this order and follow this flow rather than a pre-existing checklist.
 
 - Each finding is short and self-contained: severity tag, confidence, one-line claim, trigger scenario, cause, and file and line location. Omit long review summaries, diff summaries, praise, and full fix code. Group findings that share one root cause and give each a required action.
 - Report the applied criteria and their sources at the top, then the findings, then the validation evidence.
-- Post the findings on the Pull Request or in the linked conversation so `implement-issue` can act on them.
+- Post the findings on the Pull Request or in the linked conversation so `fix-pr` can act on them.
 
 ## Handoff
 
-- Report the Pull Request URL, the applied criteria and their sources, the finding list with severity and confidence and file and line evidence, the validation commands and results, and the next owner: `implement-issue` fixes the findings on the same Issue branch, after which the updated Pull Request is re-reviewed until the findings are resolved.
+- Report the Pull Request URL, the applied criteria and their sources, the finding list with severity and confidence and file and line evidence, the reviewed head SHA, the validation commands and results, and the next owner: `fix-pr` fixes the findings on the same Issue branch and pushes the result, after which the updated Pull Request is re-reviewed until the findings are resolved.
 - Never merge, release, or apply fixes; those are later phases owned by other skills or by the user, not part of this skill.
