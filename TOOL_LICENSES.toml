@@ -27,6 +27,13 @@ source = "https://github.com/google-antigravity/antigravity-cli"
 license = "MIT"
 source = "https://github.com/opencode-ai/opencode"
 
+[tools."aqua:max-sixty/worktrunk"]
+# Reviewed 2026-09-01 (v0.75.0): the upstream LICENSE offers MIT and Apache-2.0
+# at the user's option; the repository relies on the Apache-2.0 option. It is a
+# development workflow tool and is not bundled into published skills.
+license = "MIT OR Apache-2.0"
+source = "https://github.com/max-sixty/worktrunk"
+
 [tools."go:golang.org/x/vuln/cmd/govulncheck"]
 # Reviewed 2026-08-28 (v1.7.0): BSD-3-Clause per the golang.org/x/vuln module.
 license = "BSD-3-Clause"
