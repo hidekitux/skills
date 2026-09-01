@@ -199,10 +199,11 @@ keeps local verification usable when one provider is rate-limited or down
 ### GitHub-dependent scenarios
 
 Process-layer skills (`create-issue`, `implement-issue`, `create-pr`,
-`review-pr`) interact with GitHub. Live evaluation of those scenarios and of
-the `artifact-flow` e2e stages requires a documented sandbox repository and is
-otherwise recorded as `skipped` (reason `sandbox_repo_not_configured`). A
-sandbox repository is an environment concern, not part of this corpus.
+`review-pr`, `fix-pr`) interact with GitHub. Live evaluation of those
+scenarios and of the `artifact-flow` e2e stages requires a documented sandbox
+repository and is otherwise recorded as `skipped` (reason
+`sandbox_repo_not_configured`). A sandbox repository is an environment
+concern, not part of this corpus.
 
 Set `EVAL_GITHUB_REPO=owner/repo` to configure one: the harness registers
 the repository as the sandbox Git origin (`origin` →
