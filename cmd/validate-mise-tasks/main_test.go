@@ -82,6 +82,38 @@ func TestValidateRejectsRedeclaredDiagnoseWorktree(t *testing.T) {
 	}
 }
 
+func TestValidateRejectsRetiredDependencyInAnyPosition(t *testing.T) {
+	mise := "[tasks.\"check:all\"]\nrun = \"true\"\n[tasks.\"validate:all\"]\ndepends = [\"check:all\", \"diagnose:worktree\"]\n"
+	root := writeFixture(t, mise, nil)
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"diagnose:worktree\"") {
+		t.Fatalf("expected a retired dependency past first position to fail, got %v", errs)
+	}
+}
+
+func TestValidateRejectsWrappedRetiredInvocation(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"check:local\"]\nrun = \"true\"\n", map[string]string{
+		"README.md": "Inspect the worktree with `mise run\ndiagnose:worktree -- --branch issue/1` first.\n",
+	})
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"diagnose:worktree\"") {
+		t.Fatalf("expected a line-wrapped invocation to fail, got %v", errs)
+	}
+}
+
+// A wrapped reference must not swallow the namespaced successor of a retired
+// bare name: `mise run` followed by `setup:all` is current guidance.
+func TestValidateAllowsWrappedNamespacedSuccessor(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"setup:all\"]\nrun = \"true\"\n", map[string]string{
+		"README.md": "The hook reruns `mise run\nsetup:all` on checkout.\n",
+	})
+	if errs := validate(root, filepath.Join(root, "mise.toml")); len(errs) != 0 {
+		t.Fatalf("expected the wrapped namespaced task to pass, got %v", errs)
+	}
+}
+
 func TestValidateAllowsRetiredTaskInProse(t *testing.T) {
 	root := writeFixture(t, "[tasks.\"check:local\"]\nrun = \"true\"\n", map[string]string{
 		"docs/worktrees.md": "The `diagnose:worktree` task was removed in favor of `wt list`.\n",
