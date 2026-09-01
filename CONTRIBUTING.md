@@ -59,11 +59,14 @@ document whose decision has landed keeps the policy and drops the history.
 Two kinds of content are exceptions and stay in `docs/`. Tool license
 attribution stays with the policy that depends on the tool, because a license
 governs current use rather than a past decision. A register or a measurement
-baseline that a constraint, a repository check, or a tier assignment cites is
-reference data rather than decision history: `docs/mutation-triage.md` is
-required by the Tier 3 constraint in `docs/validation-tiers.md` and read by
-`check-mutation-triage`, and `docs/validation-timings.md` is the baseline the
-tier assignments cite for expected duration.
+that a constraint, a repository check, or a tier assignment cites is reference
+data rather than decision history: `docs/mutation-triage.md` is required by
+the Tier 3 constraint in `docs/validation-tiers.md` and read by
+`check-mutation-triage`, and the timing figures that the tier assignments cite
+from `docs/validation-timings.md` are the current expected durations. The
+exception covers the cited data, not the history of the change that produced
+it, so a document that carries both is reduced to the cited data by its own
+Issue.
 
 `docs/` carries no compatibility or upgrade guidance. The repository always
 runs the current versions pinned in `mise.toml`, so there is no supported
