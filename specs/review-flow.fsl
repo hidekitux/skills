@@ -3,17 +3,26 @@
 // ASSUME-1: one Pull Request and one review cycle are modeled at a time.
 // ASSUME-2: a single combined review outcome is modeled; parallel reviewer
 //           threads are not represented here.
-// ASSUME-3: revision work happens outside this model; revise() only records
-//           that the author returned a revised Pull Request for re-review.
+// ASSUME-3: the fix owner's work is modeled in two observable steps, because
+//           Issue #237 moved fixing and publishing into one skill (fix-pr):
+//           fix() records that the returned findings were addressed locally,
+//           and publish_fix() records that the fixed commit became the Pull
+//           Request head. Only publish_fix() readies the Pull Request for
+//           re-review, so a fix that was committed but never pushed cannot
+//           reach ReadyForReview. The content of the fixes is outside scope.
 // ASSUME-4: merge and closure are implementation-phase actions outside this
 //           review-flow model; it records the permission to merge, not the
 //           merge itself.
+// ASSUME-5: head_published is false whenever local fix work is outstanding; it
+//           abstracts "the reviewed commit equals the Pull Request head" to a
+//           single Boolean rather than modeling commit graphs.
 spec ReviewFlow {
   enum Status {
     Draft,
     ReadyForReview,
     UnderReview,
     ChangesRequested,
+    Fixed,
     Approved,
     Merged,
     Blocked
@@ -23,7 +32,8 @@ spec ReviewFlow {
     status: Status,
     reviewed: Bool,
     approved: Bool,
-    merge_ready: Bool
+    merge_ready: Bool,
+    head_published: Bool
   }
 
   init {
@@ -31,6 +41,7 @@ spec ReviewFlow {
     reviewed = false
     approved = false
     merge_ready = false
+    head_published = true
   }
 
   action submit() {
@@ -63,8 +74,16 @@ spec ReviewFlow {
     status = ChangesRequested
   }
 
-  action revise() {
+  action fix() {
     requires status == ChangesRequested
+    head_published = false
+    status = Fixed
+  }
+
+  action publish_fix() {
+    requires status == Fixed
+    requires not head_published
+    head_published = true
     status = ReadyForReview
   }
 
@@ -72,6 +91,7 @@ spec ReviewFlow {
     requires status == Approved
     requires approved
     requires merge_ready
+    requires head_published
     status = Merged
   }
 
@@ -91,6 +111,18 @@ spec ReviewFlow {
     status == ChangesRequested => not approved
   }
 
+  invariant FixedIsNotApproved {
+    status == Fixed => not approved
+  }
+
+  invariant ReviewNeedsPublishedHead {
+    status == ReadyForReview or status == UnderReview => head_published
+  }
+
+  invariant MergedOnlyWithPublishedHead {
+    status == Merged => head_published
+  }
+
   terminal {
     status == Merged or status == Blocked
   }
@@ -98,4 +130,6 @@ spec ReviewFlow {
   reachable ApprovedPendingMerge { status == Approved }
   reachable MergedAfterApproval { status == Merged }
   reachable ReworkLoop { status == ChangesRequested }
+  reachable UnpublishedFix { status == Fixed and not head_published }
+  reachable RepublishedAfterFix { status == ReadyForReview and reviewed }
 }
