@@ -33,7 +33,7 @@ do not by themselves block).
 
 | Command / job | Tier | Trigger | Owner | Expected duration | Failure policy |
 | --- | --- | --- | --- | --- | --- |
-| `check:repository` (eleven repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.4s warm (see `docs/validation-timings.md`) | blocking |
+| `check:repository` (twelve repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.4s warm | blocking |
 | `check:hosts` (`cmd/validate-hosts`) | 1 | every PR / `main` push | repository owner | ~0.4s warm | blocking |
 | `check:branch-policy` (`cmd/validate-branch-policy`) | 1 | every PR / `main` push | repository owner | ~0.2s | blocking |
 | `check:diff` (`cmd/check-whitespace`) | 1 | every PR / `main` push | repository owner | ~0.5s | blocking |
