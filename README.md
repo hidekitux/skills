@@ -30,7 +30,6 @@ mise tasks ls
 | Initial setup | `mise run setup:all` |
 | Full repository validation | `mise run validate:all` |
 | Fast local-change check | `mise run check:local` |
-| Worktree diagnosis | `mise run diagnose:worktree -- --branch issue/123` |
 | Static analysis | `mise run lint:all` |
 | FSL verification | `mise run verify:fsl` |
 | FSL mutation check | `mise run mutate:fsl` |
@@ -43,18 +42,19 @@ mise tasks ls
 
 ## Worktrees
 
-Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other. Inspect owner and setup state first:
+Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other; the tracked `post-checkout` hook runs it for every new worktree.
+
+The repository uses [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the local worktree tool. It is an optional per-machine developer prerequisite, not a pinned repository tool and not a CI dependency. See [docs/worktrees.md](docs/worktrees.md) for the decision record, the reviewed version, and the full workflow.
 
 ```bash
-mise run diagnose:worktree -- --branch issue/123
+wt switch --create issue/<number>   # create the Issue branch and its worktree
+wt list                             # show which worktree owns which branch
+wt remove issue/<number>            # remove an inspected, inactive worktree
 ```
 
-The diagnostic never removes a worktree automatically. Inspect changes with `git status`, and run `git worktree remove <path>` only after deciding it is no longer active. Do not run development commands from a bare repository entry point; use a registered non-bare worktree reported by the diagnostic.
+No worktree is removed automatically. Inspect changes with `git status` first, and remove one only after deciding it is no longer active. `wt remove` refuses a worktree with uncommitted changes and keeps an unmerged branch; never reach for `wt remove --force` or `wt remove -D` to work around either. Do not run development commands from a bare repository entry point; use a registered non-bare worktree from `wt list`.
 
-`post-checkout` records the worktree setup result so a later worktree
-diagnostic can report whether local setup is current.
-
-Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
+Native `git worktree` remains supported when `worktrunk` is unavailable. Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
 
 ```bash
 git worktree add --detach <path> origin/main
@@ -108,6 +108,7 @@ Where the related guides live:
 - [docs/evaluation.md](docs/evaluation.md) — outcome-based behavioral evaluation, the promotion threshold for catalog status, and how regressions block promotion.
 - [docs/skill-brief-template.md](docs/skill-brief-template.md) — the authoring brief, including boundaries, related skills, and handoff targets.
 - [docs/releasing.md](docs/releasing.md) — the release procedure.
+- [docs/worktrees.md](docs/worktrees.md) — the `worktrunk` decision record and the Issue-worktree workflow.
 - [docs/fsl.md](docs/fsl.md) — the FSL specification boundary and verification.
 - [docs/model-selection.md](docs/model-selection.md) — role-tier model selection.
 - [docs/model-routing.md](docs/model-routing.md) — how each host consumes and verifies the selected models.
