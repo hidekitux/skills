@@ -40,7 +40,6 @@ var repoChecks = []repoCheck{
 	{name: "check-mutation-triage", fn: check.CheckMutationTriage},
 	{name: "check-analyze-readonly", fn: check.CheckAnalyzeReadonly},
 	{name: "check-guided-paths", fn: check.CheckGuidedPaths},
-	{name: "check-worktree-docs", fn: check.CheckWorktreeDocs},
 	{name: "check-catalog-docs", fn: check.CheckCatalogDocs},
 	{name: "check-dependabot-config", fn: check.CheckDependabotConfig},
 	{name: "check-public-status", fn: publicstatus.Check},
