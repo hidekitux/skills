@@ -47,12 +47,12 @@ fi
 
 An attached branch always has a name, so a branch that was never pushed answers "no Pull Request" rather than "could not tell". Prefer the upstream's remote branch name when one is configured, because that is the name a Pull Request's `headRefName` carries; fall back to the local name when there is no upstream yet.
 
-Read the result as follows, and treat the exit status as part of the result: `gh` prints nothing and exits non-zero when it cannot answer, so an empty result is never a `0`. The distinction between "no Pull Request" and "could not tell" is the whole point; collapsing them is what misroutes a branch.
+Read the exit status first and the output only when the lookup succeeded. Both lookups exit non-zero when they cannot answer, but they do not agree on what they print: `gh pr list` leaves stdout empty, while `gh api` writes the error body to stdout, so neither an empty result nor a non-empty one tells you whether you got an answer. The distinction between "no Pull Request" and "could not tell" is the whole point; collapsing them is what misroutes a branch.
 
 - `1` — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
 - Greater than `1` — ambiguous. Re-run without `--jq 'length'` and report the Pull Request numbers instead of guessing which one to fix.
 - `0` — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
-- No number, from either branch of the lookup — undetermined, not absent. Stop and report what could not be resolved, and never fall back to reading it as `0`. The branch lookup lands here on an expired token, no network, or an unresolvable repository. The commit lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
+- A non-zero exit from either lookup — undetermined, not absent. Stop and report what could not be resolved, and never fall back to reading it as `0`, whatever is on stdout. The branch lookup lands here on an expired token, no network, or an unresolvable repository. The commit lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
 
 Read the condition on the branch's state, not on how the request was phrased. A request to "implement the plan" on a branch that already has an open Pull Request is still this skill's work, and a request to "fix the review findings" on a branch with no Pull Request still belongs to `implement-issue` and `create-pr`.
 
