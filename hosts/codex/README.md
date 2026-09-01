@@ -30,7 +30,7 @@ top-level published skill under the ignored `.agents/skills/` directory for
 Codex and `.claude/skills/` for Claude Code.
 
 After that initial setup, the tracked `post-checkout` hook reruns `mise run
-setup` whenever Git creates or switches branches. It refreshes local skills,
+setup:all` whenever Git creates or switches branches. It refreshes local skills,
 Git Hooks, and commitlint without blocking checkout if setup fails. The local
 registration is not committed. Verify it with `readlink
 .agents/skills/<skill-name>` and restart Codex if a newly registered skill does
@@ -39,11 +39,12 @@ not appear.
 Worktrees share the pinned commitlint binary through the common Git directory,
 so setting up a new worktree does not rebuild it. The local skill registrations
 are snapshot-dependent: the `post-checkout` hook refreshes them when the branch
-changes, and `mise run diagnose:worktree -- --branch issue/<number>` reports
-which worktree owns a branch and whether its setup is current.
+changes, and `wt list` reports which worktree owns a branch. Confirm the
+registration for a worktree with the `readlink` check above. See
+`docs/worktrees.md` for the `worktrunk` workflow and its safe-removal rules.
 
 The enabled hooks run `mise run check:local` before commits and `mise run
-validate` before pushes. Fix a reported failure before retrying the commit or
+validate:all` before pushes. Fix a reported failure before retrying the commit or
 push.
 
 For `bootstrap-project`, see
