@@ -42,6 +42,32 @@ Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type i
 
 Create Issues from the Change or Release template. Use `Context`, `Goal`, `Scope`, `Acceptance criteria`, and `Validation` exactly once in that order. Use one ordered `In`/`Out` pair in Scope and non-empty acceptance and validation checklists. Follow the common Release sections with `Changelog`, then `Added`, `Changed`, `Fixed`, and `Removed` exactly once in that order. Use `vX.Y.Z` for a public release and `vX.Y.Z+N` for an artifact build identifier.
 
+## Documentation scope
+
+`docs/` carries operating policy: what to do, in what order, and under what
+constraint. A tracked document states the rule a contributor follows and the
+commands that apply it. A short reason attached to a rule is part of that
+policy.
+
+Decision rationale, rejected alternatives, verification evidence, and reviewed
+tool versions belong in the Issue and the Pull Request. A comparison of
+options, an evidence table, or a reviewed-version table is not operating
+policy: the Issue records why the change was made and which option was
+declined, and the Pull Request records the evidence that the change works. A
+document whose decision has landed keeps the policy and drops the history.
+Tool license attribution is the exception and stays with the policy that
+depends on the tool, because a license governs current use rather than a past
+decision.
+
+`docs/` carries no compatibility or upgrade guidance. The repository always
+runs the current versions pinned in `mise.toml`, so there is no supported
+older state to document and no migration to describe.
+
+A rule that needs enforcement is not automatically a repository check.
+`docs/validation-tiers.md` gives the threshold below which validation is not
+added; below it, the guard is a code comment or a line in this document, and
+the declined check is recorded in its Issue.
+
 ## Issue planning
 
 Every open Issue is tracked in the repository's GitHub Project declared by
