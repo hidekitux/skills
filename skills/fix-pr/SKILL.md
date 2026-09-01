@@ -32,13 +32,24 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 The owning skill is decided by one checkable condition: whether the branch already has an open Pull Request.
 
+Resolve the branch from its upstream ref, never from `git rev-parse --abbrev-ref HEAD` alone: that returns the literal `HEAD` in a detached worktree, so the lookup would filter on a branch that does not exist and report no Pull Request while one is open. When there is no upstream, ask GitHub which open Pull Request contains the head commit instead:
+
 ```sh
-gh pr list --head "$(git rev-parse --abbrev-ref HEAD)" --state open --json number --jq 'length'
+branch="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null | sed 's|^[^/]*/||')"
+if [ -n "$branch" ]; then
+  gh pr list --head "$branch" --state open --json number,headRefName
+else
+  gh api "repos/{owner}/{repo}/commits/$(git rev-parse HEAD)/pulls" \
+    --jq '[.[] | select(.state == "open")]'
+fi
 ```
 
-- `0` — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
+Read the result as follows. The distinction between "no Pull Request" and "could not tell" is the whole point; collapsing them is what misroutes a branch.
+
 - `1` — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
 - More than `1` — ambiguous. Stop and report the Pull Request numbers instead of guessing which one to fix.
+- `0` from the upstream-ref lookup — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
+- Anything else — undetermined, not absent. Stop and report what could not be resolved. The commit lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
 
 Read the condition on the branch's state, not on how the request was phrased. A request to "implement the plan" on a branch that already has an open Pull Request is still this skill's work, and a request to "fix the review findings" on a branch with no Pull Request still belongs to `implement-issue` and `create-pr`.
 
