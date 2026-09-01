@@ -18,8 +18,10 @@ policy for creating, using, and removing them.
 ## Tooling
 
 [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) is the worktree
-tool. Install it once per machine; it is a local developer convenience, not a
-repository or CI dependency, and it is not bundled into any published skill.
+tool. It is dual-licensed `MIT OR Apache-2.0`, and the repository relies on the
+Apache-2.0 option. Install it once per machine; it is a local developer
+convenience, not a repository or CI dependency, and it is not bundled into any
+published skill.
 
 ```bash
 mise use -g worktrunk
