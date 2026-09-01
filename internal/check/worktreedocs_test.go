@@ -106,6 +106,50 @@ func TestWorktreeDocsRejectsForcedRemovalDespiteDistantProhibition(t *testing.T)
 	}
 }
 
+// `wt remove --help` documents `-f, --force` and `-D, --force-delete`, so a
+// recommendation written with the alias must fail exactly like the long form.
+func TestWorktreeDocsRejectsAliasRecommendedForcedRemoval(t *testing.T) {
+	for _, alias := range []string{"wt remove -f", "wt remove --force-delete"} {
+		t.Run(alias, func(t *testing.T) {
+			doc := completeWorktreeDoc + "\nFor a stale worktree, run " + alias + " to clean up quickly.\n"
+			root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+			code, output := runWorktreeDocsCheck(t, root)
+			if code != 1 || !strings.Contains(output, "outside a prohibition") {
+				t.Fatalf("expected the alias recommendation to fail, got exit %d: %s", code, output)
+			}
+			if !strings.Contains(output, alias) {
+				t.Fatalf("expected the reported spelling to be %q, got: %s", alias, output)
+			}
+		})
+	}
+}
+
+// `wt remove --force` is a prefix of `wt remove --force-delete`; reporting the
+// prefix would name a flag the paragraph does not contain.
+func TestWorktreeDocsDoesNotAttributeForceToForceDelete(t *testing.T) {
+	doc := completeWorktreeDoc + "\nRun wt remove --force-delete to drop the branch.\n"
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	code, output := runWorktreeDocsCheck(t, root)
+	if code != 1 {
+		t.Fatalf("expected failure, got exit %d: %s", code, output)
+	}
+	if strings.Contains(output, "names \"wt remove --force\" outside") {
+		t.Fatalf("expected the finding to name --force-delete, not the --force prefix: %s", output)
+	}
+}
+
+// Naming an operation through either spelling satisfies the naming rule, so a
+// document may forbid the short form alone.
+func TestWorktreeDocsAcceptsAliasOnlyProhibition(t *testing.T) {
+	doc := strings.ReplaceAll(completeWorktreeDoc,
+		"Never use wt remove --force or wt remove -D.",
+		"Never use wt remove -f or wt remove --force-delete.")
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	if code, output := runWorktreeDocsCheck(t, root); code != 0 {
+		t.Fatalf("expected an alias-only prohibition to pass, got exit %d: %s", code, output)
+	}
+}
+
 func TestWorktreeDocsRejectsUnlinkedDocument(t *testing.T) {
 	root := writeWorktreeDocFixture(t, completeWorktreeDoc, "no link to the workflow\n")
 	code, output := runWorktreeDocsCheck(t, root)

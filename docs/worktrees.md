@@ -135,9 +135,10 @@ wt remove issue/<number>
 offending files. It removes the branch only when the branch is merged; an
 unmerged branch is kept and reported.
 
-Do not use `wt remove --force` (removes a dirty worktree, discarding staged,
-modified, and untracked files) or `wt remove -D` (deletes an unmerged branch).
-Commit, push, or stash the work instead. `--reap` is experimental and kills
+Do not use `wt remove --force`, spelled `wt remove -f` (removes a dirty
+worktree, discarding staged, modified, and untracked files), or
+`wt remove -D`, spelled `wt remove --force-delete` (deletes an unmerged
+branch). Commit, push, or stash the work instead. `--reap` is experimental and kills
 processes running under the worktree; do not use it as part of the standard
 workflow.
 
