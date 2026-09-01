@@ -32,24 +32,27 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 The owning skill is decided by one checkable condition: whether the branch already has an open Pull Request.
 
-Resolve the branch from its upstream ref, never from `git rev-parse --abbrev-ref HEAD` alone: that returns the literal `HEAD` in a detached worktree, so the lookup would filter on a branch that does not exist and report no Pull Request while one is open. When there is no upstream, ask GitHub which open Pull Request contains the head commit instead:
+Decide it from the branch name, and get the branch name from `git symbolic-ref`, not from `git rev-parse --abbrev-ref HEAD`: the latter returns the literal `HEAD` in a detached worktree, so the lookup would filter on a branch that does not exist and report no Pull Request while one is open. `git symbolic-ref` succeeds exactly when `HEAD` is attached, which is the distinction that matters. Only a genuinely detached `HEAD` needs the commit lookup:
 
 ```sh
-branch="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null | sed 's|^[^/]*/||')"
+branch="$(git symbolic-ref --quiet --short HEAD || true)"
 if [ -n "$branch" ]; then
-  gh pr list --head "$branch" --state open --json number,headRefName
+  upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null | sed 's|^[^/]*/||')"
+  gh pr list --head "${upstream:-$branch}" --state open --json number,headRefName
 else
   gh api "repos/{owner}/{repo}/commits/$(git rev-parse HEAD)/pulls" \
     --jq '[.[] | select(.state == "open")]'
 fi
 ```
 
+An attached branch always has a name, so a branch that was never pushed answers "no Pull Request" rather than "could not tell". Prefer the upstream's remote branch name when one is configured, because that is the name a Pull Request's `headRefName` carries; fall back to the local name when there is no upstream yet.
+
 Read the result as follows. The distinction between "no Pull Request" and "could not tell" is the whole point; collapsing them is what misroutes a branch.
 
-- `1` — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
-- More than `1` — ambiguous. Stop and report the Pull Request numbers instead of guessing which one to fix.
-- `0` from the upstream-ref lookup — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
-- Anything else — undetermined, not absent. Stop and report what could not be resolved. The commit lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
+- One result — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
+- More than one result — ambiguous. Stop and report the Pull Request numbers instead of guessing which one to fix.
+- No results with `HEAD` attached — no open Pull Request. `implement-issue` owns the edits and `create-pr` owns first publication. Stop here and route to them; this skill has no Pull Request to fix or sync.
+- `HEAD` detached and the commit lookup cannot answer — undetermined, not absent. Stop and report what could not be resolved. That lookup answers only for a commit the remote already has and returns HTTP 422 for a local-only commit, so a detached worktree whose fixes are still unpushed lands here by design.
 
 Read the condition on the branch's state, not on how the request was phrased. A request to "implement the plan" on a branch that already has an open Pull Request is still this skill's work, and a request to "fix the review findings" on a branch with no Pull Request still belongs to `implement-issue` and `create-pr`.
 
