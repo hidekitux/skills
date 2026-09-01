@@ -26,10 +26,19 @@ var worktreeDocRequirements = []struct {
 	{"wt switch", "the command that creates or locates an Issue worktree"},
 	{"wt list", "the command that reports which worktree owns a branch"},
 	{"wt remove", "the command that removes an inspected, inactive worktree"},
-	{"wt remove --force", "the prohibition on forced removal of a dirty worktree"},
-	{"wt remove -D", "the prohibition on deleting an unmerged branch"},
 	{"git worktree", "the native fallback for when the tool is unavailable"},
 }
+
+// forcingFlags bypass the repository's worktree-removal rules. The document
+// must name each one so a reader recognizes it, and every paragraph naming one
+// must also forbid it. Requiring presence alone would pass a document that had
+// drifted from forbidding a flag to recommending it, which is the failure this
+// check exists to prevent.
+var forcingFlags = []string{"wt remove --force", "wt remove -D"}
+
+// prohibitionMarkers distinguish a paragraph that forbids an operation from one
+// that instructs the reader to perform it.
+var prohibitionMarkers = []string{"do not", "never"}
 
 // CheckWorktreeDocs requires the replacement worktree workflow document to
 // exist, to be referenced from README.md, and to keep the content that makes
@@ -48,6 +57,7 @@ func CheckWorktreeDocs(root string, out, errOut io.Writer) int {
 			errors = append(errors, fmt.Sprintf("%s is missing %s (%q)", worktreeDoc, requirement.reason, requirement.fragment))
 		}
 	}
+	errors = append(errors, forcingFlagFindings(text)...)
 
 	readme, err := os.ReadFile(filepath.Join(root, "README.md"))
 	if err != nil {
@@ -65,4 +75,40 @@ func CheckWorktreeDocs(root string, out, errOut io.Writer) int {
 	}
 	fmt.Fprintf(out, "Worktree-docs check passed: %s documents the replacement workflow.\n", worktreeDoc)
 	return 0
+}
+
+// forcingFlagFindings reports every forcing flag the document fails to name and
+// every paragraph that names one without forbidding it. Paragraph granularity
+// is deliberate: it is coarse enough to survive rewording and line wrapping,
+// and narrow enough that a prohibition elsewhere in the document cannot excuse
+// an instruction to run the flag here.
+func forcingFlagFindings(text string) []string {
+	paragraphs := strings.Split(text, "\n\n")
+	findings := []string{}
+	for _, flag := range forcingFlags {
+		named := false
+		for _, paragraph := range paragraphs {
+			if !strings.Contains(paragraph, flag) {
+				continue
+			}
+			named = true
+			if !forbids(paragraph) {
+				findings = append(findings, fmt.Sprintf("%s names %q outside a prohibition; the paragraph must forbid it with %q or %q", worktreeDoc, flag, prohibitionMarkers[0], prohibitionMarkers[1]))
+			}
+		}
+		if !named {
+			findings = append(findings, fmt.Sprintf("%s must name %q so the forbidden operation stays recognizable", worktreeDoc, flag))
+		}
+	}
+	return findings
+}
+
+func forbids(paragraph string) bool {
+	lowered := strings.ToLower(paragraph)
+	for _, marker := range prohibitionMarkers {
+		if strings.Contains(lowered, marker) {
+			return true
+		}
+	}
+	return false
 }
