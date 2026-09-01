@@ -6,7 +6,7 @@ Every skill states where its result goes and which skill owns the next phase. Th
 
 The governed change flow moves one artifact through owner skills:
 
-report → issue → plan → implementation → pull request → review → merge
+report → issue → plan → implementation → pull request → review → fix → merge
 
 | Stage | Owner skill | Result artifact | Handed to |
 | --- | --- | --- | --- |
@@ -15,7 +15,8 @@ report → issue → plan → implementation → pull request → review → mer
 | Plan | `plan-issue` | Verified implementation plan posted as an Issue comment | `implement-issue` |
 | Implementation | `implement-issue` | In-scope changes committed per task with evidence | `create-pr` |
 | Pull request | `create-pr` | Issue-backed Pull Request | `review-pr` |
-| Review | `review-pr` | Severity-ordered findings | `implement-issue` |
+| Review | `review-pr` | Severity-ordered findings | `fix-pr` |
+| Fix | `fix-pr` | Fixed, validated commits pushed as the Pull Request head | `review-pr`, then `merge-pr` |
 | Merge | `merge-pr` | Merged Pull Request and linked-work outcome evidence | Post-merge verification or release publication |
 
 Rules:
@@ -35,7 +36,8 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `plan-issue` | Verified implementation plan (Issue comment) | `implement-issue` | Plans only; does not implement |
 | `implement-issue` | In-scope edits committed per task with evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
-| `review-pr` | Severity-ordered findings | `implement-issue` | Reviews; does not edit the branch or merge |
+| `review-pr` | Severity-ordered findings | `fix-pr` | Reviews; does not edit the branch or merge |
+| `fix-pr` | Fixed, validated commits pushed as the Pull Request head, with the body synced | `review-pr` | Fixes an open Pull Request from review findings; does not open the first Pull Request, merge, or release |
 | `merge-pr` | Merged Pull Request and linked-work outcome evidence | Post-merge verification or release publication | Merges only after review and required checks; may resolve narrowly scoped conflicts after explicit authorization, but does not apply substantive fixes or publish releases |
 | `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
 | `write-tests` | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
@@ -45,10 +47,14 @@ Every skill names its result, the next-owner skill, and what it must not do.
 
 Process-versus-fix ownership follows the criterion in
 [skill-layers.md](skill-layers.md): `implement-issue` owns the implementation
-stage of the artifact flow and is the process layer's only editor of target
-source code, editing only in-scope files from a verified plan; fix-layer skills
-edit in isolated, task-scoped work outside that stage and hand results into the
-governed flow.
+stage of the artifact flow and `fix-pr` owns the post-review stage, and they are
+the process layer's only editors of target source code. Which of the two applies
+is decided by one observable condition: when the branch has no open Pull
+Request, `implement-issue` then `create-pr` apply; when one exists, `fix-pr`
+applies. `implement-issue` edits only in-scope files from a verified plan and
+`fix-pr` edits only what a review finding or that same boundary justifies;
+fix-layer skills edit in isolated, task-scoped work outside both stages and hand
+results into the governed flow.
 
 ## Debug loop
 
@@ -69,11 +75,20 @@ Follow-ups:
 
 `review-pr` reviews the Pull Request and returns severity-ordered findings.
 
-1. `review-pr` returns findings to `implement-issue`.
-2. `implement-issue` fixes the findings on the same Issue branch and re-runs validation.
+1. `review-pr` returns findings to `fix-pr`.
+2. `fix-pr` fixes the findings on the same Issue branch, tidies unpushed
+   commits, re-runs validation, pushes, and syncs the Pull Request body in one
+   invocation.
 3. The updated Pull Request is re-reviewed; the loop repeats until the findings are resolved.
 
-The reviewer does not edit the branch; `implement-issue` owns the fixes.
+The reviewer does not edit the branch; `fix-pr` owns the fixes. Because `fix-pr`
+also owns pushing, the commit the next review examines is always the Pull
+Request head: the loop cannot leave a fix committed but unpublished, which is
+the state in which `merge-pr` blocks.
+
+`implement-issue` is not part of this loop. It derives its tasks from the
+Issue's `Scope` and `Acceptance criteria`, which is the wrong task source for
+review findings, and it does not publish.
 
 ## Analyze-to-change rule
 
@@ -87,9 +102,9 @@ Entry points coordinate the artifact flow without changing stage ownership:
 
 | Entry point | Outcome | Route |
 | --- | --- | --- |
-| `improve-project` | Improve a project | `analyze-project` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
-| `deliver-change` | Deliver an Issue-backed change | `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
-| `resolve-defect` | Resolve a verified defect | `debug-code` → `write-tests` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` |
+| `improve-project` | Improve a project | `analyze-project` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` → `fix-pr` |
+| `deliver-change` | Deliver an Issue-backed change | `plan-issue` → `implement-issue` → `create-pr` → `review-pr` → `fix-pr` |
+| `resolve-defect` | Resolve a verified defect | `debug-code` → `write-tests` → `create-issue` → `plan-issue` → `implement-issue` → `create-pr` → `review-pr` → `fix-pr` |
 
 Rules:
 
@@ -97,8 +112,9 @@ Rules:
   authority; the entry point only routes phases and tracks one user-visible
   progress model, then returns one cohesive final report.
 - Approval boundaries and external mutation authority are unchanged: only
-  `create-issue` and `create-pr` create external work items, and read-only
-  phases stay read-only.
+  `create-issue` and `create-pr` create external work items, `fix-pr` updates
+  an existing Pull Request but never creates one, and read-only phases stay
+  read-only.
 - Direct primitive invocation remains documented and functional; entry points
   are optional coordinators, not replacements.
 - Entry points terminate their loops deterministically (bounded rework passes)
