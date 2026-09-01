@@ -79,6 +79,33 @@ func TestWorktreeDocsRejectsMissingSafeRemovalRule(t *testing.T) {
 	}
 }
 
+// Naming a forcing flag is not enough: a document that drifted from forbidding
+// the flag to recommending it must fail, which a presence-only check cannot do.
+func TestWorktreeDocsRejectsRecommendedForcedRemoval(t *testing.T) {
+	doc := strings.ReplaceAll(completeWorktreeDoc,
+		"Never use wt remove --force or wt remove -D.",
+		"Use wt remove --force or wt remove -D to clean up quickly.")
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	code, output := runWorktreeDocsCheck(t, root)
+	if code != 1 {
+		t.Fatalf("expected failure, got exit %d: %s", code, output)
+	}
+	if !strings.Contains(output, "outside a prohibition") {
+		t.Fatalf("expected the prohibition failure, got: %s", output)
+	}
+}
+
+// A prohibition elsewhere in the document must not excuse an instruction to run
+// the flag in another paragraph.
+func TestWorktreeDocsRejectsForcedRemovalDespiteDistantProhibition(t *testing.T) {
+	doc := completeWorktreeDoc + "\nUse wt remove --force when a worktree is stale.\n"
+	root := writeWorktreeDocFixture(t, doc, "See [worktrees](docs/worktrees.md).\n")
+	code, output := runWorktreeDocsCheck(t, root)
+	if code != 1 || !strings.Contains(output, "outside a prohibition") {
+		t.Fatalf("expected the distant-prohibition case to fail, got exit %d: %s", code, output)
+	}
+}
+
 func TestWorktreeDocsRejectsUnlinkedDocument(t *testing.T) {
 	root := writeWorktreeDocFixture(t, completeWorktreeDoc, "no link to the workflow\n")
 	code, output := runWorktreeDocsCheck(t, root)
