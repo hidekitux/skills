@@ -11,10 +11,12 @@ as the local worktree workflow tool. It replaces the retired `diagnose:worktree`
 task, which reported branch ownership and setup state from a repository-local Go
 command.
 
-`worktrunk` is a local developer convenience. It is **not** pinned in
-`mise.toml`, not required by CI, and not bundled into any published skill.
-`mise` remains the entry point for every repository command, and native
-`git worktree` remains a supported fallback.
+`worktrunk` is pinned in `mise.toml`, so `mise install` provides the reviewed
+version wherever the toolchain is set up, including CI runners. It is a
+developer workflow tool, not a validation dependency: no `mise` task and no CI
+job invokes `wt`, and it is not bundled into any published skill. `mise` remains
+the entry point for every repository command, and native `git worktree` remains
+a supported fallback.
 
 ### Reviewed version and license
 
@@ -22,32 +24,33 @@ command.
 | --- | --- |
 | Upstream | https://github.com/max-sixty/worktrunk |
 | Reviewed version | v0.75.0 (released 2026-08-27) |
-| Minimum version | v0.75.0 |
+| Pin | `"aqua:max-sixty/worktrunk" = "0.75.0"` in `mise.toml` |
 | License | Dual `MIT OR Apache-2.0`; the repository relies on the Apache-2.0 option |
 | Implementation | Rust, distributed as prebuilt platform binaries |
+| Platforms | Prebuilt `apple-darwin` and `unknown-linux-musl` binaries for both x86_64 and aarch64, so the pin resolves on developer machines and the Ubuntu CI runners |
 | Maintenance | Active; releases roughly every one to two weeks through 2026 |
 
-`worktrunk` is not added to `mise.toml` `[tools]`, so it has no
-`TOOL_LICENSES.toml` attestation. That registry mirrors mise-managed tools
-exactly, and an attestation without a matching mise tool fails
-`check:tool-licenses`. Record any future decision to pin `worktrunk` in both
-files together.
+`worktrunk` is declared in `mise.toml` `[tools]` and attested in
+`TOOL_LICENSES.toml`. That registry mirrors mise-managed tools exactly — a tool
+without an attestation and an attestation without a tool both fail
+`check:tool-licenses` — so change the pinned version in both files together.
 
 ### Installation
 
-Install `worktrunk` once per machine. Any of the upstream channels is
-acceptable; the reviewed installation used `mise`, which resolves the tool
-through `aqua` and verifies the download checksum.
+`mise install` provides `worktrunk` from the repository pin, resolving it
+through `aqua` and verifying the download checksum. Enable the shell
+integration once per machine afterwards:
 
 ```bash
-mise use -g "aqua:max-sixty/worktrunk@0.75.0"
+mise install
 wt config shell install
 ```
 
-Homebrew (`brew install worktrunk`) and Cargo (`cargo install worktrunk`) are
-also supported upstream. `wt config shell install` is required for `wt switch`
-to change the shell's directory; without it `wt` still creates and registers the
-worktree and reports that it could not change directory.
+`wt config shell install` is required for `wt switch` to change the shell's
+directory; without it `wt` still creates and registers the worktree and reports
+that it could not change directory. Homebrew (`brew install worktrunk`) and
+Cargo (`cargo install worktrunk`) remain supported upstream, but prefer the
+repository pin so every worktree uses the reviewed version.
 
 ### Rejected alternative
 
@@ -69,7 +72,7 @@ enforced by hand.
 | Setup hooks | `wt hook` lifecycle hooks; not needed here because `post-checkout` already runs setup | Configuration copying and dependency install hooks |
 | macOS support | Prebuilt `aarch64-apple-darwin` binary, verified | Bash 3.2+, supported |
 | Non-interactive use | Verified: every command below ran without a TTY; `-y` skips approval prompts | Supported |
-| Installation and pinning | mise/aqua, Homebrew, Cargo; version pinnable | Homebrew tap or `install.sh` |
+| Installation and pinning | Pinned in `mise.toml` through aqua; Homebrew and Cargo also available upstream | Homebrew tap or `install.sh`, no mise registry entry |
 | Maintenance | Active, frequent releases | Active |
 | Licensing | `MIT OR Apache-2.0` | Apache-2.0 |
 | Failure diagnostics | Names the blocking condition and the files involved | Not verified |
@@ -163,11 +166,13 @@ repository, non-interactively:
 
 ## Limitations and fallback
 
-- `worktrunk` is a local tool. CI uses native Git only; do not make any workflow
-  or `mise` task depend on `wt`.
+- `worktrunk` is a developer workflow tool. CI installs it with the rest of the
+  mise toolchain but drives Git natively; do not make any workflow or `mise`
+  task depend on `wt`.
 - Upstream is pre-1.0 and releases often. Its CLI, installation channels, or
-  platform support can change; review the reviewed version above before
-  upgrading, and update this document with the change.
+  platform support can change; the pin keeps every environment on the reviewed
+  version, so bump `mise.toml`, `TOOL_LICENSES.toml`, and this document
+  together after re-reviewing the release.
 - No tool can infer whether uncommitted or unpushed work matters. Inspect state
   and decide before removing a worktree; automatic removal stays prohibited.
 - Everything here has a native equivalent — `git worktree add`,

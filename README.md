@@ -44,7 +44,7 @@ mise tasks ls
 
 Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other; the tracked `post-checkout` hook runs it for every new worktree.
 
-The repository uses [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the local worktree tool. It is an optional per-machine developer prerequisite, not a pinned repository tool and not a CI dependency. See [docs/worktrees.md](docs/worktrees.md) for the decision record, the reviewed version, and the full workflow.
+The repository uses [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the worktree tool. It is pinned in `mise.toml`, so `mise install` provides the reviewed version; run `wt config shell install` once per machine to enable directory switching. No `mise` task or CI job invokes it. See [docs/worktrees.md](docs/worktrees.md) for the decision record, the reviewed version, and the full workflow.
 
 ```bash
 wt switch --create issue/<number>   # create the Issue branch and its worktree
