@@ -25,10 +25,10 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 
 - Use each required heading exactly once and in the prescribed order. Do not insert other level-two or level-three headings.
 - Fill every section with concrete content; remove template comments and do not leave empty checklist items.
-- Write `Context` as the current state and reason for change, and `Goal` as one observable desired outcome.
-- Write `Scope` with `- In:` followed by `- Out:`. State included work and explicit boundaries under the matching marker.
-- Write `Acceptance criteria` as observable checkboxes that define completion.
-- Write `Validation` as checkboxes naming the commands or evidence that will prove the criteria.
+- Write `Context` as the current state, the reason to act, and the problem to investigate; do not prescribe a solution before investigation.
+- Write `Scope` with `- In:` followed by `- Out:`. Under `- In:`, state the part of the system and problem boundary covered, not work to perform; never scope an unmade decision as work. State explicit exclusions under `- Out:`.
+- Write `Acceptance criteria` as observable checkboxes that define the outcome regardless of which defensible approach is chosen.
+- Write `Validation` as checkboxes naming how the outcome will be observed, rather than prescribing implementation commands.
 - Before creation, review the rendered body for heading order, duplicate sections, empty content, and unresolved placeholders.
 
 ## Project Triage
