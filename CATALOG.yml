@@ -80,6 +80,15 @@ skills:
     version: 0.1.0
     layer: fix
     related: [implement-issue, write-tests, refactor-code]
+  - name: fix-pr
+    summary: Fix review findings on an existing Pull Request and push the reviewed commit as its head.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: process
+    related: [review-pr, create-pr, merge-pr]
   - name: review-pr
     summary: Review pull requests for PR-introduced defects backed by concrete failure scenarios, ordered by severity.
     owner: hidekitux
@@ -88,7 +97,7 @@ skills:
     license: Apache-2.0
     version: 0.1.0
     layer: process
-    related: [create-pr, implement-issue]
+    related: [create-pr, fix-pr]
   - name: analyze-project
     summary: Investigate a repository end to end and report prioritized, evidence-backed findings and improvement opportunities.
     owner: hidekitux

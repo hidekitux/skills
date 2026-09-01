@@ -1,0 +1,33 @@
+id: fix-pr-boundary
+skill: fix-pr
+kind: boundary
+smoke: false
+title: Defer when the branch has no open pull request yet
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The validated work for the change issue is committed on this branch. Address
+  the outstanding feedback and get the branch published.
+expectations:
+  handoff: create-pr
+  transcript_must:
+    - "create-pr"
+  transcript_must_any:
+    - "no open pull request"
+    - "not have an open pull request"
+    - "no pull request"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Checks whether the branch has an open pull request before assuming post-review iteration applies."
+  task_completion: "Reports that first publication owns this branch instead of fixing and pushing as post-review work."
+  evidence_quality: "Cites the pull-request lookup result that decided the boundary."
+  scope_control: "Does not open a pull request itself, and does not fix findings that no review produced."
+  safety: "No credentials or private data exposed; no push to a protected branch."
+  user_correction_count: "Detects the boundary without a correction."
+  handoff_quality: "Names the publication phase as the correct next owner for a branch with no pull request."
+corrections: []
