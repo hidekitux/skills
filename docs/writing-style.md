@@ -1,16 +1,16 @@
 # Writing style
 
-This document is the detail behind the `Writing quality` section of `AGENTS.md`. It applies to every piece of prose an agent writes for this repository: Issue and Pull Request bodies, `docs/`, `SKILL.md`, commit message bodies, and Japanese conversational reports. Code, identifiers, commands, and quoted output are not prose and are exempt.
+This document is the detail behind the `Writing quality` section of `AGENTS.md`. It applies to every piece of prose an agent writes for this repository: Issue and Pull Request bodies, `docs/`, `SKILL.md`, commit message bodies, and Japanese conversational reports. Code, identifiers, commands, and quoted output are exempt.
 
 ## How to read this document
 
 The rules sit in three parts. `Rules for both languages` binds every draft. `Rules for English` and `Rules for Japanese` each bind one language and nothing else.
 
-Read the shared part, then the part for the language you are writing in, and stop. A writer working in Japanese never needs the English part, and a writer working in English never needs the Japanese part. Each part carries its own patterns, rules, thresholds, and checklist, so one pass through two parts reaches every rule that binds you.
+Read the shared part, then the part for the language you are writing in, and stop. A Japanese writer never needs the English part, and the reverse holds too. Each part carries its own patterns, rules, thresholds, and checklist, so one pass through two parts reaches every rule that binds you.
 
-Within a part, check a draft against the machine-typical patterns, then against the rules, then against the thresholds. Apply the convergence rule in the shared part before calling anything a defect.
+Within a part, check a draft against the machine-typical patterns, then against the rules, then against the thresholds. Then apply the convergence rule before calling anything a defect.
 
-One concept often has to be named in both languages, once in an English artifact and once in a Japanese report about it. [term-glossary.md](term-glossary.md) fixes those pairs, and the Japanese part states the test for a term the glossary does not list.
+One concept is often named twice, once in an English artifact and once in a Japanese report. [term-glossary.md](term-glossary.md) fixes those pairs, and the Japanese part states the test for a term the glossary does not list.
 
 ## Rules for both languages
 
@@ -67,7 +67,7 @@ One concept often has to be named in both languages, once in an English artifact
 
 ### Readable-writing rules
 
-Every rule below names its source, so a reader can tell where the rule comes from and check it.
+Every rule below names its source, so a reader can check it.
 
 - **State the conclusion first.** Source: Japanese technical-writing practice. A reader who gets the conclusion first knows what to do with the detail that follows.
   - Before: Because the hook reruns on checkout and the pinned commitlint is shared, parallel worktrees do not conflict.
@@ -122,7 +122,7 @@ These four rules catch the defects the pattern catalog cannot see from a single 
 
 ### Thresholds
 
-Every threshold states how to count it and what the count excludes, because a threshold without its counting rule is not usable: two readers would measure the same passage differently. The rows below apply to both languages; the English and Japanese parts each carry their own.
+Every threshold states how to count it and what the count excludes, because a threshold without its counting rule is not usable: two readers would measure the same passage differently. The rows below bind both languages. The English and Japanese parts carry their own.
 
 | Threshold | How to count | Excluded from the count |
 | --- | --- | --- |
@@ -134,7 +134,7 @@ The one-in-four connector limit is set by this repository rather than taken from
 
 ### Counting exceptions
 
-These three exceptions apply to every threshold in this document, in the shared part and in both language parts.
+These three exceptions apply to every threshold in this document.
 
 - **A `Before` example is exempt from every threshold.** An example that demonstrates a pattern has to contain the pattern, so measuring it would flag the document for showing the reader what to avoid. Measure the document's own prose, not its quoted material.
   - Before: The count includes the `検証を行うことが必要です。` line and reports this file as breaking the deletion test.
@@ -150,7 +150,7 @@ These three exceptions apply to every threshold in this document, in the shared 
 
 One marker is not a defect. An em dash, a triplet, or a single formal connector appears in careful human writing, and rewriting a passage over one marker costs more than it returns.
 
-Rewrite when three or more markers converge in one passage, or when a threshold in this document is exceeded. Report a single marker only when the reader would misread the sentence without the fix.
+Rewrite when three or more markers converge in one passage, or when a threshold in this document is exceeded. Report a single marker only when the reader would misread the sentence.
 
 ### Checklist for both languages
 
@@ -214,7 +214,7 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 | At most 10 em dashes per 1,000 words | Count `—` in sentences, divide by the word count, multiply by 1,000 | Code spans, code blocks, quoted output, and the ` — ` separator of a reference-list entry, which is structural rather than rhetorical |
 | Sentence-length variance of at least 0.5 | Divide the standard deviation of words per sentence by the mean, over prose sentences only | Headings, list items, table cells, and code blocks; a sample below ten prose sentences, where one sentence would decide the result |
 
-Both numbers here are set by this repository rather than taken from the cited research. The 45-word limit takes the shape of the Japanese sentence-length rule, a guide with the same enumeration exclusion, and it covers the eight sentences of 45 words or more that sat in tracked Markdown when the limit was written; the longest ran to 64 words. The variance minimum of 0.5 sits between the 0.2 to 0.4 range the research reports for machine prose and the 0.6 to 1.2 range it reports for human prose.
+Both numbers here are set by this repository rather than taken from the cited research. The 45-word limit takes the shape of the Japanese sentence-length rule, a guide carrying the same enumeration exclusion. Eight sentences of 45 words or more sat in tracked Markdown when the limit was written. The longest ran to 64 words. The variance minimum of 0.5 sits between the 0.2 to 0.4 range the research reports for machine prose and the 0.6 to 1.2 range it reports for human prose.
 
 ### Checklist for English
 
@@ -276,9 +276,9 @@ Japanese prose keeps an English or katakana term only when replacing it would co
 2. Does the reader look the term up under this exact name in an interface? `Issue`, `Pull Request`, and the Project field `Status` stay in English, because a Japanese form sends the reader to a name GitHub does not show.
 3. Would a Japanese speaker in this field say the term aloud in a sentence about this work? `ブランチ` and `マージ` pass and stay. `boundary` and `evidence` fail and take 境界 and 根拠.
 
-A term that fails all three takes the Japanese word that carries the same sense with nothing added and nothing lost. 証拠 was rejected for `evidence`, because it carries a forensic sense the English term does not have. Apply the ordinary-word rule from the shared part to whatever word you choose. When no word passes it, keep the English term and say in the text why you kept it.
+A term that fails all three takes the Japanese word that carries the same sense with nothing added and nothing lost. 証拠 was rejected for `evidence`, because it carries a forensic sense the English term does not have. Apply the ordinary-word rule to whatever word you choose. When no word passes it, keep the English term and say why.
 
-[docs/term-glossary.md](term-glossary.md) records the decisions already made, including `finding`, `boundary`, `evidence`, and `adoption gate`. Read it before applying the tests, and add a row when a term the tests answered turns up a second time.
+[docs/term-glossary.md](term-glossary.md) records the decisions already made, including `finding`, `boundary`, `evidence`, and `adoption gate`. Read it before applying the tests. Add a row when a term turns up a second time.
 
 ### Thresholds
 
