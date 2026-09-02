@@ -10,6 +10,8 @@ Read the shared part, then the part for the language you are writing in, and sto
 
 Within a part, check a draft against the machine-typical patterns, then against the rules, then against the thresholds. Apply the convergence rule in the shared part before calling anything a defect.
 
+One concept often has to be named in both languages, once in an English artifact and once in a Japanese report about it. [term-glossary.md](term-glossary.md) fixes those pairs, and the Japanese part states the test for a term the glossary does not list.
+
 ## Rules for both languages
 
 ### Machine-typical patterns
@@ -276,7 +278,7 @@ Japanese prose keeps an English or katakana term only when replacing it would co
 
 A term that fails all three takes the Japanese word that carries the same sense with nothing added and nothing lost. 証拠 was rejected for `evidence`, because it carries a forensic sense the English term does not have. Apply the ordinary-word rule from the shared part to whatever word you choose. When no word passes it, keep the English term and say in the text why you kept it.
 
-`docs/term-glossary.md` records the decisions already made, including `finding`, `boundary`, `evidence`, and `adoption gate`. Read it before applying the tests, and add a row when a term the tests answered turns up a second time.
+[docs/term-glossary.md](term-glossary.md) records the decisions already made, including `finding`, `boundary`, `evidence`, and `adoption gate`. Read it before applying the tests, and add a row when a term the tests answered turns up a second time.
 
 ### Thresholds
 
