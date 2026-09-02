@@ -206,9 +206,15 @@ Every threshold below states how to count it and what the count excludes, becaus
 Three exceptions apply across the table. The first matters everywhere; the other two matter most in Japanese.
 
 - **A `Before` example is exempt from every threshold.** An example that demonstrates a pattern has to contain the pattern, so measuring it would flag the document for showing the reader what to avoid. Measure the document's own prose, not its quoted material.
+  - Before: The count includes the `検証を行うことが必要です。` line and reports this file as breaking the padding rule.
+  - After: The count skips every `Before` line and reports only the document's own prose.
 
 - **An inline code span counts as one reading unit.** `git worktree add -b issue/<number> <path> origin/main` is one token to a reader and 53 characters to a naive count, so counting characters would flag a sentence that reads short. Count the span as one unit, not as its length.
+  - Before: `mise run setup:all` は `.githooks` を有効にします。 counts as 43 characters and reads as close to the 50-character guide.
+  - After: The same sentence counts as 14 characters, because each code span is one unit, and it reads as the short sentence it is.
 - **A genuine enumeration is excluded from the sentence-length threshold.** A sentence that lists the three real fields of a configuration file is long because the list is long, and shortening it would drop a field. This exception does not cover rule-of-three padding, where the third item exists only to complete the pattern; the test is whether removing an item removes a fact.
+  - Before: `.github/issue-project.toml` は `Status`、`Priority`、`Scope` の3つの欄を宣言します。 is cut to two field names to reach 50 characters, and the reader loses `Scope`.
+  - After: The sentence keeps all three field names, because removing one removes a fact, and the enumeration is excluded from the count.
 
 ## The convergence rule
 
