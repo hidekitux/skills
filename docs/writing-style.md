@@ -282,7 +282,7 @@ Japanese prose keeps an English or katakana term only when replacing it would co
 2. Does the reader look the term up under this exact name in an interface? `Issue`, `Pull Request`, and the Project field `Status` stay in English, because a Japanese form sends the reader to a name GitHub does not show.
 3. Would a Japanese speaker in this field say the term aloud in a sentence about this work? `ブランチ` and `マージ` pass and stay. `boundary` and `evidence` fail and take 境界 and 根拠.
 
-A term that fails all three takes the Japanese word that carries the same sense with nothing added and nothing lost. 証拠 was rejected for `evidence`, because it carries a forensic sense the English term does not have. Apply the ordinary-word rule to whatever word you choose. When no word passes it, keep the English term and say why.
+A term that fails all three takes the Japanese word that carries the same sense with nothing added and nothing lost. 証拠 was rejected for `evidence`, because it carries a forensic sense the English term does not have. Apply the shared rule `Use a word people actually use` to whatever word you choose. When no word passes it, keep the English term and say why.
 
 [docs/term-glossary.md](term-glossary.md) records the decisions already made, including `finding`, `boundary`, `evidence`, and `adoption gate`. Read it before applying the tests. Add a row when a term turns up a second time.
 
