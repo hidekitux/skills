@@ -174,6 +174,21 @@ Every rule below names its source, so a reader can tell where the rule comes fro
 
 ## Consistency and substance rules
 
+These four rules apply to English and Japanese alike, and they catch the defects the pattern catalog cannot see from a single sentence.
+
+- **Name a thing in full on first mention, then reuse that exact term.** Source: the Google developer documentation style guide, and technical-writing guidance on terminology consistency. A shortened or varied later mention makes the reader ask whether it is the same thing. Define a short form explicitly when the full term is long enough to need one, then use only the short form.
+  - Before: Run `mise run setup:all` once. `setup:all` is safe to rerun, and the setup task runs again on checkout.
+  - After: Run `mise run setup:all` once. `mise run setup:all` is safe to rerun, and it runs again on checkout.
+- **Make every sentence add a fact the reader did not have.** Source: this repository's convention. Delete each sentence in turn and ask what the reader loses; a sentence that loses nothing does not belong.
+  - Before: Validation matters for this repository. Validation is how the repository stays correct. Tier 1 runs on every Pull Request.
+  - After: Tier 1 validation runs on every Pull Request.
+- **Write prose by default, and use a list only for items a reader counts.** Source: this repository's convention. A list of two related sentences hides the connection that prose would state.
+  - Before: a three-item list whose items are the cause, the effect, and the exception.
+  - After: one sentence stating the cause and effect, and a second stating the exception.
+- **Cite the file, command, or output behind every claim about the repository.** Source: this repository's convention. A claim the reader cannot trace is a claim they must re-derive.
+  - Before: The Project configuration declares the required fields.
+  - After: `.github/issue-project.toml` declares the `Status`, `Priority`, and `Scope` fields with their options.
+
 ## Thresholds
 
 ## The convergence rule
