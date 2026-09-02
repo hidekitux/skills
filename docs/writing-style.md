@@ -200,7 +200,7 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 - **Use the second person and the present tense.** Source: the Google developer documentation style guide. `You` names the actor, and the present tense keeps the document true whenever it is read.
   - Before: Developers will be required to run the validation before pushing.
   - After: Run the validation before you push.
-- **Keep one idea in one sentence.** Source: Japanese technical-writing practice, applied here to English as well. A sentence with two ideas forces the reader to hold the first while parsing the second.
+- **Keep one idea in one sentence.** Source: Japanese technical-writing practice, applied here to English as well. A sentence with two ideas forces the reader to hold the first while parsing the second. The threshold table below sets the point where a sentence has certainly stopped holding one idea, at 45 words.
   - Before: The skill reads the Issue and derives the tasks, and it commits each task separately so the history mirrors the plan.
   - After: The skill reads the Issue and derives the tasks. It commits each task separately, so the history mirrors the plan.
 
@@ -208,16 +208,18 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 
 | Threshold | How to count | Excluded from the count |
 | --- | --- | --- |
+| At most 45 words per English sentence | Count words between sentence-ending punctuation; an inline code span counts as one word whatever its length | A genuine enumeration; headings, list items, table cells, and code blocks |
 | At most 10 em dashes per 1,000 words | Count `—` in sentences, divide by the word count, multiply by 1,000 | Code spans, code blocks, quoted output, and the ` — ` separator of a reference-list entry, which is structural rather than rhetorical |
 | Sentence-length variance of at least 0.5 | Divide the standard deviation of words per sentence by the mean, over prose sentences only | Headings, list items, table cells, and code blocks; a sample below ten prose sentences, where one sentence would decide the result |
 
-The variance minimum of 0.5 is set by this repository rather than taken from the cited research. It sits between the 0.2 to 0.4 range the research reports for machine prose and the 0.6 to 1.2 range it reports for human prose.
+Both numbers here are set by this repository rather than taken from the cited research. The 45-word limit takes the shape of the Japanese sentence-length rule, a guide with the same enumeration exclusion, and it covers the eight sentences of 45 words or more that sat in tracked Markdown when the limit was written; the longest ran to 64 words. The variance minimum of 0.5 sits between the 0.2 to 0.4 range the research reports for machine prose and the 0.6 to 1.2 range it reports for human prose.
 
 ### Checklist for English
 
 - [ ] No inflated style word, Latinate padding, or copula avoidance survives where a plain word fits.
 - [ ] Instructions use the second person and the present tense.
 - [ ] No negative parallelism, `from X to Y` frame, or gerund opener remains.
+- [ ] No sentence runs past 45 words, unless the length is a genuine enumeration.
 - [ ] Sentence length varies, and the em dash threshold holds.
 
 ## Rules for Japanese
