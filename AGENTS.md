@@ -48,3 +48,13 @@
 
 - Use FSL for stateful workflow contracts such as review, validation, publishing, versioning, and deprecation. Do not claim that FSL verifies the prose instructions in a `SKILL.md`.
 - Place a skill-owned FSL source file in `skills/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify:fsl` after changes.
+
+## Writing quality
+
+- Name a thing in full on first mention and reuse that exact term for every later mention. Do not introduce a shortened or varied form without defining it.
+- Choose the plain word. Do not use an inflated style word, a Latinate padding word, or `serves as` where `is` fits.
+- In Japanese prose, replace a loanword that has a common Japanese equivalent, and keep terms already established in the domain. Keep every identifier, command, and path in its original form.
+- Make every sentence add a fact the reader did not have. Delete a sentence that loses nothing.
+- State a position and give its reason. Do not present two options and commit to neither.
+- Cite the file, command, or output behind every claim about the repository.
+- See `docs/writing-style.md` for the pattern catalog, the per-language rules, the thresholds and their counting exceptions, and the review checklist.
