@@ -266,6 +266,18 @@ Both numbers here are set by this repository rather than taken from the cited re
   - Before: リリースのフローをドキュメントにデスクライブします。
   - After: リリースの手順を文書に書きます。
 
+### Deciding whether a term stays in English
+
+Japanese prose keeps an English or katakana term only when replacing it would cost the reader. Three tests decide that, applied in order.
+
+1. Is the term an identifier, a command, a path, a file name, or a heading quoted so the reader can find a section? Keep the original form and stop. `mise run check:local` and `CATALOG.yml` never take a Japanese word.
+2. Does the reader look the term up under this exact name in an interface? `Issue`, `Pull Request`, and the Project field `Status` stay in English, because a Japanese form sends the reader to a name GitHub does not show.
+3. Would a Japanese speaker in this field say the term aloud in a sentence about this work? `ブランチ` and `マージ` pass and stay. `boundary` and `evidence` fail and take 境界 and 根拠.
+
+A term that fails all three takes the Japanese word that carries the same sense with nothing added and nothing lost. 証拠 was rejected for `evidence`, because it carries a forensic sense the English term does not have. Apply the ordinary-word rule from the shared part to whatever word you choose. When no word passes it, keep the English term and say in the text why you kept it.
+
+`docs/term-glossary.md` records the decisions already made, including `finding`, `boundary`, `evidence`, and `adoption gate`. Read it before applying the tests, and add a row when a term the tests answered turns up a second time.
+
 ### Thresholds
 
 | Threshold | How to count | Excluded from the count |
@@ -277,6 +289,7 @@ Both numbers here are set by this repository rather than taken from the cited re
 
 - [ ] Japanese text holds one idea per sentence, stays near 50 characters with the counting exceptions applied, and keeps at most two connective particles.
 - [ ] Japanese text places long modifiers first, puts `読点` at modifier boundaries, keeps one register, and replaces only the loanwords that have a common Japanese equivalent.
+- [ ] Every English or katakana term left in Japanese text passed the decision test, and a term `docs/term-glossary.md` already decided matches the glossary.
 
 ## Sources
 
