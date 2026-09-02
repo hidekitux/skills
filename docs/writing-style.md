@@ -230,7 +230,7 @@ Both numbers here are set by this repository rather than taken from the cited re
 
 ## Rules for Japanese
 
-Every rule here binds Japanese for the same reason, and the English part carries the counterpart wherever English has one. Each threshold below says which.
+Every rule here binds Japanese because the marker it counts is Japanese: a Japanese construction, a Japanese particle, or a register only Japanese has. The English part carries the counterpart wherever English has one. Each threshold below says which.
 
 ### Machine-typical patterns
 
