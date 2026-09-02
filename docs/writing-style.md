@@ -79,6 +79,9 @@ Every rule below names its source, so a reader can tell where the rule comes fro
 - **Prefer the short everyday word.** Source: Orwell's rules for writing. A short word is read faster and understood by more readers, with no loss of precision.
   - Before: The command necessitates prior authorization.
   - After: The command needs approval first.
+- **Use a word people actually use.** Source: this repository's convention, adopted after review rejected `関門` as the Japanese word for `adoption gate`. Read the replacement aloud: a word you would not say to a colleague working on the same thing fails, however exactly a dictionary matches it to the term. The rule binds the replacement and the prose around it in either language, so a draft assembled from rare words fails even when every rare word is correct.
+  - Before: 採用の関門を通過したスキルだけを公開します。
+  - After: 採用判定を通ったスキルだけを公開します。
 - **Cut every word that can be cut.** Source: Orwell's rules for writing. A word that carries no fact costs the reader time.
   - Before: It is important to note that the check is required on every Pull Request.
   - After: The check is required on every Pull Request.
@@ -153,6 +156,7 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 - [ ] Every sentence is active and names who acts.
 - [ ] Every noun is the specific one, every word is the short everyday one, and every word that can be cut is cut.
 - [ ] Nothing explains what the audience already knows.
+- [ ] Every word, including one chosen to replace a loanword, is a word people use in speech.
 - [ ] Every heading is in sentence case.
 - [ ] No anthropomorphism remains.
 - [ ] The triplet and formal-connector thresholds hold.
