@@ -107,11 +107,70 @@ Read it in three passes. Check a draft against the machine-typical patterns, the
 
 ## Readable-writing rules
 
+Every rule below names its source, so a reader can tell where the rule comes from and check it. `Shared` marks a rule that applies to English and Japanese alike.
+
 ### Rules for both languages
+
+- **State the conclusion first.** Shared. Source: Japanese technical-writing practice. A reader who gets the conclusion first knows what to do with the detail that follows.
+  - Before: Because the hook reruns on checkout and the pinned commitlint is shared, parallel worktrees do not conflict.
+  - After: Parallel worktrees do not conflict. The hook reruns on checkout, and the pinned commitlint is shared.
+- **Use the active voice.** Shared. Source: Federal Plain Language Guidelines, and the Google developer documentation style guide. The active voice names who acts, which a passive sentence can leave out.
+  - Before: The branch is created from the upstream default branch.
+  - After: `implement-issue` creates the branch from the upstream default branch.
+- **Prefer the concrete word to the abstraction.** Shared. Source: Federal Plain Language Guidelines. A concrete noun tells the reader which thing is meant; an abstraction makes them guess.
+  - Before: The tooling reports the outcome.
+  - After: `mise run check:local` prints the failing check and its exit code.
+- **Prefer the short everyday word.** Shared. Source: Orwell's rules for writing. A short word is read faster and understood by more readers, with no loss of precision.
+  - Before: The command necessitates prior authorization.
+  - After: The command needs approval first.
+- **Cut every word that can be cut.** Shared. Source: Orwell's rules for writing. A word that carries no fact costs the reader time.
+  - Before: It is important to note that the check is required on every Pull Request.
+  - After: The check is required on every Pull Request.
+- **Vary sentence length deliberately.** Shared. Source: this repository's convention, adopted because uniform length is a machine-typical pattern. A short sentence after two long ones marks the point that matters.
+  - Before: The task runs the checks and reports the result, and the result decides whether the push proceeds or stops.
+  - After: The task runs the checks and reports the result. A failure stops the push.
+- **State a position and give its reason.** Shared. Source: this repository's convention. A reader who asked which option to use needs an answer, not a survey.
+  - Before: A hook and a CI check are both possible here.
+  - After: Use the hook. It fails before the push, so a bad commit never reaches the remote.
+- **Name the source of every claim.** Shared. Source: this repository's convention. A claim about the repository must cite the file, command, or output it came from, so the reader can verify it.
+  - Before: The repository requires ten checks on every Pull Request.
+  - After: `CONTRIBUTING.md` lists the ten required Tier 1 checks.
+- **Use one term for one concept.** Shared. Source: the Google developer documentation style guide, and technical-writing guidance on terminology consistency. Alternating terms makes the reader ask whether two names mean two things.
+  - Before: Run the setup task first. The initial task also enables the hooks.
+  - After: Run `mise run setup:all` first. `mise run setup:all` also enables the hooks.
+- **Write headings in sentence case.** Shared. Source: the Google developer documentation style guide. Sentence case keeps a heading readable as a phrase instead of a label.
+  - Before: `## Writing Quality And Style Rules`
+  - After: `## Writing quality`
 
 ### English rules
 
+- **Use the second person and the present tense.** Source: the Google developer documentation style guide. `You` names the actor, and the present tense keeps the document true whenever it is read.
+  - Before: Developers will be required to run the validation before pushing.
+  - After: Run the validation before you push.
+- **Keep one idea in one sentence.** Source: Japanese technical-writing practice, applied here to English as well. A sentence with two ideas forces the reader to hold the first while parsing the second.
+  - Before: The skill reads the Issue and derives the tasks, and it commits each task separately so the history mirrors the plan.
+  - After: The skill reads the Issue and derives the tasks. It commits each task separately, so the history mirrors the plan.
+
 ### Japanese rules
+
+- **一文一義を守り、1文を50字程度にします.** Source: Japanese technical-writing practice. 1文に2つの動作を入れると、読者は前半を保持したまま後半を読む必要があります。
+  - Before: `mise run setup:all` は時点の内容にスキルを登録し、固定版の commitlint を再利用します。
+  - After: `mise run setup:all` は時点の内容にスキルを登録します。あわせて固定版の commitlint を再利用します。
+- **接続助詞は1文に2つまでにします.** Source: Japanese technical-writing practice. 接続助詞が3つ以上あると、文の切れ目が読者に見えなくなります。
+  - Before: 検証が失敗するとプッシュが止まるので、原因を直してから再実行しますが、そのときも同じコマンドを使います。
+  - After: 検証が失敗するとプッシュは止まります。原因を直し、同じコマンドで再実行します。
+- **修飾語は長い順に前へ置きます.** Source: 本多勝一『日本語の作文技術』の修飾の順序4原則。節を句より前に置き、長い修飾語を先に置き、大きな状況を先に置き、親和度の強い語を離します。
+  - Before: 白い横線の引かれた厚手の紙
+  - After: 横線の引かれた厚手の白い紙
+- **読点は長い修飾語の境界に打ちます.** Source: 本多勝一『日本語の作文技術』の読点の原則。読点は必要最小限にとどめ、修飾語の原則に対して語順が逆のときにも打ちます。分かち書きを目的とした読点は打ちません。
+  - Before: 診断コマンドが報告する登録済みで非ベアのワークツリーを使います。
+  - After: 診断コマンドが報告する、登録済みで非ベアのワークツリーを使います。
+- **敬体で統一し、体言止めを混ぜません.** Source: this repository's convention. 文体が混ざると、書き手が複数いるように読めます。
+  - Before: 検証は3層である。Tier 1 は必須です。
+  - After: 検証は3層です。Tier 1 は必須です。
+- **定着した技術用語は残し、置き換えられるカタカナ語は日本語にします.** Source: this repository's convention, and the `JTF日本語標準スタイルガイド`. `ブランチ` や `ワークツリー` のような定着した用語は残します。識別子、コマンド、パスは原形のまま書きます。
+  - Before: リリースのフローをドキュメントにデスクライブします。
+  - After: リリースの手順を文書に書きます。
 
 ## Consistency and substance rules
 
