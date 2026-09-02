@@ -12,7 +12,7 @@ A term belongs here when it is working vocabulary: a term this repository uses i
 - A GitHub Project field name or option, such as `Status` or `In progress`.
 - A heading quoted so the reader can find a section. `## Findings` names a location; the `finding` inside it names a concept.
 
-A term that names both a concept and an identifier follows the use at hand. `task` in `mise run check:all` is an identifier; a task in an implementation plan is working vocabulary.
+A term that names both a concept and an identifier follows the use at hand. `task` in `mise run check:all` is an identifier; a task in an implementation plan is working vocabulary. `policy` in `.github/branch-policy.toml` works the same way.
 
 ## Terms that take a Japanese word
 
@@ -40,8 +40,8 @@ The rejected column records a candidate the read-aloud test turned down, so a re
 | diff | 差分 | ディフ | A common Japanese word says the same thing |
 | approval | 承認 | アプルーバル | A common Japanese word says the same thing |
 | reproduction | 再現 | リプロダクション | A common Japanese word says the same thing |
-| task | 作業 | タスク | A common Japanese word says the same thing, except where `task` names a `mise` task |
-| policy | 方針 | ポリシー | A common Japanese word says the same thing, except where `policy` names a file such as `.github/branch-policy.toml` |
+| task | 作業 | タスク | A common Japanese word says the same thing |
+| policy | 方針 | ポリシー | A common Japanese word says the same thing |
 
 ## Terms that keep their katakana form
 
