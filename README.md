@@ -113,6 +113,7 @@ Where the related guides live:
 - [docs/fsl.md](docs/fsl.md) — the FSL specification boundary and verification.
 - [docs/model-selection.md](docs/model-selection.md) — role-tier model selection.
 - [docs/model-routing.md](docs/model-routing.md) — how each host consumes and verifies the selected models.
+- [docs/writing-style.md](docs/writing-style.md) — the writing rules for agent prose, the machine-typical patterns to avoid, and the thresholds with their counting exceptions.
 
 <!-- BEGIN generated: public-status -->
 
