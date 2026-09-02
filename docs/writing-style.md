@@ -191,7 +191,28 @@ These four rules apply to English and Japanese alike, and they catch the defects
 
 ## Thresholds
 
+Every threshold below states how to count it and what the count excludes. A threshold without its counting rule is not usable, because two readers would measure the same passage differently.
+
+| Threshold | Applies to | How to count | Excluded from the count |
+| --- | --- | --- | --- |
+| At most 10 em dashes per 1,000 words | English | Count `—`, divide by the word count, multiply by 1,000 | Code spans, code blocks, and quoted output |
+| Sentence-length variance of at least 0.5 | English | Divide the standard deviation of words per sentence by the mean | Headings, list items, table cells, and code blocks |
+| At most one paragraph in four opening with a formal connector | Shared | Count paragraphs opening with `Furthermore`, `Moreover`, `Additionally`, `また`, or `さらに` | Numbered procedure steps, where the connector marks order |
+| At most one polished triplet per 200 words | Shared | Count three-item parallel lists that sit inside one sentence | A genuine enumeration of three real items, such as three field names |
+| About 50 characters per Japanese sentence, and 70 at most | Japanese | Count characters between `。`; an inline code span counts as one reading unit whatever its length | A genuine enumeration; headings and table cells |
+| At most two connective particles per Japanese sentence | Japanese | Count `して`, `ため`, `ので`, `が、`, `し、`, and `て、` | Nothing |
+| No sentence survives the deletion test | Shared | Delete each sentence in turn and name the fact the reader loses | A sentence whose only job is to state the conclusion before the detail |
+
+Two exceptions apply across the table and matter most in Japanese.
+
+- **An inline code span counts as one reading unit.** `mise run diagnose:worktree -- --branch issue/123` is one token to a reader and 46 characters to a naive count, so counting characters would flag a sentence that reads short. Count the span as one unit, not as its length.
+- **A genuine enumeration is excluded from the sentence-length threshold.** A sentence that lists the three real fields of a configuration file is long because the list is long, and shortening it would drop a field. This exception does not cover rule-of-three padding, where the third item exists only to complete the pattern; the test is whether removing an item removes a fact.
+
 ## The convergence rule
+
+One marker is not a defect. An em dash, a triplet, or a single formal connector appears in careful human writing, and rewriting a passage over one marker costs more than it returns.
+
+Rewrite when three or more markers converge in one passage, or when a threshold in the table above is exceeded. Report a single marker only when the reader would misread the sentence without the fix.
 
 ## Review checklist
 
