@@ -203,6 +203,8 @@ Every threshold below states how to count it and what the count excludes, becaus
 | At most two connective particles per Japanese sentence | Japanese | Count `して`, `ため`, `ので`, `が、`, `し、`, and `て、` | Nothing |
 | No sentence survives the deletion test | Shared | Delete each sentence in turn and name the fact the reader loses | A sentence whose only job is to state the conclusion before the detail |
 
+Two numbers are set by this repository rather than taken from the cited research. The variance minimum of 0.5 sits between the 0.2 to 0.4 range the research reports for machine prose and the 0.6 to 1.2 range it reports for human prose. The one-in-four connector limit is stricter than the more-than-half share the research treats as the tell.
+
 Three exceptions apply across the table. The first matters everywhere; the other two matter most in Japanese.
 
 - **A `Before` example is exempt from every threshold.** An example that demonstrates a pattern has to contain the pattern, so measuring it would flag the document for showing the reader what to avoid. Measure the document's own prose, not its quoted material.
