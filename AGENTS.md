@@ -51,6 +51,7 @@
 
 ## Writing quality
 
+- Write every artifact that stays in the repository in English: code, comments, `docs/`, `SKILL.md`, commit messages, Issue and Pull Request bodies, and Pull Request review comments. Conversation with the user is not an artifact, and it is held in Japanese.
 - Name a thing in full on first mention and reuse that exact term for every later mention. Do not introduce a shortened or varied form without defining it.
 - Choose the plain word. Do not use an inflated style word, a Latinate padding word, or `serves as` where `is` fits.
 - Choose a word people actually use. A replacement nobody says aloud fails the rules in either language, and so does prose assembled from such words.

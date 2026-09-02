@@ -1,6 +1,6 @@
 # Writing style
 
-This document is the detail behind the `Writing quality` section of `AGENTS.md`. It applies to every piece of prose an agent writes for this repository: Issue and Pull Request bodies, `docs/`, `SKILL.md`, commit message bodies, and Japanese conversational reports. Code, identifiers, commands, and quoted output are exempt.
+This document is the detail behind the `Writing quality` section of `AGENTS.md`. It applies to every piece of prose an agent writes for this repository: Issue and Pull Request bodies, `docs/`, `SKILL.md`, commit message bodies, and Japanese conversational reports. Each of those artifacts is written in English, and the conversation carrying the reports is held in Japanese. Code, identifiers, commands, and quoted output are exempt.
 
 ## How to read this document
 
