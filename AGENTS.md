@@ -53,7 +53,7 @@
 
 - Name a thing in full on first mention and reuse that exact term for every later mention. Do not introduce a shortened or varied form without defining it.
 - Choose the plain word. Do not use an inflated style word, a Latinate padding word, or `serves as` where `is` fits.
-- In Japanese prose, replace a loanword that has a common Japanese equivalent, and keep terms already established in the domain. Keep every identifier, command, and path in its original form.
+- In Japanese prose, replace a katakana loanword or an inline English word when a common Japanese word says the same thing, and keep terms already established in the domain. Keep every identifier, command, and path in its original form.
 - Make every sentence add a fact the reader did not have. Delete a sentence that loses nothing.
 - State a position and give its reason. Do not present two options and commit to neither.
 - Cite the file, command, or output behind every claim about the repository.
