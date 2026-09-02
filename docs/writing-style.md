@@ -148,7 +148,7 @@ These three exceptions apply to every threshold in this document.
 
 ### The convergence rule
 
-One marker is not a defect. An em dash, a triplet, or a single formal connector appears in careful human writing, and rewriting a passage over one marker costs more than it returns.
+One marker is not a defect. A triplet or a single formal connector appears in careful human writing, and so does an em dash in English, where the English part carries its threshold. Rewriting a passage over one marker costs more than it returns.
 
 Rewrite when three or more markers converge in one passage, or when a threshold in this document is exceeded. Report a single marker only when the reader would misread the sentence.
 
@@ -172,6 +172,8 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 - [ ] Any remaining marker is a single one, permitted by the convergence rule.
 
 ## Rules for English
+
+Every rule here binds English because the marker it counts is English: an English word, an English construction, or a unit that only English prose has. Japanese has none of them. Each threshold below names its Japanese counterpart or says why there is none.
 
 ### Machine-typical patterns
 
@@ -214,6 +216,8 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 | At most 10 em dashes per 1,000 words | Count `—` in sentences, divide by the word count, multiply by 1,000 | Code spans, code blocks, quoted output, and the ` — ` separator of a reference-list entry, which is structural rather than rhetorical |
 | Sentence-length variance of at least 0.5 | Divide the standard deviation of words per sentence by the mean, over prose sentences only | Headings, list items, table cells, and code blocks; a sample below ten prose sentences, where one sentence would decide the result |
 
+The 45-word row pairs with the 50-character row in the Japanese part. The other two rows have no Japanese counterpart: Japanese technical prose does not use the em dash as a rhetorical aside, and the research behind the variance row measured English prose only.
+
 Both numbers here are set by this repository rather than taken from the cited research. The 45-word limit takes the shape of the Japanese sentence-length rule, a guide carrying the same enumeration exclusion. Eight sentences of 45 words or more sat in tracked Markdown when the limit was written. The longest ran to 64 words. The variance minimum of 0.5 sits between the 0.2 to 0.4 range the research reports for machine prose and the 0.6 to 1.2 range it reports for human prose.
 
 ### Checklist for English
@@ -225,6 +229,8 @@ Both numbers here are set by this repository rather than taken from the cited re
 - [ ] Sentence length varies, and the em dash threshold holds.
 
 ## Rules for Japanese
+
+Every rule here binds Japanese for the same reason, and the English part carries the counterpart wherever English has one. Each threshold below says which.
 
 ### Machine-typical patterns
 
@@ -286,6 +292,8 @@ A term that fails all three takes the Japanese word that carries the same sense 
 | --- | --- | --- |
 | About 50 characters per Japanese sentence, and 70 at most | Count characters between `。`; an inline code span counts as one reading unit whatever its length | A genuine enumeration; headings and table cells |
 | At most two connective particles per Japanese sentence | Count `して`, `ため`, `ので`, `が、`, `し、`, and `て、` | Nothing |
+
+The 50-character row pairs with the 45-word row in the English part. The connective-particle row has no English counterpart, because English joins clauses with punctuation and conjunctions rather than with the particles this row counts.
 
 ### Checklist for Japanese
 
