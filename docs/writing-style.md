@@ -216,4 +216,29 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 
 ## Review checklist
 
+Run this checklist against a draft before handing it off. Each item maps to a rule or a threshold above.
+
+- [ ] No inflated style word, Latinate padding, or copula avoidance survives where a plain word fits.
+- [ ] No negative parallelism, `from X to Y` frame, gerund opener, or anthropomorphism remains.
+- [ ] Sentence length varies, and the em dash, triplet, and formal-connector thresholds hold.
+- [ ] No paragraph repeats one shape, and no list forces its items to equal length.
+- [ ] Headings and bold text mark structure the reader needs, not every paragraph.
+- [ ] No meta-commentary, hedge sandwich, sycophantic opener, or refusal to pick a side remains.
+- [ ] Every claim names its file, command, output, or external source.
+- [ ] Every sentence adds a fact, verified by the deletion test.
+- [ ] Every concept keeps one term from first mention to last.
+- [ ] Prose carries the argument, and each list holds items a reader counts.
+- [ ] Japanese text holds one idea per sentence, stays near 50 characters with the counting exceptions applied, and keeps at most two connective particles.
+- [ ] Japanese text places long modifiers first, puts `読点` at modifier boundaries, keeps one register, and replaces only the loanwords that have a common Japanese equivalent.
+- [ ] Any remaining marker is a single one, permitted by the convergence rule.
+
 ## Sources
+
+- [Principles of plain language](https://digital.gov/guides/plain-language/principles) and the [Federal Plain Language Guidelines](https://www.wordrake.com/resources/federal-plain-language-guidelines) — active voice, short sentences, and the concrete word.
+- [Google developer documentation style guide](https://developers.google.com/style/highlights) — second person, present tense, sentence-case headings, and one term per concept.
+- [Using large language models in technical writing](https://developers.google.com/tech-writing/two/llms) — terminology consistency and its cost to the reader.
+- [本多勝一『日本語の作文技術』のまとめ](https://www.math.nagoya-u.ac.jp/~shinichiroh/2018/02/13/japanese-punctuation.html) — the modifier-order principles and the `読点` rules.
+- [テクニカルライティングで伝わる文章を書くコツ](https://tech.trustbank.co.jp/entry/20241210/technical-writing) — `一文一義`, sentence length, connective-particle count, and conclusion first.
+- [JTF日本語標準スタイルガイド](https://www.jtf.jp/pdf/jtf_style_guide.pdf) — Japanese orthography and notation.
+- [George Orwell's six rules for writing](https://www.openculture.com/2025/12/george-orwells-six-rules-for-writing.html) — the short everyday word and cutting every word that can be cut.
+- [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), [Signs of AI writing: 27 red flags](https://vrid.ai/blog/signs-of-ai-writing), and [Signs of AI writing: 12 patterns with reproducible thresholds](https://slopdetector.org/blog/signs-of-ai-writing) — the machine-typical patterns and the countable thresholds.
