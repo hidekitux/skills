@@ -53,8 +53,10 @@
 
 - Name a thing in full on first mention and reuse that exact term for every later mention. Do not introduce a shortened or varied form without defining it.
 - Choose the plain word. Do not use an inflated style word, a Latinate padding word, or `serves as` where `is` fits.
+- Choose a word people actually use. A replacement nobody says aloud fails the rules in either language, and so does prose assembled from such words.
 - In Japanese prose, replace a katakana loanword or an inline English word when a common Japanese word says the same thing, and keep terms already established in the domain. Keep every identifier, command, and path in its original form.
+- Name one concept with one term in each language. Take the Japanese term for an English term this repository uses from `docs/term-glossary.md`, and decide a term the glossary omits by the test in `docs/writing-style.md`.
 - Make every sentence add a fact the reader did not have. Delete a sentence that loses nothing.
 - State a position and give its reason. Do not present two options and commit to neither.
 - Cite the file, command, or output behind every claim about the repository.
-- See `docs/writing-style.md` for the pattern catalog, the per-language rules, the thresholds and their counting exceptions, and the review checklist.
+- See `docs/writing-style.md` for the full rules. They sit in three parts: one for both languages, one for English, and one for Japanese. Read the shared part and the part for the language you are writing in.
