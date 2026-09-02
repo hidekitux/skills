@@ -221,6 +221,11 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 Run this checklist against a draft before handing it off. Each item maps to a rule or a threshold above.
 
 - [ ] No inflated style word, Latinate padding, or copula avoidance survives where a plain word fits.
+- [ ] Every section states its conclusion before its detail.
+- [ ] Every sentence is active and names who acts.
+- [ ] Every noun is the specific one, every word is the short everyday one, and every word that can be cut is cut.
+- [ ] Nothing explains what the audience already knows.
+- [ ] English instructions use the second person and the present tense, and every heading is in sentence case.
 - [ ] No negative parallelism, `from X to Y` frame, gerund opener, or anthropomorphism remains.
 - [ ] Sentence length varies, and the em dash, triplet, and formal-connector thresholds hold.
 - [ ] No paragraph repeats one shape, and no list forces its items to equal length.
