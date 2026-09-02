@@ -1,6 +1,6 @@
 # Term glossary
 
-This repository writes its Issues, Pull Requests, `docs/`, and `SKILL.md` in English, and holds conversation and reports in Japanese. The same concept therefore reaches a reader twice, once in each language. This glossary fixes the pair, so `finding` in an artifact and 指摘 in the report about it are visibly the same thing.
+This repository writes its artifacts in English and holds conversation and reports in Japanese. `docs/writing-style.md` names each surface. The same concept therefore reaches a reader twice, once in each language. This glossary fixes the pair, so `finding` in an artifact and 指摘 in the report about it are visibly the same thing.
 
 It records decisions, not vocabulary in general. `docs/writing-style.md` states the test that produced them and the test to apply to a term this file does not list.
 
