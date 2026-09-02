@@ -173,7 +173,7 @@ Rewrite when three or more markers converge in one passage, or when a threshold 
 
 ## Rules for English
 
-Every rule here binds English because the marker it counts is English: an English word, an English construction, or a unit that only English prose has. Japanese has none of them. Each threshold below names its Japanese counterpart or says why there is none.
+Every rule here binds English because the marker it counts is English: an English word, an English construction, or a unit that only English prose has. `Keep one idea in one sentence` is the one exception. It came from Japanese practice, and the Japanese part states it too, because each language measures one idea against its own threshold. Each threshold below names its Japanese counterpart or says why there is none.
 
 ### Machine-typical patterns
 
