@@ -213,8 +213,8 @@ Three exceptions apply across the table. The first matters everywhere; the other
 - **An inline code span counts as one reading unit.** `git worktree add -b issue/<number> <path> origin/main` is one token to a reader and 53 characters to a naive count, so counting characters would flag a sentence that reads short. Count the span as one unit, not as its length.
   - Before: `mise run setup:all` は `.githooks` を有効にします。 counts as 43 characters and reads as close to the 50-character guide.
   - After: The same sentence counts as 14 characters, because each code span is one unit, and it reads as the short sentence it is.
-- **A genuine enumeration is excluded from the sentence-length threshold.** A sentence that lists four real items is long because the list is long, and shortening it would drop an item. This exception does not cover rule-of-three padding, where the third item exists only to complete the pattern; the test is whether removing an item removes a fact.
-  - Before: この文書はパターンを、語彙と語法、構造とリズム、実質と姿勢、日本語固有の登録という4つの群に分けて並べます。 is 54 characters with the code-span exception already applied, and is cut to two group names to reach 50, so the reader loses 実質と姿勢 and 日本語固有の登録.
+- **A genuine enumeration is excluded from the sentence-length threshold.** A sentence that lists several real items is long because the list is long, and shortening it would drop an item. This exception does not cover rule-of-three padding, where the third item exists only to complete the pattern; the test is whether removing an item removes a fact.
+  - Before: この文書はパターンを、語彙と語法、構造とリズム、実質と姿勢、日本語固有の登録という4つの群に分けて並べます。 is 54 characters with the code-span exception already applied, and dropping 実質と姿勢 alone leaves 48, so reaching the guide costs the reader a group name.
   - After: The sentence keeps all four group names, because removing one removes a fact, and the enumeration is excluded from the count.
 
 ## The convergence rule
