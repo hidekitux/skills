@@ -55,3 +55,7 @@ Run tests with the repository's prescribed commands, using mise tasks when the r
 
 - Report the chosen test level and reason, the test cases with intention, completion and failure evidence, the changed test file paths, the commands run with their results, and the next owner: `implement-issue`, which takes the focused tests into the verified fix or governed change.
 - Never fix production code, never take over a project's whole test suite, and never create Issues or Pull Requests; those belong to other skills or later phases.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.

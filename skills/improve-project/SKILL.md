@@ -51,3 +51,7 @@ Run the phases in order. A phase is complete only when its primitive's artifact 
 - Run the repository-prescribed checks after implementation (`mise run validate:all`, plus `mise run validate:skill-creator` when available) and record every command and result; never describe an unrun check as passing.
 - Deliver one cohesive final report: the achieved outcome, phase artifacts and their URLs, validation commands and results, the governing Issue's label state, and any remaining risks.
 - When the improvement is complete, no further skill handoff is required. If the user requested only a partial workflow, stop at that boundary and hand off the partial artifacts. Do not merge, release, or expand scope unless the user separately requests it.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.

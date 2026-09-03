@@ -52,3 +52,7 @@ Run the steps in order. A step is complete only when its primitive's artifact ex
 - Run the repository-prescribed checks after the fix and tests (`mise run validate:all`, plus `mise run validate:skill-creator` when available) and record every command and result; never describe an unrun check as passing.
 - Deliver one cohesive final report: reproduction, root cause, fix, verification results, test results, and, when the fix is governed, the Issue and Pull Request URLs with the governing Issue's label state.
 - Hand off follow-ups as the flow directs. Do not merge, release, or expand scope unless the user separately requests it.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.

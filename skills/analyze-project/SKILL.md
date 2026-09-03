@@ -78,3 +78,7 @@ Change candidates are recommendations only; converting them into governed work i
 
 - Report the executive summary, the findings with severity and evidence and location, the prioritized recommendations with next-owner skills, the commands run with their results, and any skipped or blocked investigations.
 - Hand change candidates to `create-issue`; only `create-issue` may turn candidates into governed work items. The handoff ends the analysis; the analysis never edits files or runs mutating commands.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
