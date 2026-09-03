@@ -121,3 +121,22 @@ Rules:
   and stop with actionable evidence when a handoff fails.
 - Behavioral evaluation of entry-point routing and loop termination belongs to
   the behavioral evaluation system.
+
+## Prose deliverable tiers
+
+Every skill writes prose, and each `SKILL.md` carries its own `Writing quality`
+section so the rules reach an installation that has neither `AGENTS.md` nor
+`docs/`. Two tiers divide the 16 skills by where that prose goes. Tier A prose
+outlives the conversation, so its section names every surface it binds. Tier B
+prose is the conversational handoff report and nothing else, so its section is
+one sentence.
+
+| Tier | Skills | Prose that leaves the conversation |
+| --- | --- | --- |
+| A | `create-issue`, `create-pr`, `plan-issue`, `review-pr`, `fix-pr`, `implement-issue`, `bootstrap-project` | Issue body, Pull Request body, plan comment, review comment, commit message body, files written into the target project |
+| B | `analyze-project`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
+
+A Tier B skill emits no prose deliverable that outlives the conversation, and
+that is why it carries the shorter section rather than no section at all. The
+`Produces` column of the ownership boundary table above states each skill's
+artifact and is the evidence for its tier.
