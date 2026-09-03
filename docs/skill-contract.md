@@ -137,6 +137,10 @@ one sentence.
 | B | `analyze-project`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
 
 A Tier B skill emits no prose deliverable that outlives the conversation, and
-that is why it carries the shorter section rather than no section at all. The
-`Produces` column of the ownership boundary table above states each skill's
-artifact and is the evidence for its tier.
+that is why it carries the shorter section rather than no section at all.
+
+The evidence for a tier is the skill's own artifact. For the 13 skills the
+ownership boundary table lists, read its `Produces` column. `deliver-change`,
+`improve-project`, and `resolve-defect` are absent from that table because they
+are entry points; each returns one final report and creates no artifact of its
+own, and the phases it routes to carry their own tier.
