@@ -103,6 +103,18 @@ Contract rules enforced by `cmd/check-evaluation` (wired into
   complete` with all `rubric_scores` present). A passing verdict for another
   skill in the same file does not count.
 
+One further rule is enforced by `internal/eval/prose_test.go` rather than by
+`cmd/check-evaluation`, so it fails `mise run test:go` instead of
+`check:repository`:
+
+- Every `positive` scenario forbids the five prose markers through
+  `transcript_must_not`, in both their cased forms: `delv`, `Delv`, `pivotal`,
+  `Pivotal`, `multifaceted`, `Multifaceted`, `facilitat`, `Facilitat`,
+  `commenc`, and `Commenc`. A new positive scenario copies all ten entries;
+  one added with `transcript_must_not: []` fails the test rather than
+  reporting a pass for prose it never examined. `docs/evaluation.md` states
+  what such an observation cannot decide.
+
 ## Running evaluation locally
 
 Evaluation runs **locally** on the machine that owns the host CLIs and
