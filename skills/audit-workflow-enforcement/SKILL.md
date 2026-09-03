@@ -40,3 +40,7 @@ Read the host note before selecting a subagent model: [Codex](references/hosts/c
 - Scripts can reject known tokens, local/private network URLs, user paths, unreviewed `mise` tools, missing test mappings, and a release sequence invoked through `publish:release`.
 - Scripts cannot reliably determine whether a public-looking URL, prose, or file is sensitive in its business context, whether an agent actually maintained a Todo List, or whether a user intended every changed file.
 - The `publish:release` task is the required automated path, but it cannot prevent a user with shell and GitHub authority from directly invoking `gh skill publish`. Report that residual bypass rather than claiming server-side enforcement.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.

@@ -63,3 +63,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 ## Handoff
 
 Report the Pull Request URL and number, repository, head and base branches, resolved review mode, whether conflict resolution was performed, pre-rewrite and pre-merge head SHAs, resulting merge commit SHA, conflict files and resolution evidence, self-review or external approval evidence, required-check evidence, linked Issue outcomes, Project Status evidence, and any release publication or automation follow-up. State clearly whether the merge completed, was blocked, or has an ambiguous result. The next owner for a merged change is the repository's post-merge verification or release workflow; the next owner for a tracked release Pull Request is the release publication process. Do not apply substantive review fixes or publish a release in this skill.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.

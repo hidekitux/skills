@@ -52,3 +52,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
 - Run the repository-prescribed checks for the completed work. Record every command and result; state skipped or failing checks explicitly and never describe an unrun check as passing.
 - Report the reproduction, the root-cause evidence, the minimal reproduction, the fix, the verification results, and any remaining risks or unfinished steps.
 - Hand off follow-ups to `write-tests` (regression tests for the verified fix) or `refactor-code` (related debt left in the root-cause area). When the fix is a governed change, hand the reproduction and root-cause evidence to `implement-issue`; issue creation and planning happened in earlier sessions with `create-issue` and `plan-issue`. Do not create Issues, open Pull Requests, or release unless the user separately requests it.
+
+## Writing quality
+
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
