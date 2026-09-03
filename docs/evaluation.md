@@ -28,19 +28,30 @@ a human-readable Markdown summary under `evaluations/reports/`.
 
 ### What a prose observation cannot decide
 
-Each skill carries its own writing rules in its `SKILL.md`, and the positive
-scenario of every skill whose prose outlives the conversation asserts that the
-transcript holds none of five inflated words. `internal/eval/prose_test.go`
-runs those assertions against a conforming transcript and a rule-breaking one
-and requires the verdicts to differ, so an emptied marker list fails
-`mise run test:go` rather than reporting a silent pass.
+Each skill carries its own writing rules in its `SKILL.md`. Every positive
+scenario in the corpus asserts that the transcript holds none of five markers.
+`docs/writing-style.md` calls `delve`, `pivotal`, and `multifaceted` an
+inflated style word, and it calls `facilitate` and `commence` Latinate padding.
 
-A passing verdict is not conformance. It reports the absence of five words
+`internal/eval/prose_test.go` runs those assertions against a conforming
+transcript and a rule-breaking one, and requires the verdicts to differ. It
+reads the scenario list from the corpus, so an emptied marker list and a newly
+added positive scenario without markers both fail `mise run test:go` instead of
+reporting a silent pass.
+
+A passing verdict is not conformance. It reports the absence of five markers
 from one transcript, and it cannot decide whether the prose keeps one idea in
 one sentence, keeps one term per concept, varies its sentence length, states a
-position with its reason, or cites the file behind each claim. Four further
+position with its reason, or cites the file behind each claim. Five further
 limits bound it:
 
+- Most of these scenarios do not run at all in a default checkout. A scenario
+  that declares `github_sandbox: true` records `skipped` with
+  `skip_reason: sandbox_repo_not_configured` until `EVAL_GITHUB_REPO` names a
+  sandbox repository. That covers the scenarios of `create-issue`, `create-pr`,
+  `plan-issue`, `review-pr`, `fix-pr`, and `implement-issue`, which is six of
+  the seven skills whose prose outlives the conversation. Set
+  `EVAL_GITHUB_REPO` before reading a prose result as evidence about them.
 - The match is a case-sensitive substring, so only the two cased forms each
   scenario lists are observed.
 - `utilize` and `serves as` are absent from the marker lists on purpose. Both
