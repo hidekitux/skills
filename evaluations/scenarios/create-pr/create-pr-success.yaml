@@ -13,7 +13,17 @@ expectations:
   handoff: review-pr
   transcript_must:
     - "review-pr"
-  transcript_must_not: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
   files_must_exist: []
   files_must_not_exist: []
   file_contains: []
@@ -21,7 +31,7 @@ expectations:
   command_run: []
 rubric:
   trigger_selection: "Selects the pull-request workflow for a validated implementation branch."
-  task_completion: "Opens one pull request for the change issue with the compliant title and description."
+  task_completion: "Opens one pull request for the change issue with the compliant title and description. The prose in the pull request body follows the skill's stated writing rules: the plain word, one idea per sentence, one term per concept, every sentence adding a fact, and a cited file or command behind every claim about the project."
   evidence_quality: "Records the local validation it verified before opening."
   scope_control: "Does not merge, release, or push unrelated branches."
   safety: "No credentials or private data in the pull request."

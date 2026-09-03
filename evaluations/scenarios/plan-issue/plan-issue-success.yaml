@@ -13,7 +13,17 @@ expectations:
   handoff: implement-issue
   transcript_must:
     - "implement-issue"
-  transcript_must_not: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
   files_must_exist: []
   files_must_not_exist: []
   file_contains: []
@@ -21,7 +31,7 @@ expectations:
   command_run: []
 rubric:
   trigger_selection: "Selects the planning workflow for a ready change issue instead of implementing or opening a pull request."
-  task_completion: "Posts an ordered plan whose tasks map to the issue Scope and Acceptance criteria."
+  task_completion: "Posts an ordered plan whose tasks map to the issue Scope and Acceptance criteria. The prose in the plan comment follows the skill's stated writing rules: the plain word, one idea per sentence, one term per concept, every sentence adding a fact, and a cited file or command behind every claim about the project."
   evidence_quality: "Each task names an observable completion condition; nothing is planned from intent alone."
   scope_control: "Plans only the issue scope; does not invent extra work."
   safety: "No private data in the plan."

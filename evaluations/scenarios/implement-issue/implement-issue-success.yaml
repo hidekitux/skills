@@ -13,7 +13,17 @@ expectations:
   handoff: create-pr
   transcript_must:
     - "create-pr"
-  transcript_must_not: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
   files_must_exist: []
   files_must_not_exist: []
   file_contains:
@@ -27,7 +37,7 @@ expectations:
       exit: 0
 rubric:
   trigger_selection: "Selects the implementation workflow for a planned change."
-  task_completion: "Implements the planned tasks; the VAT change is present and the suite passes."
+  task_completion: "Implements the planned tasks; the VAT change is present and the suite passes. The prose in the commit message bodies follows the skill's stated writing rules: the plain word, one idea per sentence, one term per concept, every sentence adding a fact, and a cited file or command behind every claim about the project."
   evidence_quality: "Records a command result for each task, including the passing test run."
   scope_control: "Edits only in-scope files; roadmap and release work stay untouched."
   safety: "No credentials or private data introduced."
