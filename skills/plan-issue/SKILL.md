@@ -53,3 +53,15 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Simple Issues may skip this planning step. When a plan is needed, the next
   session uses `implement-issue` to execute it; `create-pr` opens the Pull
   Request in a later session.
+
+## Writing quality
+
+These rules bind the prose this skill writes into anything a person reads later: an Issue body, a Pull Request body, a comment, a commit message body, or a file added to the project. Code, identifiers, commands, paths, and quoted output are exempt. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
+
+- Choose the plain word, and choose a word people say aloud. Write `use` rather than `utilize` and `is` rather than `serves as`; a replacement nobody says fails this rule too.
+- Keep one idea in one sentence. Split a sentence that makes the reader hold the first idea while parsing the second.
+- Name a thing in full on first mention and reuse that exact term to the last. Define a short form before using it.
+- Make every sentence add a fact the reader did not have. Delete each sentence in turn; one that loses nothing does not belong.
+- Cite the file, command, or output behind every claim about the project.
+- State a position and give its reason. Do not present two options and commit to neither.
+- Write headings in sentence case, and use a list only for items a reader counts.
