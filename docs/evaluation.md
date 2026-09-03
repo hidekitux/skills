@@ -26,6 +26,37 @@ prompt SHA-256, repository commit, and fixture IDs, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
+### What a prose observation cannot decide
+
+Each skill carries its own writing rules in its `SKILL.md`, and the positive
+scenario of every skill whose prose outlives the conversation asserts that the
+transcript holds none of five inflated words. `internal/eval/prose_test.go`
+runs those assertions against a conforming transcript and a rule-breaking one
+and requires the verdicts to differ, so an emptied marker list fails
+`mise run test:go` rather than reporting a silent pass.
+
+A passing verdict is not conformance. It reports the absence of five words
+from one transcript, and it cannot decide whether the prose keeps one idea in
+one sentence, keeps one term per concept, varies its sentence length, states a
+position with its reason, or cites the file behind each claim. Four further
+limits bound it:
+
+- The match is a case-sensitive substring, so only the two cased forms each
+  scenario lists are observed.
+- `utilize` and `serves as` are absent from the marker lists on purpose. Both
+  appear in the carried rules as the example of what to avoid, so asserting
+  them would fail every run in which an agent quotes its own instructions.
+- `not just` is absent too. The rule it marks is the `not just X, but Y`
+  frame, and the bare phrase is common enough in correct prose to fail a
+  conforming run.
+- The either-pass policy in `evaluations/README.md` passes a scenario when at
+  least one host produced a deterministic pass, so a prose result may rest on
+  one host and one model.
+
+The rubric wording in those scenarios names the judgment-based rules, and
+`evaluations/rubric.md` records rubric scores as opinion with bounded variance.
+No rubric score gates a verdict.
+
 ## Behavioral threshold for promotion
 
 A cataloged skill may be promoted from `experimental` to `stable` only when
