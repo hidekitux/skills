@@ -53,10 +53,12 @@ limits bound it:
   paragraph was written, leaving 7 that run. Recount the gated ones with
   `grep -l '^kind: positive' evaluations/scenarios/*/*.yaml |
   xargs grep -l '^github_sandbox: true' | wc -l`, which intersects the two
-  sets. Dropping the first half of that pipeline counts the flag across all
-  37 scenarios whatever their kind, which was 23 and is a different number by
-  design. Set `EVAL_GITHUB_REPO` before reading a prose result as evidence
-  about a gated skill.
+  sets. A second command,
+  `grep -l '^github_sandbox: true' evaluations/scenarios/*/*.yaml | wc -l`,
+  counts the flag across all 37 scenarios whatever their kind, and it was 23.
+  Expect the two to differ, because only the first restricts the count to
+  positive scenarios. Set `EVAL_GITHUB_REPO` before reading a prose result as
+  evidence about a gated skill.
 - The match is a case-sensitive substring, so only the two cased forms each
   scenario lists are observed.
 - `utilize` and `serves as` are absent from the marker lists on purpose. Both
