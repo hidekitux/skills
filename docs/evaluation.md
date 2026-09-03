@@ -50,11 +50,13 @@ limits bound it:
   `skip_reason: sandbox_repo_not_configured` until `EVAL_GITHUB_REPO` names a
   sandbox repository, and that gate is what decides whether a prose
   observation happens. It covered 12 of the 19 positive scenarios when this
-  paragraph was written, leaving 7 that run. Count both today with
-  `grep -l '^kind: positive' evaluations/scenarios/*/*.yaml` and
-  `grep -l '^github_sandbox: true'` over the same files. Set
-  `EVAL_GITHUB_REPO` before reading a prose result as evidence about a gated
-  skill.
+  paragraph was written, leaving 7 that run. Recount the gated ones with
+  `grep -l '^kind: positive' evaluations/scenarios/*/*.yaml |
+  xargs grep -l '^github_sandbox: true' | wc -l`, which intersects the two
+  sets. Dropping the first half of that pipeline counts the flag across all
+  37 scenarios whatever their kind, which was 23 and is a different number by
+  design. Set `EVAL_GITHUB_REPO` before reading a prose result as evidence
+  about a gated skill.
 - The match is a case-sensitive substring, so only the two cased forms each
   scenario lists are observed.
 - `utilize` and `serves as` are absent from the marker lists on purpose. Both
