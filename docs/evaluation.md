@@ -45,13 +45,16 @@ one sentence, keeps one term per concept, varies its sentence length, states a
 position with its reason, or cites the file behind each claim. Five further
 limits bound it:
 
-- Most of these scenarios do not run at all in a default checkout. A scenario
-  that declares `github_sandbox: true` records `skipped` with
+- Most of these scenarios do not run at all in a default checkout. Every
+  scenario that declares `github_sandbox: true` records `skipped` with
   `skip_reason: sandbox_repo_not_configured` until `EVAL_GITHUB_REPO` names a
-  sandbox repository. That covers the scenarios of `create-issue`, `create-pr`,
-  `plan-issue`, `review-pr`, `fix-pr`, and `implement-issue`, which is six of
-  the seven skills whose prose outlives the conversation. Set
-  `EVAL_GITHUB_REPO` before reading a prose result as evidence about them.
+  sandbox repository, and that gate is what decides whether a prose
+  observation happens. It covered 12 of the 19 positive scenarios when this
+  paragraph was written, leaving 7 that run. Count both today with
+  `grep -l '^kind: positive' evaluations/scenarios/*/*.yaml` and
+  `grep -l '^github_sandbox: true'` over the same files. Set
+  `EVAL_GITHUB_REPO` before reading a prose result as evidence about a gated
+  skill.
 - The match is a case-sensitive substring, so only the two cased forms each
   scenario lists are observed.
 - `utilize` and `serves as` are absent from the marker lists on purpose. Both
