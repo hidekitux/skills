@@ -15,12 +15,6 @@ license: Apache-2.0
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
 
-## Draft Prose
-
-- Begin ordinary English sentences and list items with a capital letter, such as `Add`, `Formalize`, or `Register`.
-- Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
-- Review the rendered title and body for accidental lowercase prose before creating the Issue.
-
 ## Body Structure
 
 - Use each required heading exactly once and in the prescribed order. Do not insert other level-two or level-three headings.
@@ -29,7 +23,9 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 - Write `Scope` with `- In:` followed by `- Out:`. Under `- In:`, state the part of the system and problem boundary covered, not work to perform; never scope an unmade decision as work. State explicit exclusions under `- Out:`.
 - Write `Acceptance criteria` as observable checkboxes that define the outcome regardless of which defensible approach is chosen.
 - Write `Validation` as checkboxes naming how the outcome will be observed, rather than prescribing implementation commands.
-- Before creation, review the rendered body for heading order, duplicate sections, empty content, and unresolved placeholders.
+- Begin ordinary English sentences and list items with a capital letter, such as `Add`, `Formalize`, or `Register`.
+- Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
+- Before creation, review the rendered title and body for heading order, duplicate sections, empty content, unresolved placeholders, and accidental lowercase prose.
 
 ## Project Triage
 
@@ -53,3 +49,15 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 - Add one or more entries below every changelog heading; write `- None.` when a category is intentionally empty.
 - Public releases use `vX.Y.Z`; build identifiers use `vX.Y.Z+N`.
 - Link a release PR with `Tracks #<number>` and close the Issue only after publication succeeds.
+
+## Writing quality
+
+These rules bind the prose this skill writes into anything a person reads later: an Issue body, a Pull Request body, a comment, a commit message body, or a file added to the project. Code, identifiers, commands, paths, and quoted output are exempt. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
+
+- Choose the plain word, and choose a word people say aloud. Write `use` rather than `utilize` and `is` rather than `serves as`; a replacement nobody says fails this rule too.
+- Keep one idea in one sentence. Split a sentence that makes the reader hold the first idea while parsing the second.
+- Name a thing in full on first mention and reuse that exact term to the last. Define a short form before using it.
+- Make every sentence add a fact the reader did not have. Delete each sentence in turn; one that loses nothing does not belong.
+- Cite the file, command, or output behind every claim about the project.
+- State a position and give its reason. Do not present two options and commit to neither.
+- Write headings in sentence case, and use a list only for items a reader counts.
