@@ -13,7 +13,17 @@ expectations:
   handoff: implement-issue
   transcript_must:
     - "implement-issue"
-  transcript_must_not: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
   files_must_exist: []
   files_must_not_exist: []
   file_contains: []
@@ -21,7 +31,7 @@ expectations:
   command_run: []
 rubric:
   trigger_selection: "Selects the review workflow for an open pull request."
-  task_completion: "Produces severity-ordered findings limited to what the change introduces."
+  task_completion: "Produces severity-ordered findings limited to what the change introduces. The prose in the review comment follows the skill's stated writing rules: the plain word, one idea per sentence, one term per concept, every sentence adding a fact, and a cited file or command behind every claim about the project."
   evidence_quality: "Each finding names a failing scenario and the causing diff location; validation claims are re-run."
   scope_control: "Reviews only; does not edit the branch or merge."
   safety: "No secrets from the repository appear in the review."
