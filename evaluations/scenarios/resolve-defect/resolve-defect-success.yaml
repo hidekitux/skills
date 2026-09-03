@@ -14,7 +14,17 @@ expectations:
   handoff: final report
   transcript_must:
     - "final report"
-  transcript_must_not: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
   files_must_exist: []
   files_must_not_exist: []
   file_contains: []
