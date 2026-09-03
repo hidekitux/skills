@@ -42,17 +42,33 @@ func TestProseAssertionsDistinguishBreakingRun(t *testing.T) {
 				t.Fatal("scenario carries no prose marker; a run cannot observe its writing rules")
 			}
 
+			transcriptOnly := transcriptAssertionsOf(sc)
 			sandbox := t.TempDir()
-			pass := evaluateAssertions(context.Background(), sc, conforming, sandbox, nil, nil)
-			fail := evaluateAssertions(context.Background(), sc, breaking, sandbox, nil, nil)
+			pass := evaluateAssertions(context.Background(), transcriptOnly, conforming, sandbox, nil, nil)
+			fail := evaluateAssertions(context.Background(), transcriptOnly, breaking, sandbox, nil, nil)
 
-			if proseFailures(pass) != 0 {
-				t.Fatalf("conforming transcript reported a prose failure: %v", pass)
+			if got := proseFailures(pass); got != 0 {
+				t.Fatalf("conforming transcript reported %d prose failure(s): %v", got, pass)
 			}
-			if got := proseFailures(fail); got == 0 {
+			if proseFailures(fail) == 0 {
 				t.Fatalf("rule-breaking transcript reported no prose failure: %v", fail)
 			}
 		})
+	}
+}
+
+// transcriptAssertionsOf copies a scenario with only its transcript assertions
+// kept. evaluateAssertions runs every command_run entry through sh, and
+// implement-issue-success declares `go test ./...`, so passing a scenario
+// unchanged would execute it here. The file and command assertions belong to a
+// staged sandbox run, not to this test.
+func transcriptAssertionsOf(sc *Scenario) *Scenario {
+	return &Scenario{
+		ID:   sc.ID,
+		Kind: sc.Kind,
+		Expectations: Expectations{
+			TranscriptMustNot: sc.Expectations.TranscriptMustNot,
+		},
 	}
 }
 
