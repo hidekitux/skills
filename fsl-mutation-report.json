@@ -1032,267 +1032,249 @@
     {
       "spec": "specs/review-flow.fsl",
       "status": "mutated",
-      "total": 133,
-      "killed": 90,
-      "survived": 43,
+      "total": 173,
+      "killed": 133,
+      "survived": 40,
       "invalid": 0,
       "survivors": [
         {
           "op": "enum_constant_swap",
           "target": "init assignment Draft-\u003eReadyForReview",
-          "line": 30,
+          "line": 40,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "init assignment Draft-\u003eChangesRequested",
-          "line": 30,
+          "line": 40,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 31,
+          "line": 41,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 33,
+          "line": 43,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "submit requires #1 Draft-\u003eBlocked",
-          "line": 37,
+          "line": 48,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "submit assignment ReadyForReview-\u003eChangesRequested",
-          "line": 38,
+          "line": 49,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "block_no_review requires #1",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "requires_negate",
           "target": "block_no_review requires #1",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "equality_operator_flip",
           "target": "block_no_review requires #1",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review requires #1 Draft-\u003eReadyForReview",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review requires #1 Draft-\u003eUnderReview",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review requires #1 Draft-\u003eChangesRequested",
-          "line": 42,
+          "line": 53,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review requires #1 Draft-\u003eFixed",
+          "line": 53,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review requires #1 Draft-\u003eApproved",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review requires #1 Draft-\u003eMerged",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review requires #1 Draft-\u003eBlocked",
-          "line": 42,
+          "line": 53,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "block_no_review assignment",
-          "line": 43,
+          "line": 54,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review assignment Blocked-\u003eDraft",
-          "line": 43,
+          "line": 54,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review assignment Blocked-\u003eReadyForReview",
-          "line": 43,
+          "line": 54,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review assignment Blocked-\u003eUnderReview",
-          "line": 43,
+          "line": 54,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review assignment Blocked-\u003eChangesRequested",
-          "line": 43,
+          "line": 54,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_no_review assignment Blocked-\u003eFixed",
+          "line": 54,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "block_no_review assignment Blocked-\u003eApproved",
-          "line": 43,
+          "line": 54,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "start_review requires #1 ReadyForReview-\u003eDraft",
-          "line": 47,
+          "line": 58,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "start_review requires #1 ReadyForReview-\u003eBlocked",
-          "line": 47,
+          "line": 58,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "approve requires #1",
-          "line": 53,
+          "line": 64,
           "column": 5
         },
         {
           "op": "requires_negate",
           "target": "approve requires #1",
-          "line": 53,
+          "line": 64,
           "column": 5
         },
         {
           "op": "equality_operator_flip",
           "target": "approve requires #1",
-          "line": 53,
+          "line": 64,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "approve requires #1 UnderReview-\u003eReadyForReview",
-          "line": 53,
+          "line": 64,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "approve requires #1 UnderReview-\u003eChangesRequested",
-          "line": 53,
+          "line": 64,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "approve requires #2",
-          "line": 54,
+          "line": 65,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "request_changes requires #2",
-          "line": 62,
+          "line": 73,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
-          "target": "revise requires #1 ChangesRequested-\u003eDraft",
-          "line": 67,
+          "target": "fix requires #1 ChangesRequested-\u003eUnderReview",
+          "line": 78,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "publish_fix requires #1",
+          "line": 84,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "publish_fix requires #2",
+          "line": 85,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
-          "target": "revise requires #1 ChangesRequested-\u003eReadyForReview",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise requires #1 ChangesRequested-\u003eUnderReview",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise requires #1 ChangesRequested-\u003eBlocked",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "revise assignment",
-          "line": 68,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise assignment ReadyForReview-\u003eDraft",
-          "line": 68,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise assignment ReadyForReview-\u003eUnderReview",
-          "line": 68,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise assignment ReadyForReview-\u003eChangesRequested",
-          "line": 68,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise assignment ReadyForReview-\u003eApproved",
-          "line": 68,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "revise assignment ReadyForReview-\u003eBlocked",
-          "line": 68,
+          "target": "publish_fix assignment ReadyForReview-\u003eDraft",
+          "line": 87,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "merge requires #1",
-          "line": 72,
+          "line": 91,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "merge requires #2",
-          "line": 73,
+          "line": 92,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "merge requires #3",
-          "line": 74,
+          "line": 93,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "merge requires #4",
+          "line": 94,
           "column": 5
         }
       ]
@@ -1300,8 +1282,8 @@
   ],
   "totals": {
     "specs": 8,
-    "killed": 861,
-    "survived": 203,
+    "killed": 904,
+    "survived": 200,
     "invalid": 0,
     "infrastructure_errors": 0
   }
