@@ -10,15 +10,17 @@ import (
 	"sort"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/hidekitux/skills/internal/support"
 )
 
 const writingCoveragePath = "docs/validation-tiers.md"
+const writingCodeMarker = "⟦code⟧"
 
 var (
 	writingTaskRE      = regexp.MustCompile(`(?i)\b(?:run|runs|execute|executes|executed|invoke|invokes|invoked)\s+` + "`" + `([a-z][a-z0-9-]*:[a-z0-9-]+)` + "`")
-	writingWordRE      = regexp.MustCompile(`⟦code⟧|[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*`)
+	writingWordRE      = regexp.MustCompile(writingCodeMarker + `|[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*`)
 	writingSentenceRE  = regexp.MustCompile(`(?:[。！？]|[.!?][*_)]*(?:\s|$))`)
 	writingConnectorRE = regexp.MustCompile(`(?i)^(?:furthermore\b|moreover\b|additionally\b|また|さらに)`)
 )
@@ -73,10 +75,32 @@ func maskWritingCode(text string) string {
 			b.WriteString(text[i:])
 			break
 		}
-		b.WriteString(" ⟦code⟧ ")
+		b.WriteString(" " + writingCodeMarker + " ")
 		i += end + 2
 	}
 	return b.String()
+}
+
+func writingJapaneseLength(text string) int {
+	count := 0
+	for i := 0; i < len(text); {
+		if strings.HasPrefix(text[i:], writingCodeMarker) {
+			count++
+			i += len(writingCodeMarker)
+			if i < len(text) && text[i] == ' ' {
+				i++
+			}
+			continue
+		}
+		if text[i] == ' ' && strings.HasPrefix(text[i+1:], writingCodeMarker) {
+			i++
+			continue
+		}
+		_, size := utf8.DecodeRuneInString(text[i:])
+		count++
+		i += size
+	}
+	return count
 }
 
 func writingWords(text string) int { return len(writingWordRE.FindAllString(text, -1)) }
@@ -148,7 +172,7 @@ func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list bo
 	}
 	if writingJapanese(masked) && strings.ContainsAny(masked, "。！？") {
 		m.japanese = append(m.japanese, sentence)
-		chars := len([]rune(masked))
+		chars := writingJapaneseLength(masked)
 		if chars > 70 {
 			if genuineWritingEnumeration(masked) {
 				*candidates = append(*candidates, writingCandidate{file, "Japanese sentence length", fmt.Sprintf("%d characters", chars), sentence.line})

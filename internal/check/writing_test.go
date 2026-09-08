@@ -99,6 +99,20 @@ func TestWritingQualityTreatsInlineCodeAsOneWord(t *testing.T) {
 	}
 }
 
+func TestWritingQualityTreatsJapaneseInlineCodeAsOneCharacter(t *testing.T) {
+	within := strings.Repeat("あ", 68) + "`check:all`。\n"
+	root := writingGitRepo(t, map[string]string{"README.md": within}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 0 {
+		t.Fatalf("expected Japanese inline code to count as one character, got %d: %s", code, errOut)
+	}
+
+	over := strings.Repeat("あ", 69) + "`check:all`。\n"
+	root = writingGitRepo(t, map[string]string{"README.md": over}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 1 || !strings.Contains(errOut, "Japanese sentence length") {
+		t.Fatalf("expected Japanese length boundary failure, got %d: %s", code, errOut)
+	}
+}
+
 func TestWritingQualityRejectsMeasuredViolations(t *testing.T) {
 	longEnglish := "This sentence has enough ordinary words to exceed the forty five word limit while avoiding commas and list structure so the checker must report it as an unambiguous sentence length violation instead of treating the passage as a genuine enumeration for review and human classification by a reader who checks the exact measured threshold."
 	longJapanese := "この文章は列挙ではなく一つの説明を長く続けるために書いてあり読者が一文の中で多くの情報を保持する必要がある状態を明確に再現しさらに説明を続けて文章の長さが上限を超えることを確認します。"
