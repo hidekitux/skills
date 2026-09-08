@@ -255,7 +255,7 @@ Every rule here binds Japanese because the marker it counts is Japanese: a Japan
 
 ### Readable-writing rules
 
-- **一文一義を守り、1文を50字程度にします。** Source: Japanese technical-writing practice. 1文に2つの動作を入れると、読者は前半を保持したまま後半を読む必要があります。
+- **一文一義を守り、1文を50字程度にします。** Source: Japanese technical-writing practice. 1文に2つの動作を入れると、読者は前半を保持します。後半を読む負担が増えます。
   - Before: `mise run setup:all` は時点の内容にスキルを登録し、固定版の commitlint を再利用します。
   - After: `mise run setup:all` は時点の内容にスキルを登録します。あわせて固定版の commitlint を再利用します。
 - **接続助詞は1文に2つまでにします。** Source: Japanese technical-writing practice. 接続助詞が3つ以上あると、文の切れ目が読者に見えなくなります。
@@ -264,7 +264,8 @@ Every rule here binds Japanese because the marker it counts is Japanese: a Japan
 - **修飾語は長い順に前へ置きます。** Source: 本多勝一『日本語の作文技術』の修飾の順序4原則。節を句より前に置き、長い修飾語を先に置き、大きな状況を先に置き、親和度の強い語を離します。
   - Before: 白い横線の引かれた厚手の紙
   - After: 横線の引かれた厚手の白い紙
-- **読点は長い修飾語の境界に打ちます。** Source: 本多勝一『日本語の作文技術』の読点の原則。読点は必要最小限にとどめ、修飾語の原則に対して語順が逆のときにも打ちます。分かち書きを目的とした読点は打ちません。
+- **読点は長い修飾語の境界に打ちます。**
+  Source: 本多勝一『日本語の作文技術』の読点の原則。読点は必要最小限にとどめます。語順が逆のときは修飾語の境界に打ちます。分かち書きを目的とした読点は打ちません。
   - Before: 診断コマンドが報告する登録済みで非ベアのワークツリーを使います。
   - After: 診断コマンドが報告する、登録済みで非ベアのワークツリーを使います。
 - **敬体で統一し、体言止めを混ぜません。** Source: this repository's convention. 文体が混ざると、書き手が複数いるように読めます。
