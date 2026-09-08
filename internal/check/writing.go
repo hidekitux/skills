@@ -5,12 +5,13 @@ import (
 	"io"
 	"math"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
 	"unicode"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 const writingCoveragePath = "docs/validation-tiers.md"
@@ -45,8 +46,7 @@ type writingFileMetrics struct {
 }
 
 func trackedMarkdown(root string) ([]string, error) {
-	cmd := exec.Command("git", "-C", root, "ls-files", "--", "*.md")
-	out, err := cmd.Output()
+	out, err := support.GitOutputIn(root, "ls-files", "--", "*.md")
 	if err != nil {
 		return nil, fmt.Errorf("git ls-files: %w", err)
 	}
