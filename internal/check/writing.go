@@ -221,9 +221,10 @@ func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list, r
 	}
 	m.english = append(m.english, sentence)
 	m.englishWords += words
-	if !referenceListEntry {
-		m.emDashes += strings.Count(masked, "—")
+	if referenceListEntry {
+		masked = strings.Replace(masked, " — ", " ", 1)
 	}
+	m.emDashes += strings.Count(masked, "—")
 	if list {
 		return
 	}
