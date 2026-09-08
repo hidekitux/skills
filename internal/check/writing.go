@@ -19,7 +19,7 @@ var (
 	writingTaskRE      = regexp.MustCompile(`(?i)\b(?:run|runs|execute|executes|executed|invoke|invokes|invoked)\s+` + "`" + `([a-z][a-z0-9-]*:[a-z0-9-]+)` + "`")
 	writingWordRE      = regexp.MustCompile(`⟦code⟧|[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*`)
 	writingSentenceRE  = regexp.MustCompile(`(?:[。！？]|[.!?][*_)]*(?:\s|$))`)
-	writingConnectorRE = regexp.MustCompile(`^(?i)(?:furthermore|moreover|additionally|また|さらに)\b`)
+	writingConnectorRE = regexp.MustCompile(`(?i)^(?:furthermore|moreover|additionally|また|さらに)\b`)
 )
 
 type writingFinding struct {
