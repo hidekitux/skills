@@ -188,6 +188,17 @@ func TestWritingQualityExcludesReferenceListSeparatorsFromEmDashDensity(t *testi
 	}
 }
 
+func TestWritingQualityCountsRhetoricalEmDashesInReferenceEntries(t *testing.T) {
+	var content strings.Builder
+	for i := 0; i < 10; i++ {
+		content.WriteString("- [Reference](https://example) — describes a source — with a caveat.\n")
+	}
+	root := writingGitRepo(t, map[string]string{"README.md": content.String()}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 1 || !strings.Contains(errOut, "English em-dash density") {
+		t.Fatalf("expected rhetorical em dashes to fail, got %d: %s", code, errOut)
+	}
+}
+
 func TestWritingQualityReportsGenuineEnumerationCandidates(t *testing.T) {
 	english := "This sentence names the tracked file, the command, the measured value, the exclusion, the human review boundary, the failure behavior, and the candidate rule, while retaining the complete enumeration because each item carries a distinct fact for the reader and removing one would hide a required decision."
 	japanese := "この文は、入力、出力、失敗条件、例外、確認方法、対象範囲、判定結果、除外条件をすべて示す必要があるため、短く分割すると情報が失われる本当の列挙です。"
