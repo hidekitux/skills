@@ -21,27 +21,38 @@ func writeWritingFile(t *testing.T, root, name, content string) {
 	}
 }
 
+func isolatedWritingGit(root string, args ...string) *exec.Cmd {
+	command := exec.Command("git", append([]string{"-C", root}, args...)...)
+	env := make([]string, 0, len(os.Environ()))
+	for _, variable := range os.Environ() {
+		if !strings.HasPrefix(variable, "GIT_") {
+			env = append(env, variable)
+		}
+	}
+	command.Env = env
+	return command
+}
+
 func writingGitRepo(t *testing.T, files map[string]string, tracked ...string) string {
 	t.Helper()
 	root := t.TempDir()
-	if err := exec.Command("git", "-C", root, "init", "-q").Run(); err != nil {
+	if err := isolatedWritingGit(root, "init", "-q").Run(); err != nil {
 		t.Fatal(err)
 	}
 	for name, content := range files {
 		writeWritingFile(t, root, name, content)
 	}
-	args := append([]string{"-C", root, "add"}, tracked...)
-	if err := exec.Command("git", args...).Run(); err != nil {
+	args := append([]string{"add"}, tracked...)
+	if err := isolatedWritingGit(root, args...).Run(); err != nil {
 		t.Fatal(err)
 	}
 	config := [][]string{{"config", "user.email", "test.invalid"}, {"config", "user.name", "Test"}}
 	for _, values := range config {
-		args := append([]string{"-C", root}, values...)
-		if err := exec.Command("git", args...).Run(); err != nil {
+		if err := isolatedWritingGit(root, values...).Run(); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := exec.Command("git", "-C", root, "commit", "-qm", "fixture").Run(); err != nil {
+	if err := isolatedWritingGit(root, "commit", "-qm", "fixture").Run(); err != nil {
 		t.Fatal(err)
 	}
 	return root
