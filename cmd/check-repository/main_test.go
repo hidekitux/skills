@@ -129,7 +129,7 @@ func TestRunRepositoryChecksAgainstRepositoryRoot(t *testing.T) {
 	if code := run(root, &out, &errOut, repoChecks); code != 0 {
 		t.Fatalf("repository checks failed (%d):\n%s%s", code, out.String(), errOut.String())
 	}
-	want := "all 12 repository checks passed"
+	want := "all 13 repository checks passed"
 	if !strings.Contains(out.String(), want) {
 		t.Fatalf("output missing %q:\n%s", want, out.String())
 	}

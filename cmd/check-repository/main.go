@@ -36,6 +36,7 @@ var repoChecks = []repoCheck{
 	{name: "check-tool-licenses", fn: check.CheckToolLicenses},
 	{name: "validate-script-tests", fn: validate.CheckScriptTests},
 	{name: "check-sensitive-content", fn: check.CheckSensitiveContent},
+	{name: "check-writing-quality", fn: check.CheckWritingQuality},
 	{name: "check-mutation-badges", fn: check.CheckMutationBadges},
 	{name: "check-mutation-triage", fn: check.CheckMutationTriage},
 	{name: "check-analyze-readonly", fn: check.CheckAnalyzeReadonly},
