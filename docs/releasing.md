@@ -30,7 +30,7 @@ Verify the published tag and GitHub Release contents, and install a pinned versi
 
 ## Correcting a release (rollback)
 
-Release tags are immutable. The repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving any `v*` tag (deletion and non-fast-forward restrictions, active enforcement, no bypass actors), so a published version always points at the same verified commit and cannot be removed to undo a release. Once a tag is published, tag replacement is not available; a bad release is corrected with a new patch version under the rules below.
+Release tags are immutable. The repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving any `v*` tag. The Ruleset has deletion and non-fast-forward restrictions, active enforcement, and no bypass actors. A published version therefore always points at the same verified commit and cannot be removed to undo a release. Once a tag is published, tag replacement is not available. Correct a bad release with a new patch version under the rules below.
 
 To correct or roll back a bad release:
 
