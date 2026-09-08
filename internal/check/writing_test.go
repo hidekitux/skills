@@ -106,6 +106,7 @@ func TestWritingQualityRejectsMeasuredViolations(t *testing.T) {
 	emDash := strings.Repeat("A short sentence — with an aside. ", 4)
 	flat := strings.Repeat("Short words form one line. ", 10)
 	connector := "Furthermore, this paragraph opens with a formal connector.\n\nMoreover, this paragraph opens with another formal connector.\n\nA third paragraph states a plain result.\n\nA fourth paragraph states another result.\n"
+	japaneseConnector := "また、この段落は接続詞で始まります。\n\nさらに、この段落も接続詞で始まります。\n\nまた、三つ目の段落です。\n\nさらに、四つ目の段落です。\n"
 	cases := []struct {
 		name, content, rule string
 	}{
@@ -115,6 +116,7 @@ func TestWritingQualityRejectsMeasuredViolations(t *testing.T) {
 		{"English em-dash density", emDash, "English em-dash density"},
 		{"English sentence variance", flat, "English sentence-length variance"},
 		{"paragraph connector rate", connector, "paragraph-opening connector rate"},
+		{"Japanese paragraph connector rate", japaneseConnector, "paragraph-opening connector rate"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
