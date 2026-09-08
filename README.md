@@ -151,7 +151,7 @@ Pinned installation is documented from retained release evidence only. No verifi
 4. Run `mise run validate:skill-creator` when it is available in Codex.
 5. Follow the [release procedure](docs/releasing.md) after review.
 
-`mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, the script-to-test mapping, and catalog-versus-documentation drift. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
+`mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, the script-to-test mapping, catalog-versus-documentation drift, writing thresholds, and canonical task commands. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
 
 ## Installation and compatibility
 
