@@ -127,12 +127,38 @@ func writingListItem(text string) bool {
 	if strings.HasPrefix(text, "- ") || strings.HasPrefix(text, "* ") || strings.HasPrefix(text, "+ ") {
 		return true
 	}
+	return writingNumberedListItem(text)
+}
+
+func writingNumberedListItem(text string) bool {
+	text = strings.TrimSpace(text)
 	for i, r := range text {
 		if !unicode.IsDigit(r) {
 			return i > 0 && i+1 < len(text) && (text[i] == '.' || text[i] == ')') && text[i+1] == ' '
 		}
 	}
 	return false
+}
+
+func writingListContent(text string) string {
+	text = strings.TrimSpace(text)
+	if strings.HasPrefix(text, "- ") || strings.HasPrefix(text, "* ") || strings.HasPrefix(text, "+ ") {
+		return strings.TrimSpace(text[2:])
+	}
+	for i, r := range text {
+		if !unicode.IsDigit(r) {
+			if i > 0 && i+1 < len(text) && (text[i] == '.' || text[i] == ')') && text[i+1] == ' ' {
+				return strings.TrimSpace(text[i+2:])
+			}
+			break
+		}
+	}
+	return text
+}
+
+func writingReferenceListEntry(text string) bool {
+	text = strings.TrimSpace(text)
+	return writingListItem(text) && strings.Contains(text, "](") && strings.Contains(text, " — ")
 }
 
 func writingExample(text string) bool {
@@ -172,7 +198,7 @@ func writingParticles(text string) int {
 	return count
 }
 
-func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list bool, findings *[]writingFinding, candidates *[]writingCandidate, file string) {
+func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list, referenceListEntry bool, findings *[]writingFinding, candidates *[]writingCandidate, file string) {
 	masked := maskWritingCode(sentence.text)
 	words := writingWords(masked)
 	if words == 0 {
@@ -194,11 +220,13 @@ func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list bo
 		return
 	}
 	m.english = append(m.english, sentence)
+	m.englishWords += words
+	if !referenceListEntry {
+		m.emDashes += strings.Count(masked, "—")
+	}
 	if list {
 		return
 	}
-	m.englishWords += words
-	m.emDashes += strings.Count(masked, "—")
 	m.englishLengths = append(m.englishLengths, words)
 	if words > 45 {
 		if genuineWritingEnumeration(masked) {
@@ -220,16 +248,16 @@ func scanWritingFile(root, file string) ([]writingFinding, []writingCandidate, [
 	var metrics writingFileMetrics
 	inFence, inFrontmatter := false, len(lines) > 0 && strings.TrimSpace(lines[0]) == "---"
 	var paragraph []writingSentence
-	var paragraphList bool
+	var paragraphProcedureStep bool
 	flushParagraph := func() {
 		if len(paragraph) == 0 {
 			return
 		}
 		metrics.paragraphs++
-		if !paragraphList && writingConnector(strings.ToLower(strings.TrimSpace(paragraph[0].text))) {
+		if !paragraphProcedureStep && writingConnector(strings.ToLower(strings.TrimSpace(paragraph[0].text))) {
 			metrics.connectorParagraphs++
 		}
-		paragraph, paragraphList = nil, false
+		paragraph, paragraphProcedureStep = nil, false
 	}
 	for number, raw := range lines {
 		line := strings.TrimSuffix(raw, "\r")
@@ -252,22 +280,33 @@ func scanWritingFile(root, file string) ([]writingFinding, []writingCandidate, [
 			continue
 		}
 		list := writingListItem(trimmed)
+		procedureStep := writingNumberedListItem(trimmed)
+		referenceListEntry := writingReferenceListEntry(trimmed)
 		masked := maskWritingCode(trimmed)
 		for _, match := range writingTaskRE.FindAllStringSubmatchIndex(trimmed, -1) {
 			if !strings.Contains(trimmed[match[0]:match[1]], "mise run") {
 				findings = append(findings, writingFinding{file, "canonical mise task command", "bare executable task reference", number + 1})
 			}
 		}
+		if list {
+			masked = writingListContent(masked)
+		}
 		sentences := writingSentences(masked, number+1)
-		if !list {
-			if len(paragraph) == 0 || number+1 != paragraph[len(paragraph)-1].line+1 {
+		if list {
+			flushParagraph()
+			if !procedureStep {
+				paragraph = append(paragraph, sentences...)
+			}
+			paragraphProcedureStep = procedureStep
+		} else {
+			if len(paragraph) == 0 || paragraphProcedureStep || number+1 != paragraph[len(paragraph)-1].line+1 {
 				flushParagraph()
 			}
 			paragraph = append(paragraph, sentences...)
-			paragraphList = false
+			paragraphProcedureStep = false
 		}
 		for _, sentence := range sentences {
-			addWritingSentence(&metrics, sentence, list, &findings, &candidates, file)
+			addWritingSentence(&metrics, sentence, list, referenceListEntry, &findings, &candidates, file)
 		}
 	}
 	flushParagraph()

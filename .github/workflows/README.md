@@ -12,23 +12,23 @@ ruleset; keep this document, `CONTRIBUTING.md`, and the ruleset in sync.
   `policy-issues.yml`). Filenames are independent of display names; the
   required status-check contexts follow the displayed job names below.
 - **Workflow names are one-word categories.** Title Case. Name each workflow
-  after the domain it owns in a single word — `Validate`, `Policy`,
-  `Security`, `Publish` — and aggregate that domain's jobs under it instead of
+  after the domain it owns in a single word: `Validate`, `Policy`, `Security`,
+  or `Publish`, and aggregate that domain's jobs under it instead of
   minting a new name per job or topic (`Validate` runs `Validate tests`,
   `Validate FSL specifications`, and `Validate repository checks` in one
   workflow). Do not name a workflow after a mechanism, tier, or event:
   `Targeted` and `Pull Request Project Status` are rejected.
 - **Variants reuse the category word with a parenthesized role.** When one
-  domain must span more than one workflow — for example when security
-  isolation or a different trigger requires a separate file — keep the
+  domain must span more than one workflow, for example when security
+  isolation or a different trigger requires a separate file, keep the
   category word and append a parenthesized role that names the distinguishing
   trigger or scope: `Policy (Pull request)`, `Policy (Signatures)`,
   `Policy (Issues)`.
 - **Job IDs**: kebab-case matching the domain.
 - **Job display names are verb-first, sentence-case, and short.** Each job
-  name starts with the class verb that states what the check establishes —
+  name starts with the class verb that states what the check establishes:
   `Validate` for validation and policy checks, `Audit` for security audits,
-  `Publish` for publication — followed by the domain it checks in lowercase,
+  `Publish` for publication, followed by the domain it checks in lowercase,
   in at most four words (`Validate commit signatures`, `Audit workflow
   security`, `Validate issue project status`). A job name must never be a bare
   tool name (`zizmor`) or describe the mechanism instead of the check
@@ -40,8 +40,8 @@ ruleset; keep this document, `CONTRIBUTING.md`, and the ruleset in sync.
   rely on a tool-generated check name the repository cannot rename. The
   zizmor step uploads SARIF (`advanced-security: true`), which adds GitHub's
   `Code scanning results / zizmor` check to pull requests that run the audit;
-  that check is an accepted informational side effect that is not — and must
-  never be promoted to — a required context. `Audit workflow security`
+  that check is an accepted informational side effect that is not, and it must
+  never be promoted to, a required context. `Audit workflow security`
   remains the required check.
 
 The required status-check contexts are the displayed job names (or the job ID
@@ -53,30 +53,30 @@ updating the ruleset at the same time.
 Each workflow stays its own file; they are intentionally not merged, for these
 reasons:
 
-- `Validate` (`validate.yml`) — repository validation as parallel jobs. This
+- `Validate` (`validate.yml`): repository validation as parallel jobs. This
   filename must stay unchanged because the README Validation badge URL embeds
   `validate.yml`.
-- `Policy (Pull request)` (`policy.yml`) — `pull_request` policy checks
+- `Policy (Pull request)` (`policy.yml`): `pull_request` policy checks
   (branch direction, work item title, commit conventions).
-- `Policy (Signatures)` (`policy-signatures.yml`) — commit-signature
+- `Policy (Signatures)` (`policy-signatures.yml`): commit-signature
   verification; it must run on `pull_request_target` with a trusted-base
   checkout, so it stays separate for security isolation.
-- `Policy (Issues)` (`policy-issues.yml`) — `issues`-event policy checks.
-- `Policy (Project)` (`pr-project-status.yml`) — keeps the governing
+- `Policy (Issues)` (`policy-issues.yml`): `issues`-event policy checks.
+- `Policy (Project)` (`pr-project-status.yml`): keeps the governing
   Issue's Project Status in sync with every pull_request state transition on
   `pull_request_target`, and advances an Issue to `Planned` from an
   authoritative `plan-issue` comment on `issue_comment`; only comments from
   the repository owner qualify, and PR and comment runs use separate
   concurrency groups. It checks out only trusted repository content and never
   executes comment or Pull Request code.
-- `Security` (`security.yml`) — audit role (zizmor), not a validation check.
-- `Validate (Targeted)` (`targeted.yml`) — change-scoped Tier 2 validation:
+- `Security` (`security.yml`): audit role (zizmor), not a validation check.
+- `Validate (Targeted)` (`targeted.yml`): change-scoped Tier 2 validation:
   the jobs `Validate FSL mutation` and `Audit Go dependency security` always
   run, and each command scopes work to changed files (FSL specifications or
   Go source and module files), so unrelated pull requests are fast and a
   future required-context promotion cannot leave checks pending. It is not a
   required context; required contexts are the ten listed in `CONTRIBUTING.md`.
-- `Publish` (`publish.yml`) — publishing the six badge payloads and the
+- `Publish` (`publish.yml`): publishing the six badge payloads and the
   retained mutation report to the `badge-data` branch; it needs
   `contents: write` and must never be cancelled, so it stays separate from the
   read-only validation checks. It runs on a weekly schedule and on demand

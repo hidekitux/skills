@@ -150,6 +150,44 @@ func TestWritingQualityDoesNotTreatJapaneseConjunctionAsConnector(t *testing.T) 
 	}
 }
 
+func TestWritingQualityCountsUnorderedListConnectors(t *testing.T) {
+	content := "- Furthermore, this item states a result.\n- Moreover, this item states a result.\n- Additionally, this item states a result.\n- Furthermore, this item states a result.\n"
+	root := writingGitRepo(t, map[string]string{"README.md": content}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 1 || !strings.Contains(errOut, "paragraph-opening connector rate") {
+		t.Fatalf("expected unordered list connectors to fail, got %d: %s", code, errOut)
+	}
+}
+
+func TestWritingQualityExcludesNumberedProcedureConnectors(t *testing.T) {
+	content := "1. Furthermore, this procedure step states a result.\n2. Moreover, this procedure step states a result.\n3. Additionally, this procedure step states a result.\n4. Furthermore, this procedure step states a result.\n"
+	root := writingGitRepo(t, map[string]string{"README.md": content}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 0 || errOut != "" {
+		t.Fatalf("expected numbered procedure connectors to pass, got %d: %s", code, errOut)
+	}
+}
+
+func TestWritingQualityCountsListItemsForEmDashDensity(t *testing.T) {
+	var content strings.Builder
+	for i := 0; i < 10; i++ {
+		content.WriteString("- One two three four five — six seven eight nine ten.\n")
+	}
+	root := writingGitRepo(t, map[string]string{"README.md": content.String()}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 1 || !strings.Contains(errOut, "English em-dash density") {
+		t.Fatalf("expected list em dashes to fail, got %d: %s", code, errOut)
+	}
+}
+
+func TestWritingQualityExcludesReferenceListSeparatorsFromEmDashDensity(t *testing.T) {
+	var content strings.Builder
+	for i := 0; i < 10; i++ {
+		content.WriteString("- [Reference](https://example) — describes a source entry.\n")
+	}
+	root := writingGitRepo(t, map[string]string{"README.md": content.String()}, "README.md")
+	if code, _, errOut := runWriting(t, root); code != 0 || errOut != "" {
+		t.Fatalf("expected reference separators to be excluded, got %d: %s", code, errOut)
+	}
+}
+
 func TestWritingQualityReportsGenuineEnumerationCandidates(t *testing.T) {
 	english := "This sentence names the tracked file, the command, the measured value, the exclusion, the human review boundary, the failure behavior, and the candidate rule, while retaining the complete enumeration because each item carries a distinct fact for the reader and removing one would hide a required decision."
 	japanese := "この文は、入力、出力、失敗条件、例外、確認方法、対象範囲、判定結果、除外条件をすべて示す必要があるため、短く分割すると情報が失われる本当の列挙です。"
