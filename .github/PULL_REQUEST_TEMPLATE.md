@@ -8,6 +8,8 @@
 
 <!-- Title: [Type]: Summary in sentence case. It need not match any linked Issue title. -->
 
+<!-- Write human-readable prose according to [docs/writing-style.md](../docs/writing-style.md). -->
+
 ## Validation
 
 <!-- List every command or evidence with its actual result. -->

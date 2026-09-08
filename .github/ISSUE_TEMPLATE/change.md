@@ -7,6 +7,8 @@ assignees: []
 
 <!-- New Issues are added to the repository's GitHub Project with Status Backlog, Scope derived from the Issue type, and the declared default Priority. The workflow skills advance Status through planning, implementation, and Pull Request. Assign the Issue to its owner. -->
 
+<!-- Write human-readable prose according to [docs/writing-style.md](../../docs/writing-style.md). -->
+
 ## Context
 
 <!-- Describe the current state, problem, and reason to act now. Do not prescribe a solution before investigation. -->
