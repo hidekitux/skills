@@ -22,7 +22,7 @@ var (
 	writingTaskRE      = regexp.MustCompile(`(?i)\b(?:run|runs|execute|executes|executed|invoke|invokes|invoked)\s+` + "`" + `([a-z][a-z0-9-]*:[a-z0-9-]+)` + "`")
 	writingWordRE      = regexp.MustCompile(writingCodeMarker + `|[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*`)
 	writingSentenceRE  = regexp.MustCompile(`(?:[。！？]|[.!?][*_)]*(?:\s|$))`)
-	writingConnectorRE = regexp.MustCompile(`(?i)^(?:furthermore\b|moreover\b|additionally\b|また|さらに)`)
+	writingConnectorRE = regexp.MustCompile(`(?i)^(?:furthermore\b|moreover\b|additionally\b)`)
 )
 
 type writingFinding struct {
@@ -112,6 +112,14 @@ func writingJapanese(text string) bool {
 		}
 	}
 	return false
+}
+
+func writingConnector(text string) bool {
+	text = strings.TrimSpace(text)
+	if writingConnectorRE.MatchString(text) {
+		return true
+	}
+	return (strings.HasPrefix(text, "また") && !strings.HasPrefix(text, "または")) || strings.HasPrefix(text, "さらに")
 }
 
 func writingListItem(text string) bool {
@@ -218,7 +226,7 @@ func scanWritingFile(root, file string) ([]writingFinding, []writingCandidate, [
 			return
 		}
 		metrics.paragraphs++
-		if !paragraphList && writingConnectorRE.MatchString(strings.ToLower(strings.TrimSpace(paragraph[0].text))) {
+		if !paragraphList && writingConnector(strings.ToLower(strings.TrimSpace(paragraph[0].text))) {
 			metrics.connectorParagraphs++
 		}
 		paragraph, paragraphList = nil, false
