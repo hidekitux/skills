@@ -17,7 +17,7 @@ The repository and published skills use the [Apache License 2.0](LICENSE). The `
 
 ## Development
 
-Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. `setup:all` is safe to rerun, and it does not need to be run again by hand on every branch switch: the tracked `post-checkout` hook reruns it automatically.
+Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `mise run setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. `mise run setup:all` is safe to rerun, and it does not need to be run again by hand on every branch switch: the tracked `post-checkout` hook reruns it automatically.
 
 ```bash
 mise trust
@@ -38,7 +38,7 @@ mise tasks ls
 | Release-candidate verification | `mise run verify:release -- vX.Y.Z` |
 | Publish a verified release | `mise run publish:release -- vX.Y.Z` |
 
-`setup:all` enables `.githooks`. It reruns automatically on branch checkout; `check:local` runs before commits and `validate:all` before pushes. A failed check blocks the corresponding commit or push.
+`mise run setup:all` enables `.githooks`. It reruns automatically on branch checkout; `mise run check:local` runs before commits and `mise run validate:all` runs before pushes. A failed check blocks the corresponding commit or push.
 
 ## Worktrees
 

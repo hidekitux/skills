@@ -54,4 +54,4 @@ Run the phases in order. A phase is complete only when its primitive's artifact 
 
 ## Writing quality
 
-The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud, keep one idea in one sentence, name a thing in full on first mention and reuse that exact term, make every sentence add a fact the reader did not have, and cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
+The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud. Keep one idea in one sentence. Name a thing in full on first mention and reuse that exact term. Make every sentence add a fact the reader did not have. Cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use. These rules are the floor when it states none.

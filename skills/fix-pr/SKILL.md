@@ -32,7 +32,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 The owning skill is decided by one checkable condition: whether the branch already has an open Pull Request.
 
-Decide it from the branch name, and get the branch name from `git symbolic-ref`, not from `git rev-parse --abbrev-ref HEAD`: the latter returns the literal `HEAD` in a detached worktree, so the lookup would filter on a branch that does not exist and report no Pull Request while one is open. `git symbolic-ref` succeeds exactly when `HEAD` is attached, which is the distinction that matters. Only a genuinely detached `HEAD` needs the commit lookup:
+Get the branch name from `git symbolic-ref`, not from `git rev-parse --abbrev-ref HEAD`. The latter returns the literal `HEAD` in a detached worktree, so the lookup would filter on a branch that does not exist and report no Pull Request while one is open. `git symbolic-ref` succeeds when `HEAD` is attached. Only a genuinely detached `HEAD` needs the commit lookup:
 
 ```sh
 branch="$(git symbolic-ref --quiet --short HEAD || true)"
@@ -47,7 +47,7 @@ fi
 
 An attached branch always has a name, so a branch that was never pushed answers "no Pull Request" rather than "could not tell". Prefer the upstream's remote branch name when one is configured, because that is the name a Pull Request's `headRefName` carries; fall back to the local name when there is no upstream yet.
 
-Read the exit status first and the output only when the lookup succeeded. Both lookups exit non-zero when they cannot answer, but they do not agree on what they print: `gh pr list` leaves stdout empty, while `gh api` writes the error body to stdout, so neither an empty result nor a non-empty one tells you whether you got an answer. The distinction between "no Pull Request" and "could not tell" is the whole point; collapsing them is what misroutes a branch.
+Read the exit status first and the output only when the lookup succeeded. Both lookups exit non-zero when they cannot answer. They do not agree on what they print: `gh pr list` leaves stdout empty, while `gh api` writes the error body to stdout. Neither an empty result nor a non-empty one tells you whether you got an answer. The distinction between "no Pull Request" and "could not tell" is the whole point. Collapsing them misroutes a branch.
 
 - `1` — an open Pull Request exists. This skill owns the work: fixing, tidying unpushed commits, validation, pushing, and body sync happen in this one invocation.
 - Greater than `1` — ambiguous. Re-run without `--jq 'length'` and report the Pull Request numbers instead of guessing which one to fix.
@@ -92,7 +92,7 @@ Read the condition on the branch's state, not on how the request was phrased. A 
 
 ## Handoff
 
-Report the Pull Request URL and number, the head and base branches, the review artifact and the head SHA it examined, every finding with its disposition and commit hash, the pre-tidy and post-tidy head SHAs when history was tidied, the validation commands and results, the pushed head SHA, and the Pull Request body sync evidence.
+Report the Pull Request URL and number. Report the head and base branches. Report the review artifact and the head SHA it examined. Report every finding with its disposition and commit hash. Report the pre-tidy and post-tidy head SHAs when history was tidied. Report the validation commands and results. Report the pushed head SHA and the Pull Request body sync evidence.
 
 This skill is complete only when the pushed head equals the commit the next review will identify, so a fix cannot be left unpushed. Verify it, do not assume it:
 

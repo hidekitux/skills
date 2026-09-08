@@ -70,7 +70,7 @@ Review in this order and follow this flow rather than a pre-existing checklist.
 
 ## Handoff
 
-- Report the Pull Request URL, the applied criteria and their sources, the finding list with severity and confidence and file and line evidence, the reviewed head SHA, the validation commands and results, and the next owner: `fix-pr` fixes the findings on the same Issue branch and pushes the result, after which the updated Pull Request is re-reviewed until the findings are resolved.
+- Report the Pull Request URL. Report the applied criteria and their sources. Report the finding list with severity, confidence, file, and line evidence. Report the reviewed head SHA and the validation commands and results. The next owner is `fix-pr`, which fixes the findings on the same Issue branch and pushes the result. Re-review the updated Pull Request until the findings are resolved.
 - Never merge, release, or apply fixes; those are later phases owned by other skills or by the user, not part of this skill.
 
 ## Writing quality
