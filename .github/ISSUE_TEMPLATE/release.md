@@ -7,6 +7,8 @@ assignees: []
 
 <!-- New Release Issues are added to the repository's GitHub Project with Status Backlog, Scope Release, and the declared default Priority. The workflow skills keep the Status non-terminal until publication succeeds; the built-in Project workflow moves a closed Issue to Done. Assign the Issue to its owner. -->
 
+<!-- Write human-readable prose according to [docs/writing-style.md](../../docs/writing-style.md). -->
+
 ## Context
 
 <!-- Describe why this release is needed and what it represents. -->
