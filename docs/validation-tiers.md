@@ -51,6 +51,26 @@ do not by themselves block).
 | `mise run validate:all` (full Tier 1 surface) | 4 | release | repository owner | ~2.1s warm / ~19s cold | blocking |
 | `verify:release` / `publish:release` | 4 | release | repository owner | seconds | blocking |
 
+## Writing-quality check boundary
+
+`check:repository` includes `check-writing-quality` as its thirteenth check. The check reads only tracked Markdown from Git and fails on deterministic violations. A passing result does not prove full prose conformance; `REVIEWING.md` still requires human review against [docs/writing-style.md](writing-style.md).
+
+| Measured rule | Exclusions and candidate handling | Failure behavior |
+| --- | --- | --- |
+| Paragraph-opening connector rate: at most one paragraph in four beginning with `Furthermore`, `Moreover`, `Additionally`, `また`, or `さらに` | Numbered procedure steps; fenced code; headings, tables, quotes, and `Before` or `After` examples | Fail with the file, line, and measured rate |
+| English sentence length: at most 45 words | Genuine enumerations are reported as review candidates; headings, list items, table cells, fenced code, quotes, and `Before` or `After` examples are excluded; inline code counts as one word | Fail an unambiguous overlong sentence; report a genuine-enumeration candidate without failing |
+| English em-dash density: at most 10 per 1,000 words | Code spans, fenced code, quoted output, and the ` — ` separator in reference-list entries | Fail with the file and measured density |
+| English sentence-length variance: at least 0.5 | Prose sentences only; samples below ten sentences; headings, list items, table cells, and fenced code | Fail with the file and measured coefficient |
+| Japanese sentence length: about 50 characters and at most 70 | Genuine enumerations are reported as review candidates; headings and table cells; inline code counts as one reading unit | Fail an unambiguous overlong sentence; report a genuine-enumeration candidate without failing |
+| Japanese connective particles: at most two per sentence | None | Fail with the file, line, and counted markers |
+| Canonical command form: executable task references use `mise run <task>` | Only unambiguous execution wording such as `run`, `execute`, or `invoke`; task declarations, names, comparisons, worked examples, and code blocks remain valid | Fail with the file and line when syntax proves a bare task reference is executable |
+
+The check reports repository-relative file, line, rule, and measured value. It names this section on both success and failure. It reports genuine-enumeration candidates because deciding whether removing an item loses a fact requires human judgment.
+
+The following rules remain human-only: ordinary word choice, active voice, concrete wording, short everyday words, cutting words, conclusion first, position with its reason, source attribution, one term per concept, the deletion test, polished-triplet classification, genuine-enumeration classification, modifier order, comma placement, Japanese register, and loanword choice. The reviewer also decides whether a single marker reaches the convergence threshold.
+
+The check does not measure the polished-triplet count. Syntax cannot distinguish rule-of-three padding from three real items without judging meaning, so the cheaper guard is the human review criterion in `REVIEWING.md` and the convergence rule in `docs/writing-style.md`.
+
 ## Change classes
 
 A change selects tiers by the paths it touches. The targeted tier never treats
