@@ -29,22 +29,18 @@ type writingFinding struct {
 	file, rule, value string
 	line              int
 }
-
 type writingCandidate struct {
 	file, rule, value string
 	line              int
 }
-
 type writingSentence struct {
 	text string
 	line int
 }
-
 type writingFileMetrics struct {
 	paragraphs, connectorParagraphs int
 	englishWords, emDashes          int
 	englishLengths                  []int
-	english, japanese               []writingSentence
 }
 
 func trackedMarkdown(root string) ([]string, error) {
@@ -61,7 +57,6 @@ func trackedMarkdown(root string) ([]string, error) {
 	sort.Strings(files)
 	return files, nil
 }
-
 func maskWritingCode(text string) string {
 	var b strings.Builder
 	for i := 0; i < len(text); {
@@ -80,93 +75,48 @@ func maskWritingCode(text string) string {
 	}
 	return b.String()
 }
-
 func writingJapaneseLength(text string) int {
-	count := 0
-	for i := 0; i < len(text); {
-		if strings.HasPrefix(text[i:], writingCodeMarker) {
-			count++
-			i += len(writingCodeMarker)
-			if i < len(text) && text[i] == ' ' {
-				i++
-			}
-			continue
-		}
-		if text[i] == ' ' && strings.HasPrefix(text[i+1:], writingCodeMarker) {
-			i++
-			continue
-		}
-		_, size := utf8.DecodeRuneInString(text[i:])
-		count++
-		i += size
-	}
-	return count
+	return utf8.RuneCountInString(strings.ReplaceAll(text, " "+writingCodeMarker+" ", "x"))
 }
-
 func writingWords(text string) int { return len(writingWordRE.FindAllString(text, -1)) }
-
 func writingJapanese(text string) bool {
-	for _, r := range text {
-		if (r >= 0x3040 && r <= 0x30ff) || (r >= 0x3400 && r <= 0x9fff) {
-			return true
-		}
-	}
-	return false
+	return strings.IndexFunc(text, func(r rune) bool { return (r >= 0x3040 && r <= 0x30ff) || (r >= 0x3400 && r <= 0x9fff) }) >= 0
 }
-
 func writingConnector(text string) bool {
 	text = strings.TrimSpace(text)
-	if writingConnectorRE.MatchString(text) {
-		return true
-	}
-	return (strings.HasPrefix(text, "また") && !strings.HasPrefix(text, "または")) || strings.HasPrefix(text, "さらに")
+	return writingConnectorRE.MatchString(text) || (strings.HasPrefix(text, "また") && !strings.HasPrefix(text, "または")) || strings.HasPrefix(text, "さらに")
 }
-
 func writingListItem(text string) bool {
 	text = strings.TrimSpace(text)
-	if strings.HasPrefix(text, "- ") || strings.HasPrefix(text, "* ") || strings.HasPrefix(text, "+ ") {
-		return true
-	}
-	return writingNumberedListItem(text)
+	return strings.HasPrefix(text, "- ") || strings.HasPrefix(text, "* ") || strings.HasPrefix(text, "+ ") || writingNumberedListPrefix(text) > 0
 }
-
-func writingNumberedListItem(text string) bool {
-	text = strings.TrimSpace(text)
-	for i, r := range text {
-		if !unicode.IsDigit(r) {
-			return i > 0 && i+1 < len(text) && (text[i] == '.' || text[i] == ')') && text[i+1] == ' '
-		}
-	}
-	return false
-}
-
-func writingListContent(text string) string {
-	text = strings.TrimSpace(text)
-	if strings.HasPrefix(text, "- ") || strings.HasPrefix(text, "* ") || strings.HasPrefix(text, "+ ") {
-		return strings.TrimSpace(text[2:])
-	}
+func writingNumberedListPrefix(text string) int {
 	for i, r := range text {
 		if !unicode.IsDigit(r) {
 			if i > 0 && i+1 < len(text) && (text[i] == '.' || text[i] == ')') && text[i+1] == ' ' {
-				return strings.TrimSpace(text[i+2:])
+				return i + 2
 			}
-			break
+			return -1
 		}
+	}
+	return -1
+}
+func writingListContent(text string) string {
+	text = strings.TrimSpace(text)
+	for _, marker := range []string{"- ", "* ", "+ "} {
+		if strings.HasPrefix(text, marker) {
+			return strings.TrimSpace(text[len(marker):])
+		}
+	}
+	if prefix := writingNumberedListPrefix(text); prefix > 0 {
+		return strings.TrimSpace(text[prefix:])
 	}
 	return text
 }
-
-func writingReferenceListEntry(text string) bool {
-	text = strings.TrimSpace(text)
-	return writingListItem(text) && strings.Contains(text, "](") && strings.Contains(text, " — ")
-}
-
 func writingExample(text string) bool {
 	text = strings.TrimSpace(text)
-	return strings.HasPrefix(text, "Before:") || strings.HasPrefix(text, "After:") ||
-		strings.HasPrefix(text, "- Before:") || strings.HasPrefix(text, "- After:")
+	return strings.HasPrefix(text, "Before:") || strings.HasPrefix(text, "After:") || strings.HasPrefix(text, "- Before:") || strings.HasPrefix(text, "- After:")
 }
-
 func writingSentences(text string, line int) []writingSentence {
 	var result []writingSentence
 	start := 0
@@ -183,21 +133,12 @@ func writingSentences(text string, line int) []writingSentence {
 	}
 	return result
 }
-
 func genuineWritingEnumeration(text string) bool {
-	return strings.Count(text, ",") >= 2 || strings.Count(text, "、") >= 2 ||
-		(strings.Contains(text, ", and ") && strings.Contains(text, " and "))
+	return strings.Count(text, ",") >= 2 || strings.Count(text, "、") >= 2 || (strings.Contains(text, ", and ") && strings.Contains(text, " and "))
 }
-
 func writingParticles(text string) int {
-	markers := []string{"して", "ため", "ので", "が、", "し、", "て、"}
-	count := 0
-	for _, marker := range markers {
-		count += strings.Count(text, marker)
-	}
-	return count
+	return strings.Count(text, "して") + strings.Count(text, "ため") + strings.Count(text, "ので") + strings.Count(text, "が、") + strings.Count(text, "し、") + strings.Count(text, "て、")
 }
-
 func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list, referenceListEntry bool, findings *[]writingFinding, candidates *[]writingCandidate, file string) {
 	masked := maskWritingCode(sentence.text)
 	words := writingWords(masked)
@@ -205,7 +146,6 @@ func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list, r
 		return
 	}
 	if writingJapanese(masked) && strings.ContainsAny(masked, "。！？") {
-		m.japanese = append(m.japanese, sentence)
 		chars := writingJapaneseLength(masked)
 		if chars > 70 {
 			if genuineWritingEnumeration(masked) {
@@ -219,7 +159,6 @@ func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list, r
 		}
 		return
 	}
-	m.english = append(m.english, sentence)
 	m.englishWords += words
 	if referenceListEntry {
 		masked = strings.Replace(masked, " — ", " ", 1)
@@ -237,7 +176,6 @@ func addWritingSentence(m *writingFileMetrics, sentence writingSentence, list, r
 		}
 	}
 }
-
 func scanWritingFile(root, file string) ([]writingFinding, []writingCandidate, []int, error) {
 	content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(file)))
 	if err != nil {
@@ -281,8 +219,8 @@ func scanWritingFile(root, file string) ([]writingFinding, []writingCandidate, [
 			continue
 		}
 		list := writingListItem(trimmed)
-		procedureStep := writingNumberedListItem(trimmed)
-		referenceListEntry := writingReferenceListEntry(trimmed)
+		procedureStep := writingNumberedListPrefix(trimmed) > 0
+		referenceListEntry := writingListItem(trimmed) && strings.Contains(trimmed, "](") && strings.Contains(trimmed, " — ")
 		masked := maskWritingCode(trimmed)
 		for _, match := range writingTaskRE.FindAllStringSubmatchIndex(trimmed, -1) {
 			if !strings.Contains(trimmed[match[0]:match[1]], "mise run") {
@@ -319,7 +257,6 @@ func scanWritingFile(root, file string) ([]writingFinding, []writingCandidate, [
 	}
 	return findings, candidates, metrics.englishLengths, nil
 }
-
 func CheckWritingQuality(root string, out, errOut io.Writer) int {
 	files, err := trackedMarkdown(root)
 	if err != nil {
