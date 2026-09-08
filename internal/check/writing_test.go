@@ -138,3 +138,13 @@ func TestWritingQualityDistinguishesExecutableCommandsFromTaskNames(t *testing.T
 		t.Fatalf("expected bare executable task to fail, got %d: %s", code, errOut)
 	}
 }
+
+func TestWritingQualityLeavesSemanticJudgmentToReview(t *testing.T) {
+	content := "Delve into the multifaceted realm. The important conclusion appears after several details.\n"
+	root := writingGitRepo(t, map[string]string{"README.md": content}, "README.md")
+	if code, out, errOut := runWriting(t, root); code != 0 || errOut != "" {
+		t.Fatalf("expected semantic prose choices to remain human-only, got %d: %s", code, errOut)
+	} else if !strings.Contains(out, "human-only review") {
+		t.Fatalf("expected human-review boundary in success output: %s", out)
+	}
+}
