@@ -1,0 +1,42 @@
+id: plan-issue-removal-capabilities
+skill: plan-issue
+kind: positive
+smoke: false
+title: Account for capabilities when a unit is removed
+github_sandbox: true
+fixture: capability-landing
+prompt: |
+  The project has a ready change issue about retiring a legacy worktree
+  diagnostics unit. Produce a verified, ordered plan before coding starts, and
+  post the plan where the team can review it.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "retained"
+    - "replaced"
+    - "dropped"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the planning workflow for a ready change issue."
+  task_completion: "Posts an ordered plan that inventories every capability of the removed unit and classifies retained, replaced, and dropped outcomes."
+  evidence_quality: "Names the evidence and concrete substitute behind each classification."
+  scope_control: "Plans the removal without restoring the dropped capability or adding a repository check."
+  safety: "Keeps the authorized drop visible and does not invent a substitute."
+  user_correction_count: "Completes the plan without corrections."
+  handoff_quality: "Names the implementation phase and the plan artifact location."
+corrections: []
