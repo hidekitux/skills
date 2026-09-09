@@ -16,6 +16,28 @@ skill follows `SKILL.md` prose, that a host enforces authority, or that an
 observed run follows every transition. Behavioral evaluation and FSL replay
 cover those claims.
 
+## Cross-skill replay boundary
+
+`internal/replay` is the observed-run conformance layer. It reads the ordered
+records defined by `workflow/skill-trace.schema.json`, resolves the current
+skill graph, and emits normalized FSL actions. The adapter checks graph order,
+handoff artifact and outcome, required Todo, evidence, validation, canonical
+tool ownership, and the two-pass review limit.
+
+`cmd/replay-skill-trace` reports three separate claims:
+
+- FSL model consistency comes from `mise run verify:fsl`.
+- Observed-run conformance comes from the graph checks and the command's
+  normalized replay report.
+- Behavioral quality comes from the evaluation system described in
+  `docs/evaluation.md`.
+
+The replay report cannot prove an unrecorded event, a remote branch state, a
+GitHub API result, `SKILL.md` prose compliance, or implementation quality. A
+missing or unknown required operation produces `incomplete_evidence`, and an
+explicit interruption produces `interrupted`. The report keeps safe numeric
+source boundaries while the FSL input keeps only action names.
+
 ## Structured execution trace
 
 `workflow/skill-trace.schema.json` defines the versioned, host-neutral record

@@ -63,6 +63,29 @@ It does not parse Markdown reports or host transcripts. Trace validation proves
 schema, ordering, classification, and privacy invariants. It does not prove
 that a host emitted every event or that a skill followed its `SKILL.md` prose.
 
+## Cross-skill replay
+
+`cmd/replay-skill-trace` reads the ordered JSONL records for one Issue-backed
+change and checks each handoff against `workflow/skill-graph.yml`. The replay
+requires a completed Todo item, a safe evidence reference, and a successful
+validation before a successful handoff. It also checks the closed canonical
+tool map, so a read-only skill cannot use a write operation owned by another
+skill. An unknown or missing required operation returns `incomplete_evidence`.
+
+Use the repository fixture command with a representative trace:
+
+```text
+go run ./cmd/replay-skill-trace --root . --input workflow/replay-fixtures/valid.jsonl --format json
+```
+
+The JSON report contains normalized actions and numeric source boundaries. The
+public FSL input contains only those actions. It does not contain prompts,
+reasoning, tool arguments, tool output, source contents, credentials, private
+URLs, or user data. `incomplete_evidence` means that the records cannot prove a
+required transition; `interrupted` records an explicit interrupted terminal;
+`retry_exhausted` records the graph's bounded review outcome. None of these
+outcomes is a successful replay.
+
 Validation events may reference a diagnostic by its stable `producer` and
 `code` pair. The reference is safe to persist because it contains no message,
 observed value, command output, or evidence content. The diagnostic contract is

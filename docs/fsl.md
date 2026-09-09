@@ -27,6 +27,20 @@ mise run verify:fsl
 
 The task discovers root specifications and `skills/**/specs/*.fsl` sources; downloads and checksum-verifies the official `fslc` v4.2.0 release; then runs `fslc check` and `fslc verify --depth 8` for each source. It uses a temporary cache under `RUNNER_TEMP` in CI and `TMPDIR` locally, and repository validation checks symlink integrity without running sources twice. Override the depth when needed, for example `FSL_DEPTH=12 mise run verify:fsl`. Supported platforms are GitHub Actions Linux x64 and development macOS Apple Silicon.
 
+## Cross-skill trace replay
+
+`specs/cross-skill-workflow.fsl` models the governed path from `create-issue` through `review-pr`, including evidence, authority, interruption, incomplete evidence, and the two-pass review limit. `internal/replay` checks the observed structured traces against `workflow/skill-graph.yml` before it emits normalized actions. `cmd/replay-skill-trace` then passes those actions to `fslc replay`.
+
+Run a replay with an ordered JSONL trace set:
+
+```text
+go run ./cmd/replay-skill-trace --root . --input workflow/replay-fixtures/valid.jsonl --format json
+```
+
+The command returns `valid` only when graph conformance and FSL replay both pass. `violation` names an observed invariant failure. `incomplete_evidence`, `interrupted`, and `retry_exhausted` are explicit non-success outcomes; the command never treats missing events as a pass. The repository fixture check covers these outcomes under `workflow/replay-fixtures/`.
+
+FSL replay checks the finite action model. It does not prove that a host emitted every event, that a branch or GitHub object has the recorded state, that `SKILL.md` prose was followed, or that the implementation is correct. Behavioral evaluation remains a separate claim.
+
 ## Authoring commitment
 
 Before writing an FSL specification, confirm a formalization memo in the conversation. It must include states, actions, prohibited states, boundary conditions, modeling assumptions, and open questions. Do not guess an open decision that affects behavior.
