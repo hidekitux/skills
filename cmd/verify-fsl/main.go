@@ -21,9 +21,9 @@ func main() {
 		os.Exit(2)
 	}
 	if *diagnosticFormat == "json" {
-		code := fsl.VerifyFSL(".", io.Discard, io.Discard)
-		if code != 0 {
-			item, err := fsl.VerificationDiagnostic(code)
+		result := fsl.VerifyFSLResult(".", io.Discard, io.Discard)
+		if result.ExitCode != 0 {
+			item, err := fsl.VerificationDiagnosticForResult(result)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(2)
@@ -33,7 +33,7 @@ func main() {
 				os.Exit(2)
 			}
 		}
-		os.Exit(code)
+		os.Exit(result.ExitCode)
 	}
 	os.Exit(fsl.VerifyFSL(".", os.Stdout, os.Stderr))
 }
