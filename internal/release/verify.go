@@ -18,6 +18,35 @@ import (
 
 var tagPattern = regexp.MustCompile(`^v(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$`)
 
+type releaseCommandRunner interface {
+	gitOutput(root string, args ...string) (string, error)
+	execIn(root, name string, args ...string) int
+	stream(name string, out, errOut io.Writer, args ...string) int
+}
+
+type osReleaseCommandRunner struct{}
+
+func (osReleaseCommandRunner) gitOutput(root string, args ...string) (string, error) {
+	stdout, err := support.GitOutputIn(root, args...)
+	return strings.TrimSpace(stdout), err
+}
+
+func (osReleaseCommandRunner) execIn(root, name string, args ...string) int {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = root
+	if name == "git" {
+		cmd.Env = support.GitEnv()
+	}
+	return support.ExitError(cmd.Run())
+}
+
+func (osReleaseCommandRunner) stream(name string, out, errOut io.Writer, args ...string) int {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = out
+	cmd.Stderr = errOut
+	return support.ExitError(cmd.Run())
+}
+
 // findSkillDirectories maps every discovered publishable skill name to its
 // repository-relative directory using the canonical recursive discovery
 // contract, so release checks agree with repository and host validation.
@@ -79,6 +108,10 @@ func sortStrings(values []string) {
 // VerifyRelease checks that a release tag matches the skills catalog and the
 // committed Git state, returning the process exit code.
 func VerifyRelease(tag, root string, out, errOut io.Writer) int {
+	return verifyRelease(tag, root, out, errOut, osReleaseCommandRunner{})
+}
+
+func verifyRelease(tag, root string, out, errOut io.Writer, runner releaseCommandRunner) int {
 	errors := []string{}
 	match := tagPattern.FindStringSubmatch(tag)
 	version := ""
@@ -128,13 +161,13 @@ func VerifyRelease(tag, root string, out, errOut io.Writer) int {
 		}
 	}
 
-	if _, err := gitOutput(root, "diff", "--quiet"); err != nil {
+	if _, err := runner.gitOutput(root, "diff", "--quiet"); err != nil {
 		errors = append(errors, "working tree has unstaged changes")
 	}
-	if _, err := gitOutput(root, "diff", "--cached", "--quiet"); err != nil {
+	if _, err := runner.gitOutput(root, "diff", "--cached", "--quiet"); err != nil {
 		errors = append(errors, "index has staged changes not committed")
 	}
-	if untracked, err := gitOutput(root, "ls-files", "--others", "--exclude-standard"); err == nil {
+	if untracked, err := runner.gitOutput(root, "ls-files", "--others", "--exclude-standard"); err == nil {
 		if lines := strings.Fields(untracked); len(lines) > 0 {
 			errors = append(errors, "working tree has untracked files: "+strings.Join(lines, ", "))
 		}
@@ -142,14 +175,14 @@ func VerifyRelease(tag, root string, out, errOut io.Writer) int {
 		errors = append(errors, fmt.Sprintf("could not inspect Git state: %v", err))
 	}
 
-	if _, err := gitOutput(root, "rev-parse", "--verify", "--quiet", "refs/tags/"+tag); err == nil {
+	if _, err := runner.gitOutput(root, "rev-parse", "--verify", "--quiet", "refs/tags/"+tag); err == nil {
 		errors = append(errors, fmt.Sprintf("tag %s already exists locally", tag))
 	}
-	remote, remoteErr := gitOutput(root, "remote", "get-url", "origin")
+	remote, remoteErr := runner.gitOutput(root, "remote", "get-url", "origin")
 	if remoteErr != nil {
 		errors = append(errors, "remote origin is required to verify the published tag")
 	} else {
-		lsRemote := execIn(root, "git", "ls-remote", "--exit-code", "--refs", remote, "refs/tags/"+tag)
+		lsRemote := runner.execIn(root, "git", "ls-remote", "--exit-code", "--refs", remote, "refs/tags/"+tag)
 		switch {
 		case lsRemote == 0:
 			errors = append(errors, fmt.Sprintf("tag %s already exists on the origin remote", tag))
@@ -167,18 +200,4 @@ func VerifyRelease(tag, root string, out, errOut io.Writer) int {
 	}
 	fmt.Fprintf(out, "Release contract is valid for %s: %d skill(s) at version %s.\n", tag, len(entries), version)
 	return 0
-}
-
-func gitOutput(root string, args ...string) (string, error) {
-	stdout, err := support.GitOutputIn(root, args...)
-	return strings.TrimSpace(stdout), err
-}
-
-func execIn(root string, name string, args ...string) int {
-	cmd := exec.Command(name, args...)
-	cmd.Dir = root
-	if name == "git" {
-		cmd.Env = support.GitEnv()
-	}
-	return support.ExitError(cmd.Run())
 }
