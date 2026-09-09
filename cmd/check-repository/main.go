@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/hidekitux/skills/internal/check"
+	"github.com/hidekitux/skills/internal/diagnostic"
 	"github.com/hidekitux/skills/internal/eval"
 	"github.com/hidekitux/skills/internal/graph"
 	"github.com/hidekitux/skills/internal/publicstatus"
@@ -92,6 +93,9 @@ func run(root string, out, errOut io.Writer, checks []repoCheck) int {
 		writeLabeled(errOut, res.name, res.err.String())
 		if res.code != 0 {
 			failed = append(failed, res.name)
+			if item, err := check.DiagnosticForResult(res.name, res.code); err == nil {
+				fmt.Fprintf(errOut, "diagnostic: %s\n", diagnostic.RenderText(item))
+			}
 			fmt.Fprintf(errOut, "FAIL: %s\n", res.name)
 		}
 	}
