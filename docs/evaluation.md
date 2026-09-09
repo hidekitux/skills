@@ -125,10 +125,11 @@ satisfy, and `specs/evaluation-gate.fsl` models the transition.
 
 ## Running evaluation locally
 
-Live evaluation runs **locally** (Issue 173 decision record: it is not
-scheduled in GitHub Actions; CI scheduling belongs to Issue 176). The static
-corpus check runs in CI through `check:repository` on every pull request and
-push, free of model calls.
+Live behavioral evaluation runs **locally** by the decision recorded in Issue
+173. GitHub Actions does not run the live drivers. It runs the static corpus
+check through `check:repository` on every pull request and push, free of model
+calls. Issue 176 proposed CI scheduling, but the current workflows do not
+contain that job; Issue 248 records the local-only enforcement.
 
 ```text
 mise run evaluate:all --help
