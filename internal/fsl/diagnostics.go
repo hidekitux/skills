@@ -10,6 +10,8 @@ import (
 const (
 	MutationSurvivorDiagnosticCode       = "fsl.mutation.survivor"
 	MutationInfrastructureDiagnosticCode = "fsl.mutation.infrastructure"
+	VerificationValidationDiagnosticCode = "fsl.verify.validation"
+	VerificationInfrastructureCode       = "fsl.verify.infrastructure"
 	VerificationDiagnosticCode           = "fsl.verify.failed"
 )
 
@@ -80,4 +82,38 @@ func VerificationDiagnostic(exitCode int) (diagnostic.Diagnostic, error) {
 		Remediation:   diagnostic.RetryOperation,
 		Redaction:     diagnostic.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}},
 	})
+}
+
+// VerificationDiagnosticForResult maps the recorded FSL verification phase
+// and process state to the appropriate diagnostic category.
+func VerificationDiagnosticForResult(result VerificationResult) (diagnostic.Diagnostic, error) {
+	category := diagnostic.ValidationFailure
+	code := VerificationValidationDiagnosticCode
+	retryable := false
+	remediation := diagnostic.FixRepository
+	message := "FSL specification failed verification"
+	if result.Infrastructure {
+		category = diagnostic.InfrastructureError
+		code = VerificationInfrastructureCode
+		retryable = true
+		remediation = diagnostic.RetryOperation
+		message = "FSL verification tool could not run"
+	}
+	item := diagnostic.Diagnostic{
+		Producer:      "fsl",
+		Code:          code,
+		Category:      category,
+		SourceCommand: "cmd/verify-fsl",
+		Message:       message,
+		Rule:          "fsl.specification.valid",
+		Expected:      "fslc verifies every selected specification",
+		Observed:      fmt.Sprintf("phase=%s exit_code=%d", result.Phase, result.ExitCode),
+		Retryable:     retryable,
+		Remediation:   remediation,
+		Redaction:     diagnostic.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}},
+	}
+	if result.Spec != "" {
+		item.Evidence = []diagnostic.Evidence{{Kind: "path", Ref: result.Spec}}
+	}
+	return diagnostic.New(item)
 }

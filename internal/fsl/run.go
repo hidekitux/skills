@@ -4,6 +4,7 @@ package fsl
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -124,37 +125,72 @@ func pathWithin(root, path string) bool {
 // depend on the parent process's inherited PATH (Go resolves an unqualified
 // executable name via the parent env, not cmd.Env).
 func runFslc(out, errOut io.Writer, args ...string) int {
+	return runFslcResult(out, errOut, args...).exitCode
+}
+
+type fslcResult struct {
+	exitCode int
+	started  bool
+}
+
+func runFslcResult(out, errOut io.Writer, args ...string) fslcResult {
 	cmd := exec.Command(filepath.Join(binPath(), "fslc"), args...)
 	cmd.Stdout = out
 	cmd.Stderr = errOut
 	cmd.Env = support.GitEnv()
-	return support.ExitError(cmd.Run())
+	err := cmd.Run()
+	if err == nil {
+		return fslcResult{started: true}
+	}
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		return fslcResult{exitCode: exitErr.ExitCode(), started: true}
+	}
+	return fslcResult{exitCode: 1}
 }
 
 // VerifyFSL checks and verifies every FSL spec with the pinned fslc binary.
 func VerifyFSL(root string, out, errOut io.Writer) int {
+	return VerifyFSLResult(root, out, errOut).ExitCode
+}
+
+// VerificationResult records the phase and process-start state of a failed
+// FSL verification so callers can distinguish an invalid specification from a
+// verifier infrastructure error.
+type VerificationResult struct {
+	ExitCode       int
+	Spec           string
+	Phase          string
+	Infrastructure bool
+}
+
+// VerifyFSLResult checks and verifies every FSL spec and returns structured
+// failure context while preserving the output and exit code of VerifyFSL.
+func VerifyFSLResult(root string, out, errOut io.Writer) VerificationResult {
 	specs, err := specFiles(root)
 	if err != nil {
 		fmt.Fprintf(errOut, "error: %v\n", err)
-		return 1
+		return VerificationResult{ExitCode: 1, Phase: "discover", Infrastructure: true}
 	}
 	depthValue := depth()
 	if len(specs) == 0 {
 		fmt.Fprintln(out, "No repository-owned or skill-owned FSL specs found.")
-		return 0
+		return VerificationResult{}
 	}
 	for _, spec := range specs {
 		fmt.Fprintf(out, "Checking %s\n", spec)
-		if code := runFslc(out, errOut, "check", spec); code != 0 {
-			return code
+		checkResult := runFslcResult(out, errOut, "check", spec)
+		if checkResult.exitCode != 0 {
+			return VerificationResult{ExitCode: checkResult.exitCode, Spec: spec, Phase: "check", Infrastructure: !checkResult.started}
 		}
 		fmt.Fprintf(out, "Verifying %s at depth %s\n", spec, depthValue)
-		if code := runFslc(out, errOut, "verify", spec, "--depth", depthValue); code != 0 {
-			return code
+		verifyResult := runFslcResult(out, errOut, "verify", spec, "--depth", depthValue)
+		if verifyResult.exitCode != 0 {
+			return VerificationResult{ExitCode: verifyResult.exitCode, Spec: spec, Phase: "verify", Infrastructure: !verifyResult.started}
 		}
 	}
 	fmt.Fprintf(out, "Verified %d FSL spec(s).\n", len(specs))
-	return 0
+	return VerificationResult{}
 }
 
 // MutateOptions configures a mutation run.

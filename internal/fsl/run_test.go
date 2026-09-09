@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/diagnostic"
 )
 
 func TestSpecFilesCollectsRepoAndSkillSpecs(t *testing.T) {
@@ -140,6 +142,41 @@ func TestVerifyFSLRejectsBrokenSymlinkBeforeRunningFslc(t *testing.T) {
 	}
 	if !strings.Contains(errOut.String(), "broken.fsl") {
 		t.Fatalf("expected error to name the broken spec, got err=%q", errOut.String())
+	}
+}
+
+func TestVerifyFSLResultDistinguishesInvalidSpecFromUnavailableTool(t *testing.T) {
+	root := t.TempDir()
+	write(t, root, "specs/invalid.fsl", "not a valid specification")
+	binDir := t.TempDir()
+	bin := filepath.Join(binDir, "fslc")
+	if err := os.WriteFile(bin, []byte("#!/bin/sh\nif [ \"$1\" = \"check\" ]; then exit 1; fi\nexit 0\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("FSLC_BIN_DIR", binDir)
+	result := VerifyFSLResult(root, &bytes.Buffer{}, &bytes.Buffer{})
+	if result.ExitCode != 1 || result.Phase != "check" || result.Infrastructure {
+		t.Fatalf("invalid spec result = %#v", result)
+	}
+	item, err := VerificationDiagnosticForResult(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Category != diagnostic.ValidationFailure || item.Retryable || item.Code != VerificationValidationDiagnosticCode {
+		t.Fatalf("invalid spec diagnostic = %#v", item)
+	}
+
+	t.Setenv("FSLC_BIN_DIR", t.TempDir())
+	result = VerifyFSLResult(root, &bytes.Buffer{}, &bytes.Buffer{})
+	if result.ExitCode != 1 || result.Phase != "check" || !result.Infrastructure {
+		t.Fatalf("unavailable tool result = %#v", result)
+	}
+	item, err = VerificationDiagnosticForResult(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Category != diagnostic.InfrastructureError || !item.Retryable || item.Code != VerificationInfrastructureCode {
+		t.Fatalf("unavailable tool diagnostic = %#v", item)
 	}
 }
 
