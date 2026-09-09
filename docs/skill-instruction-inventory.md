@@ -17,7 +17,8 @@ host currently enforces part of them. A section marked
 `removable-duplication` needs paired full and compact evidence before the
 compact form replaces it.
 
-The `before_tokens` value is the count from the Issue branch base. The
-`after_tokens` value is the count from the compact source. Equal counts record
-an audited skill whose entry point remains unchanged because the evidence did
-not justify further reduction.
+The `before_tokens` value is the count from the Issue branch base and
+`before_commit` records that base. The `after_tokens` value is the count from
+the compact source and `after_commit` records the compact source commit. Equal
+counts record an audited skill whose entry point remains unchanged because the
+evidence did not justify further reduction.
