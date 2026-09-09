@@ -26,6 +26,11 @@ prompt SHA-256, repository commit, and fixture IDs, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
+Validation failures may include a reference to the versioned diagnostic
+contract in `workflow/validator-diagnostic.schema.json`. Evaluation records and
+traces keep the diagnostic producer and stable code, while detailed output
+stays outside the structured context unless a consumer explicitly needs it.
+
 ## Structured run traces
 
 Evaluation runs can emit an opt-in structured trace by passing a trace output

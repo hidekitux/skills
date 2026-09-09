@@ -35,8 +35,9 @@ and a status. The event kind selects one payload:
   safe evidence reference.
 - `tool_outcome` records the tool identifier, result, failure class, and
   retryable flag. It never records arguments or output.
-- `validation_outcome` records the validation identifier, result, and failure
-  class. It never records command output.
+- `validation_outcome` records the validation identifier, result, failure class,
+  and optional diagnostic references. It never records command output or a
+  diagnostic message.
 - `evidence` records a safe path, command identifier, public Issue or Pull
   Request reference, commit, or validation reference.
 - `handoff` records the destination skill and named artifact.
@@ -61,6 +62,11 @@ Issue #173 consumes the JSONL trace and existing structured evaluation records.
 It does not parse Markdown reports or host transcripts. Trace validation proves
 schema, ordering, classification, and privacy invariants. It does not prove
 that a host emitted every event or that a skill followed its `SKILL.md` prose.
+
+Validation events may reference a diagnostic by its stable `producer` and
+`code` pair. The reference is safe to persist because it contains no message,
+observed value, command output, or evidence content. The diagnostic contract is
+defined in [validator-diagnostics.md](validator-diagnostics.md).
 
 ## Host boundary
 

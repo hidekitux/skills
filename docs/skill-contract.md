@@ -32,6 +32,11 @@ required semantic fields. Issue #173 consumes structured traces without
 parsing prose; this contract does not add a hosted telemetry service or grant
 host authority.
 
+Validator diagnostics use the versioned contract in
+`workflow/validator-diagnostic.schema.json`. A trace stores only a diagnostic's
+stable producer and code pair. A context consumer selects diagnostics by
+structured fields and does not parse human-readable failure text.
+
 ## Artifact flow
 
 The governed change flow moves one artifact through owner skills:

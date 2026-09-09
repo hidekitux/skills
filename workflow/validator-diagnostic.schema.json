@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hidekitux/skills/blob/main/workflow/validator-diagnostic.schema.json",
+  "title": "Validator diagnostic",
+  "description": "A versioned, redacted account of one validation or execution problem.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "producer",
+    "code",
+    "category",
+    "source_command",
+    "message",
+    "retryable",
+    "remediation",
+    "redaction"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "producer": { "$ref": "#/$defs/identifier" },
+    "code": { "$ref": "#/$defs/identifier" },
+    "category": {
+      "type": "string",
+      "enum": [
+        "validation_failure",
+        "infrastructure_error",
+        "unsupported_input",
+        "incomplete_evidence"
+      ]
+    },
+    "source_command": { "$ref": "#/$defs/identifier" },
+    "message": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "location": { "$ref": "#/$defs/location" },
+    "rule": { "$ref": "#/$defs/short_text" },
+    "invariant": { "$ref": "#/$defs/short_text" },
+    "expected": { "$ref": "#/$defs/safe_text" },
+    "observed": { "$ref": "#/$defs/safe_text" },
+    "evidence": {
+      "type": "array",
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "retryable": { "type": "boolean" },
+    "remediation": {
+      "type": "string",
+      "enum": [
+        "inspect_input",
+        "retry_operation",
+        "fix_configuration",
+        "fix_repository",
+        "request_authority",
+        "provide_context",
+        "contact_owner"
+      ]
+    },
+    "redaction": { "$ref": "#/$defs/redaction" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._/:+-]*$",
+      "maxLength": 128
+    },
+    "safe_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "short_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$",
+          "maxLength": 512
+        },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["path", "command", "commit", "issue", "pull_request", "validation", "trace"]
+        },
+        "ref": { "$ref": "#/$defs/safe_text" }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "redacted_count", "omitted_fields"],
+      "properties": {
+        "mode": { "const": "allowlist" },
+        "redacted_count": { "type": "integer", "minimum": 0 },
+        "omitted_fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/identifier" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
