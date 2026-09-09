@@ -161,6 +161,30 @@ func TestReplayAcceptsCompleteGovernedLifecycle(t *testing.T) {
 	}
 }
 
+func TestReplayAcceptsMergeTerminalLifecycle(t *testing.T) {
+	set := lifecycleSet(
+		lifecycleTrace("create-issue", "plan-issue", "change-issue", "success", "user-approval", "create-issue"),
+		lifecycleTrace("plan-issue", "implement-issue", "verified-plan", "success", "post-plan-comment"),
+		lifecycleTrace("implement-issue", "create-pr", "implementation-commits", "success", "create-issue-branch", "write-repository", "git-commit"),
+		lifecycleTrace("create-pr", "review-pr", "pull-request", "success", "user-approval", "push-issue-branch", "edit-pull-request"),
+		lifecycleTrace("review-pr", "merge-pr", "review-findings", "success", "record-review-findings"),
+		lifecycleTrace("merge-pr", "", "", "", "user-approval", "merge-pull-request"),
+	)
+	report := Replay(replayRepositoryRoot(t), set)
+	if !report.Valid || report.Outcome != OutcomeValid {
+		t.Fatalf("valid merge lifecycle rejected: %#v", report)
+	}
+	want := []string{"create_issue", "post_plan", "record_implementation", "pass_validation", "open_pull_request", "handoff_merge", "complete_merge"}
+	if len(report.Observations) != len(want) {
+		t.Fatalf("observations = %#v, want %v", report.Observations, want)
+	}
+	for index, action := range want {
+		if report.Observations[index].Action != action {
+			t.Fatalf("observation[%d] = %#v, want %q", index, report.Observations[index], action)
+		}
+	}
+}
+
 func TestReplayReportsGraphOrderViolation(t *testing.T) {
 	set := lifecycleSet(
 		lifecycleTrace("create-issue", "create-pr", "change-issue", "success", "user-approval", "create-issue"),

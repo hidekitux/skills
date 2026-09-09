@@ -29,7 +29,7 @@ The task discovers root specifications and `skills/**/specs/*.fsl` sources; down
 
 ## Cross-skill trace replay
 
-`specs/cross-skill-workflow.fsl` models the governed path from `create-issue` through `review-pr`, including evidence, authority, interruption, incomplete evidence, and the two-pass review limit. `internal/replay` checks the observed structured traces against `workflow/skill-graph.yml` before it emits normalized actions. `cmd/replay-skill-trace` then passes those actions to `fslc replay`.
+`specs/cross-skill-workflow.fsl` models the governed path from `create-issue` through review and optional merge completion, including evidence, authority, interruption, incomplete evidence, and the two-pass review limit. `internal/replay` checks the observed structured traces against `workflow/skill-graph.yml` before it emits normalized actions. `cmd/replay-skill-trace` then passes those actions to `fslc replay`.
 
 Run a replay with an ordered JSONL trace set:
 

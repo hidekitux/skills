@@ -156,6 +156,10 @@ func Replay(root string, set TraceSet) Report {
 				report.Observations = append(report.Observations, observation("complete_review", record, index, lastEventSequence(record.Trace)))
 				return finishSuccess(report)
 			}
+			if record.Trace.SkillID == "merge-pr" && record.Trace.Terminal.Status == trace.StatusSuccess {
+				report.Observations = append(report.Observations, observation("complete_merge", record, index, lastEventSequence(record.Trace)))
+				return finishSuccess(report)
+			}
 			return finishIncomplete(report, record, index, "successful skill run has no graph handoff")
 		}
 
@@ -202,6 +206,8 @@ func Replay(root string, set TraceSet) Report {
 				return finishTerminal(report, OutcomeRetryExhausted, false)
 			}
 			pendingReview = true
+		case record.Trace.SkillID == "review-pr" && outcome == "success" && handoff.Destination == "merge-pr":
+			report.Observations = append(report.Observations, observation("handoff_merge", record, index, handoffSeq))
 		case record.Trace.SkillID == "fix-pr" && outcome == "success":
 			if !pendingReview {
 				return finishViolation(report, Finding{
