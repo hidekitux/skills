@@ -21,7 +21,7 @@ func ResolveRoot(cwd string) (string, error) {
 		}
 		return "", fmt.Errorf("cannot resolve root %q: %w", cwd, err)
 	}
-	return filepath.Clean(strings.TrimSpace(root)), nil
+	return filepath.Clean(strings.TrimRight(root, "\r\n")), nil
 }
 
 // ExitError returns the process exit code carried by err, or 1 when err is
