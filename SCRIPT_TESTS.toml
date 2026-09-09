@@ -34,6 +34,8 @@
 "cmd/publish-release" = "./internal/release"
 "cmd/scan-go-vuln" = "./internal/govuln"
 "cmd/validate-skill-creator" = "./internal/validate"
+"cmd/validate-skill-graph" = "./internal/graph"
+"cmd/read-skill-graph" = "./internal/graph"
 "cmd/evaluate" = "./internal/eval"
 "cmd/check-evaluation" = "./internal/eval"
 "cmd/generate-public-status" = "./internal/publicstatus"
