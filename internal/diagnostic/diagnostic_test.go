@@ -135,6 +135,17 @@ func TestValidateJSONLRejectsUnsafePersistedText(t *testing.T) {
 	if report.Valid || !strings.Contains(strings.Join(report.Findings, "\n"), "unsafe text") {
 		t.Fatalf("unsafe text was accepted: %#v", report)
 	}
+	if _, err := ReadJSONL(encoded); err == nil {
+		t.Fatal("ReadJSONL accepted unsafe persisted text")
+	}
+}
+
+func TestValidateJSONLRejectsUnsafeEvidenceReference(t *testing.T) {
+	encoded := []byte(`{"schema_version":1,"producer":"fixture","code":"fixture.invalid","category":"validation_failure","source_command":"fixture-validator","message":"fixture failed","evidence":[{"kind":"path","ref":"https://internal.example/run"}],"retryable":false,"remediation":"inspect_input","redaction":{"mode":"allowlist","redacted_count":0,"omitted_fields":[]}}`)
+	report := ValidateJSONL(encoded)
+	if report.Valid || !strings.Contains(strings.Join(report.Findings, "\n"), "evidence[0] contains unsafe text") {
+		t.Fatalf("unsafe evidence was accepted: %#v", report)
+	}
 }
 
 func TestSelectUsesStructuredFields(t *testing.T) {

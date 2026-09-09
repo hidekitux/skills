@@ -313,7 +313,7 @@ func ReadJSONL(data []byte) ([]Diagnostic, error) {
 		if err := decodeStrict([]byte(text), &diagnostic); err != nil {
 			return nil, fmt.Errorf("line %d: %w", line, err)
 		}
-		if findings := Validate(diagnostic); len(findings) > 0 {
+		if findings := validatePersisted(diagnostic); len(findings) > 0 {
 			return nil, fmt.Errorf("line %d: %s", line, strings.Join(findings, "; "))
 		}
 		result = append(result, diagnostic)
@@ -345,20 +345,9 @@ func ValidateJSONL(data []byte) ValidationReport {
 			continue
 		}
 		report.DiagnosticCount++
-		for _, finding := range Validate(item) {
+		for _, finding := range validatePersisted(item) {
 			report.Valid = false
 			report.Findings = append(report.Findings, fmt.Sprintf("line %d: %s", line, finding))
-		}
-		for _, value := range []string{item.Message, item.Rule, item.Invariant, item.Expected, item.Observed} {
-			if unsafeText(value) {
-				report.Valid = false
-				report.Findings = append(report.Findings, fmt.Sprintf("line %d: diagnostic contains unsafe text", line))
-				break
-			}
-		}
-		if item.Location != nil && unsafeText(item.Location.Path) {
-			report.Valid = false
-			report.Findings = append(report.Findings, fmt.Sprintf("line %d: diagnostic contains unsafe location", line))
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -459,6 +448,25 @@ func unsafeText(value string) bool {
 		}
 	}
 	return false
+}
+
+func validatePersisted(item Diagnostic) []string {
+	findings := Validate(item)
+	for _, value := range []string{item.Message, item.Rule, item.Invariant, item.Expected, item.Observed} {
+		if unsafeText(value) {
+			findings = append(findings, "diagnostic contains unsafe text")
+			break
+		}
+	}
+	if item.Location != nil && unsafeText(item.Location.Path) {
+		findings = append(findings, "diagnostic contains unsafe location")
+	}
+	for index, evidence := range item.Evidence {
+		if unsafeText(evidence.Ref) {
+			findings = append(findings, fmt.Sprintf("evidence[%d] contains unsafe text", index))
+		}
+	}
+	return findings
 }
 
 func validIdentifier(value string) bool {
