@@ -1,0 +1,1 @@
+{"schema_version":1,"run_id":"trace-invalid","skill_id":"plan-issue","skill_version":"0.1.0","graph_version":1,"host":"codex","model":"gpt-5","repository_revision":"aec2925cdba690384feaa7830d79fd6b18e22c77","started_at":"2026-09-09T12:00:00Z","events":[],"terminal":{},"redaction":{},"prompt":"raw prompt must not be persisted"}
