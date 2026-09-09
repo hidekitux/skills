@@ -1,0 +1,20 @@
+[
+  {
+    "sha": "verified-1",
+    "commit": {
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      }
+    }
+  },
+  {
+    "sha": "verified-2",
+    "commit": {
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      }
+    }
+  }
+]
