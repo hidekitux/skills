@@ -1,0 +1,210 @@
+// Confirmed formalization memo for replaying one governed change lifecycle.
+//
+// ASSUME-1: one ordered trace set represents one Issue-backed change. The
+//           concrete Issue number, commit, and safe evidence references remain
+//           in the structured trace and are not modeled as unbounded strings.
+// ASSUME-2: the graph in workflow/skill-graph.yml is the authority for skill
+//           ownership, artifacts, outcomes, destinations, and retry bounds.
+//           The replay adapter checks the concrete graph edge before applying
+//           the corresponding abstract action here.
+// ASSUME-3: a successful handoff has a completed Todo item, safe evidence, and
+//           a successful validation when the graph transition requires them.
+//           Raw prompts, reasoning, tool arguments, tool output, source
+//           contents, credentials, private URLs, and user data are outside the
+//           model and remain outside the persisted trace.
+// ASSUME-4: branch ownership and read-only mutation are observed through a
+//           closed map of normalized tool names. An unknown required operation
+//           is incomplete evidence, not a successful observation.
+// ASSUME-5: two correction passes are allowed. A third review with findings
+//           reaches RetryExhausted and has no transition back to fix-pr.
+// ASSUME-6: a successful final review or merge outcome is represented by the
+//           Completed state. This model does not prove the GitHub API result or
+//           the quality of the implementation.
+spec CrossSkillWorkflow {
+  enum Status {
+    Start,
+    IssueReady,
+    PlanReady,
+    ImplementationReady,
+    Validated,
+    PullRequestReady,
+    PullRequestReadySecond,
+    PullRequestReadyThird,
+    Completed,
+    Blocked,
+    Incomplete,
+    Interrupted,
+    RetryExhausted
+  }
+
+  state {
+    status: Status,
+    issue_evidence: Bool,
+    plan_evidence: Bool,
+    implementation_evidence: Bool,
+    validation_passed: Bool,
+    pull_request_evidence: Bool,
+    review_evidence: Bool,
+    fix_evidence: Bool,
+    branch_owned: Bool,
+    read_only_clean: Bool
+  }
+
+  init {
+    status = Start
+    issue_evidence = false
+    plan_evidence = false
+    implementation_evidence = false
+    validation_passed = false
+    pull_request_evidence = false
+    review_evidence = false
+    fix_evidence = false
+    branch_owned = false
+    read_only_clean = true
+  }
+
+  action create_issue() {
+    requires status == Start
+    issue_evidence = true
+    status = IssueReady
+  }
+
+  action post_plan() {
+    requires status == IssueReady
+    requires issue_evidence
+    plan_evidence = true
+    status = PlanReady
+  }
+
+  action record_implementation() {
+    requires status == PlanReady
+    requires plan_evidence
+    branch_owned = true
+    implementation_evidence = true
+    status = ImplementationReady
+  }
+
+  action pass_validation() {
+    requires status == ImplementationReady
+    requires implementation_evidence
+    requires branch_owned
+    validation_passed = true
+    status = Validated
+  }
+
+  action open_pull_request() {
+    requires status == Validated
+    requires validation_passed
+    pull_request_evidence = true
+    status = PullRequestReady
+  }
+
+  // Each review action abstracts the detailed review, findings, correction,
+  // and publication events that the replay adapter checks separately.
+  action complete_review() {
+    requires status == PullRequestReady or status == PullRequestReadySecond or
+      status == PullRequestReadyThird
+    requires pull_request_evidence
+    review_evidence = true
+    status = Completed
+  }
+
+  action publish_first_correction() {
+    requires status == PullRequestReady
+    requires pull_request_evidence
+    review_evidence = true
+    fix_evidence = true
+    status = PullRequestReadySecond
+  }
+
+  action publish_second_correction() {
+    requires status == PullRequestReadySecond
+    requires pull_request_evidence
+    requires review_evidence
+    fix_evidence = true
+    status = PullRequestReadyThird
+  }
+
+  // A third review that still requests changes exhausts the graph-declared
+  // correction bound. There is intentionally no action that fixes it.
+  action exhaust_review_loop() {
+    requires status == PullRequestReadyThird
+    review_evidence = true
+    status = RetryExhausted
+  }
+
+  action block() {
+    requires status == Start or status == IssueReady or
+      status == PlanReady or status == ImplementationReady or
+      status == Validated or status == PullRequestReady or
+      status == PullRequestReadySecond or status == PullRequestReadyThird
+    status = Blocked
+  }
+
+  action mark_incomplete() {
+    requires status == Start or status == IssueReady or
+      status == PlanReady or status == ImplementationReady or
+      status == Validated or status == PullRequestReady or
+      status == PullRequestReadySecond or status == PullRequestReadyThird
+    status = Incomplete
+  }
+
+  action mark_interrupted() {
+    requires status == Start or status == IssueReady or
+      status == PlanReady or status == ImplementationReady or
+      status == Validated or status == PullRequestReady or
+      status == PullRequestReadySecond or status == PullRequestReadyThird
+    status = Interrupted
+  }
+
+  invariant PlanRequiresIssue {
+    plan_evidence => issue_evidence
+  }
+
+  invariant ImplementationRequiresPlan {
+    implementation_evidence => plan_evidence
+  }
+
+  invariant BranchOwnershipRequired {
+    implementation_evidence => branch_owned
+  }
+
+  invariant PullRequestRequiresValidation {
+    pull_request_evidence => validation_passed
+  }
+
+  invariant FixRequiresReview {
+    fix_evidence => review_evidence
+  }
+
+  invariant ReadOnlyPhaseHasNoMutation {
+    read_only_clean
+  }
+
+  invariant ReviewLoopBounded {
+    status != RetryExhausted or review_evidence
+  }
+
+  invariant CompletedRequiresReviewEvidence {
+    status == Completed => review_evidence
+  }
+
+  invariant IncompleteIsNotSuccess {
+    status == Incomplete => status != Completed
+  }
+
+  invariant InterruptedIsNotSuccess {
+    status == Interrupted => status != Completed
+  }
+
+  terminal {
+    status == Completed or status == Blocked or status == Incomplete or
+      status == Interrupted or status == RetryExhausted
+  }
+
+  reachable SuccessfulReview { status == Completed }
+  reachable BlockedWorkflow { status == Blocked }
+  reachable IncompleteWorkflow { status == Incomplete }
+  reachable InterruptedWorkflow { status == Interrupted }
+  reachable ReviewLoopExhausted { status == RetryExhausted }
+}
