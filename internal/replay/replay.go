@@ -34,9 +34,9 @@ type Finding struct {
 	Invariant     string `json:"invariant"`
 	Category      string `json:"category"`
 	Message       string `json:"message"`
-	TraceIndex    int    `json:"trace_index,omitempty"`
-	Line          int    `json:"line,omitempty"`
-	EventSequence int    `json:"event_sequence,omitempty"`
+	TraceIndex    int    `json:"trace_index"`
+	Line          int    `json:"line"`
+	EventSequence int    `json:"event_sequence"`
 }
 
 // Observation is the public FSL replay action and its source boundary. The
@@ -45,9 +45,9 @@ type Finding struct {
 type Observation struct {
 	Action        string `json:"action"`
 	SkillID       string `json:"skill_id,omitempty"`
-	TraceIndex    int    `json:"trace_index,omitempty"`
-	Line          int    `json:"line,omitempty"`
-	EventSequence int    `json:"event_sequence,omitempty"`
+	TraceIndex    int    `json:"trace_index"`
+	Line          int    `json:"line"`
+	EventSequence int    `json:"event_sequence"`
 }
 
 // Report is the stable replay result. FSL model checking and observed-run
@@ -60,6 +60,33 @@ type Report struct {
 	StepsChecked int           `json:"steps_checked"`
 	Observations []Observation `json:"observations,omitempty"`
 	Findings     []Finding     `json:"findings,omitempty"`
+}
+
+// PublicTrace is the minimal host-neutral trace accepted by fslc replay. It
+// carries only normalized actions; source locations remain in Report and raw
+// trace payloads never cross this boundary.
+type PublicTrace struct {
+	Events []PublicEvent `json:"events"`
+}
+
+// PublicEvent is one normalized FSL action.
+type PublicEvent struct {
+	Action string `json:"action"`
+}
+
+// PublicTraceForReport converts a report into the stable fslc replay input.
+func PublicTraceForReport(report Report) (PublicTrace, error) {
+	if len(report.Observations) == 0 {
+		return PublicTrace{}, errors.New("replay report contains no FSL observations")
+	}
+	result := PublicTrace{Events: make([]PublicEvent, 0, len(report.Observations))}
+	for _, observation := range report.Observations {
+		if observation.Action == "" {
+			return PublicTrace{}, errors.New("replay report contains an empty FSL action")
+		}
+		result.Events = append(result.Events, PublicEvent{Action: observation.Action})
+	}
+	return result, nil
 }
 
 // TraceRecord retains a trace's input line and semantic validation result.

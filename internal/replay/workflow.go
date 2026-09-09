@@ -165,7 +165,7 @@ func Replay(root string, set TraceSet) Report {
 			return finishTerminal(report, OutcomeRetryExhausted, true)
 		case record.Trace.SkillID == "review-pr" && outcome == "findings":
 			if corrections >= 2 {
-				return finishViolation(report, Finding{
+				report.Findings = append(report.Findings, Finding{
 					Invariant:     "ReviewLoopBounded",
 					Category:      "retry",
 					Message:       "review findings continued after two correction passes",
@@ -173,6 +173,8 @@ func Replay(root string, set TraceSet) Report {
 					Line:          record.Line,
 					EventSequence: handoffSeq,
 				})
+				report.Observations = append(report.Observations, observation("exhaust_review_loop", record, index, handoffSeq))
+				return finishTerminal(report, OutcomeRetryExhausted, false)
 			}
 			pendingReview = true
 		case record.Trace.SkillID == "fix-pr" && outcome == "success":
@@ -413,6 +415,7 @@ func finishViolation(report Report, finding Finding) Report {
 
 func finishIncomplete(report Report, record TraceRecord, index int, message string) Report {
 	report.Findings = append(report.Findings, Finding{Invariant: "IncompleteTraceIsNotSuccess", Category: "incomplete", Message: message, TraceIndex: index, Line: record.Line, EventSequence: lastEventSequence(record.Trace)})
+	report.Observations = append(report.Observations, observation("mark_incomplete", record, index, lastEventSequence(record.Trace)))
 	report.Valid = false
 	report.Outcome = OutcomeIncomplete
 	return report
@@ -420,6 +423,7 @@ func finishIncomplete(report Report, record TraceRecord, index int, message stri
 
 func finishIncompleteFinding(report Report, finding Finding) Report {
 	report.Findings = append(report.Findings, finding)
+	report.Observations = append(report.Observations, Observation{Action: "mark_incomplete", TraceIndex: finding.TraceIndex, Line: finding.Line, EventSequence: finding.EventSequence})
 	report.Valid = false
 	report.Outcome = OutcomeIncomplete
 	return report
@@ -434,6 +438,7 @@ func finishInvalidInput(report Report, record TraceRecord, index int, message st
 
 func finishInterrupted(report Report, record TraceRecord, index int) Report {
 	report.Findings = append(report.Findings, Finding{Invariant: "InterruptedIsNotSuccess", Category: "terminal", Message: "trace ended with explicit interruption", TraceIndex: index, Line: record.Line, EventSequence: lastEventSequence(record.Trace)})
+	report.Observations = append(report.Observations, observation("mark_interrupted", record, index, lastEventSequence(record.Trace)))
 	report.Valid = false
 	report.Outcome = OutcomeInterrupted
 	return report
