@@ -190,6 +190,14 @@ func validateFailureFile(root, path string, seen map[string]bool, findings *[]st
 			*findings = append(*findings, fmt.Sprintf("failure records: %s:%d is invalid JSONL: %v", filepath.Base(path), line, err))
 			continue
 		}
+		var trailing any
+		if err := decoder.Decode(&trailing); err != io.EOF {
+			if err == nil {
+				err = fmt.Errorf("multiple JSON values on one line")
+			}
+			*findings = append(*findings, fmt.Sprintf("failure records: %s:%d is invalid JSONL: trailing content: %v", filepath.Base(path), line, err))
+			continue
+		}
 		validateFailureRecord(root, filepath.Base(path), line, &record, seen, findings)
 	}
 	if err := scanner.Err(); err != nil {

@@ -70,6 +70,22 @@ func TestCheckFailureRecordsAcceptsValidPromotedRecord(t *testing.T) {
 	}
 }
 
+func TestCheckFailureRecordsRejectsTrailingJSONLContent(t *testing.T) {
+	root := scaffoldFailureRecord(t, validFailureRecord())
+	path := filepath.Join(root, "workflow/failure-records/records.jsonl")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, append(bytes.TrimSpace(content), []byte(" trailing\n")...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, output := runFailureRecordCheck(t, root)
+	if code != 1 || !strings.Contains(output, "trailing content") {
+		t.Fatalf("expected trailing JSONL content to fail, got %d: %s", code, output)
+	}
+}
+
 func TestCheckFailureRecordsRejectsUnsanitizedPromotedRecord(t *testing.T) {
 	record := validFailureRecord()
 	record.Reproduction.Sanitized = false
