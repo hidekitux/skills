@@ -38,6 +38,7 @@
 "cmd/read-skill-graph" = "./internal/graph"
 "cmd/validate-skill-trace" = "./internal/trace"
 "cmd/read-skill-trace" = "./internal/trace"
+"cmd/validate-diagnostic" = "./cmd/validate-diagnostic"
 "cmd/evaluate" = "./internal/eval"
 "cmd/check-evaluation" = "./internal/eval"
 "cmd/generate-public-status" = "./internal/publicstatus"
