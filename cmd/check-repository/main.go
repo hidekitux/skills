@@ -17,6 +17,7 @@ import (
 
 	"github.com/hidekitux/skills/internal/check"
 	"github.com/hidekitux/skills/internal/eval"
+	"github.com/hidekitux/skills/internal/graph"
 	"github.com/hidekitux/skills/internal/publicstatus"
 	"github.com/hidekitux/skills/internal/support"
 	"github.com/hidekitux/skills/internal/validate"
@@ -45,6 +46,17 @@ var repoChecks = []repoCheck{
 	{name: "check-dependabot-config", fn: check.CheckDependabotConfig},
 	{name: "check-public-status", fn: publicstatus.Check},
 	{name: "check-evaluation", fn: eval.CheckCorpus},
+	{name: "validate-skill-graph", fn: func(root string, out, errOut io.Writer) int {
+		report := graph.Validate(root)
+		if report.Valid {
+			fmt.Fprintf(out, "skill graph valid: %d skills, schema version %d.\n", report.SkillCount, report.SchemaVersion)
+			return 0
+		}
+		for _, finding := range report.Findings {
+			fmt.Fprintln(errOut, finding)
+		}
+		return 1
+	}},
 }
 
 type checkResult struct {
