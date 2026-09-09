@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hidekitux/skills/internal/support"
+	"github.com/hidekitux/skills/internal/trace"
 )
 
 // Exit codes for cmd/evaluate. Usage errors use 3 so classification stays
@@ -27,15 +29,16 @@ const (
 
 // Options configures one evaluation run.
 type Options struct {
-	Root       string
-	Hosts      []string
-	SmokeOnly  bool
-	ScenarioID string
-	Skills     []string
-	OutputDir  string
-	DryRun     bool
-	Model      string
-	Commit     string
+	Root           string
+	Hosts          []string
+	SmokeOnly      bool
+	ScenarioID     string
+	Skills         []string
+	OutputDir      string
+	TraceOutputDir string
+	DryRun         bool
+	Model          string
+	Commit         string
 	// RunnerFor substitutes host runners (tests). When nil, runnerFor(name)
 	// provides the real drivers.
 	RunnerFor func(name string) HostRunner
@@ -153,8 +156,9 @@ func shouldSkip(sc *Scenario, opts *Options) (string, bool) {
 }
 
 // runOne evaluates one scenario on one driver and returns its record.
-func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) Record {
-	record := Record{
+func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) (record Record) {
+	started := time.Now().UTC()
+	record = Record{
 		RunID:        time.Now().UTC().Format("20060102T150405Z"),
 		Scenario:     sc.ID,
 		Skill:        sc.Skill,
@@ -164,7 +168,13 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 		Commit:       opts.Commit,
 		PromptSHA:    promptSHA(sc),
 		RubricReview: RubricNA,
+		StartedAt:    started.Format(time.RFC3339Nano),
 	}
+	defer func() {
+		finished := time.Now().UTC()
+		record.FinishedAt = finished.Format(time.RFC3339Nano)
+		record.ElapsedMillis = finished.Sub(started).Milliseconds()
+	}()
 	if sc.Fixture != "" {
 		record.Fixtures = []string{sc.Fixture}
 	}
@@ -347,6 +357,21 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			return ExitInfra
 		}
 	}
+	if opts.TraceOutputDir != "" {
+		if err := os.MkdirAll(opts.TraceOutputDir, 0o750); err != nil {
+			fmt.Fprintf(errOut, "evaluate: cannot create trace output directory: %v\n", err)
+			return ExitInfra
+		}
+	}
+	graphVersion := 0
+	if opts.TraceOutputDir != "" {
+		var err error
+		graphVersion, err = trace.GraphVersion(opts.Root)
+		if err != nil {
+			fmt.Fprintf(errOut, "evaluate: load graph for trace: %v\n", err)
+			return ExitInfra
+		}
+	}
 
 	runID := time.Now().UTC().Format("20060102T150405Z")
 	var records []Record
@@ -397,6 +422,56 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			return ExitInfra
 		}
 		fmt.Fprintf(out, "reports written to %s\n", opts.OutputDir)
+	}
+	if opts.TraceOutputDir != "" {
+		traces := make([]trace.Trace, 0, len(records))
+		for _, record := range records {
+			var scenario *Scenario
+			for _, candidate := range scenarios {
+				if candidate.ID == record.Scenario {
+					scenario = candidate
+					break
+				}
+			}
+			if scenario == nil {
+				fmt.Fprintf(errOut, "evaluate: scenario %q missing while writing trace\n", record.Scenario)
+				return ExitInfra
+			}
+			version, err := traceSkillVersion(opts.Root, scenario, record)
+			if err != nil {
+				fmt.Fprintf(errOut, "evaluate: %v\n", err)
+				return ExitInfra
+			}
+			item, err := traceForRecord(scenario, record, graphVersion, version)
+			if err != nil {
+				fmt.Fprintf(errOut, "evaluate: build trace: %v\n", err)
+				return ExitInfra
+			}
+			traces = append(traces, item)
+		}
+		tracePath := filepath.Join(opts.TraceOutputDir, runID+".trace.jsonl")
+		if err := trace.WriteJSONL(tracePath, traces); err != nil {
+			fmt.Fprintf(errOut, "evaluate: write trace: %v\n", err)
+			return ExitInfra
+		}
+		metricsPath := filepath.Join(opts.TraceOutputDir, runID+".metrics.json")
+		metricsFile, err := os.OpenFile(metricsPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+		if err != nil {
+			fmt.Fprintf(errOut, "evaluate: write trace metrics: %v\n", err)
+			return ExitInfra
+		}
+		encoder := json.NewEncoder(metricsFile)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(CalculateTraceMetrics(traces)); err != nil {
+			metricsFile.Close()
+			fmt.Fprintf(errOut, "evaluate: write trace metrics: %v\n", err)
+			return ExitInfra
+		}
+		if err := metricsFile.Close(); err != nil {
+			fmt.Fprintf(errOut, "evaluate: finalize trace metrics: %v\n", err)
+			return ExitInfra
+		}
+		fmt.Fprintf(out, "traces written to %s\n", opts.TraceOutputDir)
 	}
 
 	hadFail := false
