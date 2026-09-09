@@ -15,26 +15,29 @@ import (
 // (Acceptance criterion 4): host, model, prompt SHA-256, repository commit,
 // and fixture IDs.
 type Record struct {
-	RunID           string         `json:"run_id"`
-	Scenario        string         `json:"scenario"`
-	Skill           string         `json:"skill"`
-	Kind            string         `json:"kind"`
-	Host            string         `json:"host"`
-	Model           string         `json:"model,omitempty"`
-	Commit          string         `json:"repo_commit"`
-	PromptSHA       string         `json:"prompt_sha256"`
-	Fixtures        []string       `json:"fixtures,omitempty"`
-	Verdict         string         `json:"verdict"`
-	SkipReason      string         `json:"skip_reason,omitempty"`
-	Failures        []string       `json:"failures,omitempty"`
-	RubricScores    map[string]int `json:"rubric_scores,omitempty"`
-	RubricReview    string         `json:"rubric_review"`
-	CorrectionsUsed int            `json:"corrections_used"`
-	HandoffObserved bool           `json:"handoff_observed,omitempty"`
-	InfraError      string         `json:"infra_error,omitempty"`
-	StartedAt       string         `json:"started_at,omitempty"`
-	FinishedAt      string         `json:"finished_at,omitempty"`
-	ElapsedMillis   int64          `json:"elapsed_millis,omitempty"`
+	RunID             string         `json:"run_id"`
+	Scenario          string         `json:"scenario"`
+	Skill             string         `json:"skill"`
+	Kind              string         `json:"kind"`
+	Host              string         `json:"host"`
+	Model             string         `json:"model,omitempty"`
+	Commit            string         `json:"repo_commit"`
+	PromptSHA         string         `json:"prompt_sha256"`
+	Fixtures          []string       `json:"fixtures,omitempty"`
+	Verdict           string         `json:"verdict"`
+	SkipReason        string         `json:"skip_reason,omitempty"`
+	Failures          []string       `json:"failures,omitempty"`
+	RubricScores      map[string]int `json:"rubric_scores,omitempty"`
+	RubricReview      string         `json:"rubric_review"`
+	CorrectionsUsed   int            `json:"corrections_used"`
+	HandoffObserved   bool           `json:"handoff_observed,omitempty"`
+	InfraError        string         `json:"infra_error,omitempty"`
+	StartedAt         string         `json:"started_at,omitempty"`
+	FinishedAt        string         `json:"finished_at,omitempty"`
+	ElapsedMillis     int64          `json:"elapsed_millis,omitempty"`
+	FailureID         string         `json:"failure_id,omitempty"`
+	FailureCause      string         `json:"failure_cause,omitempty"`
+	FailureRecurrence int            `json:"failure_recurrence_count,omitempty"`
 }
 
 // writeJSONL appends one JSON record per scenario result.
@@ -79,6 +82,30 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 		fmt.Fprintf(w, "| %s | %s |\n", record.Scenario, gates[record.Scenario])
 	}
 
+	fmt.Fprintln(w, "\n## Failure recurrence")
+	fmt.Fprintln(w, "| failure_id | cause | scenario | host | model | repository_revision | run_id | outcome | recurrence_count |")
+	fmt.Fprintln(w, "| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+	for _, record := range records {
+		if record.Verdict == VerdictPass && record.FailureID == "" {
+			continue
+		}
+		failureID := record.FailureID
+		if failureID == "" {
+			failureID = "unregistered"
+		}
+		cause := record.FailureCause
+		if cause == "" {
+			cause = "unclassified"
+		}
+		recurrence := record.FailureRecurrence
+		if recurrence == 0 {
+			recurrence = 1
+		}
+		fmt.Fprintf(w, "| %s | %s | %s | %s | %s | %s | %s | %s | %d |\n",
+			failureID, cause, record.Scenario, record.Host, record.Model,
+			record.Commit, record.RunID, recordOutcome(record), recurrence)
+	}
+
 	counts := map[string]int{}
 	for _, verdict := range gates {
 		counts[verdict]++
@@ -108,6 +135,21 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 				}
 			}
 		}
+	}
+}
+
+func recordOutcome(record Record) string {
+	switch record.Verdict {
+	case VerdictFail:
+		return "deterministic_failure"
+	case VerdictSkipped:
+		return "skipped"
+	case VerdictInfra:
+		return "infrastructure_error"
+	case VerdictInterrupted:
+		return "behavioral_failure"
+	default:
+		return "resolved"
 	}
 }
 
