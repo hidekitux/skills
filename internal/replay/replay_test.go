@@ -123,6 +123,21 @@ func TestReportJSONIsDeterministic(t *testing.T) {
 	}
 }
 
+func TestPublicTraceForReportDropsSourceDetails(t *testing.T) {
+	report := Report{Observations: []Observation{{Action: "create_issue", SkillID: "create-issue", TraceIndex: 0, Line: 1, EventSequence: 2}}}
+	public, err := PublicTraceForReport(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(public)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != `{"events":[{"action":"create_issue"}]}` {
+		t.Fatalf("public trace = %s", data)
+	}
+}
+
 func TestReplayAcceptsCompleteGovernedLifecycle(t *testing.T) {
 	set := lifecycleSet(
 		lifecycleTrace("create-issue", "plan-issue", "change-issue", "success", "user-approval", "create-issue"),
@@ -228,7 +243,7 @@ func TestReplayRejectsReviewLoopBeyondGraphBound(t *testing.T) {
 		reviewFindingsTrace(),
 	)
 	report := Replay(replayRepositoryRoot(t), set)
-	if report.Valid || report.Outcome != OutcomeViolation || len(report.Findings) == 0 || report.Findings[0].Invariant != "ReviewLoopBounded" {
+	if report.Valid || report.Outcome != OutcomeRetryExhausted || len(report.Findings) == 0 || report.Findings[0].Invariant != "ReviewLoopBounded" {
 		t.Fatalf("review loop violation not reported: %#v", report)
 	}
 }
