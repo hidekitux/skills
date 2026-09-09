@@ -1,7 +1,10 @@
 package support
 
 import (
+	"errors"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -98,4 +101,56 @@ func TestLoadTOMLFile(t *testing.T) {
 			t.Fatalf("LoadTOMLFile(%q) error = %q, want path in error", path, err)
 		}
 	})
+}
+
+func TestExitErrorHelperProcess(t *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	os.Exit(7)
+}
+
+func TestExitError(t *testing.T) {
+	cmd := exec.Command(os.Args[0], "-test.run=TestExitErrorHelperProcess")
+	cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
+	exitErr := cmd.Run()
+	if exitErr == nil {
+		t.Fatal("helper process unexpectedly succeeded")
+	}
+
+	tests := map[string]struct {
+		err  error
+		want int
+	}{
+		"nil":     {want: 0},
+		"plain":   {err: errors.New("plain error"), want: 1},
+		"exit":    {err: exitErr, want: 7},
+		"wrapped": {err: fmt.Errorf("wrapped: %w", exitErr), want: 7},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := ExitError(test.err); got != test.want {
+				t.Fatalf("ExitError(%v) = %d, want %d", test.err, got, test.want)
+			}
+		})
+	}
+}
+
+func TestIsZeroSHA(t *testing.T) {
+	for name, test := range map[string]struct {
+		sha  string
+		want bool
+	}{
+		"empty":               {sha: "", want: true},
+		"single zero":         {sha: "0", want: true},
+		"git zero SHA":        {sha: strings.Repeat("0", 40), want: true},
+		"last digit non-zero": {sha: strings.Repeat("0", 39) + "1", want: false},
+		"non-zero text":       {sha: "not-a-sha", want: false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := IsZeroSHA(test.sha); got != test.want {
+				t.Fatalf("IsZeroSHA(%q) = %t, want %t", test.sha, got, test.want)
+			}
+		})
+	}
 }
