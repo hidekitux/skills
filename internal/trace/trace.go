@@ -173,7 +173,7 @@ type FileValidationReport struct {
 }
 
 var (
-	identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/-]*$`)
+	identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*$`)
 	versionPattern    = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 	shaPattern        = regexp.MustCompile(`^[0-9a-f]{40}$`)
 	credentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)

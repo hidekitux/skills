@@ -9,6 +9,14 @@ Record any material capability difference in the relevant skill's
 `references/hosts/claude-code.md`, including a safe fallback and verification
 step.
 
+## Trace adapter
+
+The Claude Code adapter accepts the provider event shape in
+`trace-fixture.json` and maps only its safe semantic fields into
+`workflow/skill-trace.schema.json`. Provider arguments, output, prompts,
+reasoning, and unknown fields are not persisted. Verify semantic parity with
+`go test ./internal/trace`.
+
 ## Model selection
 
 Skills select role-specific models from the shared convention in
