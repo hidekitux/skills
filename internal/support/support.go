@@ -14,18 +14,14 @@ import (
 // Commands default their --root flag to the current working directory because
 // mise tasks and workflow steps run from the repository root.
 func ResolveRoot(cwd string) (string, error) {
-	if cwd == "" {
-		abs, err := os.Getwd()
-		if err != nil {
+	root, err := GitOutputIn(cwd, "rev-parse", "--show-toplevel")
+	if err != nil {
+		if cwd == "" {
 			return "", fmt.Errorf("cannot resolve working directory: %w", err)
 		}
-		return filepath.Clean(abs), nil
-	}
-	abs, err := filepath.Abs(cwd)
-	if err != nil {
 		return "", fmt.Errorf("cannot resolve root %q: %w", cwd, err)
 	}
-	return filepath.Clean(abs), nil
+	return filepath.Clean(strings.TrimSpace(root)), nil
 }
 
 // ExitError returns the process exit code carried by err, or 1 when err is
