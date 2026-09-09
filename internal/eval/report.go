@@ -30,6 +30,7 @@ type Record struct {
 	RubricScores    map[string]int `json:"rubric_scores,omitempty"`
 	RubricReview    string         `json:"rubric_review"`
 	CorrectionsUsed int            `json:"corrections_used"`
+	HandoffObserved bool           `json:"handoff_observed,omitempty"`
 	InfraError      string         `json:"infra_error,omitempty"`
 	StartedAt       string         `json:"started_at,omitempty"`
 	FinishedAt      string         `json:"finished_at,omitempty"`
