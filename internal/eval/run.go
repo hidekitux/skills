@@ -30,16 +30,21 @@ const (
 
 // Options configures one evaluation run.
 type Options struct {
-	Root           string
-	Hosts          []string
-	SmokeOnly      bool
-	ScenarioID     string
-	Skills         []string
-	OutputDir      string
-	TraceOutputDir string
-	DryRun         bool
-	Model          string
-	Commit         string
+	Root string
+	// SkillRoot selects the repository root whose skills are installed into
+	// the sandbox. It may point to a full or compact instruction source while
+	// Root remains the source of scenarios, fixtures, and provenance.
+	SkillRoot          string
+	InstructionVariant string
+	Hosts              []string
+	SmokeOnly          bool
+	ScenarioID         string
+	Skills             []string
+	OutputDir          string
+	TraceOutputDir     string
+	DryRun             bool
+	Model              string
+	Commit             string
 	// RunnerFor substitutes host runners (tests). When nil, runnerFor(name)
 	// provides the real drivers.
 	RunnerFor func(name string) HostRunner
@@ -160,16 +165,18 @@ func shouldSkip(sc *Scenario, opts *Options) (string, bool) {
 func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) (record Record) {
 	started := time.Now().UTC()
 	record = Record{
-		RunID:        time.Now().UTC().Format("20060102T150405Z"),
-		Scenario:     sc.ID,
-		Skill:        sc.Skill,
-		Kind:         sc.Kind,
-		Host:         host.Name(),
-		Model:        opts.Model,
-		Commit:       opts.Commit,
-		PromptSHA:    promptSHA(sc),
-		RubricReview: RubricNA,
-		StartedAt:    started.Format(time.RFC3339Nano),
+		RunID:              time.Now().UTC().Format("20060102T150405Z"),
+		Scenario:           sc.ID,
+		Skill:              sc.Skill,
+		Kind:               sc.Kind,
+		Host:               host.Name(),
+		Model:              opts.Model,
+		Commit:             opts.Commit,
+		SkillSourceCommit:  repoCommit(skillRootFor(opts)),
+		InstructionVariant: variantFor(opts),
+		PromptSHA:          promptSHA(sc),
+		RubricReview:       RubricNA,
+		StartedAt:          started.Format(time.RFC3339Nano),
 	}
 	defer func() {
 		finished := time.Now().UTC()
@@ -214,7 +221,8 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 	before := snapshotHashes(sandboxDir, sc.Expectations.UnchangedFiles)
 
 	installOut := &strings.Builder{}
-	if err := host.InstallSkills(ctx, opts.Root, sandboxDir, installOut, errOut); err != nil {
+	skillRoot := skillRootFor(opts)
+	if err := host.InstallSkills(ctx, skillRoot, sandboxDir, installOut, errOut); err != nil {
 		record.Verdict, record.InfraError = classifyHostError(ctx, "skill installation", err)
 		return record
 	}
@@ -270,6 +278,20 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 		record.RubricReview = RubricComplete
 	}
 	return record
+}
+
+func skillRootFor(opts *Options) string {
+	if opts.SkillRoot != "" {
+		return opts.SkillRoot
+	}
+	return opts.Root
+}
+
+func variantFor(opts *Options) string {
+	if opts.InstructionVariant != "" {
+		return opts.InstructionVariant
+	}
+	return "default"
 }
 
 func classifyHostError(ctx context.Context, stage string, err error) (string, string) {

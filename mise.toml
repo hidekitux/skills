@@ -127,6 +127,10 @@ run = "go run ./cmd/evaluate \"$@\""
 description = "Run the minimum behavioral evaluation smoke set locally on opencode and antigravity"
 run = "go run ./cmd/evaluate --smoke-only --host opencode,antigravity \"$@\""
 
+[tasks."evaluate:compaction"]
+description = "Compare full and compact skill instruction sources on Codex and Claude Code"
+run = "go run ./cmd/evaluate-compaction \"$@\""
+
 [tasks."verify:release"]
 description = "Verify a release tag matches the catalog and committed state"
 run = "go run ./cmd/verify-release \"$@\""
