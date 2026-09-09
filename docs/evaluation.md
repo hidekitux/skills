@@ -26,6 +26,19 @@ prompt SHA-256, repository commit, and fixture IDs, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
+## Structured run traces
+
+Evaluation runs can emit an opt-in structured trace by passing a trace output
+destination. The trace follows `workflow/skill-trace.schema.json` and records
+semantic events, safe evidence references, graph and skill versions, terminal
+classification, and numeric usage fields. The default evaluation path does not
+persist a trace. The trace writer omits prompts, reasoning, tool arguments,
+tool output, source contents, credentials, and user data.
+
+Trace consumers use the JSONL trace and the structured evaluation records. They
+do not parse the Markdown report or host transcript. `cmd/validate-skill-trace`
+checks representative traces before a consumer reads them.
+
 ### What a prose observation cannot decide
 
 Each skill carries its own writing rules in its `SKILL.md`. Every positive

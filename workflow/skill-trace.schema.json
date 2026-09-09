@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hidekitux/skills/blob/main/workflow/skill-trace.schema.json",
+  "title": "Skill execution trace",
+  "description": "A redacted, opt-in record of one host-neutral skill run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "skill_id", "skill_version", "graph_version", "host", "model", "repository_revision", "started_at", "events", "terminal", "redaction"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "run_id": { "$ref": "#/$defs/identifier" },
+    "scenario_id": { "$ref": "#/$defs/identifier" },
+    "skill_id": { "$ref": "#/$defs/identifier" },
+    "skill_version": { "$ref": "#/$defs/version" },
+    "graph_version": { "type": "integer", "minimum": 1 },
+    "host": { "$ref": "#/$defs/identifier" },
+    "host_version": { "$ref": "#/$defs/short_string" },
+    "model": { "$ref": "#/$defs/short_string" },
+    "model_tier": { "$ref": "#/$defs/identifier" },
+    "repository_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "usage": { "$ref": "#/$defs/usage" },
+    "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/event" } },
+    "terminal": { "$ref": "#/$defs/terminal" },
+    "redaction": { "$ref": "#/$defs/redaction" }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._/-]*$", "maxLength": 128 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$", "maxLength": 32 },
+    "short_string": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "status": { "type": "string", "enum": ["started", "success", "failed", "skipped", "interrupted", "error"] },
+    "classification": { "type": "string", "enum": ["none", "deterministic_failure", "behavioral_failure", "infrastructure_error", "user_interruption", "intentional_skip"] },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "kind", "status", "at"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 1 },
+        "kind": { "type": "string", "enum": ["run_started", "todo_transition", "tool_outcome", "validation_outcome", "evidence", "handoff", "retry", "run_finished"] },
+        "status": { "$ref": "#/$defs/status" },
+        "at": { "type": "string", "format": "date-time" },
+        "todo": { "$ref": "#/$defs/todo" },
+        "tool": { "$ref": "#/$defs/tool" },
+        "validation": { "$ref": "#/$defs/validation" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "handoff": { "$ref": "#/$defs/handoff" },
+        "retry": { "$ref": "#/$defs/retry" },
+        "terminal": { "$ref": "#/$defs/terminal" }
+      }
+    },
+    "todo": {
+      "type": "object", "additionalProperties": false, "required": ["item_id", "from", "to"],
+      "properties": {
+        "item_id": { "$ref": "#/$defs/identifier" },
+        "from": { "$ref": "#/$defs/identifier" },
+        "to": { "$ref": "#/$defs/identifier" },
+        "evidence_ref": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "tool": {
+      "type": "object", "additionalProperties": false, "required": ["name", "result"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "result": { "$ref": "#/$defs/identifier" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "retryable": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false, "required": ["name", "result"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "result": { "$ref": "#/$defs/identifier" },
+        "classification": { "$ref": "#/$defs/classification" }
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["path", "command", "issue", "pull_request", "commit", "validation"] },
+        "ref": { "$ref": "#/$defs/short_string" },
+        "result": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "handoff": {
+      "type": "object", "additionalProperties": false, "required": ["destination", "artifact"],
+      "properties": {
+        "destination": { "$ref": "#/$defs/identifier" },
+        "artifact": { "$ref": "#/$defs/identifier" },
+        "outcome": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "retry": {
+      "type": "object", "additionalProperties": false, "required": ["attempt", "max_attempts", "reason"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1 },
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "reason": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "terminal": {
+      "type": "object", "additionalProperties": false, "required": ["status", "classification", "at"],
+      "properties": {
+        "status": { "type": "string", "enum": ["success", "failed", "skipped", "interrupted", "infrastructure_error"] },
+        "classification": { "$ref": "#/$defs/classification" },
+        "at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "usage": {
+      "type": "object", "additionalProperties": false, "required": ["available", "elapsed_millis"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "context_tokens": { "type": "integer", "minimum": 0 },
+        "cost_micros": { "type": "integer", "minimum": 0 },
+        "elapsed_millis": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "redaction": {
+      "type": "object", "additionalProperties": false, "required": ["mode", "redacted_count", "omitted_fields", "retention_days"],
+      "properties": {
+        "mode": { "const": "allowlist" },
+        "redacted_count": { "type": "integer", "minimum": 0 },
+        "omitted_fields": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "retention_days": { "type": "integer", "minimum": 1, "maximum": 30 }
+      }
+    }
+  }
+}
