@@ -27,7 +27,7 @@ func validFailureRecord() failureRecord {
 		Evidence: []failureEvidence{
 			{Kind: "path", Ref: "internal/eval/failure_test.go"},
 		},
-		RegressionAsset:   "scenario:synthetic.yaml",
+		RegressionAsset:   "scenario:synthetic/synthetic.yaml",
 		InstructionAction: "replace",
 		InstructionRef:    "docs/evaluation.md#What-counts-as-evidence",
 		DecisionReason:    "The invariant is fixed repository metadata.",
@@ -44,7 +44,7 @@ func scaffoldFailureRecord(t *testing.T, record failureRecord) string {
 	root := t.TempDir()
 	writeTestFile(t, root, "workflow/failure-record.schema.json", "{}\n")
 	writeTestFile(t, root, "evaluations/fixtures/failure/README.md", "synthetic fixture\n")
-	writeTestFile(t, root, "evaluations/scenarios/synthetic.yaml", "synthetic scenario\n")
+	writeTestFile(t, root, "evaluations/scenarios/synthetic/synthetic.yaml", "synthetic scenario\n")
 	writeTestFile(t, root, "docs/evaluation.md", "evaluation guidance\n")
 	writeTestFile(t, root, "internal/eval/failure_test.go", "test evidence\n")
 	encoded, err := json.Marshal(record)
