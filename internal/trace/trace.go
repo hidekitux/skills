@@ -175,6 +175,7 @@ type FileValidationReport struct {
 var (
 	identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*$`)
 	runIDPattern      = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:-]*$`)
+	metadataPattern   = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:@+-]*$`)
 	versionPattern    = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 	shaPattern        = regexp.MustCompile(`^[0-9a-f]{40}$`)
 	credentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
@@ -487,6 +488,18 @@ func Sanitize(input Trace) (Trace, error) {
 	output.HostVersion = redact(input.HostVersion)
 	output.Model = redact(input.Model)
 	output.ModelTier = redact(input.ModelTier)
+	if output.HostVersion != "" && !validShortString(output.HostVersion) {
+		output.HostVersion = ""
+		output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, "host_version")
+	}
+	if input.Model != "" && !validShortString(output.Model) {
+		output.Model = "redacted-model"
+		output.Redaction.RedactedCount++
+	}
+	if output.ModelTier != "" && !validIdentifier(output.ModelTier) {
+		output.ModelTier = ""
+		output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, "model_tier")
+	}
 	output.RepositoryRevision = strings.ToLower(input.RepositoryRevision)
 	output.StartedAt = input.StartedAt
 	output.Events = make([]Event, 0, len(input.Events))
@@ -532,7 +545,8 @@ func Sanitize(input Trace) (Trace, error) {
 		}
 		if copyEvent.Terminal != nil {
 			copyTerminal := *copyEvent.Terminal
-			copyTerminal.Status, copyTerminal.Classification, copyTerminal.At = redact(copyTerminal.Status), redact(copyTerminal.Classification), copyTerminal.At
+			copyTerminal.Status = redact(copyTerminal.Status)
+			copyTerminal.Classification = redact(copyTerminal.Classification)
 			copyEvent.Terminal = &copyTerminal
 		}
 		output.Events = append(output.Events, copyEvent)
@@ -780,7 +794,7 @@ func validRunID(value string) bool {
 	return value != "" && len(value) <= 128 && runIDPattern.MatchString(value)
 }
 func validShortString(value string) bool {
-	return value != "" && len(value) <= 128 && !strings.ContainsAny(value, "\r\n")
+	return value != "" && len(value) <= 128 && metadataPattern.MatchString(value)
 }
 func validTime(value string) bool { _, err := time.Parse(time.RFC3339Nano, value); return err == nil }
 func validClassification(value string) bool {
