@@ -2,6 +2,20 @@
 
 Every skill states where its result goes and which skill owns the next phase. This document defines the shared handoff contract: the artifact flow from report to review, the debug and review closed loops, and the analyze-to-change boundary.
 
+## Machine-readable graph
+
+`workflow/skill-graph.yml` is the authoritative source for the machine-readable
+skill graph. It records each cataloged skill's capabilities, inputs, outputs,
+prerequisites, authority, outcomes, and transitions. `cmd/read-skill-graph`
+returns the versioned JSON read view, and `cmd/validate-skill-graph` checks the
+graph against `CATALOG.yml`, canonical skill discovery, and
+`docs/skill-graph.md`.
+
+The graph validator proves structural integrity only. It does not prove that a
+skill follows `SKILL.md` prose, that a host enforces authority, or that an
+observed run follows every transition. Behavioral evaluation and FSL replay
+cover those claims.
+
 ## Artifact flow
 
 The governed change flow moves one artifact through owner skills:

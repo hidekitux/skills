@@ -1,0 +1,408 @@
+schema_version: 1
+
+artifacts:
+  - id: analysis-findings
+    description: Prioritized findings and recommendations from project analysis.
+  - id: workflow-audit
+    description: Evidence-backed audit of workflow enforcement.
+  - id: runnable-foundation
+    description: Runnable project foundation and governance adoption plan.
+  - id: change-issue
+    description: Governing Change Issue with its scope and acceptance criteria.
+  - id: verified-plan
+    description: Verified implementation plan posted on the governing Issue.
+  - id: implementation-commits
+    description: In-scope implementation commits with per-task evidence.
+  - id: pull-request
+    description: Issue-backed Pull Request with validation evidence.
+  - id: review-findings
+    description: Severity-ordered findings from Pull Request review.
+  - id: fixed-pull-request
+    description: Validated fixes pushed as the Pull Request head.
+  - id: merged-change
+    description: Merged Pull Request and linked-work outcome evidence.
+  - id: defect-evidence
+    description: Reproduction, root-cause, fix, and verification evidence.
+  - id: focused-tests
+    description: Focused regression tests with failure evidence.
+  - id: refactor-result
+    description: Behavior-preserving refactor with a passing baseline.
+  - id: blocked-report
+    description: Actionable evidence explaining why the path stopped.
+
+prerequisites:
+  - id: repository-context
+    description: Repository instructions and relevant source context are available.
+  - id: governed-change-issue
+    description: A governed Change Issue exists with Scope and acceptance criteria.
+  - id: verified-implementation-plan
+    description: A verified implementation plan is posted on the governing Issue.
+  - id: reproducible-defect
+    description: The reported defect has reproducible failure evidence.
+  - id: pull-request-open
+    description: An open Pull Request is linked to the Issue branch.
+  - id: review-artifact
+    description: A review artifact identifies findings for the current Pull Request head.
+  - id: test-baseline
+    description: A passing test baseline exists for a behavior-preserving change.
+  - id: user-approval
+    description: The requester approved the external action required by the phase.
+  - id: issue-branch
+    description: The Issue branch is resolved from the current upstream default branch.
+
+terminal_outcomes:
+  - success
+  - findings
+  - blocked
+  - retry_exhausted
+
+termination_conditions:
+  - id: review-loop-limit
+    description: Stop the review and fix loop after two complete rework passes.
+
+conditions:
+  - id: regression-tests-needed
+    description: The verified defect needs focused regression tests.
+  - id: related-refactor-needed
+    description: The verified defect needs a behavior-preserving refactor.
+
+skills:
+  - id: plan-issue
+    path: skills/plan-issue/SKILL.md
+    layer: process
+    capabilities: [investigate-premises, resolve-decisions, derive-plan]
+    inputs: [governed-change-issue, repository-context]
+    outputs: [verified-plan, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [governed-change-issue, repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-implementation
+        outcome: success
+        artifact: verified-plan
+        destination: {skill: implement-issue}
+      - id: stop-with-plan-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: create-pr
+    path: skills/create-pr/SKILL.md
+    layer: process
+    capabilities: [inspect-branch, validate-pull-request, publish-pull-request]
+    inputs: [implementation-commits, issue-branch, user-approval]
+    outputs: [pull-request, blocked-report]
+    mutability: external_mutation
+    authority: {repository: read, git: write, github: write, external_mutation: pull_request}
+    prerequisites: [issue-branch, user-approval]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-review
+        outcome: success
+        artifact: pull-request
+        destination: {skill: review-pr}
+      - id: stop-with-publication-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: merge-pr
+    path: skills/merge-pr/SKILL.md
+    layer: process
+    capabilities: [recheck-pull-request, guarded-merge, verify-linked-work]
+    inputs: [pull-request, review-findings, user-approval]
+    outputs: [merged-change, blocked-report]
+    mutability: external_mutation
+    authority: {repository: write, git: write, github: write, external_mutation: pull_request}
+    prerequisites: [pull-request-open, user-approval]
+    outcomes: [success, blocked]
+    transitions:
+      - id: complete-merge
+        outcome: success
+        artifact: merged-change
+        destination: {terminal_outcome: success}
+      - id: stop-with-merge-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: create-issue
+    path: skills/create-issue/SKILL.md
+    layer: process
+    capabilities: [define-change-issue, validate-issue, publish-issue]
+    inputs: [analysis-findings, user-approval]
+    outputs: [change-issue, blocked-report]
+    mutability: external_mutation
+    authority: {repository: read, git: none, github: write, external_mutation: issue}
+    prerequisites: [user-approval]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-planning
+        outcome: success
+        artifact: change-issue
+        destination: {skill: plan-issue}
+      - id: stop-with-issue-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: bootstrap-project
+    path: skills/bootstrap-project/SKILL.md
+    layer: govern
+    capabilities: [inspect-project, establish-foundation, protect-pull-requests]
+    inputs: [repository-context, user-approval]
+    outputs: [runnable-foundation, blocked-report]
+    mutability: external_mutation
+    authority: {repository: write, git: write, github: write, external_mutation: repository_configuration}
+    prerequisites: [repository-context, user-approval]
+    outcomes: [success, blocked]
+    transitions:
+      - id: complete-bootstrap
+        outcome: success
+        artifact: runnable-foundation
+        destination: {terminal_outcome: success}
+      - id: stop-with-bootstrap-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: audit-workflow-enforcement
+    path: skills/audit-workflow-enforcement/SKILL.md
+    layer: govern
+    capabilities: [inspect-rules, test-enforcement, report-gaps]
+    inputs: [repository-context]
+    outputs: [workflow-audit, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: complete-audit
+        outcome: success
+        artifact: workflow-audit
+        destination: {terminal_outcome: success}
+      - id: stop-with-audit-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: implement-issue
+    path: skills/implement-issue/SKILL.md
+    layer: process
+    capabilities: [resolve-issue-branch, implement-scoped-plan, record-commit-evidence]
+    inputs: [verified-plan, issue-branch]
+    outputs: [implementation-commits, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: write, github: read, external_mutation: none}
+    prerequisites: [verified-implementation-plan, issue-branch]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-pull-request
+        outcome: success
+        artifact: implementation-commits
+        destination: {skill: create-pr}
+      - id: stop-with-implementation-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: debug-code
+    path: skills/debug-code/SKILL.md
+    layer: fix
+    capabilities: [reproduce-defect, isolate-root-cause, verify-fix]
+    inputs: [reproducible-defect, repository-context]
+    outputs: [defect-evidence, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: write, github: read, external_mutation: none}
+    prerequisites: [reproducible-defect, repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-regression-tests
+        outcome: success
+        condition: regression-tests-needed
+        artifact: defect-evidence
+        destination: {skill: write-tests}
+      - id: handoff-refactor
+        outcome: success
+        condition: related-refactor-needed
+        artifact: defect-evidence
+        destination: {skill: refactor-code}
+      - id: stop-with-debug-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: fix-pr
+    path: skills/fix-pr/SKILL.md
+    layer: process
+    capabilities: [resolve-review-findings, publish-fixes, sync-pull-request]
+    inputs: [pull-request, review-findings, review-artifact]
+    outputs: [fixed-pull-request, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: write, github: write, external_mutation: pull_request}
+    prerequisites: [pull-request-open, review-artifact]
+    outcomes: [success, blocked, retry_exhausted]
+    transitions:
+      - id: return-to-review
+        outcome: success
+        artifact: fixed-pull-request
+        destination: {skill: review-pr}
+        retry: {max_attempts: 2, termination_condition: review-loop-limit}
+      - id: stop-with-fix-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+      - id: stop-after-review-loop
+        outcome: retry_exhausted
+        artifact: blocked-report
+        destination: {terminal_outcome: retry_exhausted}
+
+  - id: review-pr
+    path: skills/review-pr/SKILL.md
+    layer: process
+    capabilities: [assemble-contract, trace-change, report-findings]
+    inputs: [pull-request]
+    outputs: [review-findings, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [pull-request-open]
+    outcomes: [success, findings, blocked, retry_exhausted]
+    transitions:
+      - id: request-fix
+        outcome: findings
+        artifact: review-findings
+        destination: {skill: fix-pr}
+        retry: {max_attempts: 2, termination_condition: review-loop-limit}
+      - id: complete-review
+        outcome: success
+        artifact: review-findings
+        destination: {terminal_outcome: success}
+      - id: stop-with-review-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+      - id: stop-after-review-loop
+        outcome: retry_exhausted
+        artifact: blocked-report
+        destination: {terminal_outcome: retry_exhausted}
+
+  - id: analyze-project
+    path: skills/analyze-project/SKILL.md
+    layer: analyze
+    capabilities: [inspect-architecture, inspect-validation, prioritize-findings]
+    inputs: [repository-context]
+    outputs: [analysis-findings, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-change-issue
+        outcome: success
+        artifact: analysis-findings
+        destination: {skill: create-issue}
+      - id: stop-with-analysis-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: refactor-code
+    path: skills/skills/refactor-code/SKILL.md
+    layer: fix
+    capabilities: [preserve-behavior, refactor-root-cause, verify-baseline]
+    inputs: [defect-evidence, test-baseline]
+    outputs: [refactor-result, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: write, github: read, external_mutation: none}
+    prerequisites: [test-baseline]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-governed-implementation
+        outcome: success
+        artifact: refactor-result
+        destination: {skill: implement-issue}
+      - id: stop-with-refactor-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: write-tests
+    path: skills/write-tests/SKILL.md
+    layer: fix
+    capabilities: [derive-test-cases, add-regression-tests, record-failure-evidence]
+    inputs: [defect-evidence, repository-context]
+    outputs: [focused-tests, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: write, github: read, external_mutation: none}
+    prerequisites: [reproducible-defect, repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-governed-implementation
+        outcome: success
+        artifact: focused-tests
+        destination: {skill: implement-issue}
+      - id: stop-with-test-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: improve-project
+    path: skills/improve-project/SKILL.md
+    layer: process
+    capabilities: [coordinate-project-improvement, preserve-phase-authority, report-completion]
+    inputs: [repository-context, user-approval]
+    outputs: [analysis-findings, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: start-analysis
+        outcome: success
+        artifact: analysis-findings
+        destination: {skill: analyze-project}
+      - id: stop-with-improvement-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: deliver-change
+    path: skills/deliver-change/SKILL.md
+    layer: process
+    capabilities: [coordinate-governed-change, preserve-handoffs, report-completion]
+    inputs: [governed-change-issue, repository-context, user-approval]
+    outputs: [change-issue, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [governed-change-issue, repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: start-planning
+        outcome: success
+        artifact: change-issue
+        destination: {skill: plan-issue}
+      - id: stop-with-delivery-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: resolve-defect
+    path: skills/resolve-defect/SKILL.md
+    layer: fix
+    capabilities: [coordinate-defect-resolution, preserve-fix-boundaries, report-completion]
+    inputs: [reproducible-defect, repository-context, user-approval]
+    outputs: [defect-evidence, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [reproducible-defect, repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: start-debug-loop
+        outcome: success
+        artifact: defect-evidence
+        destination: {skill: debug-code}
+      - id: stop-with-resolution-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
