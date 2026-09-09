@@ -432,6 +432,7 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 		wg.Wait()
 		for _, record := range results {
 			record.RunID = runID
+			attachFailureMetadata(opts.Root, &record)
 			records = append(records, record)
 		}
 		verdict, detail := gateVerdict(results)

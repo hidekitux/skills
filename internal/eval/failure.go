@@ -333,3 +333,36 @@ func CheckFailureRecords(root string, out, errOut io.Writer) int {
 	fmt.Fprintln(out, "Failure record check passed.")
 	return 0
 }
+
+// attachFailureMetadata links a scenario result to its promoted regression
+// record. The result already carries host, model, skill, commit, and run ID;
+// these fields add the durable cause and recurrence identity for measurement.
+func attachFailureMetadata(root string, record *Record) {
+	asset := "scenario:" + record.Skill + "/" + record.Scenario + ".yaml"
+	dir := filepath.Join(root, failureRecordDir)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".jsonl" {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(dir, entry.Name()))
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(content), "\n") {
+			var candidate failureRecord
+			if strings.TrimSpace(line) == "" || json.Unmarshal([]byte(line), &candidate) != nil {
+				continue
+			}
+			if candidate.Status == "promoted" && candidate.RegressionAsset == asset {
+				record.FailureID = candidate.ID
+				record.FailureCause = candidate.Classification
+				record.FailureRecurrence = candidate.RecurrenceCount
+				return
+			}
+		}
+	}
+}
