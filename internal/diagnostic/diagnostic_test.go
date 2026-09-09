@@ -82,6 +82,7 @@ func TestSanitizeRedactsSecretsAndOmitsUnsafeEvidence(t *testing.T) {
 	diagnostic := validDiagnostic()
 	diagnostic.Message = "token=ghp_example_secret at https://private.example/run/1"
 	diagnostic.Expected = "password=secret-value"
+	diagnostic.Location = &Location{Path: "reports/token=secret.txt"}
 	diagnostic.Evidence = append(diagnostic.Evidence, Evidence{Kind: "issue", Ref: "https://github.com/hidekitux/skills/issues/202?token=secret"})
 	clean, err := Sanitize(diagnostic)
 	if err != nil {
@@ -96,7 +97,7 @@ func TestSanitizeRedactsSecretsAndOmitsUnsafeEvidence(t *testing.T) {
 	if len(clean.Evidence) != 2 {
 		t.Fatalf("unsafe evidence was not omitted: %#v", clean.Evidence)
 	}
-	if clean.Redaction.RedactedCount < 3 || len(clean.Redaction.OmittedFields) != 1 || clean.Redaction.OmittedFields[0] != "evidence[2]" {
+	if clean.Redaction.RedactedCount < 4 || len(clean.Redaction.OmittedFields) != 2 || clean.Redaction.OmittedFields[0] != "evidence[2]" || clean.Redaction.OmittedFields[1] != "location" {
 		t.Fatalf("unexpected redaction summary: %#v", clean.Redaction)
 	}
 	if _, err := New(clean); err != nil {
@@ -125,6 +126,14 @@ func TestReadJSONLRejectsUnknownFieldsAndRequiresRecords(t *testing.T) {
 	}
 	if _, err := ReadJSONL([]byte("\n")); err == nil {
 		t.Fatal("empty stream was accepted")
+	}
+}
+
+func TestValidateJSONLRejectsUnsafePersistedText(t *testing.T) {
+	encoded := []byte(`{"schema_version":1,"producer":"fixture","code":"fixture.invalid","category":"validation_failure","source_command":"fixture-validator","message":"private https://internal.example/run","retryable":false,"remediation":"inspect_input","redaction":{"mode":"allowlist","redacted_count":0,"omitted_fields":[]}}`)
+	report := ValidateJSONL(encoded)
+	if report.Valid || !strings.Contains(strings.Join(report.Findings, "\n"), "unsafe text") {
+		t.Fatalf("unsafe text was accepted: %#v", report)
 	}
 }
 

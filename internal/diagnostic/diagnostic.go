@@ -11,6 +11,8 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -85,6 +87,13 @@ type DiagnosticRef struct {
 	Code     string `json:"code"`
 }
 
+type ValidationReport struct {
+	Valid           bool     `json:"valid"`
+	SchemaVersion   int      `json:"schema_version"`
+	DiagnosticCount int      `json:"diagnostic_count"`
+	Findings        []string `json:"findings,omitempty"`
+}
+
 type Filter struct {
 	Producers    []string
 	Codes        []string
@@ -105,6 +114,9 @@ var (
 // New sanitizes and validates a diagnostic before a caller persists or
 // renders it.
 func New(input Diagnostic) (Diagnostic, error) {
+	if input.SchemaVersion != 0 && input.SchemaVersion != SchemaVersion {
+		return Diagnostic{}, fmt.Errorf("schema_version %d is unsupported", input.SchemaVersion)
+	}
 	clean, err := Sanitize(input)
 	if err != nil {
 		return Diagnostic{}, err
@@ -203,7 +215,7 @@ func Sanitize(input Diagnostic) (Diagnostic, error) {
 	}
 	if output.Location != nil {
 		location := *output.Location
-		if strings.HasPrefix(location.Path, "/") || hasParentPath(location.Path) || strings.ContainsAny(location.Path, "\r\n") {
+		if strings.HasPrefix(location.Path, "/") || hasParentPath(location.Path) || unsafeText(location.Path) {
 			output.Location = nil
 			output.Redaction.RedactedCount++
 			output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, "location")
@@ -315,6 +327,51 @@ func ReadJSONL(data []byte) ([]Diagnostic, error) {
 	return result, nil
 }
 
+// ValidateJSONL returns a stable report without exposing invalid input values.
+func ValidateJSONL(data []byte) ValidationReport {
+	report := ValidationReport{Valid: true, SchemaVersion: SchemaVersion}
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	line := 0
+	for scanner.Scan() {
+		line++
+		text := strings.TrimSpace(scanner.Text())
+		if text == "" {
+			continue
+		}
+		var item Diagnostic
+		if err := decodeStrict([]byte(text), &item); err != nil {
+			report.Valid = false
+			report.Findings = append(report.Findings, fmt.Sprintf("line %d: decode diagnostic: %v", line, err))
+			continue
+		}
+		report.DiagnosticCount++
+		for _, finding := range Validate(item) {
+			report.Valid = false
+			report.Findings = append(report.Findings, fmt.Sprintf("line %d: %s", line, finding))
+		}
+		for _, value := range []string{item.Message, item.Rule, item.Invariant, item.Expected, item.Observed} {
+			if unsafeText(value) {
+				report.Valid = false
+				report.Findings = append(report.Findings, fmt.Sprintf("line %d: diagnostic contains unsafe text", line))
+				break
+			}
+		}
+		if item.Location != nil && unsafeText(item.Location.Path) {
+			report.Valid = false
+			report.Findings = append(report.Findings, fmt.Sprintf("line %d: diagnostic contains unsafe location", line))
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		report.Valid = false
+		report.Findings = append(report.Findings, "read diagnostic stream: "+err.Error())
+	}
+	if report.DiagnosticCount == 0 {
+		report.Valid = false
+		report.Findings = append(report.Findings, "diagnostic stream contains no records")
+	}
+	return report
+}
+
 // Select returns diagnostics that match at least one supplied structured
 // filter. An empty filter matches every diagnostic. Within a field, values are
 // ORed; across fields, values are ANDed.
@@ -389,6 +446,19 @@ func redactText(value string) (string, bool) {
 		clean = regexp.MustCompile(`-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----`).ReplaceAllString(clean, "[REDACTED_KEY]")
 	}
 	return clean, changed
+}
+
+func unsafeText(value string) bool {
+	if strings.ContainsAny(value, "\r\n") || credentialRE.MatchString(value) || strings.Contains(value, "-----BEGIN") {
+		return true
+	}
+	for _, match := range urlRE.FindAllString(value, -1) {
+		parsed, err := url.Parse(match)
+		if err != nil || parsed.Scheme != "https" || parsed.Host != "github.com" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func validIdentifier(value string) bool {
@@ -525,4 +595,52 @@ func IsPrivateHost(host string) bool {
 		return ip.IsPrivate() || ip.IsLoopback()
 	}
 	return host == "localhost" || strings.HasSuffix(host, ".local")
+}
+
+// CheckFixtures validates committed diagnostic JSONL fixtures without
+// persisting their contents in check output.
+func CheckFixtures(root string, out, errOut io.Writer) int {
+	directory := filepath.Join(root, "workflow", "diagnostic-fixtures")
+	entries, err := os.ReadDir(directory)
+	if os.IsNotExist(err) {
+		fmt.Fprintln(out, "diagnostic fixture check skipped: no workflow/diagnostic-fixtures directory")
+		return 0
+	}
+	if err != nil {
+		fmt.Fprintf(errOut, "diagnostic fixture check failed: %v\n", err)
+		return 1
+	}
+	count := 0
+	failed := false
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".jsonl" {
+			continue
+		}
+		count++
+		path := filepath.Join(directory, entry.Name())
+		data, readErr := os.ReadFile(path)
+		if readErr != nil {
+			failed = true
+			fmt.Fprintf(errOut, "%s: read fixture: %v\n", entry.Name(), readErr)
+			continue
+		}
+		report := ValidateJSONL(data)
+		if !report.Valid {
+			failed = true
+			for _, finding := range report.Findings {
+				fmt.Fprintf(errOut, "%s: %s\n", entry.Name(), finding)
+			}
+			continue
+		}
+		fmt.Fprintf(out, "%s: %d diagnostic(s) valid\n", entry.Name(), report.DiagnosticCount)
+	}
+	if count == 0 {
+		fmt.Fprintln(out, "diagnostic fixture check skipped: no JSONL fixtures found")
+		return 0
+	}
+	if failed {
+		return 1
+	}
+	fmt.Fprintf(out, "diagnostic fixture check passed: %d file(s).\n", count)
+	return 0
 }
