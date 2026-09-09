@@ -37,15 +37,8 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 ## Push
 
-- Commits are authored by `implement-issue` during implementation. Do not
-  stage, create, or amend commits here; push the resolved head branch as it is.
-- Push the resolved head branch before creating the Pull Request.
-- When an author-owned Issue branch must be rebased, resolve the exact remote branch and obtain any approval required by the host before rewriting it. Push only with `--force-with-lease`; never use plain `--force`.
-- After a rebase changes the base revision, re-read the current repository
-  instructions, Pull Request template, and branch-policy rules before drafting
-  or updating the Pull Request body. Do not reuse a body layout inferred from
-  the pre-rebase base revision.
-- Do not push to a protected base branch or bypass repository protections.
+When validation passes, read [publish and synchronize](references/publish.md)
+before pushing or creating or updating the Pull Request.
 
 ## Create or Update
 
@@ -84,12 +77,5 @@ release are later phases, not part of this skill.
 
 ## Writing quality
 
-These rules bind the prose this skill writes into anything a person reads later: an Issue body, a Pull Request body, a comment, a commit message body, or a file added to the project. Code, identifiers, commands, paths, and quoted output are exempt. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
-
-- Choose the plain word, and choose a word people say aloud. Write `use` rather than `utilize` and `is` rather than `serves as`; a replacement nobody says fails this rule too.
-- Keep one idea in one sentence. Split a sentence that makes the reader hold the first idea while parsing the second.
-- Name a thing in full on first mention and reuse that exact term to the last. Define a short form before using it.
-- Make every sentence add a fact the reader did not have. Delete each sentence in turn; one that loses nothing does not belong.
-- Cite the file, command, or output behind every claim about the project.
-- State a position and give its reason. Do not present two options and commit to neither.
-- Write headings in sentence case, and use a list only for items a reader counts.
+Read [persistent prose](references/persistent-prose.md) before writing text
+that outlives the conversation.
