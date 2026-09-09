@@ -86,6 +86,29 @@ func TestResolveRootPreservesTrailingSpace(t *testing.T) {
 	}
 }
 
+func TestResolveRootPreservesTrailingNewline(t *testing.T) {
+	parent := t.TempDir()
+	root := filepath.Join(parent, "repo-with-trailing-newline\n")
+	if err := os.Mkdir(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := GitOutputIn(root, "init", "--quiet"); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
+	expectedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatalf("evaluate repository root symlinks: %v", err)
+	}
+
+	resolved, err := ResolveRoot(root)
+	if err != nil {
+		t.Fatalf("ResolveRoot(%q) failed: %v", root, err)
+	}
+	if resolved != filepath.Clean(expectedRoot) {
+		t.Fatalf("ResolveRoot(%q) = %q, want %q", root, resolved, expectedRoot)
+	}
+}
+
 func TestLoadTOMLFile(t *testing.T) {
 	root := t.TempDir()
 	validPath := filepath.Join(root, "valid.toml")
