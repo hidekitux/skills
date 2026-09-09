@@ -128,6 +128,17 @@ func runFslc(out, errOut io.Writer, args ...string) int {
 	return runFslcResult(out, errOut, args...).exitCode
 }
 
+// ReplayTrace runs the pinned FSL replay command against one public action
+// trace. The caller owns the trace file and keeps its contents free of raw
+// prompts, tool arguments, command output, and credentials.
+func ReplayTrace(spec, tracePath string, out, errOut io.Writer) int {
+	if spec == "" || tracePath == "" {
+		fmt.Fprintln(errOut, "error: FSL replay requires a specification and trace path")
+		return 2
+	}
+	return runFslc(out, errOut, "replay", spec, "--trace", tracePath)
+}
+
 type fslcResult struct {
 	exitCode int
 	started  bool

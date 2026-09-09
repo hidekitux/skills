@@ -1,0 +1,13 @@
+{
+  "fixtures": [
+    {"path": "valid.jsonl", "valid": true, "outcome": "valid"},
+    {"path": "invalid-order.jsonl", "outcome": "violation", "invariant": "HandoffMatchesGraph", "event_sequence": 7},
+    {"path": "missing-evidence.jsonl", "outcome": "incomplete_evidence", "invariant": "IncompleteTraceIsNotSuccess", "event_sequence": 7},
+    {"path": "missing-validation.jsonl", "outcome": "incomplete_evidence", "invariant": "IncompleteTraceIsNotSuccess", "event_sequence": 7},
+    {"path": "read-only-mutation.jsonl", "outcome": "violation", "invariant": "ReadOnlyPhaseHasNoMutation", "event_sequence": 7},
+    {"path": "wrong-branch-owner.jsonl", "outcome": "violation", "invariant": "ReadOnlyPhaseHasNoMutation", "event_sequence": 5},
+    {"path": "review-loop-beyond-bound.jsonl", "outcome": "retry_exhausted", "invariant": "ReviewLoopBounded", "event_sequence": 6},
+    {"path": "interrupted.jsonl", "outcome": "interrupted", "invariant": "InterruptedIsNotSuccess", "event_sequence": 8},
+    {"path": "partial.jsonl", "outcome": "incomplete_evidence", "invariant": "IncompleteTraceIsNotSuccess", "event_sequence": 7}
+  ]
+}
