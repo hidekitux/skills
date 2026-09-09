@@ -81,6 +81,30 @@ func TestTraceForInterruptedRecordUsesInterruptedTerminal(t *testing.T) {
 	}
 }
 
+func TestTraceForInfrastructureRecordUsesSafeDiagnosticIdentifiers(t *testing.T) {
+	scenario := &Scenario{ID: "infrastructure", Skill: "debug-code"}
+	record := Record{
+		RunID: "run-infrastructure", Scenario: scenario.ID, Skill: scenario.Skill, Host: "codex", Model: "gpt-5",
+		Commit: "0123456789abcdef0123456789abcdef01234567", Verdict: VerdictInfra,
+		StartedAt: "2026-09-09T12:00:00Z", FinishedAt: "2026-09-09T12:00:01Z",
+	}
+	item, err := traceForRecord(scenario, record, 1, "0.1.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report := trace.Validate(item); !report.Valid {
+		t.Fatalf("evaluation trace invalid: %v", report.Findings)
+	}
+	for _, event := range item.Events {
+		if event.Validation != nil && event.Validation.Result != "infrastructure-error" {
+			t.Fatalf("validation result = %q, want infrastructure-error", event.Validation.Result)
+		}
+		if event.Validation != nil && len(event.Validation.Diagnostics) != 1 {
+			t.Fatalf("diagnostics = %#v, want one diagnostic reference", event.Validation.Diagnostics)
+		}
+	}
+}
+
 func TestRunOptInWritesTraceAndMetrics(t *testing.T) {
 	t.Setenv("EVAL_GITHUB_REPO", "hidekitux/skills")
 	_, file, _, ok := runtime.Caller(0)

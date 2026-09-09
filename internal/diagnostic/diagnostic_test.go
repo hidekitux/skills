@@ -152,4 +152,14 @@ func TestSelectUsesStructuredFields(t *testing.T) {
 	}
 }
 
+func TestSelectUsesStableCodeAcrossProseChanges(t *testing.T) {
+	first := validDiagnostic()
+	second := first
+	second.Message = "the required heading is still missing"
+	selected := Select([]Diagnostic{first, second}, Filter{Codes: []string{first.Code}})
+	if len(selected) != 2 {
+		t.Fatalf("prose change altered structured selection: %#v", selected)
+	}
+}
+
 func boolPtr(value bool) *bool { return &value }

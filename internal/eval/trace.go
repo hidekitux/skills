@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hidekitux/skills/internal/trace"
@@ -43,10 +44,10 @@ func traceForRecord(sc *Scenario, record Record, graphVersion int, skillVersion 
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindToolOutcome, Status: toolStatus, At: finished, Tool: &trace.ToolOutcome{Name: "host-stage", Result: toolStatus, Classification: toolClass}})
 	validationStatus, validationClass := traceOutcome(record)
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindValidationOutcome, Status: validationStatus, At: finished, Validation: &trace.Validation{
-		Name: "check-evaluation", Result: record.Verdict, Classification: validationClass,
-		Diagnostics: []trace.DiagnosticRef{{Producer: "evaluate", Code: "evaluate.scenario." + record.Verdict}},
+		Name: "check-evaluation", Result: traceIdentifier(record.Verdict), Classification: validationClass,
+		Diagnostics: []trace.DiagnosticRef{{Producer: "evaluate", Code: "evaluate.scenario." + traceIdentifier(record.Verdict)}},
 	}})
-	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindEvidence, Status: validationStatus, At: finished, Evidence: &trace.Evidence{Kind: "validation", Ref: "check-evaluation", Result: record.Verdict}})
+	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindEvidence, Status: validationStatus, At: finished, Evidence: &trace.Evidence{Kind: "validation", Ref: "check-evaluation", Result: traceIdentifier(record.Verdict)}})
 	if record.CorrectionsUsed > 0 {
 		item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindRetry, Status: trace.StatusFailed, At: finished, Retry: &trace.Retry{Attempt: record.CorrectionsUsed, MaxAttempts: record.CorrectionsUsed, Reason: "user-correction"}})
 	}
@@ -102,6 +103,10 @@ func normalizedRevision(value string) string {
 		return value
 	}
 	return trace.RepositoryRevision(value)
+}
+
+func traceIdentifier(value string) string {
+	return strings.ReplaceAll(value, "_", "-")
 }
 
 func traceSkill(sc *Scenario, record Record) string {
