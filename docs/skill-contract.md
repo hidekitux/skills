@@ -16,6 +16,22 @@ skill follows `SKILL.md` prose, that a host enforces authority, or that an
 observed run follows every transition. Behavioral evaluation and FSL replay
 cover those claims.
 
+## Structured execution trace
+
+`workflow/skill-trace.schema.json` defines the versioned, host-neutral record
+for one skill run. The trace records semantic Todo, tool, validation, evidence,
+retry, handoff, usage, and terminal events. Its `run_id`, skill version, graph
+version, and repository revision let consumers correlate one run with the
+skill graph and source revision.
+
+Trace persistence is opt-in and allowlisted. The writer omits prompts,
+reasoning, tool arguments, tool output, source contents, credentials, and user
+data, then validates the redacted result before writing JSONL. Codex and Claude
+Code adapters may differ in low-level event names, but they emit the same
+required semantic fields. Issue #173 consumes structured traces without
+parsing prose; this contract does not add a hosted telemetry service or grant
+host authority.
+
 ## Artifact flow
 
 The governed change flow moves one artifact through owner skills:
