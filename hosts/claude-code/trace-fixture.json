@@ -1,0 +1,19 @@
+{
+  "session_id": "run-1",
+  "skill_name": "plan-issue",
+  "skill_version": "0.1.0",
+  "graph_schema": 1,
+  "provider_version": "1.0",
+  "model": "gpt-5",
+  "repository_revision": "0123456789abcdef0123456789abcdef01234567",
+  "started_at": "2026-09-09T12:00:00Z",
+  "events": [
+    {"ordinal": 1, "timestamp": "2026-09-09T12:00:00Z", "event": "session_start"},
+    {"ordinal": 2, "timestamp": "2026-09-09T12:00:01Z", "event": "todo_updated", "item": "discover", "previous_state": "pending", "state": "in_progress"},
+    {"ordinal": 3, "timestamp": "2026-09-09T12:00:02Z", "event": "tool_result", "tool_name": "gh", "ok": true, "result": "success"},
+    {"ordinal": 4, "timestamp": "2026-09-09T12:00:03Z", "event": "validation_result", "validator": "mise:validate-all", "result": "passed"},
+    {"ordinal": 5, "timestamp": "2026-09-09T12:00:04Z", "event": "evidence", "evidence_kind": "commit", "reference": "0123456789abcdef0123456789abcdef01234567", "result": "present"},
+    {"ordinal": 6, "timestamp": "2026-09-09T12:00:05Z", "event": "handoff_emitted", "next_skill": "implement-issue", "artifact": "verified-plan", "outcome": "success"},
+    {"ordinal": 7, "timestamp": "2026-09-09T12:00:06Z", "event": "session_end", "terminal_status": "success", "classification": "none"}
+  ]
+}

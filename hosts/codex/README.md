@@ -8,6 +8,13 @@ Do not assume a particular plugin, MCP server, browser session, or local binary
 exists. Record any material capability difference in the relevant skill's
 `references/hosts/codex.md`, including a safe fallback and verification step.
 
+## Trace adapter
+
+The Codex adapter accepts the provider event shape in `trace-fixture.json` and
+maps only its safe semantic fields into `workflow/skill-trace.schema.json`.
+Arguments, output, prompts, reasoning, and unknown provider fields are not
+persisted. Verify the mapping with `go test ./internal/trace`.
+
 ## Model selection
 
 Skills select role-specific models from the shared convention in
