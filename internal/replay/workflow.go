@@ -96,6 +96,16 @@ func Replay(root string, set TraceSet) Report {
 		if record.Trace.Terminal.Status == trace.StatusInterrupted {
 			return finishInterrupted(report, record, index)
 		}
+		if record.Trace.Terminal.Status != trace.StatusSuccess {
+			return finishViolation(report, Finding{
+				Invariant:     "TerminalOutcomeIsNotSuccess",
+				Category:      "terminal",
+				Message:       "non-success terminal cannot establish a successful handoff",
+				TraceIndex:    index,
+				Line:          record.Line,
+				EventSequence: lastEventSequence(record.Trace),
+			})
+		}
 		if finding, outcome, ok := checkTools(record, index); ok {
 			if outcome == OutcomeIncomplete {
 				return finishIncompleteFinding(report, finding)

@@ -230,6 +230,21 @@ func TestReplayPreservesInterruptedOutcome(t *testing.T) {
 	}
 }
 
+func TestReplayRejectsFailedTerminal(t *testing.T) {
+	item := lifecycleTrace("create-issue", "plan-issue", "change-issue", "success", "user-approval", "create-issue")
+	item.Trace.Terminal = trace.Terminal{Status: trace.StatusFailed, Classification: trace.ClassificationDeterministic, At: replayTestTime}
+	item.Trace.Events[len(item.Trace.Events)-1].Status = trace.StatusFailed
+	item.Trace.Events[len(item.Trace.Events)-1].Terminal = &item.Trace.Terminal
+	item.Validation = trace.Validate(item.Trace)
+	if !item.Validation.Valid {
+		t.Fatalf("failed terminal fixture is not structurally valid: %v", item.Validation.Findings)
+	}
+	report := Replay(replayRepositoryRoot(t), lifecycleSet(item))
+	if report.Valid || report.Outcome != OutcomeViolation || len(report.Findings) == 0 || report.Findings[0].Invariant != "TerminalOutcomeIsNotSuccess" {
+		t.Fatalf("failed terminal was accepted: %#v", report)
+	}
+}
+
 func TestReplayRejectsReviewLoopBeyondGraphBound(t *testing.T) {
 	set := lifecycleSet(
 		lifecycleTrace("create-issue", "plan-issue", "change-issue", "success", "user-approval", "create-issue"),
