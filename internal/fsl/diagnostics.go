@@ -22,20 +22,7 @@ func DiagnosticsForReport(report MutationReport) ([]diagnostic.Diagnostic, error
 	result := []diagnostic.Diagnostic{}
 	for _, spec := range report.Specs {
 		if spec.Status == "error" {
-			item, err := diagnostic.New(diagnostic.Diagnostic{
-				Producer:      "fsl",
-				Code:          MutationInfrastructureDiagnosticCode,
-				Category:      diagnostic.InfrastructureError,
-				SourceCommand: "cmd/mutate-fsl",
-				Message:       "FSL mutation command failed",
-				Rule:          "fsl.mutation.complete",
-				Expected:      "fslc returns a mutation report",
-				Observed:      fmt.Sprintf("spec=%s status=error", filepath.ToSlash(spec.Spec)),
-				Evidence:      []diagnostic.Evidence{{Kind: "path", Ref: filepath.ToSlash(spec.Spec)}},
-				Retryable:     true,
-				Remediation:   diagnostic.RetryOperation,
-				Redaction:     diagnostic.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}},
-			})
+			item, err := mutationInfrastructureDiagnostic(spec.Spec)
 			if err != nil {
 				return nil, err
 			}
@@ -63,6 +50,44 @@ func DiagnosticsForReport(report MutationReport) ([]diagnostic.Diagnostic, error
 		}
 	}
 	return result, nil
+}
+
+// MutationInfrastructureDiagnostic maps a mutation invocation failure that
+// has no per-spec report to a safe diagnostic.
+func MutationInfrastructureDiagnostic(exitCode int) (diagnostic.Diagnostic, error) {
+	return diagnostic.New(diagnostic.Diagnostic{
+		Producer:      "fsl",
+		Code:          MutationInfrastructureDiagnosticCode,
+		Category:      diagnostic.InfrastructureError,
+		SourceCommand: "cmd/mutate-fsl",
+		Message:       "FSL mutation command failed",
+		Rule:          "fsl.mutation.complete",
+		Expected:      "fslc returns a mutation report",
+		Observed:      fmt.Sprintf("exit_code=%d", exitCode),
+		Retryable:     true,
+		Remediation:   diagnostic.RetryOperation,
+		Redaction:     diagnostic.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}},
+	})
+}
+
+func mutationInfrastructureDiagnostic(spec string) (diagnostic.Diagnostic, error) {
+	item := diagnostic.Diagnostic{
+		Producer:      "fsl",
+		Code:          MutationInfrastructureDiagnosticCode,
+		Category:      diagnostic.InfrastructureError,
+		SourceCommand: "cmd/mutate-fsl",
+		Message:       "FSL mutation command failed",
+		Rule:          "fsl.mutation.complete",
+		Expected:      "fslc returns a mutation report",
+		Observed:      "mutation report unavailable for selected specification",
+		Retryable:     true,
+		Remediation:   diagnostic.RetryOperation,
+		Redaction:     diagnostic.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}},
+	}
+	if spec != "" {
+		item.Evidence = []diagnostic.Evidence{{Kind: "path", Ref: filepath.ToSlash(spec)}}
+	}
+	return diagnostic.New(item)
 }
 
 // VerificationDiagnostic maps a failed fslc verification to a safe

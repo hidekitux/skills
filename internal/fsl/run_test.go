@@ -180,6 +180,32 @@ func TestVerifyFSLResultDistinguishesInvalidSpecFromUnavailableTool(t *testing.T
 	}
 }
 
+func TestMutateFSLResultRetainsReportWhenMutationOutputIsInvalid(t *testing.T) {
+	root := t.TempDir()
+	write(t, root, "specs/invalid.fsl", "not a valid specification")
+	binDir := t.TempDir()
+	bin := filepath.Join(binDir, "fslc")
+	if err := os.WriteFile(bin, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("FSLC_BIN_DIR", binDir)
+	reportPath := filepath.Join(t.TempDir(), "mutation-report.json")
+	result := MutateFSLResult(root, &bytes.Buffer{}, &bytes.Buffer{}, MutateOptions{ReportPath: reportPath})
+	if result.ExitCode != 1 {
+		t.Fatalf("expected mutation failure, got %#v", result)
+	}
+	if len(result.Report.Specs) != 1 || result.Report.Specs[0].Status != "error" {
+		t.Fatalf("expected the current invocation error in the report, got %#v", result.Report)
+	}
+	diagnostics, err := DiagnosticsForReport(result.Report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(diagnostics) != 1 || diagnostics[0].Category != diagnostic.InfrastructureError {
+		t.Fatalf("expected one infrastructure diagnostic, got %#v", diagnostics)
+	}
+}
+
 func TestRunFslcInvokesBinaryAtBinDir(t *testing.T) {
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "fslc")
