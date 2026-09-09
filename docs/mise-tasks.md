@@ -14,7 +14,7 @@ Repository tasks use the form `verb:task-name`.
 
 | Category | Task names |
 | --- | --- |
-| check | `check:all`, `check:branch-policy`, `check:diff`, `check:go-vuln`, `check:hosts`, `check:local`, `check:repository`, `check:skills` |
+| check | `check:all`, `check:branch-policy`, `check:diff`, `check:go-vuln`, `check:hosts`, `check:local`, `check:repository`, `check:skills`, `check:tasks` |
 | evaluate | `evaluate:all`, `evaluate:smoke` |
 | generate | `generate:public-status` |
 | install | `install:fsl` |
