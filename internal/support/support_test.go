@@ -59,3 +59,43 @@ func TestResolveRoot(t *testing.T) {
 		}
 	})
 }
+
+func TestLoadTOMLFile(t *testing.T) {
+	root := t.TempDir()
+	validPath := filepath.Join(root, "valid.toml")
+	if err := os.WriteFile(validPath, []byte("name = \"skills\"\ncount = 3\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	var got struct {
+		Name  string `toml:"name"`
+		Count int    `toml:"count"`
+	}
+	if err := LoadTOMLFile(validPath, &got); err != nil {
+		t.Fatalf("LoadTOMLFile(%q) failed: %v", validPath, err)
+	}
+	if got.Name != "skills" || got.Count != 3 {
+		t.Fatalf("LoadTOMLFile(%q) = %#v, want name=skills and count=3", validPath, got)
+	}
+
+	t.Run("malformed input names path", func(t *testing.T) {
+		path := filepath.Join(root, "malformed.toml")
+		if err := os.WriteFile(path, []byte("name = \"unterminated\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := LoadTOMLFile(path, &struct{}{}); err == nil {
+			t.Fatalf("LoadTOMLFile(%q) succeeded for malformed input", path)
+		} else if !strings.Contains(err.Error(), path) {
+			t.Fatalf("LoadTOMLFile(%q) error = %q, want path in error", path, err)
+		}
+	})
+
+	t.Run("missing file names path", func(t *testing.T) {
+		path := filepath.Join(root, "missing.toml")
+		if err := LoadTOMLFile(path, &struct{}{}); err == nil {
+			t.Fatalf("LoadTOMLFile(%q) succeeded for missing input", path)
+		} else if !strings.Contains(err.Error(), path) {
+			t.Fatalf("LoadTOMLFile(%q) error = %q, want path in error", path, err)
+		}
+	})
+}
