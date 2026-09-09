@@ -179,6 +179,11 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 	if sc.Fixture != "" {
 		record.Fixtures = []string{sc.Fixture}
 	}
+	if errors.Is(ctx.Err(), context.Canceled) {
+		record.Verdict = VerdictInterrupted
+		record.InfraError = "user interruption: " + ctx.Err().Error()
+		return record
+	}
 
 	if reason, skip := shouldSkip(sc, opts); skip {
 		record.Verdict = VerdictSkipped
@@ -251,8 +256,13 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 			// (Acceptance criterion 3), not a passing outcome: the scenario
 			// cannot produce rubric evidence, so the record must not report
 			// pass and must not block the either-pass gate as a success.
-			record.Verdict = VerdictInfra
-			record.InfraError = "rubric review: " + err.Error()
+			record.Verdict, record.InfraError = classifyHostError(ctx, "rubric review", err)
+			record.RubricReview = RubricPending
+			return record
+		}
+		if errors.Is(ctx.Err(), context.Canceled) {
+			record.Verdict = VerdictInterrupted
+			record.InfraError = "user interruption: " + ctx.Err().Error()
 			record.RubricReview = RubricPending
 			return record
 		}
