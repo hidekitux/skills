@@ -107,3 +107,20 @@ func TestInvalidFixtureRemainsUnpersistable(t *testing.T) {
 		t.Fatal("invalid fixture was readable")
 	}
 }
+
+func TestValidateJSONLRejectsTrailingData(t *testing.T) {
+	root := fixtureRepositoryRoot(t)
+	path := filepath.Join(t.TempDir(), "trailing.jsonl")
+	content, err := os.ReadFile(filepath.Join(root, "workflow", "trace-fixtures", "representative.jsonl"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	line := strings.SplitN(string(content), "\n", 2)[0] + " trailing-json\n"
+	if err := os.WriteFile(path, []byte(line), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	report := ValidateJSONL(path, root)
+	if report.Valid || !contains(report.Findings, "trailing JSON") {
+		t.Fatalf("trailing data was accepted: %#v", report)
+	}
+}

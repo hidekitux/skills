@@ -650,9 +650,7 @@ func ValidateJSONL(path, root string) FileValidationReport {
 			continue
 		}
 		var item Trace
-		decoder := json.NewDecoder(strings.NewReader(content))
-		decoder.DisallowUnknownFields()
-		if err := decoder.Decode(&item); err != nil {
+		if err := decodeStrict([]byte(content), &item); err != nil {
 			report.Valid = false
 			report.Findings = append(report.Findings, fmt.Sprintf("line %d: decode trace: %v", line, err))
 			continue

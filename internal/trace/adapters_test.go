@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -48,5 +49,48 @@ func TestAdaptersRejectRawHostFields(t *testing.T) {
 	data := []byte(`{"run_id":"run-1","skill":{"id":"plan-issue","version":"0.1.0"},"graph_version":1,"host":{"name":"codex","version":"1"},"model":"gpt-5","repository_revision":"0123456789abcdef0123456789abcdef01234567","started_at":"2026-09-09T12:00:00Z","events":[],"raw_output":"do not persist"}`)
 	if _, err := AdaptCodex(data); err == nil {
 		t.Fatal("raw host field was accepted")
+	}
+}
+
+func TestAdaptersRejectTrailingJSON(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "hosts", "codex", "trace-fixture.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data = append(data, []byte(" trailing-json")...)
+	if _, err := AdaptCodex(data); err == nil {
+		t.Fatal("trailing JSON was accepted")
+	}
+}
+
+func TestAdaptersPreserveFailedHandoffStatus(t *testing.T) {
+	for _, name := range []string{"codex", "claude-code"} {
+		path := filepath.Join("..", "..", "hosts", name, "trace-fixture.json")
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		data = bytes.Replace(data, []byte(`"outcome": "success"`), []byte(`"outcome": "failed"`), 1)
+		var item Trace
+		if name == "codex" {
+			item, err = AdaptCodex(data)
+		} else {
+			item, err = AdaptClaudeCode(data)
+		}
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		found := false
+		for _, event := range item.Events {
+			if event.Kind == KindHandoff {
+				found = true
+				if event.Status != StatusFailed {
+					t.Fatalf("%s handoff status = %s, want failed", name, event.Status)
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("%s fixture has no handoff", name)
+		}
 	}
 }
