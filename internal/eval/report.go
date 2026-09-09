@@ -31,6 +31,9 @@ type Record struct {
 	RubricReview    string         `json:"rubric_review"`
 	CorrectionsUsed int            `json:"corrections_used"`
 	InfraError      string         `json:"infra_error,omitempty"`
+	StartedAt       string         `json:"started_at,omitempty"`
+	FinishedAt      string         `json:"finished_at,omitempty"`
+	ElapsedMillis   int64          `json:"elapsed_millis,omitempty"`
 }
 
 // writeJSONL appends one JSON record per scenario result.

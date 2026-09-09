@@ -174,6 +174,7 @@ type FileValidationReport struct {
 
 var (
 	identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*$`)
+	runIDPattern      = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:-]*$`)
 	versionPattern    = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 	shaPattern        = regexp.MustCompile(`^[0-9a-f]{40}$`)
 	credentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
@@ -187,7 +188,7 @@ func Validate(t Trace) ValidationReport {
 	if t.SchemaVersion != CurrentSchemaVersion {
 		findings = append(findings, fmt.Sprintf("schema_version %d is unsupported", t.SchemaVersion))
 	}
-	if !validIdentifier(t.RunID) {
+	if !validRunID(t.RunID) {
 		findings = append(findings, "run_id is missing or invalid")
 	}
 	if t.ScenarioID != "" && !validIdentifier(t.ScenarioID) {
@@ -470,7 +471,7 @@ func validateRedaction(redaction RedactionSummary) []string {
 func Sanitize(input Trace) (Trace, error) {
 	output := input
 	output.SchemaVersion = CurrentSchemaVersion
-	output.Redaction = RedactionSummary{Mode: "allowlist", RetentionDays: DefaultRetentionDays}
+	output.Redaction = RedactionSummary{Mode: "allowlist", OmittedFields: []string{}, RetentionDays: DefaultRetentionDays}
 	redact := func(value string) string {
 		clean, changed := redactString(value)
 		if changed {
@@ -774,6 +775,9 @@ func RepositoryRevision(value string) string {
 
 func validIdentifier(value string) bool {
 	return value != "" && len(value) <= 128 && identifierPattern.MatchString(value)
+}
+func validRunID(value string) bool {
+	return value != "" && len(value) <= 128 && runIDPattern.MatchString(value)
 }
 func validShortString(value string) bool {
 	return value != "" && len(value) <= 128 && !strings.ContainsAny(value, "\r\n")

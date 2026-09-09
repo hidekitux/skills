@@ -25,6 +25,7 @@ func main() {
 	scenarioFlag := fs.String("scenario", "", "run a single scenario by id")
 	skillsFlag := fs.String("skills", "", "run scenarios for these skills only (comma-separated)")
 	outputFlag := fs.String("output", "", "report output directory (default: evaluations/reports)")
+	traceOutputFlag := fs.String("trace-output", "", "opt-in structured trace output directory")
 	dryRun := fs.Bool("dry-run", false, "record skipped runs without executing host CLIs")
 	modelFlag := fs.String("model", "", "model provenance override (default: agent.low.model from opencode.json)")
 	reviewerCmd := fs.String("reviewer-cmd", "", "external rubric reviewer command; receives scenario JSON on stdin, returns scores JSON")
@@ -49,14 +50,15 @@ func main() {
 	}
 
 	opts := &eval.Options{
-		Root:       root,
-		Hosts:      hosts,
-		SmokeOnly:  *smokeOnly,
-		ScenarioID: *scenarioFlag,
-		Skills:     splitList(*skillsFlag),
-		OutputDir:  outputDir,
-		DryRun:     *dryRun,
-		Model:      *modelFlag,
+		Root:           root,
+		Hosts:          hosts,
+		SmokeOnly:      *smokeOnly,
+		ScenarioID:     *scenarioFlag,
+		Skills:         splitList(*skillsFlag),
+		OutputDir:      outputDir,
+		TraceOutputDir: *traceOutputFlag,
+		DryRun:         *dryRun,
+		Model:          *modelFlag,
 	}
 	if *reviewerCmd != "" {
 		opts.Reviewer = &eval.CommandReviewer{Command: *reviewerCmd}
