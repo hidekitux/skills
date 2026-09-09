@@ -251,6 +251,7 @@ func hasStableEvidence(root, skill string) bool {
 // status: stable entries. It returns 0 on success or 1 when findings exist.
 func CheckCorpus(root string, out, errOut io.Writer) int {
 	var findings []string
+	checkFailureRecords(root, &findings)
 
 	catalog, err := loadCatalogSkills(root)
 	if err != nil {
