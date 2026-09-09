@@ -113,7 +113,10 @@ func writeExecutable(t *testing.T, dir, name, body string) string {
 func TestVerifyReleaseUsesCommandAdapter(t *testing.T) {
 	root := writeReleaseFixture(t, "1.2.3")
 	bin := t.TempDir()
+	gitLog := filepath.Join(t.TempDir(), "git.log")
 	writeExecutable(t, bin, "git", `#!/bin/sh
+if [ -n "$GIT_TEST_SENTINEL" ]; then exit 97; fi
+printf '%s|%s\n' "$(pwd -P)" "$*" >> "$RELEASE_GIT_LOG"
 case "$*" in
   "diff --quiet"|"diff --cached --quiet"|"ls-files --others --exclude-standard") exit 0 ;;
   "rev-parse --verify --quiet refs/tags/v1.2.3") exit 1 ;;
@@ -123,6 +126,8 @@ case "$*" in
 esac
 `)
 	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("RELEASE_GIT_LOG", gitLog)
+	t.Setenv("GIT_TEST_SENTINEL", "must-not-reach-child")
 
 	var out, errOut bytes.Buffer
 	if code := VerifyRelease("v1.2.3", root, &out, &errOut); code != 0 {
@@ -130,6 +135,32 @@ esac
 	}
 	if !strings.Contains(out.String(), "Release contract is valid for v1.2.3") {
 		t.Fatalf("expected success output, got %q", out.String())
+	}
+	resolvedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content, err := os.ReadFile(gitLog)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"diff --quiet",
+		"diff --cached --quiet",
+		"ls-files --others --exclude-standard",
+		"rev-parse --verify --quiet refs/tags/v1.2.3",
+		"remote get-url origin",
+		"ls-remote --exit-code --refs origin refs/tags/v1.2.3",
+	}
+	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+	if len(lines) != len(want) {
+		t.Fatalf("Git call log = %q, want %d calls", content, len(want))
+	}
+	for index, line := range lines {
+		expected := resolvedRoot + "|" + want[index]
+		if line != expected {
+			t.Errorf("Git call %d = %q, want %q", index+1, line, expected)
+		}
 	}
 }
 
