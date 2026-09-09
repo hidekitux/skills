@@ -38,27 +38,15 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 ## Conflict Resolution
 
-- Resolve conflicts only when the requester has explicitly authorized conflict resolution in this invocation. Do not infer authorization merely from a request to merge.
-- Resolve the exact remote head and base branches, fetch both, and record the pre-rewrite head SHA. Confirm the worktree is clean or use an isolated worktree; never mix unrelated local changes into the Pull Request branch.
-- Rebase the Pull Request branch onto the latest allowed base branch. For this repository, use the branch's exact remote and `--force-with-lease` after resolution; never use plain `--force` and never push the protected base branch.
-- Resolve each conflict from the Pull Request's Issue scope, existing behavior, and review evidence. Do not use blanket `ours` or `theirs`, discard review fixes, or invent feature behavior. If intent is ambiguous, abort the rebase and report the files and decision needed.
-- After resolving conflicts, inspect the complete new diff against the base, verify that only the intended conflict-resolution changes occurred, run the repository-prescribed validation, and record every command and result. Continue only if validation succeeds.
-- Because conflict resolution changes the reviewed commit graph or diff, require a fresh review or explicit repository-approved re-review evidence before merging. If the review identifies substantive drift, return the branch to `fix-pr` instead of proceeding.
-- Re-read the Pull Request metadata and check runs after the force-with-lease update. The merge gate starts over against the new head SHA.
+When the Pull Request conflicts, read [integration and post-merge rules](references/integration.md).
 
 ## Merge
 
-- Use the repository's declared merge method. For this repository, use **rebase merge only** so compliant commit messages remain the commits reaching `main`; never use merge commits or squash merge unless the repository policy is explicitly changed.
-- Prefer the host's guarded merge operation with the resolved Pull Request number and current head SHA. With GitHub CLI, use `gh pr merge <number> --rebase` only after the merge gate passes; do not use `--admin`, bypass required checks, or bypass branch protection.
-- Do not merge drafts, still-conflicted Pull Requests, or Pull Requests with failing, pending, or missing required checks. If the merge operation is rejected, capture the exact host diagnostic and do not retry by bypassing policy.
-- After the operation, re-read the Pull Request and the resulting commit. Confirm `merged=true`, the merged timestamp, the merge commit SHA, the base branch, and the expected head commit ancestry. If the result is ambiguous, stop and report it; do not issue a second merge request.
-- Do not publish a release, create or move tags, edit release notes, or close a Release Issue. Those actions belong to the release workflow after a release Pull Request has merged and its publication gates pass.
+After the merge gate passes, read [integration and post-merge rules](references/integration.md).
 
 ## Linked Work and Project State
 
-- For a change Pull Request using `Closes`, verify that GitHub closed the linked change Issue and that its Project item reached `Done` through the repository's configured automation. If automation is delayed, report the observed state and do not manually force a terminal state without explicit repository ownership and policy.
-- For a release Pull Request using `Tracks`, verify that the Release Issue remains open and its Project Status remains non-terminal (`In review` or the repository's documented equivalent) until publication succeeds. Hand off to the release/publishing owner with the merge commit and remaining publication gate.
-- If multiple Issues are linked, verify each closing or tracking behavior independently. Report any Issue or Project mismatch as a follow-up rather than silently changing it.
+After merging, follow the linked-work rules in [integration and post-merge rules](references/integration.md).
 
 ## Handoff
 
@@ -66,4 +54,5 @@ Report the Pull Request URL and number. Report the repository, head and base bra
 
 ## Writing quality
 
-The handoff report this skill writes is prose a person reads. Choose the plain word and a word people say aloud. Keep one idea in one sentence. Name a thing in full on first mention and reuse that exact term. Make every sentence add a fact the reader did not have. Cite the file, command, or output behind every claim about the project. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use. These rules are the floor when it states none.
+Use plain, active, evidence-backed prose in the final handoff. Keep headings in
+sentence case and name the file, command, or output behind each repository claim.

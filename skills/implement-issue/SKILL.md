@@ -36,12 +36,8 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
 
 ### No-plan exemption
 
-Proceed without an implementation plan only when both conditions are established and recorded with evidence in the handoff:
-
-1. The Issue states an established cause, and repository or Issue evidence confirms that cause rather than merely hypothesizing it.
-2. The change admits exactly one defensible implementation approach; no unresolved decision has more than one defensible answer.
-
-If either condition is absent, stop and route to `plan-issue` before editing. Re-evaluate the exemption whenever implementation reveals a decision with more than one defensible answer; stop the implementation and route to `plan-issue` at that point. For example, Issue #232 does not qualify: selecting between `worktrunk` and `git-worktree-runner` admitted more than one defensible answer, so it required planning.
+When the Issue has no plan, read [implementation details](references/implementation-details.md)
+before deciding whether the no-plan exemption applies.
 
 ## Implement
 
@@ -55,18 +51,8 @@ If either condition is absent, stop and route to `plan-issue` before editing. Re
 
 ## Commit
 
-- Commit each completed task on the Issue branch at task granularity so the
-  branch history mirrors the plan. Stage only the task's in-scope files and
-  keep unrelated changes unstaged.
-- Follow the repository commit policy: a single-sentence header
-  `type: summary #<number>`, where `type` comes from the repository commitlint
-  enum and `<number>` is the governing Issue number for that commit. Do not
-  omit the suffix.
-- Never create validation-only adjustment commits. Resolve validation failures
-  inside the task's intended commit before moving to the next task.
-- Include the commit hash in the task's recorded evidence and in the handoff.
-- Do not push; pushing the Issue branch and opening the Pull Request belongs
-  to `create-pr` in a later session.
+When a task is complete, read [implementation details](references/implementation-details.md)
+before committing it.
 
 ## Validate and Handoff
 
@@ -78,12 +64,5 @@ If either condition is absent, stop and route to `plan-issue` before editing. Re
 
 ## Writing quality
 
-These rules bind the prose this skill writes into anything a person reads later: an Issue body, a Pull Request body, a comment, a commit message body, or a file added to the project. Code, identifiers, commands, paths, and quoted output are exempt. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
-
-- Choose the plain word, and choose a word people say aloud. Write `use` rather than `utilize` and `is` rather than `serves as`; a replacement nobody says fails this rule too.
-- Keep one idea in one sentence. Split a sentence that makes the reader hold the first idea while parsing the second.
-- Name a thing in full on first mention and reuse that exact term to the last. Define a short form before using it.
-- Make every sentence add a fact the reader did not have. Delete each sentence in turn; one that loses nothing does not belong.
-- Cite the file, command, or output behind every claim about the project.
-- State a position and give its reason. Do not present two options and commit to neither.
-- Write headings in sentence case, and use a list only for items a reader counts.
+Read [persistent prose](references/persistent-prose.md) before writing text
+that outlives the conversation.

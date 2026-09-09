@@ -69,11 +69,7 @@ Read the condition on the branch's state, not on how the request was phrased. A 
 
 ## Tidy Unpushed History
 
-- Tidying applies only to commits that are not yet pushed. Confirm what is unpushed by comparing the local branch against its remote tracking ref before rewriting anything.
-- Drop, reword, or combine unpushed commits when doing so makes the published history match the findings and the plan: a no-op commit, a commit that a later fix fully reverts, or a header that violates the commit policy.
-- Never rewrite a commit that is already the Pull Request head or an ancestor of it on the remote, unless the requester explicitly authorizes that rewrite in this invocation. An already-reviewed commit is review evidence.
-- After tidying, inspect the complete diff against the base and confirm that only the intended content changed. Tidying must not alter the tree that validation and review will see, except where a finding required it.
-- Record the pre-tidy and post-tidy head SHAs and the reason for each dropped or reworded commit.
+When unpushed history needs cleanup, read [tidy and publish a fix](references/publish.md).
 
 ## Validate
 
@@ -84,11 +80,7 @@ Read the condition on the branch's state, not on how the request was phrased. A 
 
 ## Push and Sync
 
-- Push the resolved head branch to its exact remote after validation succeeds. Use `--force-with-lease` when tidying rewrote unpushed commits; never use plain `--force` and never push the protected base branch.
-- After pushing, sync the Pull Request body so it describes the published state: update the `Validation` evidence to the commands actually run on this head and keep the `Issue` reference block first and unchanged.
-- Validate the exact finalized body against the repository's Pull Request-body validator before the API call. For this repository, run `go run ./cmd/validate-branch-policy --base <base> --head <head> --body "$final_body"`.
-- Do not re-resolve the Pull Request template from scratch, re-run duplicate-Pull-Request lookup, or re-validate the title unless the title itself changed. Those belong to first publication in `create-pr`.
-- Do not update the governing Issue's Project Status. The trusted `Policy (Project)` workflow owns Pull Request-observable transitions.
+After validation, read [tidy and publish a fix](references/publish.md) before pushing or syncing the Pull Request.
 
 ## Handoff
 
@@ -106,12 +98,5 @@ The next owner is `review-pr`, which re-reviews the pushed head. Do not merge or
 
 ## Writing quality
 
-These rules bind the prose this skill writes into anything a person reads later: an Issue body, a Pull Request body, a comment, a commit message body, or a file added to the project. Code, identifiers, commands, paths, and quoted output are exempt. Where the project states its own writing guidance, that guidance governs the language of record and the terms to use; these rules are the floor when it states none.
-
-- Choose the plain word, and choose a word people say aloud. Write `use` rather than `utilize` and `is` rather than `serves as`; a replacement nobody says fails this rule too.
-- Keep one idea in one sentence. Split a sentence that makes the reader hold the first idea while parsing the second.
-- Name a thing in full on first mention and reuse that exact term to the last. Define a short form before using it.
-- Make every sentence add a fact the reader did not have. Delete each sentence in turn; one that loses nothing does not belong.
-- Cite the file, command, or output behind every claim about the project.
-- State a position and give its reason. Do not present two options and commit to neither.
-- Write headings in sentence case, and use a list only for items a reader counts.
+Read [persistent prose](references/persistent-prose.md) before writing text
+that outlives the conversation.
