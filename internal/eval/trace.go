@@ -43,14 +43,16 @@ func traceForRecord(sc *Scenario, record Record, graphVersion int, skillVersion 
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindToolOutcome, Status: toolStatus, At: finished, Tool: &trace.ToolOutcome{Name: "host-stage", Result: toolStatus, Classification: toolClass}})
 	validationStatus, validationClass := traceOutcome(record)
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindValidationOutcome, Status: validationStatus, At: finished, Validation: &trace.Validation{Name: "check-evaluation", Result: record.Verdict, Classification: validationClass}})
-	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindEvidence, Status: trace.StatusSuccess, At: finished, Evidence: &trace.Evidence{Kind: "validation", Ref: "check-evaluation", Result: record.Verdict}})
+	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindEvidence, Status: validationStatus, At: finished, Evidence: &trace.Evidence{Kind: "validation", Ref: "check-evaluation", Result: record.Verdict}})
 	if record.CorrectionsUsed > 0 {
 		item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindRetry, Status: trace.StatusFailed, At: finished, Retry: &trace.Retry{Attempt: record.CorrectionsUsed, MaxAttempts: record.CorrectionsUsed, Reason: "user-correction"}})
 	}
-	if sc.Expectations.Handoff != "" {
-		item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindHandoff, Status: trace.StatusSuccess, At: finished, Handoff: &trace.Handoff{Destination: sc.Expectations.Handoff, Artifact: "evaluation-result", Outcome: record.Verdict}})
+	if record.HandoffObserved && sc.Expectations.Handoff != "" {
+		item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindHandoff, Status: trace.StatusSuccess, At: finished, Handoff: &trace.Handoff{Destination: sc.Expectations.Handoff, Artifact: "evaluation-result", Outcome: trace.StatusSuccess}})
 	}
-	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindTodoTransition, Status: trace.StatusSuccess, At: finished, Todo: &trace.TodoTransition{ItemID: "evaluation", From: "in_progress", To: "completed", EvidenceRef: "check-evaluation"}})
+	if record.Verdict == VerdictPass {
+		item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindTodoTransition, Status: trace.StatusSuccess, At: finished, Todo: &trace.TodoTransition{ItemID: "evaluation", From: "in_progress", To: "completed", EvidenceRef: "check-evaluation"}})
+	}
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindRunFinished, Status: terminalEventStatus(terminalStatus), At: finished, Terminal: &terminal})
 	return item, nil
 }

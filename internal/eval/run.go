@@ -234,7 +234,9 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 		return record
 	}
 
-	failures := evaluateAssertions(ctx, sc, transcript.String(), sandboxDir, before, opts.HandoffNames)
+	transcriptText := transcript.String()
+	record.HandoffObserved = sc.Expectations.Handoff != "" && strings.Contains(transcriptText, sc.Expectations.Handoff)
+	failures := evaluateAssertions(ctx, sc, transcriptText, sandboxDir, before, opts.HandoffNames)
 	if len(failures) > 0 {
 		record.Verdict = VerdictFail
 		record.Failures = failures

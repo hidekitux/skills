@@ -17,7 +17,8 @@ func TestTraceForRecordAndMetricsUseStructuredFields(t *testing.T) {
 	record := Record{
 		RunID: "run-1", Scenario: scenario.ID, Skill: scenario.Skill, Host: "codex", Model: "gpt-5",
 		Commit: "0123456789abcdef0123456789abcdef01234567", Verdict: VerdictPass,
-		StartedAt: "2026-09-09T12:00:00Z", FinishedAt: "2026-09-09T12:00:02Z", ElapsedMillis: 2000,
+		HandoffObserved: true,
+		StartedAt:       "2026-09-09T12:00:00Z", FinishedAt: "2026-09-09T12:00:02Z", ElapsedMillis: 2000,
 	}
 	item, err := traceForRecord(scenario, record, 1, "0.1.0")
 	if err != nil {
@@ -34,6 +35,30 @@ func TestTraceForRecordAndMetricsUseStructuredFields(t *testing.T) {
 	// an input to this calculation.
 	if _, err := json.Marshal(metrics); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestTraceForFailedRecordDoesNotInventHandoffOrCompletion(t *testing.T) {
+	scenario := &Scenario{ID: "failed", Skill: "plan-issue", Expectations: Expectations{Handoff: "implement-issue"}}
+	record := Record{
+		RunID: "run-failed", Scenario: scenario.ID, Skill: scenario.Skill, Host: "codex", Model: "gpt-5",
+		Commit: "0123456789abcdef0123456789abcdef01234567", Verdict: VerdictFail,
+		StartedAt: "2026-09-09T12:00:00Z", FinishedAt: "2026-09-09T12:00:01Z",
+	}
+	item, err := traceForRecord(scenario, record, 1, "0.1.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, event := range item.Events {
+		if event.Kind == trace.KindHandoff {
+			t.Fatal("failed trace contains an unobserved handoff")
+		}
+		if event.Todo != nil && event.Todo.To == "completed" {
+			t.Fatal("failed trace marks the Todo as completed")
+		}
+	}
+	if report := trace.Validate(item); !report.Valid {
+		t.Fatalf("evaluation trace invalid: %v", report.Findings)
 	}
 }
 
