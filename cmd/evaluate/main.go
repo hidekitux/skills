@@ -22,6 +22,8 @@ import (
 func main() {
 	fs := flag.NewFlagSet("evaluate", flag.ContinueOnError)
 	rootFlag := fs.String("root", "", "repository root (default: current working directory)")
+	skillRootFlag := fs.String("skill-root", "", "repository root whose skills are installed (default: --root)")
+	variantFlag := fs.String("instruction-variant", "", "instruction source label recorded in provenance")
 	hostFlag := fs.String("host", "all", "drivers to evaluate: codex, claude-code, opencode, antigravity, or a comma-separated list; all runs every driver")
 	smokeOnly := fs.Bool("smoke-only", false, "run only the minimum smoke subset")
 	scenarioFlag := fs.String("scenario", "", "run a single scenario by id")
@@ -52,15 +54,17 @@ func main() {
 	}
 
 	opts := &eval.Options{
-		Root:           root,
-		Hosts:          hosts,
-		SmokeOnly:      *smokeOnly,
-		ScenarioID:     *scenarioFlag,
-		Skills:         splitList(*skillsFlag),
-		OutputDir:      outputDir,
-		TraceOutputDir: *traceOutputFlag,
-		DryRun:         *dryRun,
-		Model:          *modelFlag,
+		Root:               root,
+		SkillRoot:          *skillRootFlag,
+		InstructionVariant: *variantFlag,
+		Hosts:              hosts,
+		SmokeOnly:          *smokeOnly,
+		ScenarioID:         *scenarioFlag,
+		Skills:             splitList(*skillsFlag),
+		OutputDir:          outputDir,
+		TraceOutputDir:     *traceOutputFlag,
+		DryRun:             *dryRun,
+		Model:              *modelFlag,
 	}
 	if *reviewerCmd != "" {
 		opts.Reviewer = &eval.CommandReviewer{Command: *reviewerCmd}

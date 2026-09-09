@@ -160,7 +160,14 @@ mise run evaluate:all --help
 mise run evaluate:smoke      # smoke set on opencode + antigravity
 mise run evaluate:all -- --host codex
 mise run evaluate:all -- --host opencode,antigravity --skills plan-issue
+# Compare an Issue #197 full source with the compact source on both required hosts.
+mise run evaluate:compaction -- --full-skill-root <full-root> --compact-skill-root <compact-root> --host codex,claude-code
 ```
+
+The compaction command writes one JSONL report per source and a paired
+`comparison.json` plus `comparison.md`. It preserves deterministic failures,
+skips, infrastructure errors, and pending rubric review as distinct evidence;
+it exits inconclusive when either required host cannot produce usable evidence.
 
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
 `claude-code` (needs login; default `claude-sonnet-5`), `opencode` (reads

@@ -41,6 +41,8 @@
 "cmd/replay-skill-trace" = "./cmd/replay-skill-trace"
 "cmd/validate-diagnostic" = "./cmd/validate-diagnostic"
 "cmd/evaluate" = "./internal/eval"
+"cmd/evaluate-compaction" = "./cmd/evaluate-compaction"
+"cmd/measure-instructions" = "./cmd/measure-instructions"
 "cmd/check-evaluation" = "./internal/eval"
 "cmd/generate-public-status" = "./internal/publicstatus"
 

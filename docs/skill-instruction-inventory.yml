@@ -1,0 +1,208 @@
+version: 1
+tokenizer:
+  encoding: cl100k_base
+  module: github.com/pkoukk/tiktoken-go
+  version: v0.1.6
+skills:
+  - name: analyze-project
+    path: skills/analyze-project/SKILL.md
+    before_tokens: 1127
+    after_tokens: 1055
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: "1. Discover", classification: task-procedure}
+      - {heading: "2. Investigate", classification: task-procedure}
+      - {heading: "3. Validate findings", classification: task-procedure}
+      - {heading: "4. Prioritize", classification: task-procedure}
+      - {heading: "5. Report", classification: task-procedure}
+      - {heading: Read-only guardrails, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: audit-workflow-enforcement
+    path: skills/audit-workflow-enforcement/SKILL.md
+    before_tokens: 805
+    after_tokens: 733
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: Subagent Audit, classification: conditional-reference, load_condition: When context-dependent checks need independent review, reference the host note., reference: skills/audit-workflow-enforcement/references/hosts/codex.md}
+      - {heading: Boundaries, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: bootstrap-project
+    path: skills/bootstrap-project/SKILL.md
+    before_tokens: 2591
+    after_tokens: 2352
+    sections:
+      - {heading: Overview, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: "0. Create and maintain the Todo List", classification: invariant}
+      - {heading: "1. Establish the project boundary", classification: task-procedure}
+      - {heading: "2. Build a minimal, runnable foundation", classification: task-procedure}
+      - {heading: "3. Decide the FSL adoption level", classification: conditional-reference, load_condition: When the project has stateful behavior, read the FSL adoption guide., reference: skills/bootstrap-project/references/fsl-adoption.md}
+      - {heading: "4. Verify and hand off", classification: task-procedure}
+      - {heading: Guardrails, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: create-issue
+    path: skills/create-issue/SKILL.md
+    before_tokens: 1233
+    after_tokens: 994
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Body Structure, classification: task-procedure}
+      - {heading: Project Triage, classification: conditional-reference, load_condition: When the Issue must enter the repository Project, read the Project configuration and triage rules., reference: skills/create-issue/SKILL.md}
+      - {heading: Change Issues, classification: conditional-reference, load_condition: When creating a Change Issue, read this section., reference: skills/create-issue/SKILL.md}
+      - {heading: Release Issues, classification: conditional-reference, load_condition: When creating a Release Issue, read this section., reference: skills/create-issue/SKILL.md}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: create-pr
+    path: skills/create-pr/SKILL.md
+    before_tokens: 1761
+    after_tokens: 1385
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Review and Validate, classification: task-procedure}
+      - {heading: Push, classification: conditional-reference, load_condition: When the branch is ready to publish, read the push rules., reference: skills/create-pr/references/publish.md}
+      - {heading: Create or Update, classification: conditional-reference, load_condition: When no matching Pull Request exists, read the creation rules; otherwise read the update rules., reference: skills/create-pr/references/publish.md}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: debug-code
+    path: skills/debug-code/SKILL.md
+    before_tokens: 932
+    after_tokens: 859
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Debug, classification: task-procedure}
+      - {heading: Reproduce, classification: task-procedure}
+      - {heading: Isolate, classification: task-procedure}
+      - {heading: Hypothesize and minimize, classification: task-procedure}
+      - {heading: Fix, classification: task-procedure}
+      - {heading: Verify, classification: task-procedure}
+      - {heading: Validate and Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: deliver-change
+    path: skills/deliver-change/SKILL.md
+    before_tokens: 1114
+    after_tokens: 1042
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Route, classification: task-procedure}
+      - {heading: State and authority contract, classification: invariant}
+      - {heading: Validate and Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: fix-pr
+    path: skills/fix-pr/SKILL.md
+    before_tokens: 2645
+    after_tokens: 2051
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Phase Boundary, classification: invariant}
+      - {heading: Fix, classification: task-procedure}
+      - {heading: Tidy Unpushed History, classification: conditional-reference, load_condition: When the branch has unpushed commits that need cleanup, read the history rules., reference: skills/fix-pr/references/publish.md}
+      - {heading: Validate, classification: task-procedure}
+      - {heading: Push and Sync, classification: conditional-reference, load_condition: After a fix passes validation, read the push and body-sync rules., reference: skills/fix-pr/references/publish.md}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: implement-issue
+    path: skills/implement-issue/SKILL.md
+    before_tokens: 1755
+    after_tokens: 1243
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: No-plan exemption, classification: conditional-reference, load_condition: When the Issue has no plan, read the exemption before deciding whether implementation may start., reference: skills/implement-issue/references/implementation-details.md}
+      - {heading: Implement, classification: task-procedure}
+      - {heading: Commit, classification: conditional-reference, load_condition: When a task is complete, read the task-sized commit rules., reference: skills/implement-issue/references/implementation-details.md}
+      - {heading: Validate and Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: improve-project
+    path: skills/improve-project/SKILL.md
+    before_tokens: 1121
+    after_tokens: 1049
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Route, classification: task-procedure}
+      - {heading: State and authority contract, classification: invariant}
+      - {heading: Validate and Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: merge-pr
+    path: skills/merge-pr/SKILL.md
+    before_tokens: 1995
+    after_tokens: 1289
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Merge Gate, classification: task-procedure}
+      - {heading: Conflict Resolution, classification: conditional-reference, load_condition: When the Pull Request has merge conflicts and conflict resolution is explicitly authorized, read the integration rules., reference: skills/merge-pr/references/integration.md}
+      - {heading: Merge, classification: conditional-reference, load_condition: When all merge gates pass, read the merge rules., reference: skills/merge-pr/references/integration.md}
+      - {heading: Linked Work and Project State, classification: conditional-reference, load_condition: After merging, read the linked-work verification rules., reference: skills/merge-pr/references/integration.md}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: plan-issue
+    path: skills/plan-issue/SKILL.md
+    before_tokens: 1533
+    after_tokens: 1294
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Read the Issue, classification: task-procedure}
+      - {heading: Derive Plan Tasks, classification: task-procedure}
+      - {heading: Record the Todo List, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: resolve-defect
+    path: skills/resolve-defect/SKILL.md
+    before_tokens: 1151
+    after_tokens: 1079
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Route, classification: task-procedure}
+      - {heading: State and authority contract, classification: invariant}
+      - {heading: Validate and Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: review-pr
+    path: skills/review-pr/SKILL.md
+    before_tokens: 1940
+    after_tokens: 1701
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Review, classification: task-procedure}
+      - {heading: "1. Assemble the change contract", classification: task-procedure}
+      - {heading: "2. Map the diff and its impact scope", classification: task-procedure}
+      - {heading: "3. Trace high-risk execution paths and state changes", classification: conditional-reference, load_condition: When the diff changes state or high-risk execution paths, read the relevant review reference., reference: skills/review-pr/references/review-criteria.md}
+      - {heading: "4. Verify failure hypotheses", classification: task-procedure}
+      - {heading: "5. Filter through the adoption gate", classification: invariant}
+      - {heading: "6. Output minimal findings", classification: invariant}
+      - {heading: Findings, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: refactor-code
+    path: skills/skills/refactor-code/SKILL.md
+    before_tokens: 727
+    after_tokens: 655
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Scope the Refactor, classification: task-procedure}
+      - {heading: Make Mechanical Changes, classification: task-procedure}
+      - {heading: Verify the Baseline, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: write-tests
+    path: skills/write-tests/SKILL.md
+    before_tokens: 1238
+    after_tokens: 1166
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Choose the test level, classification: task-procedure}
+      - {heading: Derive test cases, classification: task-procedure}
+      - {heading: Record completion and failure evidence per case, classification: invariant}
+      - {heading: Run and record, classification: task-procedure}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}

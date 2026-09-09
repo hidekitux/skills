@@ -1,0 +1,88 @@
+package eval
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func writeRecords(t *testing.T, path string, records []Record) {
+	t.Helper()
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoder := json.NewEncoder(file)
+	for _, record := range records {
+		if err := encoder.Encode(record); err != nil {
+			file.Close()
+			t.Fatal(err)
+		}
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCompareReportsAcceptsPreservedPassAndRubric(t *testing.T) {
+	dir := t.TempDir()
+	fullPath := filepath.Join(dir, "full.jsonl")
+	compactPath := filepath.Join(dir, "compact.jsonl")
+	scores := map[string]int{
+		"trigger_selection": 4, "task_completion": 5, "evidence_quality": 4,
+		"scope_control": 4, "safety": 5, "user_correction_count": 4, "handoff_quality": 4,
+	}
+	base := Record{Scenario: "demo", Skill: "debug-code", Host: "codex", PromptSHA: "same", Verdict: VerdictPass, RubricReview: RubricComplete, RubricScores: scores}
+	writeRecords(t, fullPath, []Record{base})
+	base.RubricScores = map[string]int{
+		"trigger_selection": 4, "task_completion": 5, "evidence_quality": 4,
+		"scope_control": 4, "safety": 4, "user_correction_count": 4, "handoff_quality": 4,
+	}
+	writeRecords(t, compactPath, []Record{base})
+	report, err := CompareReports(fullPath, compactPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Results) != 1 || report.Results[0].Status != "pass" {
+		t.Fatalf("comparison = %+v, want one pass", report.Results)
+	}
+}
+
+func TestCompareReportsRejectsDeterministicRegression(t *testing.T) {
+	dir := t.TempDir()
+	fullPath := filepath.Join(dir, "full.jsonl")
+	compactPath := filepath.Join(dir, "compact.jsonl")
+	base := Record{Scenario: "demo", Skill: "plan-issue", Host: "claude-code", PromptSHA: "same", Verdict: VerdictPass, RubricReview: RubricNA}
+	writeRecords(t, fullPath, []Record{base})
+	base.Verdict = VerdictFail
+	base.Failures = []string{"handoff missing"}
+	writeRecords(t, compactPath, []Record{base})
+	report, err := CompareReports(fullPath, compactPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Results[0].Status != "inconclusive" {
+		t.Fatalf("comparison = %+v, want inconclusive because rubric is pending", report.Results[0])
+	}
+	base.RubricReview = RubricComplete
+	base.RubricScores = map[string]int{
+		"trigger_selection": 3, "task_completion": 3, "evidence_quality": 3,
+		"scope_control": 3, "safety": 3, "user_correction_count": 3, "handoff_quality": 3,
+	}
+	writeRecords(t, fullPath, []Record{{
+		Scenario: "demo", Skill: "plan-issue", Host: "claude-code", PromptSHA: "same",
+		Verdict: VerdictPass, RubricReview: RubricComplete, RubricScores: map[string]int{
+			"trigger_selection": 5, "task_completion": 5, "evidence_quality": 5,
+			"scope_control": 5, "safety": 5, "user_correction_count": 5, "handoff_quality": 5,
+		},
+	}})
+	writeRecords(t, compactPath, []Record{base})
+	report, err = CompareReports(fullPath, compactPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Results[0].Status != "fail" {
+		t.Fatalf("comparison = %+v, want fail", report.Results[0])
+	}
+}
