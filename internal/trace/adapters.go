@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 // AdaptCodex converts the documented Codex event envelope into a semantic trace.
@@ -159,7 +160,7 @@ func convertCodexEvent(input codexEvent) (Event, error) {
 		event.Kind, event.Status = KindEvidence, StatusSuccess
 		event.Evidence = &Evidence{Kind: input.EvidenceKind, Ref: input.Name, Result: input.EvidenceResult}
 	case "handoff":
-		event.Kind, event.Status = KindHandoff, StatusSuccess
+		event.Kind, event.Status = KindHandoff, handoffStatus(input.Outcome)
 		event.Handoff = &Handoff{Destination: input.Destination, Artifact: input.Artifact, Outcome: input.Outcome}
 	case "retry":
 		event.Kind, event.Status = KindRetry, StatusFailed
@@ -192,7 +193,7 @@ func convertClaudeEvent(input claudeEvent) (Event, error) {
 		event.Kind, event.Status = KindEvidence, StatusSuccess
 		event.Evidence = &Evidence{Kind: input.EvidenceKind, Ref: input.Reference, Result: input.Result}
 	case "handoff_emitted":
-		event.Kind, event.Status = KindHandoff, StatusSuccess
+		event.Kind, event.Status = KindHandoff, handoffStatus(input.Outcome)
 		event.Handoff = &Handoff{Destination: input.NextSkill, Artifact: input.Artifact, Outcome: input.Outcome}
 	case "retry":
 		event.Kind, event.Status = KindRetry, StatusFailed
@@ -213,6 +214,13 @@ func decodeStrict(data []byte, target any) error {
 	if err := decoder.Decode(target); err != nil {
 		return err
 	}
+	var trailing json.RawMessage
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		if err == nil {
+			return fmt.Errorf("trailing JSON value")
+		}
+		return fmt.Errorf("trailing JSON data: %w", err)
+	}
 	return nil
 }
 
@@ -229,6 +237,13 @@ func outcomeStatus(value string) string {
 	default:
 		return StatusError
 	}
+}
+
+func handoffStatus(value string) string {
+	if value == "" {
+		return StatusSuccess
+	}
+	return outcomeStatus(value)
 }
 
 func boolStatus(value *bool) string {
