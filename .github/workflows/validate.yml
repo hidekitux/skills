@@ -29,16 +29,12 @@ jobs:
         with:
           install: true
           cache: true
-      - name: Validate repository metadata
-        run: mise run check:repository
-      - name: Validate host installations
-        run: mise run check:hosts
-      - name: Validate branch policy configuration
-        run: mise run check:branch-policy
-      - name: Check diff whitespace
+      - name: Validate repository checks
         env:
           CHECK_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: mise run check:diff
+        run: mise run check:all
+      - name: Validate host installations
+        run: mise run check:hosts
   lint:
     name: Validate lint
     runs-on: ubuntu-latest
