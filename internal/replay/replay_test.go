@@ -263,7 +263,10 @@ func TestReplayRejectsFailedTerminal(t *testing.T) {
 	if !item.Validation.Valid {
 		t.Fatalf("failed terminal fixture is not structurally valid: %v", item.Validation.Findings)
 	}
-	report := Replay(replayRepositoryRoot(t), lifecycleSet(item))
+	report := Replay(replayRepositoryRoot(t), lifecycleSet(
+		item,
+		lifecycleTrace("plan-issue", "implement-issue", "verified-plan", "success", "post-plan-comment"),
+	))
 	if report.Valid || report.Outcome != OutcomeViolation || len(report.Findings) == 0 || report.Findings[0].Invariant != "TerminalOutcomeIsNotSuccess" {
 		t.Fatalf("failed terminal was accepted: %#v", report)
 	}

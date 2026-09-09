@@ -94,15 +94,9 @@ func Replay(root string, set TraceSet) Report {
 			})
 		}
 		if record.Trace.Terminal.Status == trace.StatusInterrupted {
-			if index != len(set.Records)-1 {
-				return finishTrailing(report, record, index)
-			}
 			return finishInterrupted(report, record, index)
 		}
 		if record.Trace.Terminal.Status != trace.StatusSuccess {
-			if index != len(set.Records)-1 {
-				return finishTrailing(report, record, index)
-			}
 			return finishViolation(report, Finding{
 				Invariant:     "TerminalOutcomeIsNotSuccess",
 				Category:      "terminal",
