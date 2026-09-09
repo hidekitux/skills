@@ -71,6 +71,7 @@ Review in this order and follow this flow rather than a pre-existing checklist.
 
 ## Handoff
 
+- When two consecutive review rounds report the same defect class, stop reporting instance N+1. Escalate the underlying approach in the handoff and name the defect class. A defect class is a set of findings caused by the same design or implementation approach, not findings that merely share a file or symptom. Keep the findings from the second round, but do not start another round that reports the same class as a new instance.
 - Report the Pull Request URL. Report the applied criteria and their sources. Report the finding list with severity, confidence, file, and line evidence. Report the reviewed head SHA and the validation commands and results. The next owner is `fix-pr`, which fixes the findings on the same Issue branch and pushes the result. Re-review the updated Pull Request until the findings are resolved.
 - Never merge, release, or apply fixes; those are later phases owned by other skills or by the user, not part of this skill.
 
