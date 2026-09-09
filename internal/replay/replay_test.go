@@ -245,6 +245,21 @@ func TestReplayRejectsFailedTerminal(t *testing.T) {
 	}
 }
 
+func TestReplayRejectsTrailingRecordAfterSuccessfulReview(t *testing.T) {
+	set := lifecycleSet(
+		lifecycleTrace("create-issue", "plan-issue", "change-issue", "success", "user-approval", "create-issue"),
+		lifecycleTrace("plan-issue", "implement-issue", "verified-plan", "success", "post-plan-comment"),
+		lifecycleTrace("implement-issue", "create-pr", "implementation-commits", "success", "create-issue-branch", "write-repository", "git-commit"),
+		lifecycleTrace("create-pr", "review-pr", "pull-request", "success", "user-approval", "push-issue-branch", "edit-pull-request"),
+		lifecycleTrace("review-pr", "", "", "", "record-review-findings"),
+		lifecycleTrace("create-issue", "", "", "", "user-approval", "create-issue"),
+	)
+	report := Replay(replayRepositoryRoot(t), set)
+	if report.Valid || report.Outcome != OutcomeViolation || len(report.Findings) == 0 || report.Findings[0].Invariant != "TrailingTraceAfterTerminal" {
+		t.Fatalf("trailing record was accepted: %#v", report)
+	}
+}
+
 func TestReplayRejectsReviewLoopBeyondGraphBound(t *testing.T) {
 	set := lifecycleSet(
 		lifecycleTrace("create-issue", "plan-issue", "change-issue", "success", "user-approval", "create-issue"),

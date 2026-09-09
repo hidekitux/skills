@@ -94,9 +94,15 @@ func Replay(root string, set TraceSet) Report {
 			})
 		}
 		if record.Trace.Terminal.Status == trace.StatusInterrupted {
+			if index != len(set.Records)-1 {
+				return finishTrailing(report, record, index)
+			}
 			return finishInterrupted(report, record, index)
 		}
 		if record.Trace.Terminal.Status != trace.StatusSuccess {
+			if index != len(set.Records)-1 {
+				return finishTrailing(report, record, index)
+			}
 			return finishViolation(report, Finding{
 				Invariant:     "TerminalOutcomeIsNotSuccess",
 				Category:      "terminal",
@@ -134,6 +140,9 @@ func Replay(root string, set TraceSet) Report {
 
 		if handoff == nil {
 			if record.Trace.SkillID == "review-pr" && record.Trace.Terminal.Status == trace.StatusSuccess {
+				if index != len(set.Records)-1 {
+					return finishTrailing(report, record, index)
+				}
 				if pendingReview {
 					return finishViolation(report, Finding{
 						Invariant:     "HandoffMatchesGraph",
@@ -168,9 +177,15 @@ func Replay(root string, set TraceSet) Report {
 
 		switch {
 		case outcome == "blocked" || handoff.Destination == "blocked":
+			if index != len(set.Records)-1 {
+				return finishTrailing(report, record, index)
+			}
 			report.Observations = append(report.Observations, observation("block", record, index, handoffSeq))
 			return finishTerminal(report, OutcomeBlocked, true)
 		case outcome == "retry_exhausted" || handoff.Destination == "retry_exhausted":
+			if index != len(set.Records)-1 {
+				return finishTrailing(report, record, index)
+			}
 			report.Observations = append(report.Observations, observation("exhaust_review_loop", record, index, handoffSeq))
 			return finishTerminal(report, OutcomeRetryExhausted, true)
 		case record.Trace.SkillID == "review-pr" && outcome == "findings":
@@ -227,6 +242,9 @@ func Replay(root string, set TraceSet) Report {
 			continue
 		}
 		if transition.Destination.TerminalOutcome != "" {
+			if index != len(set.Records)-1 {
+				return finishTrailing(report, record, index)
+			}
 			return finishTerminal(report, terminalOutcome(transition.Destination.TerminalOutcome), true)
 		}
 		return finishViolation(report, Finding{
@@ -451,5 +469,19 @@ func finishInterrupted(report Report, record TraceRecord, index int) Report {
 	report.Observations = append(report.Observations, observation("mark_interrupted", record, index, lastEventSequence(record.Trace)))
 	report.Valid = false
 	report.Outcome = OutcomeInterrupted
+	return report
+}
+
+func finishTrailing(report Report, record TraceRecord, index int) Report {
+	report.Findings = append(report.Findings, Finding{
+		Invariant:     "TrailingTraceAfterTerminal",
+		Category:      "ordering",
+		Message:       "trace records remain after a terminal lifecycle outcome",
+		TraceIndex:    index,
+		Line:          record.Line,
+		EventSequence: lastEventSequence(record.Trace),
+	})
+	report.Valid = false
+	report.Outcome = OutcomeViolation
 	return report
 }
