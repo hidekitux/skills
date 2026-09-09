@@ -5,6 +5,11 @@ and its input contract. It measures whether a skill selects the right workflow
 and produces a correct, safe, useful result for a realistic request, per the
 [outcome-based skill evaluation Issue](../docs/evaluation.md).
 
+Confirmed failures follow the [failure promotion process](../docs/failure-promotion.md).
+Their sanitized records live under `workflow/failure-records/`; evaluation
+scenarios remain the regression assets and never contain private transcripts or
+expected answers.
+
 Repository validation checks metadata, installation, policy utilities, FSL
 consistency, and source tests. Behavioral evaluation is separate: metadata
 validation and `gh skill publish --dry-run` are **not** behavioral evaluation

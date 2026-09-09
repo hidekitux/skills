@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hidekitux/skills/blob/main/workflow/failure-record.schema.json",
+  "title": "Agent failure promotion record",
+  "description": "A sanitized, reviewable record that routes a reproduced agent failure to the lowest sufficient enforcement layer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "classification",
+    "status",
+    "summary",
+    "reproduction",
+    "expected_outcome",
+    "owner",
+    "evidence",
+    "instruction_action",
+    "observations",
+    "recurrence_count"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "id": { "$ref": "#/$defs/identifier" },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "instruction",
+        "context_selection",
+        "tool_use",
+        "model_behavior",
+        "repository_design",
+        "external_state",
+        "infrastructure"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["candidate", "promoted", "not_promoted", "retired"]
+    },
+    "summary": { "$ref": "#/$defs/safe_text" },
+    "reproduction": { "$ref": "#/$defs/reproduction" },
+    "expected_outcome": { "$ref": "#/$defs/safe_text" },
+    "owner": { "$ref": "#/$defs/owner" },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "regression_asset": { "$ref": "#/$defs/safe_text" },
+    "instruction_action": {
+      "type": "string",
+      "enum": ["replace", "compress", "retain", "none"]
+    },
+    "instruction_ref": { "$ref": "#/$defs/safe_text" },
+    "decision_reason": { "$ref": "#/$defs/safe_text" },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/observation" }
+    },
+    "recurrence_count": { "type": "integer", "minimum": 1 }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._/-]*$",
+      "maxLength": 128
+    },
+    "safe_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "relative_path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$",
+      "maxLength": 512
+    },
+    "reproduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fixture", "steps", "sanitized"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["evaluation_fixture", "test_fixture", "command", "trace"]
+        },
+        "fixture": { "$ref": "#/$defs/relative_path" },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/safe_text" }
+        },
+        "sanitized": { "const": true }
+      }
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "name"],
+      "properties": {
+        "layer": {
+          "type": "string",
+          "enum": [
+            "evaluation_fixture",
+            "static_check",
+            "type_constraint",
+            "test",
+            "property_test",
+            "fsl",
+            "runtime_isolation",
+            "guidance",
+            "none"
+          ]
+        },
+        "name": { "$ref": "#/$defs/safe_text" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["path", "command", "issue", "pull_request", "commit", "evaluation", "trace"]
+        },
+        "ref": { "$ref": "#/$defs/safe_text" }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "model", "skill", "repository_revision", "run_id", "outcome"],
+      "properties": {
+        "host": { "$ref": "#/$defs/identifier" },
+        "model": { "$ref": "#/$defs/identifier" },
+        "skill": { "$ref": "#/$defs/identifier" },
+        "repository_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "outcome": {
+          "type": "string",
+          "enum": ["deterministic_failure", "behavioral_failure", "skipped", "infrastructure_error", "resolved"]
+        }
+      }
+    }
+  }
+}
