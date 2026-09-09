@@ -23,6 +23,9 @@ const (
 	OutcomeIncomplete     Outcome = "incomplete_evidence"
 	OutcomeInterrupted    Outcome = "interrupted"
 	OutcomeRetryExhausted Outcome = "retry_exhausted"
+	OutcomeBlocked        Outcome = "blocked"
+	OutcomeFailed         Outcome = "failed"
+	OutcomeSkipped        Outcome = "skipped"
 	OutcomeInvalidInput   Outcome = "invalid_input"
 )
 
