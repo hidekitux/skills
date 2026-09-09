@@ -11,7 +11,7 @@
     {"ordinal": 1, "timestamp": "2026-09-09T12:00:00Z", "event": "session_start"},
     {"ordinal": 2, "timestamp": "2026-09-09T12:00:01Z", "event": "todo_updated", "item": "discover", "previous_state": "pending", "state": "in_progress"},
     {"ordinal": 3, "timestamp": "2026-09-09T12:00:02Z", "event": "tool_result", "tool_name": "gh", "ok": true, "result": "success"},
-    {"ordinal": 4, "timestamp": "2026-09-09T12:00:03Z", "event": "validation_result", "validator": "mise:validate-all", "result": "passed"},
+    {"ordinal": 4, "timestamp": "2026-09-09T12:00:03Z", "event": "validation_result", "validator": "mise:validate-all", "result": "passed", "diagnostic_producer": "validate-issue-body", "diagnostic_code": "validate-issue-body.invalid"},
     {"ordinal": 5, "timestamp": "2026-09-09T12:00:04Z", "event": "evidence", "evidence_kind": "commit", "reference": "0123456789abcdef0123456789abcdef01234567", "result": "present"},
     {"ordinal": 6, "timestamp": "2026-09-09T12:00:05Z", "event": "handoff_emitted", "next_skill": "implement-issue", "artifact": "verified-plan", "outcome": "success"},
     {"ordinal": 7, "timestamp": "2026-09-09T12:00:06Z", "event": "session_end", "terminal_status": "success", "classification": "none"}

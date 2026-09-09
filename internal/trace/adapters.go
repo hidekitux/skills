@@ -81,28 +81,30 @@ type hostIdentity struct {
 }
 
 type codexEvent struct {
-	Sequence       int    `json:"sequence"`
-	At             string `json:"at"`
-	Type           string `json:"type"`
-	Status         string `json:"status,omitempty"`
-	ItemID         string `json:"item_id,omitempty"`
-	From           string `json:"from,omitempty"`
-	To             string `json:"to,omitempty"`
-	EvidenceRef    string `json:"evidence_ref,omitempty"`
-	Name           string `json:"name,omitempty"`
-	Result         string `json:"result,omitempty"`
-	Classification string `json:"classification,omitempty"`
-	Retryable      bool   `json:"retryable,omitempty"`
-	EvidenceKind   string `json:"evidence_kind,omitempty"`
-	EvidenceResult string `json:"evidence_result,omitempty"`
-	Destination    string `json:"destination,omitempty"`
-	Artifact       string `json:"artifact,omitempty"`
-	Outcome        string `json:"outcome,omitempty"`
-	Attempt        int    `json:"attempt,omitempty"`
-	MaxAttempts    int    `json:"max_attempts,omitempty"`
-	Reason         string `json:"reason,omitempty"`
-	TerminalStatus string `json:"terminal_status,omitempty"`
-	TerminalClass  string `json:"terminal_classification,omitempty"`
+	Sequence           int    `json:"sequence"`
+	At                 string `json:"at"`
+	Type               string `json:"type"`
+	Status             string `json:"status,omitempty"`
+	ItemID             string `json:"item_id,omitempty"`
+	From               string `json:"from,omitempty"`
+	To                 string `json:"to,omitempty"`
+	EvidenceRef        string `json:"evidence_ref,omitempty"`
+	Name               string `json:"name,omitempty"`
+	Result             string `json:"result,omitempty"`
+	Classification     string `json:"classification,omitempty"`
+	DiagnosticProducer string `json:"diagnostic_producer,omitempty"`
+	DiagnosticCode     string `json:"diagnostic_code,omitempty"`
+	Retryable          bool   `json:"retryable,omitempty"`
+	EvidenceKind       string `json:"evidence_kind,omitempty"`
+	EvidenceResult     string `json:"evidence_result,omitempty"`
+	Destination        string `json:"destination,omitempty"`
+	Artifact           string `json:"artifact,omitempty"`
+	Outcome            string `json:"outcome,omitempty"`
+	Attempt            int    `json:"attempt,omitempty"`
+	MaxAttempts        int    `json:"max_attempts,omitempty"`
+	Reason             string `json:"reason,omitempty"`
+	TerminalStatus     string `json:"terminal_status,omitempty"`
+	TerminalClass      string `json:"terminal_classification,omitempty"`
 }
 
 type claudeEnvelope struct {
@@ -118,28 +120,30 @@ type claudeEnvelope struct {
 }
 
 type claudeEvent struct {
-	Ordinal        int    `json:"ordinal"`
-	Timestamp      string `json:"timestamp"`
-	Event          string `json:"event"`
-	State          string `json:"state,omitempty"`
-	PreviousState  string `json:"previous_state,omitempty"`
-	Item           string `json:"item,omitempty"`
-	Evidence       string `json:"evidence,omitempty"`
-	ToolName       string `json:"tool_name,omitempty"`
-	OK             *bool  `json:"ok,omitempty"`
-	FailureClass   string `json:"failure_class,omitempty"`
-	Validator      string `json:"validator,omitempty"`
-	Result         string `json:"result,omitempty"`
-	EvidenceKind   string `json:"evidence_kind,omitempty"`
-	Reference      string `json:"reference,omitempty"`
-	NextSkill      string `json:"next_skill,omitempty"`
-	Artifact       string `json:"artifact,omitempty"`
-	Outcome        string `json:"outcome,omitempty"`
-	Attempt        int    `json:"attempt,omitempty"`
-	Limit          int    `json:"limit,omitempty"`
-	Reason         string `json:"reason,omitempty"`
-	TerminalStatus string `json:"terminal_status,omitempty"`
-	Classification string `json:"classification,omitempty"`
+	Ordinal            int    `json:"ordinal"`
+	Timestamp          string `json:"timestamp"`
+	Event              string `json:"event"`
+	State              string `json:"state,omitempty"`
+	PreviousState      string `json:"previous_state,omitempty"`
+	Item               string `json:"item,omitempty"`
+	Evidence           string `json:"evidence,omitempty"`
+	ToolName           string `json:"tool_name,omitempty"`
+	OK                 *bool  `json:"ok,omitempty"`
+	FailureClass       string `json:"failure_class,omitempty"`
+	Validator          string `json:"validator,omitempty"`
+	Result             string `json:"result,omitempty"`
+	DiagnosticProducer string `json:"diagnostic_producer,omitempty"`
+	DiagnosticCode     string `json:"diagnostic_code,omitempty"`
+	EvidenceKind       string `json:"evidence_kind,omitempty"`
+	Reference          string `json:"reference,omitempty"`
+	NextSkill          string `json:"next_skill,omitempty"`
+	Artifact           string `json:"artifact,omitempty"`
+	Outcome            string `json:"outcome,omitempty"`
+	Attempt            int    `json:"attempt,omitempty"`
+	Limit              int    `json:"limit,omitempty"`
+	Reason             string `json:"reason,omitempty"`
+	TerminalStatus     string `json:"terminal_status,omitempty"`
+	Classification     string `json:"classification,omitempty"`
 }
 
 func convertCodexEvent(input codexEvent) (Event, error) {
@@ -155,7 +159,7 @@ func convertCodexEvent(input codexEvent) (Event, error) {
 		event.Tool = &ToolOutcome{Name: input.Name, Result: input.Result, Classification: input.Classification, Retryable: input.Retryable}
 	case "validation":
 		event.Kind, event.Status = KindValidationOutcome, outcomeStatus(input.Status)
-		event.Validation = &Validation{Name: input.Name, Result: input.Result, Classification: input.Classification}
+		event.Validation = &Validation{Name: input.Name, Result: input.Result, Classification: input.Classification, Diagnostics: diagnosticRefs(input.DiagnosticProducer, input.DiagnosticCode)}
 	case "evidence":
 		event.Kind, event.Status = KindEvidence, StatusSuccess
 		event.Evidence = &Evidence{Kind: input.EvidenceKind, Ref: input.Name, Result: input.EvidenceResult}
@@ -188,7 +192,7 @@ func convertClaudeEvent(input claudeEvent) (Event, error) {
 		event.Tool = &ToolOutcome{Name: input.ToolName, Result: input.Result, Classification: input.FailureClass}
 	case "validation_result":
 		event.Kind, event.Status = KindValidationOutcome, resultStatus(input.Result)
-		event.Validation = &Validation{Name: input.Validator, Result: input.Result, Classification: input.FailureClass}
+		event.Validation = &Validation{Name: input.Validator, Result: input.Result, Classification: input.FailureClass, Diagnostics: diagnosticRefs(input.DiagnosticProducer, input.DiagnosticCode)}
 	case "evidence":
 		event.Kind, event.Status = KindEvidence, StatusSuccess
 		event.Evidence = &Evidence{Kind: input.EvidenceKind, Ref: input.Reference, Result: input.Result}
@@ -206,6 +210,16 @@ func convertClaudeEvent(input claudeEvent) (Event, error) {
 		return Event{}, fmt.Errorf("unsupported Claude Code event type %q", input.Event)
 	}
 	return event, nil
+}
+
+func diagnosticRefs(producer, code string) []DiagnosticRef {
+	if code == "" {
+		return nil
+	}
+	if producer == "" {
+		producer = "validator"
+	}
+	return []DiagnosticRef{{Producer: producer, Code: code}}
 }
 
 func decodeStrict(data []byte, target any) error {

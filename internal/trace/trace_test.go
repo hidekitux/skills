@@ -32,6 +32,34 @@ func TestValidateAcceptsSuccessTrace(t *testing.T) {
 	}
 }
 
+func TestValidateAcceptsSafeDiagnosticReference(t *testing.T) {
+	trace := validTrace()
+	trace.Events[2] = Event{
+		Sequence: 3, Kind: KindValidationOutcome, Status: StatusFailed, At: testTime,
+		Validation: &Validation{
+			Name: "check-repository", Result: "failed", Classification: ClassificationDeterministic,
+			Diagnostics: []DiagnosticRef{{Producer: "check-repository", Code: "check-repository.failed"}},
+		},
+	}
+	if report := Validate(trace); !report.Valid {
+		t.Fatalf("safe diagnostic reference rejected: %v", report.Findings)
+	}
+}
+
+func TestValidateRejectsUnsafeDiagnosticReference(t *testing.T) {
+	trace := validTrace()
+	trace.Events[2] = Event{
+		Sequence: 3, Kind: KindValidationOutcome, Status: StatusFailed, At: testTime,
+		Validation: &Validation{
+			Name: "check-repository", Result: "failed", Classification: ClassificationDeterministic,
+			Diagnostics: []DiagnosticRef{{Producer: "check-repository", Code: "token=secret"}},
+		},
+	}
+	if report := Validate(trace); report.Valid || !contains(report.Findings, "diagnostics[0].code is invalid") {
+		t.Fatalf("unsafe diagnostic reference accepted: valid=%t findings=%v", report.Valid, report.Findings)
+	}
+}
+
 func TestValidateDistinguishesTerminalStates(t *testing.T) {
 	cases := []struct{ name, status, classification string }{
 		{"deterministic failure", "failed", ClassificationDeterministic},
