@@ -129,6 +129,20 @@ func TestRunOneInterruptedOnCanceledStage(t *testing.T) {
 	}
 }
 
+func TestRunOneInterruptedBeforeSkipChecksWhenCanceled(t *testing.T) {
+	sc := &Scenario{ID: "x", Skill: "debug-code", Kind: KindPositive, Prompt: "p"}
+	host := &fakeHost{name: "codex", available: false}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	record := runOne(ctx, sc, host, &Options{}, io.Discard, io.Discard)
+	if record.Verdict != VerdictInterrupted {
+		t.Fatalf("verdict = %s, want interrupted", record.Verdict)
+	}
+	if host.CallCount() != 0 {
+		t.Fatalf("canceled run should not check the host, ran %d times", host.CallCount())
+	}
+}
+
 func TestRunOneInfraOnSkillInstall(t *testing.T) {
 	sc := &Scenario{ID: "x", Skill: "debug-code", Kind: KindPositive, Prompt: "p"}
 	host := &fakeHost{name: "codex", available: true, installErr: fmt.Errorf("gh unavailable")}

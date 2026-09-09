@@ -10,8 +10,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/hidekitux/skills/internal/eval"
 	"github.com/hidekitux/skills/internal/support"
@@ -64,7 +66,10 @@ func main() {
 		opts.Reviewer = &eval.CommandReviewer{Command: *reviewerCmd}
 	}
 
-	os.Exit(eval.Run(context.Background(), opts, os.Stdout, os.Stderr))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	code := eval.Run(ctx, opts, os.Stdout, os.Stderr)
+	stop()
+	os.Exit(code)
 }
 
 // splitList splits a comma-separated flag value into trimmed non-empty parts.
