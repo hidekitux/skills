@@ -109,6 +109,21 @@ spec CrossSkillWorkflow {
     status = Completed
   }
 
+  action handoff_merge() {
+    requires status == PullRequestReady or status == PullRequestReadySecond or
+      status == PullRequestReadyThird
+    requires pull_request_evidence
+    review_evidence = true
+  }
+
+  action complete_merge() {
+    requires status == PullRequestReady or status == PullRequestReadySecond or
+      status == PullRequestReadyThird
+    requires pull_request_evidence
+    requires review_evidence
+    status = Completed
+  }
+
   action publish_first_correction() {
     requires status == PullRequestReady
     requires pull_request_evidence

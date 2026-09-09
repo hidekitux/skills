@@ -1,6 +1,7 @@
 {
   "fixtures": [
     {"path": "valid.jsonl", "valid": true, "outcome": "valid"},
+    {"path": "valid-merge.jsonl", "valid": true, "outcome": "valid"},
     {"path": "invalid-order.jsonl", "outcome": "violation", "invariant": "HandoffMatchesGraph", "event_sequence": 7},
     {"path": "missing-evidence.jsonl", "outcome": "incomplete_evidence", "invariant": "IncompleteTraceIsNotSuccess", "event_sequence": 7},
     {"path": "missing-validation.jsonl", "outcome": "incomplete_evidence", "invariant": "IncompleteTraceIsNotSuccess", "event_sequence": 7},

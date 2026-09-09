@@ -84,7 +84,9 @@ reasoning, tool arguments, tool output, source contents, credentials, private
 URLs, or user data. `incomplete_evidence` means that the records cannot prove a
 required transition; `interrupted` records an explicit interrupted terminal;
 `retry_exhausted` records the graph's bounded review outcome. None of these
-outcomes is a successful replay.
+outcomes is a successful replay. A successful review may terminate the replay
+or hand off to `merge-pr`; a successful merge is recorded as the terminal
+`complete_merge` action.
 
 Validation events may reference a diagnostic by its stable `producer` and
 `code` pair. The reference is safe to persist because it contains no message,

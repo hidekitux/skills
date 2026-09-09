@@ -278,6 +278,10 @@ skills:
         outcome: success
         artifact: review-findings
         destination: {terminal_outcome: success}
+      - id: handoff-merge
+        outcome: success
+        artifact: review-findings
+        destination: {skill: merge-pr}
       - id: stop-with-review-blocker
         outcome: blocked
         artifact: blocked-report
