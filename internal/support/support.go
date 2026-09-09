@@ -28,24 +28,6 @@ func ResolveRoot(cwd string) (string, error) {
 	return filepath.Clean(abs), nil
 }
 
-// Output runs a command with the given arguments, returning its combined
-// stdout and stderr. It returns an error when the command fails to start
-// or exits non-zero.
-func Output(name string, args ...string) (string, error) {
-	cmd := exec.Command(name, args...)
-	out, err := cmd.CombinedOutput()
-	return string(out), err
-}
-
-// OutputIn runs a command in dir, returning combined output. It returns an
-// error when the command fails to start or exits non-zero.
-func OutputIn(dir, name string, args ...string) (string, error) {
-	cmd := exec.Command(name, args...)
-	cmd.Dir = dir
-	out, err := cmd.CombinedOutput()
-	return string(out), err
-}
-
 // ExitError returns the process exit code carried by err, or 1 when err is
 // non-nil but not an *exec.ExitError. A nil err returns 0.
 func ExitError(err error) int {
@@ -89,13 +71,6 @@ func GitEnv() []string {
 		}
 	}
 	return env
-}
-
-// GitOutput runs git with GIT_* environment variables removed, returning
-// combined output. It returns an error when git fails to start or exits
-// non-zero. Git commands run from the current working directory.
-func GitOutput(args ...string) (string, error) {
-	return GitOutputIn("", args...)
 }
 
 // GitOutputIn runs git in dir with GIT_* environment variables removed.
