@@ -26,6 +26,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated r
   resolve `issue/<number>` from that base. Start from the planned base
   revision when a plan exists.
 - Implement only tasks derived from the Issue plan or the Issue's scope and acceptance criteria. Do not add unplanned features, unrelated refactors, or out-of-scope edits.
+- When the plan or actual change removes or retires a unit, reconcile the plan's capability-landing inventory with the final diff and current repository behavior. Classify every capability as `retained`, `replaced by a named substitute`, or `dropped`. Name each substitute and preserve evidence for every row. Report every dropped capability in the handoff even when the Issue authorizes the removal.
 - Preserve unrelated user changes. Do not switch branches, stage unrelated files, rewrite history, or reset the worktree when doing so would include work outside the linked Issue.
 - Stop and report when the plan or the Issue lacks a scoped boundary or acceptance criteria, or when an in-scope branch is unavailable.
 - Do not create or release work here. Issue creation happened in an earlier
@@ -49,6 +50,7 @@ If either condition is absent, stop and route to `plan-issue` before editing. Re
 - Start from the current work branch and the plan's base revision. When the plan calls for a fresh Issue branch, create it only after confirming the Issue-backed branch convention and the upstream base.
 - Edit only the files required by the task. Prefer the repository's existing patterns, local helper APIs, and module boundaries.
 - For each completed task, record observable evidence: the files changed, the commands run, and the resulting output or artifact. Never claim completion from intent alone.
+- For a removal, record the final capability-landing inventory with the task evidence. If the final diff changes a planned classification or reveals an unplanned capability, stop before widening the implementation. Route the new decision back to `plan-issue`.
 - Re-read repository instructions and re-check scope when the plan changes or when the base revision changes. Do not reuse a stale plan.
 
 ## Commit
@@ -71,6 +73,7 @@ If either condition is absent, stop and route to `plan-issue` before editing. Re
 - Run the repository-prescribed checks for the completed work. Prefer the standard task runner and aggregate validation command; do not substitute narrower commands for an available aggregate task.
 - Record every command and result in the handoff. State every skipped or failing check explicitly; never describe an unrun check as passing.
 - Report the Issue URL, the implemented tasks with their commit hashes, the changed files, the validation commands and results, the governing Issue's Project Status, and any remaining unfinished tasks or risks.
+- When a unit was removed, report the complete final capability-landing inventory in the handoff. Keep `dropped` capabilities visible with their evidence, including intentional and Issue-authorized drops. This lets `create-pr` review the removal boundary.
 - Hand off completed work to `create-pr` only when the in-scope implementation and validation evidence are complete. Do not publish a Pull Request, merge, or release unless the user separately requests it.
 
 ## Writing quality
