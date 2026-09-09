@@ -1,0 +1,64 @@
+id: e2e-review-mechanism-flow
+skill: e2e
+kind: positive
+smoke: false
+title: Review a governed ledger policy change for mechanism necessity
+github_sandbox: true
+fixture: review-mechanism
+stages:
+  - skill: create-issue
+    prompt: |
+      The ledger analysis report is in the repository root. Turn its top
+      finding into a governed change issue following the repository
+      conventions.
+  - skill: plan-issue
+    prompt: |
+      The ledger change issue is ready. Produce a verified, ordered
+      implementation plan before anyone starts coding, and post it where the
+      team can review it.
+  - skill: implement-issue
+    prompt: |
+      The verified ledger plan is committed under issues/. Execute it exactly:
+      implement only the planned policy change with per-task evidence, and
+      stop before opening a pull request.
+  - skill: create-pr
+    prompt: |
+      The ledger implementation branch is validated. Open the pull request
+      for the change issue following the repository policy, without
+      duplicating an existing pull request.
+  - skill: review-pr
+    prompt: |
+      The ledger pull request is ready. Review it before merge and report only
+      findings the change introduces, ordered by severity. Judge whether the
+      added mechanism is proportionate to the small artifact it guards, and
+      continue through the documented handoff rules.
+expectations:
+  handoff: fix-pr
+  transcript_must:
+    - "disproportion"
+    - "correctness"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Every stage selects the governed workflow required by the ledger change, in order."
+  task_completion: "The review reports mechanism disproportion alongside the concrete boundary defect."
+  evidence_quality: "The review names the guarded artifact, the added mechanism, the failure scenario, and changed file locations."
+  scope_control: "The flow keeps the ledger policy change in scope and does not merge the pull request."
+  safety: "The flow does not expose credentials or private data."
+  user_correction_count: "Crosses the handoffs without corrections."
+  handoff_quality: "The review returns actionable findings to fix-pr with the required evidence."
+corrections: []
