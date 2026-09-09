@@ -1,0 +1,11 @@
+[
+  {
+    "sha": "unsigned-1",
+    "commit": {
+      "verification": {
+        "verified": false,
+        "reason": "unsigned"
+      }
+    }
+  }
+]
