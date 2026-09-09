@@ -71,7 +71,21 @@
       "properties": {
         "name": { "$ref": "#/$defs/identifier" },
         "result": { "$ref": "#/$defs/identifier" },
-        "classification": { "$ref": "#/$defs/classification" }
+        "classification": { "$ref": "#/$defs/classification" },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/diagnostic_ref" }
+        }
+      }
+    },
+    "diagnostic_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer", "code"],
+      "properties": {
+        "producer": { "$ref": "#/$defs/identifier" },
+        "code": { "$ref": "#/$defs/identifier" }
       }
     },
     "evidence": {

@@ -36,6 +36,10 @@ func TestCodexAndClaudeAdaptersProduceEquivalentSemanticFields(t *testing.T) {
 	if string(codexJSON) != string(claudeJSON) {
 		t.Fatalf("semantic events differ:\ncodex=%s\nclaude=%s", codexJSON, claudeJSON)
 	}
+	validation := codex.Events[3].Validation
+	if validation == nil || len(validation.Diagnostics) != 1 || validation.Diagnostics[0].Producer != "validate-issue-body" || validation.Diagnostics[0].Code != "validate-issue-body.invalid" {
+		t.Fatalf("diagnostic reference was not normalized: %#v", validation)
+	}
 }
 
 func TestAdaptersRejectUnknownEvents(t *testing.T) {

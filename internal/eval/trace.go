@@ -42,7 +42,10 @@ func traceForRecord(sc *Scenario, record Record, graphVersion int, skillVersion 
 	toolStatus, toolClass := traceOutcome(record)
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindToolOutcome, Status: toolStatus, At: finished, Tool: &trace.ToolOutcome{Name: "host-stage", Result: toolStatus, Classification: toolClass}})
 	validationStatus, validationClass := traceOutcome(record)
-	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindValidationOutcome, Status: validationStatus, At: finished, Validation: &trace.Validation{Name: "check-evaluation", Result: record.Verdict, Classification: validationClass}})
+	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindValidationOutcome, Status: validationStatus, At: finished, Validation: &trace.Validation{
+		Name: "check-evaluation", Result: record.Verdict, Classification: validationClass,
+		Diagnostics: []trace.DiagnosticRef{{Producer: "evaluate", Code: "evaluate.scenario." + record.Verdict}},
+	}})
 	item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindEvidence, Status: validationStatus, At: finished, Evidence: &trace.Evidence{Kind: "validation", Ref: "check-evaluation", Result: record.Verdict}})
 	if record.CorrectionsUsed > 0 {
 		item.Events = append(item.Events, trace.Event{Sequence: len(item.Events) + 1, Kind: trace.KindRetry, Status: trace.StatusFailed, At: finished, Retry: &trace.Retry{Attempt: record.CorrectionsUsed, MaxAttempts: record.CorrectionsUsed, Reason: "user-correction"}})

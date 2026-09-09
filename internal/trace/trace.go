@@ -105,9 +105,17 @@ type ToolOutcome struct {
 
 // Validation records a validation result without command output.
 type Validation struct {
-	Name           string `json:"name"`
-	Result         string `json:"result"`
-	Classification string `json:"classification,omitempty"`
+	Name           string          `json:"name"`
+	Result         string          `json:"result"`
+	Classification string          `json:"classification,omitempty"`
+	Diagnostics    []DiagnosticRef `json:"diagnostics,omitempty"`
+}
+
+// DiagnosticRef identifies a diagnostic without persisting its message,
+// observed state, command output, or evidence content.
+type DiagnosticRef struct {
+	Producer string `json:"producer"`
+	Code     string `json:"code"`
 }
 
 // Evidence is a safe pointer to an externally stored result.
@@ -373,6 +381,17 @@ func validateValidation(validation Validation) []string {
 	if validation.Classification != "" && !validClassification(validation.Classification) {
 		findings = append(findings, "validation.classification is invalid")
 	}
+	if len(validation.Diagnostics) > 8 {
+		findings = append(findings, "validation.diagnostics contains more than 8 references")
+	}
+	for index, reference := range validation.Diagnostics {
+		if !validIdentifier(reference.Producer) {
+			findings = append(findings, fmt.Sprintf("validation.diagnostics[%d].producer is invalid", index))
+		}
+		if !validIdentifier(reference.Code) {
+			findings = append(findings, fmt.Sprintf("validation.diagnostics[%d].code is invalid", index))
+		}
+	}
 	return findings
 }
 
@@ -519,6 +538,11 @@ func Sanitize(input Trace) (Trace, error) {
 		if copyEvent.Validation != nil {
 			copyValidation := *copyEvent.Validation
 			copyValidation.Name, copyValidation.Result, copyValidation.Classification = redact(copyValidation.Name), redact(copyValidation.Result), redact(copyValidation.Classification)
+			copyValidation.Diagnostics = append([]DiagnosticRef(nil), copyValidation.Diagnostics...)
+			for index := range copyValidation.Diagnostics {
+				copyValidation.Diagnostics[index].Producer = redact(copyValidation.Diagnostics[index].Producer)
+				copyValidation.Diagnostics[index].Code = redact(copyValidation.Diagnostics[index].Code)
+			}
 			copyEvent.Validation = &copyValidation
 		}
 		if copyEvent.Evidence != nil {
