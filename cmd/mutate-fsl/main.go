@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -50,30 +49,28 @@ func run() int {
 	}
 	defer cleanup()
 
-	code := fsl.MutateFSL(".", output, os.Stderr, fsl.MutateOptions{
+	result := fsl.MutateFSLResult(".", output, os.Stderr, fsl.MutateOptions{
 		ChangedBase: *changedBase,
 		ReportPath:  effectiveReportPath,
 	})
 	if *diagnosticFormat == "json" {
-		data, err := os.ReadFile(effectiveReportPath)
+		diagnostics, err := fsl.DiagnosticsForReport(result.Report)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 2
 		}
-		var report fsl.MutationReport
-		if err := json.Unmarshal(data, &report); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return 2
-		}
-		diagnostics, err := fsl.DiagnosticsForReport(report)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return 2
+		if len(diagnostics) == 0 && result.ExitCode != 0 {
+			item, err := fsl.MutationInfrastructureDiagnostic(result.ExitCode)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 2
+			}
+			diagnostics = []diagnostic.Diagnostic{item}
 		}
 		if err := diagnostic.WriteJSONL(os.Stdout, diagnostics); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 2
 		}
 	}
-	return code
+	return result.ExitCode
 }

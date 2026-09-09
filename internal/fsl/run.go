@@ -203,12 +203,27 @@ type MutateOptions struct {
 	ReportPath string
 }
 
+// MutationResult records the exit code and report produced by one mutation
+// invocation. The report is available even when writing the optional file
+// fails, so structured consumers never need to trust stale filesystem data.
+type MutationResult struct {
+	ExitCode int
+	Report   MutationReport
+}
+
 // MutateFSL measures mutation detection for every FSL spec (or only the specs
 // changed since opts.ChangedBase). An fslc failure for one spec is recorded as
 // an infrastructure error in the report and the remaining specs still run; the
 // command still exits non-zero so failures stay visible. On success it exits 0
 // and writes the report when opts.ReportPath is set.
 func MutateFSL(root string, out, errOut io.Writer, opts MutateOptions) int {
+	return MutateFSLResult(root, out, errOut, opts).ExitCode
+}
+
+// MutateFSLResult runs mutation measurement and returns the report built by
+// the current invocation for structured consumers.
+func MutateFSLResult(root string, out, errOut io.Writer, opts MutateOptions) MutationResult {
+	report := MutationReport{Depth: depth()}
 	var specs []string
 	var err error
 	if opts.ChangedBase != "" {
@@ -218,22 +233,25 @@ func MutateFSL(root string, out, errOut io.Writer, opts MutateOptions) int {
 	}
 	if err != nil {
 		fmt.Fprintf(errOut, "error: %v\n", err)
-		return 1
+		if opts.ReportPath != "" {
+			if writeErr := WriteMutationReport(opts.ReportPath, report); writeErr != nil {
+				fmt.Fprintf(errOut, "error: write mutation report: %v\n", writeErr)
+			}
+		}
+		return MutationResult{ExitCode: 1, Report: report}
 	}
-	depthValue := depth()
+	depthValue := report.Depth
 	if len(specs) == 0 {
 		fmt.Fprintln(out, "No FSL specifications selected for mutation.")
 		if opts.ReportPath != "" {
-			report := MutationReport{Depth: depthValue}
 			if err := WriteMutationReport(opts.ReportPath, report); err != nil {
 				fmt.Fprintf(errOut, "error: write mutation report: %v\n", err)
-				return 1
+				return MutationResult{ExitCode: 1, Report: report}
 			}
 		}
-		return 0
+		return MutationResult{Report: report}
 	}
 
-	report := MutationReport{Depth: depthValue}
 	failed := 0
 	for _, spec := range specs {
 		fmt.Fprintf(out, "Mutating %s at depth %s\n", spec, depthValue)
@@ -255,11 +273,15 @@ func MutateFSL(root string, out, errOut io.Writer, opts MutateOptions) int {
 			parsed, err := parseMutationDocuments(buffer.String())
 			if err != nil {
 				fmt.Fprintf(errOut, "error: parse mutation output for %s: %v\n", spec, err)
-				return 1
+				failed++
+				report.Specs = append(report.Specs, SpecReport{Spec: spec, Status: "error", Error: "mutation output could not be parsed"})
+				continue
 			}
 			if len(parsed) != 1 {
 				fmt.Fprintf(errOut, "error: expected one mutation document for %s, got %d\n", spec, len(parsed))
-				return 1
+				failed++
+				report.Specs = append(report.Specs, SpecReport{Spec: spec, Status: "error", Error: "mutation output contained an unexpected document count"})
+				continue
 			}
 			specReport := parsed[0]
 			specReport.Spec = spec
@@ -279,14 +301,14 @@ func MutateFSL(root string, out, errOut io.Writer, opts MutateOptions) int {
 		}
 		if err := WriteMutationReport(opts.ReportPath, report); err != nil {
 			fmt.Fprintf(errOut, "error: write mutation report: %v\n", err)
-			return 1
+			return MutationResult{ExitCode: 1, Report: report}
 		}
 		fmt.Fprintf(out, "Mutation report written to %s.\n", opts.ReportPath)
 	}
 	if failed > 0 {
 		fmt.Fprintf(errOut, "Mutation infrastructure error: %d spec(s) failed to mutate.\n", failed)
-		return 1
+		return MutationResult{ExitCode: 1, Report: report}
 	}
 	fmt.Fprintf(out, "Mutated %d FSL spec(s).\n", len(specs))
-	return 0
+	return MutationResult{Report: report}
 }
