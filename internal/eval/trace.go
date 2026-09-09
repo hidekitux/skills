@@ -63,6 +63,8 @@ func traceTerminal(record Record) (string, string) {
 		return "failed", trace.ClassificationDeterministic
 	case VerdictSkipped:
 		return "skipped", trace.ClassificationSkip
+	case VerdictInterrupted:
+		return "interrupted", trace.ClassificationInterruption
 	default:
 		return "infrastructure_error", trace.ClassificationInfrastructure
 	}
@@ -76,6 +78,8 @@ func traceOutcome(record Record) (string, string) {
 		return trace.StatusFailed, trace.ClassificationDeterministic
 	case VerdictSkipped:
 		return trace.StatusSkipped, trace.ClassificationSkip
+	case VerdictInterrupted:
+		return trace.StatusInterrupted, trace.ClassificationInterruption
 	default:
 		return trace.StatusError, trace.ClassificationInfrastructure
 	}
