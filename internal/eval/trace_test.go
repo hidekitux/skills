@@ -37,6 +37,25 @@ func TestTraceForRecordAndMetricsUseStructuredFields(t *testing.T) {
 	}
 }
 
+func TestTraceForInterruptedRecordUsesInterruptedTerminal(t *testing.T) {
+	scenario := &Scenario{ID: "interrupted", Skill: "debug-code"}
+	record := Record{
+		RunID: "run-interrupted", Scenario: scenario.ID, Skill: scenario.Skill, Host: "codex", Model: "gpt-5",
+		Commit: "0123456789abcdef0123456789abcdef01234567", Verdict: VerdictInterrupted,
+		StartedAt: "2026-09-09T12:00:00Z", FinishedAt: "2026-09-09T12:00:01Z",
+	}
+	item, err := traceForRecord(scenario, record, 1, "0.1.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Terminal.Status != trace.StatusInterrupted || item.Terminal.Classification != trace.ClassificationInterruption {
+		t.Fatalf("terminal = %#v, want interrupted user interruption", item.Terminal)
+	}
+	if report := trace.Validate(item); !report.Valid {
+		t.Fatalf("evaluation trace invalid: %v", report.Findings)
+	}
+}
+
 func TestRunOptInWritesTraceAndMetrics(t *testing.T) {
 	t.Setenv("EVAL_GITHUB_REPO", "hidekitux/skills")
 	_, file, _, ok := runtime.Caller(0)

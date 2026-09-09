@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -209,8 +210,7 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 
 	installOut := &strings.Builder{}
 	if err := host.InstallSkills(ctx, opts.Root, sandboxDir, installOut, errOut); err != nil {
-		record.Verdict = VerdictInfra
-		record.InfraError = "skill installation: " + err.Error()
+		record.Verdict, record.InfraError = classifyHostError(ctx, "skill installation", err)
 		return record
 	}
 
@@ -218,13 +218,21 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 	prompts := sc.prompts()
 	for index, prompt := range prompts {
 		if err := host.Run(ctx, sandboxDir, prompt, &transcript); err != nil {
-			record.Verdict = VerdictInfra
-			record.InfraError = fmt.Sprintf("host stage %d: %v", index+1, err)
+			record.Verdict, record.InfraError = classifyHostError(ctx, fmt.Sprintf("host stage %d", index+1), err)
 			return record
 		}
 	}
-	correctionsUsed := runCorrections(ctx, sc, host, sandboxDir, &transcript)
+	correctionsUsed, correctionErr := runCorrections(ctx, sc, host, sandboxDir, &transcript)
 	record.CorrectionsUsed = correctionsUsed
+	if correctionErr != nil {
+		record.Verdict, record.InfraError = classifyHostError(ctx, fmt.Sprintf("host correction %d", correctionsUsed), correctionErr)
+		return record
+	}
+	if errors.Is(ctx.Err(), context.Canceled) {
+		record.Verdict = VerdictInterrupted
+		record.InfraError = "user interruption: " + ctx.Err().Error()
+		return record
+	}
 
 	failures := evaluateAssertions(ctx, sc, transcript.String(), sandboxDir, before, opts.HandoffNames)
 	if len(failures) > 0 {
@@ -252,23 +260,33 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 	return record
 }
 
+func classifyHostError(ctx context.Context, stage string, err error) (string, string) {
+	if errors.Is(err, context.Canceled) || errors.Is(ctx.Err(), context.Canceled) {
+		return VerdictInterrupted, fmt.Sprintf("user interruption at %s: %v", stage, err)
+	}
+	return VerdictInfra, fmt.Sprintf("%s: %v", stage, err)
+}
+
 // runCorrections feeds the scenario's scripted user correction turns into
 // single-stage scenarios, re-running the stage after each turn and counting
 // how many were needed. Multi-stage flows record 0 and leave corrections to
 // the reviewer so the flow's handoffs stay contiguous.
-func runCorrections(ctx context.Context, sc *Scenario, host HostRunner, sandboxDir string, transcript *strings.Builder) int {
+func runCorrections(ctx context.Context, sc *Scenario, host HostRunner, sandboxDir string, transcript *strings.Builder) (int, error) {
 	if len(sc.Corrections) == 0 || len(sc.prompts()) > 1 {
-		return 0
+		return 0, nil
 	}
 	used := 0
 	for _, correction := range sc.Corrections {
 		used++
 		fmt.Fprintf(transcript, "\n--- user correction %d ---\n%s\n", used, correction)
 		if err := host.Run(ctx, sandboxDir, correction, transcript); err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(ctx.Err(), context.Canceled) {
+				return used, err
+			}
 			break
 		}
 	}
-	return used
+	return used, nil
 }
 
 // gateVerdict aggregates the per-driver records of one scenario under the
@@ -278,13 +296,15 @@ func runCorrections(ctx context.Context, sc *Scenario, host HostRunner, sandboxD
 // when neither driver passed nor failed. The per-driver records keep every
 // finding visible.
 func gateVerdict(records []Record) (string, string) {
-	var pass, fail, infra bool
+	var pass, fail, interrupted, infra bool
 	for _, record := range records {
 		switch record.Verdict {
 		case VerdictPass:
 			pass = true
 		case VerdictFail:
 			fail = true
+		case VerdictInterrupted:
+			interrupted = true
 		case VerdictInfra:
 			infra = true
 		}
@@ -297,6 +317,9 @@ func gateVerdict(records []Record) (string, string) {
 	}
 	if infra {
 		return VerdictInfra, "no driver produced a usable verdict (infrastructure errors everywhere)"
+	}
+	if interrupted {
+		return VerdictInterrupted, "no driver completed because execution was interrupted"
 	}
 	return VerdictSkipped, ""
 }
@@ -481,6 +504,8 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 		case VerdictFail:
 			hadFail = true
 		case VerdictInfra:
+			hadInfra = true
+		case VerdictInterrupted:
 			hadInfra = true
 		}
 	}

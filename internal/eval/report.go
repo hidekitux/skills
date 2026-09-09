@@ -83,13 +83,13 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 		counts[verdict]++
 	}
 	fmt.Fprintln(w, "\n## Summary")
-	for _, verdict := range []string{VerdictPass, VerdictFail, VerdictSkipped, VerdictInfra} {
+	for _, verdict := range []string{VerdictPass, VerdictFail, VerdictSkipped, VerdictInterrupted, VerdictInfra} {
 		fmt.Fprintf(w, "- %s: %d\n", verdict, counts[verdict])
 	}
 
 	var failed []Record
 	for _, record := range records {
-		if record.Verdict == VerdictFail || record.Verdict == VerdictInfra {
+		if record.Verdict == VerdictFail || record.Verdict == VerdictInterrupted || record.Verdict == VerdictInfra {
 			failed = append(failed, record)
 		}
 	}
@@ -128,6 +128,8 @@ func describeResult(record Record) string {
 		return "skipped: " + record.SkipReason
 	case VerdictInfra:
 		return "infrastructure error"
+	case VerdictInterrupted:
+		return "execution interrupted"
 	default:
 		return record.Verdict
 	}

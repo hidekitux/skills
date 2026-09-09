@@ -117,6 +117,18 @@ func TestRunOneInfraOnStageRunError(t *testing.T) {
 	}
 }
 
+func TestRunOneInterruptedOnCanceledStage(t *testing.T) {
+	sc := &Scenario{ID: "x", Skill: "debug-code", Kind: KindPositive, Prompt: "p"}
+	host := &fakeHost{name: "codex", available: true, runErr: context.Canceled}
+	record := runOneForTest(t, sc, host, &Options{})
+	if record.Verdict != VerdictInterrupted {
+		t.Fatalf("verdict = %s, want interrupted", record.Verdict)
+	}
+	if !strings.Contains(record.InfraError, "user interruption") {
+		t.Fatalf("infra error = %q, want user interruption", record.InfraError)
+	}
+}
+
 func TestRunOneInfraOnSkillInstall(t *testing.T) {
 	sc := &Scenario{ID: "x", Skill: "debug-code", Kind: KindPositive, Prompt: "p"}
 	host := &fakeHost{name: "codex", available: true, installErr: fmt.Errorf("gh unavailable")}
@@ -377,6 +389,7 @@ func TestGateVerdictEitherPass(t *testing.T) {
 		{"all fail blocks", []Record{record("s", VerdictFail, "a"), record("s", VerdictFail, "b")}, VerdictFail},
 		{"fail overrides infra", []Record{record("s", VerdictInfra, "a"), record("s", VerdictFail, "b")}, VerdictFail},
 		{"all infra", []Record{record("s", VerdictInfra, "a"), record("s", VerdictInfra, "b")}, VerdictInfra},
+		{"all interrupted", []Record{record("s", VerdictInterrupted, "a"), record("s", VerdictInterrupted, "b")}, VerdictInterrupted},
 		{"all skipped", []Record{record("s", VerdictSkipped, "a"), record("s", VerdictSkipped, "b")}, VerdictSkipped},
 	}
 	for _, tc := range cases {

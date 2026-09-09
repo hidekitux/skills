@@ -30,15 +30,16 @@ const (
 
 // Scenario verdicts recorded for every evaluated scenario (Acceptance
 // criterion 3: the output distinguishes deterministic failures, rubric
-// scores, skipped cases, and infrastructure errors).
+// scores, skipped cases, interrupted runs, and infrastructure errors).
 const (
-	VerdictPass    = "pass"
-	VerdictFail    = "fail"
-	VerdictSkipped = "skipped"
-	VerdictInfra   = "infrastructure_error"
-	RubricPending  = "pending"
-	RubricComplete = "complete"
-	RubricNA       = "not-applicable"
+	VerdictPass        = "pass"
+	VerdictFail        = "fail"
+	VerdictSkipped     = "skipped"
+	VerdictInterrupted = "interrupted"
+	VerdictInfra       = "infrastructure_error"
+	RubricPending      = "pending"
+	RubricComplete     = "complete"
+	RubricNA           = "not-applicable"
 )
 
 // Stage is one handoff step of an e2e flow. Each stage names the skill under
