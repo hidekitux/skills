@@ -31,6 +31,7 @@ Review in this order and follow this flow rather than a pre-existing checklist.
 
 - Build the contract the change must satisfy from the PR body, the linked Issue, specifications, and the existing code before reviewing. Report drift as a finding when the diff implements a different feature than intended or deviates from the Issue's acceptance criteria.
 - Apply the standards the review uses. Resolve criteria in this order: explicit requester input, the project criteria file, criteria derived from the change, then the built-in baseline. Ask the requester when criteria are ambiguous or conflict. See [review criteria](references/review-criteria.md).
+- Before judging whether an added mechanism is correct, judge whether it should exist. Identify the artifact or contract it guards, the need it addresses, and whether its size and complexity are proportionate to the risk and impact. Report disproportion as a separate finding when the mechanism is materially larger or more complex than the guarded artifact without a stated need that justifies the cost, and continue the correctness review so both findings can be reported. Keep this judgment in contract assembly; do not move it into the adoption gate.
 - List the applied criteria and their sources at the top of the review report.
 
 ### 2. Map the diff and its impact scope
