@@ -165,6 +165,13 @@ type ValidationReport struct {
 	Findings      []string `json:"findings,omitempty"`
 }
 
+// FileValidationReport is the stable result for a JSONL trace file.
+type FileValidationReport struct {
+	Valid      bool     `json:"valid"`
+	TraceCount int      `json:"trace_count"`
+	Findings   []string `json:"findings,omitempty"`
+}
+
 var (
 	identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/-]*$`)
 	versionPattern    = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
@@ -579,6 +586,10 @@ func WriteJSONL(path string, traces []Trace) error {
 
 // ReadJSONL reads and validates one or more persisted traces.
 func ReadJSONL(path string) ([]Trace, error) {
+	report := ValidateJSONL(path, "")
+	if !report.Valid {
+		return nil, errors.New(strings.Join(report.Findings, "; "))
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -596,15 +607,130 @@ func ReadJSONL(path string) ([]Trace, error) {
 		if err != nil {
 			return nil, fmt.Errorf("trace line %d: %w", line, err)
 		}
-		if report := Validate(trace); !report.Valid {
-			return nil, fmt.Errorf("trace line %d is invalid: %s", line, strings.Join(report.Findings, "; "))
-		}
 		traces = append(traces, trace)
 	}
 	if len(traces) == 0 {
 		return nil, errors.New("trace file contains no records")
 	}
 	return traces, nil
+}
+
+// ValidateJSONL validates every trace line. When root is non-empty it also
+// checks the skill and graph versions against repository metadata.
+func ValidateJSONL(path, root string) FileValidationReport {
+	report := FileValidationReport{Valid: true}
+	f, err := os.Open(path)
+	if err != nil {
+		report.Valid = false
+		report.Findings = []string{fmt.Sprintf("open trace file: %v", err)}
+		return report
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	line := 0
+	for scanner.Scan() {
+		line++
+		content := strings.TrimSpace(scanner.Text())
+		if content == "" {
+			continue
+		}
+		var item Trace
+		decoder := json.NewDecoder(strings.NewReader(content))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&item); err != nil {
+			report.Valid = false
+			report.Findings = append(report.Findings, fmt.Sprintf("line %d: decode trace: %v", line, err))
+			continue
+		}
+		report.TraceCount++
+		if validation := Validate(item); !validation.Valid {
+			report.Valid = false
+			for _, finding := range validation.Findings {
+				report.Findings = append(report.Findings, fmt.Sprintf("line %d: %s", line, finding))
+			}
+		}
+		if root != "" {
+			for _, finding := range validateRepositoryMetadata(root, item) {
+				report.Valid = false
+				report.Findings = append(report.Findings, fmt.Sprintf("line %d: %s", line, finding))
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		report.Valid = false
+		report.Findings = append(report.Findings, fmt.Sprintf("read trace file: %v", err))
+	}
+	if report.TraceCount == 0 {
+		report.Valid = false
+		report.Findings = append(report.Findings, "trace file contains no records")
+	}
+	return report
+}
+
+func validateRepositoryMetadata(root string, item Trace) []string {
+	findings := []string{}
+	graphVersion, err := GraphVersion(root)
+	if err != nil {
+		return []string{fmt.Sprintf("load graph: %v", err)}
+	}
+	if item.GraphVersion != graphVersion {
+		findings = append(findings, fmt.Sprintf("graph_version %d does not match repository graph version %d", item.GraphVersion, graphVersion))
+	}
+	loaded, err := graph.Load(root)
+	if err != nil {
+		return append(findings, fmt.Sprintf("load graph: %v", err))
+	}
+	if _, ok := loaded.Skill(item.SkillID); !ok {
+		findings = append(findings, fmt.Sprintf("skill_id %q is not in the repository graph", item.SkillID))
+	}
+	skillVersion, err := SkillVersion(root, item.SkillID)
+	if err != nil {
+		findings = append(findings, fmt.Sprintf("read skill version: %v", err))
+	} else if item.SkillVersion != skillVersion {
+		findings = append(findings, fmt.Sprintf("skill_version %q does not match catalog version %q", item.SkillVersion, skillVersion))
+	}
+	return findings
+}
+
+// CheckFixtures validates committed trace fixtures and their repository links.
+func CheckFixtures(root string, out, errOut io.Writer) int {
+	directory := filepath.Join(root, "workflow", "trace-fixtures")
+	entries, err := os.ReadDir(directory)
+	if os.IsNotExist(err) {
+		fmt.Fprintln(out, "trace fixture check skipped: no workflow/trace-fixtures directory")
+		return 0
+	}
+	if err != nil {
+		fmt.Fprintf(errOut, "trace fixture check failed: %v\n", err)
+		return 1
+	}
+	count := 0
+	failed := false
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".jsonl" {
+			continue
+		}
+		count++
+		path := filepath.Join(directory, entry.Name())
+		fileReport := ValidateJSONL(path, root)
+		if !fileReport.Valid {
+			failed = true
+			for _, finding := range fileReport.Findings {
+				fmt.Fprintf(errOut, "%s: %s\n", entry.Name(), finding)
+			}
+			continue
+		}
+		fmt.Fprintf(out, "%s: %d trace(s) valid\n", entry.Name(), fileReport.TraceCount)
+	}
+	if count == 0 {
+		fmt.Fprintln(out, "trace fixture check skipped: no JSONL fixtures found")
+		return 0
+	}
+	if failed {
+		return 1
+	}
+	fmt.Fprintf(out, "trace fixture check passed: %d file(s).\n", count)
+	return 0
 }
 
 // SkillVersion reads one cataloged skill version without reading skill prose.

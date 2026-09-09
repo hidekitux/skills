@@ -20,6 +20,7 @@ import (
 	"github.com/hidekitux/skills/internal/graph"
 	"github.com/hidekitux/skills/internal/publicstatus"
 	"github.com/hidekitux/skills/internal/support"
+	"github.com/hidekitux/skills/internal/trace"
 	"github.com/hidekitux/skills/internal/validate"
 )
 
@@ -57,6 +58,7 @@ var repoChecks = []repoCheck{
 		}
 		return 1
 	}},
+	{name: "validate-skill-trace", fn: trace.CheckFixtures},
 }
 
 type checkResult struct {

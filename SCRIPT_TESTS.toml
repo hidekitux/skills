@@ -36,6 +36,8 @@
 "cmd/validate-skill-creator" = "./internal/validate"
 "cmd/validate-skill-graph" = "./internal/graph"
 "cmd/read-skill-graph" = "./internal/graph"
+"cmd/validate-skill-trace" = "./internal/trace"
+"cmd/read-skill-trace" = "./internal/trace"
 "cmd/evaluate" = "./internal/eval"
 "cmd/check-evaluation" = "./internal/eval"
 "cmd/generate-public-status" = "./internal/publicstatus"
