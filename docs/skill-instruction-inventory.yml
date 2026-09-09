@@ -8,6 +8,8 @@ skills:
     path: skills/analyze-project/SKILL.md
     before_tokens: 1127
     after_tokens: 1055
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Workflow, classification: task-procedure}
@@ -23,6 +25,8 @@ skills:
     path: skills/audit-workflow-enforcement/SKILL.md
     before_tokens: 805
     after_tokens: 733
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Workflow, classification: task-procedure}
@@ -33,6 +37,8 @@ skills:
     path: skills/bootstrap-project/SKILL.md
     before_tokens: 2591
     after_tokens: 2352
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Overview, classification: invariant}
       - {heading: Workflow, classification: task-procedure}
@@ -47,6 +53,8 @@ skills:
     path: skills/create-issue/SKILL.md
     before_tokens: 1233
     after_tokens: 994
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Body Structure, classification: task-procedure}
@@ -58,6 +66,8 @@ skills:
     path: skills/create-pr/SKILL.md
     before_tokens: 1761
     after_tokens: 1385
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -70,6 +80,8 @@ skills:
     path: skills/debug-code/SKILL.md
     before_tokens: 932
     after_tokens: 859
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -85,6 +97,8 @@ skills:
     path: skills/deliver-change/SKILL.md
     before_tokens: 1114
     after_tokens: 1042
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -96,6 +110,8 @@ skills:
     path: skills/fix-pr/SKILL.md
     before_tokens: 2645
     after_tokens: 2051
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -110,6 +126,8 @@ skills:
     path: skills/implement-issue/SKILL.md
     before_tokens: 1755
     after_tokens: 1243
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -122,6 +140,8 @@ skills:
     path: skills/improve-project/SKILL.md
     before_tokens: 1121
     after_tokens: 1049
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -133,6 +153,8 @@ skills:
     path: skills/merge-pr/SKILL.md
     before_tokens: 1995
     after_tokens: 1289
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -146,6 +168,8 @@ skills:
     path: skills/plan-issue/SKILL.md
     before_tokens: 1533
     after_tokens: 1294
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Read the Issue, classification: task-procedure}
@@ -157,6 +181,8 @@ skills:
     path: skills/resolve-defect/SKILL.md
     before_tokens: 1151
     after_tokens: 1079
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -168,6 +194,8 @@ skills:
     path: skills/review-pr/SKILL.md
     before_tokens: 1940
     after_tokens: 1701
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -185,6 +213,8 @@ skills:
     path: skills/skills/refactor-code/SKILL.md
     before_tokens: 727
     after_tokens: 655
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
@@ -197,6 +227,8 @@ skills:
     path: skills/write-tests/SKILL.md
     before_tokens: 1238
     after_tokens: 1166
+    before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
+    after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}

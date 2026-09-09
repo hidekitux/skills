@@ -54,6 +54,8 @@ type Skill struct {
 	Path         string    `yaml:"path"`
 	BeforeTokens int       `yaml:"before_tokens"`
 	AfterTokens  int       `yaml:"after_tokens"`
+	BeforeCommit string    `yaml:"before_commit"`
+	AfterCommit  string    `yaml:"after_commit"`
 	Sections     []Section `yaml:"sections"`
 }
 
@@ -111,8 +113,8 @@ func Load(path string) (Inventory, error) {
 		return Inventory{}, fmt.Errorf("instruction inventory tokenizer must be %s %s %s", TokenizerModule, TokenizerVersion, EncodingName)
 	}
 	for _, skill := range inventory.Skills {
-		if skill.Name == "" || skill.Path == "" {
-			return Inventory{}, fmt.Errorf("every inventory skill needs name and path")
+		if skill.Name == "" || skill.Path == "" || skill.BeforeCommit == "" || skill.AfterCommit == "" {
+			return Inventory{}, fmt.Errorf("every inventory skill needs name, path, and source commits")
 		}
 		seen := map[string]bool{}
 		for _, section := range skill.Sections {
