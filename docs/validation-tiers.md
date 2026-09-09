@@ -1,10 +1,10 @@
 # Validation tiers
 
-Validation is tiered by change risk so pull requests receive fast, actionable
-gates; expensive analyses run at the boundary that pays for them; and release
-evidence stays comprehensive. Every validation command belongs to exactly one
-tier. This document is the authority for the tier assignments; keep it in sync
-when a command, workflow, or trigger changes.
+CI validation is tiered by change risk so pull requests receive fast,
+actionable gates; expensive analyses run at the boundary that pays for them;
+and release evidence stays comprehensive. Every CI validation command belongs
+to exactly one tier. This document is the authority for the tier assignments;
+keep it in sync when a command, workflow, or trigger changes.
 
 ## Tier definitions
 
@@ -29,6 +29,12 @@ Failure policy values: **blocking** (a failure blocks the pull request or the
 release) and **observability** (results are published; they inform review but
 do not by themselves block).
 
+Live behavioral evaluation is local-only and sits outside the CI tiers. Run
+`mise run evaluate:smoke` when a skill change needs outcome evidence. The
+result informs review, but GitHub Actions does not run the command and no
+failure blocks a pull request. The static `check-evaluation` check remains the
+CI-bound evaluation check.
+
 ## Tier assignments
 
 | Command / job | Tier | Trigger | Owner | Expected duration | Failure policy |
@@ -48,7 +54,6 @@ do not by themselves block).
 | `Validate commit signatures` (`policy-signatures.yml`) | 1 | every PR (`pull_request_target`) | repository owner | seconds | blocking |
 | `mutate:fsl-changed --changed-base <rev>` (Tier 2 targeted mutation, `targeted.yml`) | 2 | every PR; step runs only when `specs/**` or `skills/**/specs/**` changes | repository owner | ~1s per changed spec, no-op in <1s when none match | blocking on infrastructure errors; surviving mutants are triaged, not a silent pass |
 | `check:go-vuln` (`targeted.yml`, Go dependency security) | 2 | every PR; step runs only when `go.mod`, `go.sum`, or `*.go` changes | repository owner | depends on vulnerability database and module graph | reachable findings and infrastructure errors are blocking; non-reachable findings are reported |
-| behavioral smoke for skill changes (`targeted.yml`) | 2 | every PR; step runs only when `skills/**` changes | repository owner | defined by the #173 evaluation harness (not yet wired into a job) | blocking per the #173 smoke contract |
 | `mutate:fsl` (full) + `test:json` + `collect-badges` (`publish.yml`, badge-data) | 3 | weekly `schedule` + `workflow_dispatch` (not every `main` push) | repository owner | ~37s for full mutation (measured at depth 8) + `go test` | observability; the retained report distinguishes categories |
 | `mise run validate:all` (full Tier 1 surface) | 4 | release | repository owner | ~2.1s warm / ~19s cold | blocking |
 | `verify:release` / `publish:release` | 4 | release | repository owner | seconds | blocking |
@@ -83,7 +88,7 @@ files), so evidence is present either way.
 | --- | --- | --- |
 | Documentation-only | `README.md`, `docs/**`, `CONTRIBUTING.md` | Tier 1 only |
 | Workflow / CI | `.github/**` | Tier 1 (including zizmor audit) |
-| Skill change | `skills/**` (excluding specs) | Tier 1 + Tier 2 smoke (when #173 provides the entry point) |
+| Skill change | `skills/**` (excluding specs) | Tier 1; optional local-only behavioral smoke informs review |
 | FSL change | `specs/**/*.fsl`, `skills/**/specs/*.fsl` (+ symlink exposures) | Tier 1 + Tier 2 targeted mutation |
 | Go source or module change | `*.go`, `go.mod`, `go.sum` | Tier 1 + Tier 2 Go dependency security |
 | Release candidate | release tag / Release | Tier 1 + Tier 4 |
@@ -117,7 +122,8 @@ files), so evidence is present either way.
   so no pull request waits forever on a context that does not exist yet. The
   Go dependency-security job is evidence for changed Go code, not a new
   required context.
-- Behavioral smoke in Tier 2 is not wired into a job yet: Issue #173 landed
-the evaluation corpus and harness, and integrating the harness into a Tier 2
-smoke job on skill changes is a tracked follow-up of #176. Until then, skill
-changes are covered by Tier 1.
+- Behavioral smoke is local-only by the decision recorded in Issue #173. Issue
+  #176 proposed CI scheduling, but the current workflows do not contain that
+  job. Issue #248 records the current enforcement: skill changes remain
+  covered by Tier 1 in CI, and maintainers may run `mise run evaluate:smoke`
+  locally for review evidence.
