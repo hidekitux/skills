@@ -21,6 +21,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Read the governing change Issue first. Use `Context`, `Goal`, `Scope`, and `Acceptance criteria` as the authority for what must be planned.
 - Confirm the repository, branch, and any repository instructions before deriving tasks.
 - Treat the Issue's `Context` as a hypothesis: inspect the repository and linked evidence to test its stated current state, problem, and cause. If the premise is false or incomplete, report that result and stop rather than planning around it.
+- When the change removes or retires a unit, enumerate every capability the unit provides before deriving tasks. Classify each capability as `retained`, `replaced by a named substitute`, or `dropped`. Cite the evidence for each classification. Name every substitute concretely. Report every dropped capability even when the Issue authorizes its removal.
 - Before deriving tasks, enumerate every decision the change requires. For each decision, provide more than one defensible option, the trade-offs, and a recommendation; present unresolved decisions to the requester and record the answer. Do not write a recommendation into the plan as though it were an answer.
 - Identify every undefined term on which the acceptance criteria depend. Define each term from repository evidence or raise it as a decision using the same options-and-trade-offs process.
 - A plan is "verified" only when its premises have been tested and all decisions have been resolved; task-shape review alone is insufficient.
@@ -31,6 +32,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 ## Derive Plan Tasks
 
 - Decompose the change into small, ordered tasks that map to the `Scope` and `Acceptance criteria`, after the premise and decision gates above are complete.
+- Include a capability-landing inventory in the plan when a unit is removed. Keep one row per observable capability. Record its classification, named substitute when applicable, and supporting evidence.
 - Add a discovery task first when repository context or the Change flow requires it; add a validation task when the repository requires checks.
 - Keep each task small enough to complete and verify independently. Prefer tasks whose evidence is a file, command result, Issue update, or other observable artifact.
 - Order tasks so each depends only on tasks before it. Split or merge tasks when the Issue scope changes.
@@ -48,6 +50,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 - Post the plan comment with the machine-readable marker `<!-- skills:plan-issue issue=<number> -->` as the first line (replacing `<number>` with the governing Issue number), followed by the required ordered plan sections. The trusted `Policy (Project)` workflow advances the governing Project item to `Planned` from this marker; do not issue a second Agent-side Status mutation.
 - Deliver the plan as a comment on the governing Change Issue. Keep the comment self-contained: the tested premise and evidence, resolved decisions and requester answers, defined terms, ordered tasks with completion evidence, out-of-scope items, residual risk, and the next-phase handoff. Report the Issue URL and the comment URL; the Project workflow's `Planned` update may be asynchronous and must be verified before handoff.
+- When the plan removes a unit, include the complete capability-landing inventory in the comment. Repeat every `dropped` capability in the residual-risk or handoff evidence. Authorization to remove a capability does not permit omitting it from the plan.
 - Do not hand off through a temporary or local file, and do not rely on the host's native task tracking to carry the plan.
 - Complete the Todo List only after the comment is posted and its URL is available. Do not write code, create commits, or execute the plan unless separately requested.
 - Simple Issues may skip this planning step. When a plan is needed, the next
