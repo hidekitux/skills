@@ -10,6 +10,12 @@ realistic request against a skill on a real host and checks whether the agent
 selects the right workflow and produces a correct, safe, useful result
 (Issue 173).
 
+When a run exposes a confirmed failure, record it through the
+[failure promotion process](failure-promotion.md). The record classifies the
+cause, preserves sanitized reproduction and provenance, names the regression
+asset and owner, and prevents transient infrastructure failures from becoming
+permanent product rules.
+
 ## What counts as evidence
 
 A scenario run records, for each result, exactly one verdict:
