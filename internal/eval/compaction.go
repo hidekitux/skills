@@ -115,7 +115,7 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 			result.Reasons = append(result.Reasons, "prompt hash changed")
 		}
 		switch {
-		case left.Verdict == VerdictPass && right.Verdict != VerdictPass:
+		case left.Verdict == VerdictPass && right.Verdict == VerdictFail:
 			result.Reasons = append(result.Reasons, "compact source lost a deterministic pass")
 		case left.Verdict == VerdictInfra || right.Verdict == VerdictInfra:
 			result.Reasons = append(result.Reasons, "infrastructure evidence is incomplete")
@@ -128,6 +128,8 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 			result.Reasons = append(result.Reasons, "rubric evidence pending")
 		}
 		switch {
+		case containsReason(result.Reasons, "compact source lost a deterministic pass"):
+			result.Status = "fail"
 		case len(result.Reasons) == 0:
 			result.Status = "pass"
 		case containsReason(result.Reasons, "infrastructure"), containsReason(result.Reasons, "skipped"), containsReason(result.Reasons, "pending"):
