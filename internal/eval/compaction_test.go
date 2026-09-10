@@ -62,8 +62,8 @@ func TestCompareReportsRejectsDeterministicRegression(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Results[0].Status != "inconclusive" {
-		t.Fatalf("comparison = %+v, want inconclusive because rubric is pending", report.Results[0])
+	if report.Results[0].Status != "fail" {
+		t.Fatalf("comparison = %+v, want fail for deterministic regression", report.Results[0])
 	}
 	base.RubricReview = RubricComplete
 	base.RubricScores = map[string]int{
