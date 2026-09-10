@@ -7,6 +7,8 @@ import (
 	"os"
 	"sort"
 	"strings"
+
+	skillcontext "github.com/hidekitux/skills/internal/context"
 )
 
 // Record is one scenario result. It distinguishes deterministic failures,
@@ -15,31 +17,33 @@ import (
 // (Acceptance criterion 4): host, model, prompt SHA-256, repository commit,
 // and fixture IDs.
 type Record struct {
-	RunID              string         `json:"run_id"`
-	Scenario           string         `json:"scenario"`
-	Skill              string         `json:"skill"`
-	Kind               string         `json:"kind"`
-	Host               string         `json:"host"`
-	Model              string         `json:"model,omitempty"`
-	Commit             string         `json:"repo_commit"`
-	SkillSourceCommit  string         `json:"skill_source_commit,omitempty"`
-	InstructionVariant string         `json:"instruction_variant,omitempty"`
-	PromptSHA          string         `json:"prompt_sha256"`
-	Fixtures           []string       `json:"fixtures,omitempty"`
-	Verdict            string         `json:"verdict"`
-	SkipReason         string         `json:"skip_reason,omitempty"`
-	Failures           []string       `json:"failures,omitempty"`
-	RubricScores       map[string]int `json:"rubric_scores,omitempty"`
-	RubricReview       string         `json:"rubric_review"`
-	CorrectionsUsed    int            `json:"corrections_used"`
-	HandoffObserved    bool           `json:"handoff_observed,omitempty"`
-	InfraError         string         `json:"infra_error,omitempty"`
-	StartedAt          string         `json:"started_at,omitempty"`
-	FinishedAt         string         `json:"finished_at,omitempty"`
-	ElapsedMillis      int64          `json:"elapsed_millis,omitempty"`
-	FailureID          string         `json:"failure_id,omitempty"`
-	FailureCause       string         `json:"failure_cause,omitempty"`
-	FailureRecurrence  int            `json:"failure_recurrence_count,omitempty"`
+	RunID              string                 `json:"run_id"`
+	Scenario           string                 `json:"scenario"`
+	Skill              string                 `json:"skill"`
+	Kind               string                 `json:"kind"`
+	Host               string                 `json:"host"`
+	Model              string                 `json:"model,omitempty"`
+	Commit             string                 `json:"repo_commit"`
+	SkillSourceCommit  string                 `json:"skill_source_commit,omitempty"`
+	InstructionVariant string                 `json:"instruction_variant,omitempty"`
+	ContextMode        string                 `json:"context_mode,omitempty"`
+	Context            *skillcontext.Manifest `json:"context,omitempty"`
+	PromptSHA          string                 `json:"prompt_sha256"`
+	Fixtures           []string               `json:"fixtures,omitempty"`
+	Verdict            string                 `json:"verdict"`
+	SkipReason         string                 `json:"skip_reason,omitempty"`
+	Failures           []string               `json:"failures,omitempty"`
+	RubricScores       map[string]int         `json:"rubric_scores,omitempty"`
+	RubricReview       string                 `json:"rubric_review"`
+	CorrectionsUsed    int                    `json:"corrections_used"`
+	HandoffObserved    bool                   `json:"handoff_observed,omitempty"`
+	InfraError         string                 `json:"infra_error,omitempty"`
+	StartedAt          string                 `json:"started_at,omitempty"`
+	FinishedAt         string                 `json:"finished_at,omitempty"`
+	ElapsedMillis      int64                  `json:"elapsed_millis,omitempty"`
+	FailureID          string                 `json:"failure_id,omitempty"`
+	FailureCause       string                 `json:"failure_cause,omitempty"`
+	FailureRecurrence  int                    `json:"failure_recurrence_count,omitempty"`
 }
 
 // writeJSONL appends one JSON record per scenario result.

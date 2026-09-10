@@ -14,15 +14,18 @@ import (
 // PairResult records the comparison of one scenario and host across two
 // instruction sources.
 type PairResult struct {
-	Scenario       string         `json:"scenario"`
-	Skill          string         `json:"skill"`
-	Host           string         `json:"host"`
-	FullVerdict    string         `json:"full_verdict"`
-	CompactVerdict string         `json:"compact_verdict"`
-	Status         string         `json:"status"`
-	Reasons        []string       `json:"reasons,omitempty"`
-	FullScores     map[string]int `json:"full_scores,omitempty"`
-	CompactScores  map[string]int `json:"compact_scores,omitempty"`
+	Scenario              string         `json:"scenario"`
+	Skill                 string         `json:"skill"`
+	Host                  string         `json:"host"`
+	FullVerdict           string         `json:"full_verdict"`
+	CompactVerdict        string         `json:"compact_verdict"`
+	Status                string         `json:"status"`
+	Reasons               []string       `json:"reasons,omitempty"`
+	FullScores            map[string]int `json:"full_scores,omitempty"`
+	CompactScores         map[string]int `json:"compact_scores,omitempty"`
+	FullContextTokens     int            `json:"full_context_tokens,omitempty"`
+	CompactContextTokens  int            `json:"compact_context_tokens,omitempty"`
+	ContextTokenReduction int            `json:"context_token_reduction,omitempty"`
 }
 
 // PairReport is the machine-readable comparison artifact for Issue #197.
@@ -103,14 +106,17 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 			return PairReport{}, fmt.Errorf("compact report is missing %s", key)
 		}
 		result := PairResult{
-			Scenario:       left.Scenario,
-			Skill:          left.Skill,
-			Host:           left.Host,
-			FullVerdict:    left.Verdict,
-			CompactVerdict: right.Verdict,
-			FullScores:     left.RubricScores,
-			CompactScores:  right.RubricScores,
+			Scenario:             left.Scenario,
+			Skill:                left.Skill,
+			Host:                 left.Host,
+			FullVerdict:          left.Verdict,
+			CompactVerdict:       right.Verdict,
+			FullScores:           left.RubricScores,
+			CompactScores:        right.RubricScores,
+			FullContextTokens:    contextTokens(left),
+			CompactContextTokens: contextTokens(right),
 		}
+		result.ContextTokenReduction = result.FullContextTokens - result.CompactContextTokens
 		if left.PromptSHA != right.PromptSHA {
 			result.Reasons = append(result.Reasons, "prompt hash changed")
 		}
@@ -144,6 +150,13 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 		report.Results = append(report.Results, result)
 	}
 	return report, nil
+}
+
+func contextTokens(record Record) int {
+	if record.Context == nil {
+		return 0
+	}
+	return record.Context.TotalTokens
 }
 
 func recordsByKey(records []Record) map[string]Record {

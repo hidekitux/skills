@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	skillcontext "github.com/hidekitux/skills/internal/context"
+	"github.com/hidekitux/skills/internal/instructions"
 	"github.com/hidekitux/skills/internal/support"
 	"github.com/hidekitux/skills/internal/trace"
 )
@@ -42,6 +44,8 @@ type Options struct {
 	Skills             []string
 	OutputDir          string
 	TraceOutputDir     string
+	ContextMode        string
+	Context            *skillcontext.Manifest
 	DryRun             bool
 	Model              string
 	Commit             string
@@ -174,6 +178,8 @@ func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, o
 		Commit:             opts.Commit,
 		SkillSourceCommit:  repoCommit(skillRootFor(opts)),
 		InstructionVariant: variantFor(opts),
+		ContextMode:        opts.ContextMode,
+		Context:            opts.Context,
 		PromptSHA:          promptSHA(sc),
 		RubricReview:       RubricNA,
 		StartedAt:          started.Format(time.RFC3339Nano),
@@ -394,6 +400,10 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	if opts.HandoffNames == nil {
 		opts.HandoffNames = catalogHandoffNames(opts.Root)
 	}
+	if opts.ContextMode != "" && opts.ContextMode != "compiled" {
+		fmt.Fprintf(errOut, "evaluate: unsupported context mode %q\n", opts.ContextMode)
+		return ExitUsage
+	}
 	// Pin the evaluation-level tier model for the tier-driven opencode driver
 	// so the invoked CLI never falls back to an unspecified default. The
 	// codex, claude-code, and antigravity drivers keep their own fixed
@@ -421,6 +431,34 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 		}
 	}
 	graphVersion := 0
+	contextByScenario := map[string]*skillcontext.Manifest{}
+	if opts.ContextMode == "compiled" {
+		counter, err := instructions.NewCounter()
+		if err != nil {
+			fmt.Fprintf(errOut, "evaluate: load context tokenizer: %v\n", err)
+			return ExitInfra
+		}
+		compiler := skillcontext.Compiler{Root: opts.Root, Counter: counter}
+		for _, sc := range scenarios {
+			skillID := sc.Skill
+			if skillID == E2ESkill && len(sc.Stages) > 0 {
+				skillID = sc.Stages[0].Skill
+			}
+			manifestPackage, compileErr := compiler.Compile(skillID, skillcontext.Signals{TaskKind: sc.Kind, Paths: sc.Expectations.UnchangedFiles})
+			if compileErr != nil && manifestPackage.Manifest.Overflow == nil {
+				fmt.Fprintf(errOut, "evaluate: compile context for %s: %v\n", sc.ID, compileErr)
+				return ExitInfra
+			}
+			if compileErr != nil {
+				fmt.Fprintf(errOut, "evaluate: context overflow for %s: %v\n", sc.ID, compileErr)
+				return ExitInfra
+			}
+			// The manifest is copied into each driver record below so paired
+			// evaluation can compare the same scenario across hosts.
+			manifest := manifestPackage.Manifest
+			contextByScenario[sc.ID] = &manifest
+		}
+	}
 	if opts.TraceOutputDir != "" {
 		var err error
 		graphVersion, err = trace.GraphVersion(opts.Root)
@@ -445,6 +483,7 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			// model actually invoked.
 			optsCopy := *opts
 			optsCopy.Model = effectiveModel(hostName, opts.Model)
+			optsCopy.Context = contextByScenario[sc.ID]
 			wg.Add(1)
 			go func(host HostRunner) {
 				defer wg.Done()

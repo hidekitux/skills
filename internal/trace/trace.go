@@ -18,13 +18,14 @@ import (
 	"strings"
 	"time"
 
+	skillcontext "github.com/hidekitux/skills/internal/context"
 	"github.com/hidekitux/skills/internal/graph"
 	"gopkg.in/yaml.v3"
 )
 
 const (
 	// CurrentSchemaVersion is the version implemented by this package.
-	CurrentSchemaVersion = 1
+	CurrentSchemaVersion = 2
 	// DefaultRetentionDays bounds the local retention period for persisted traces.
 	DefaultRetentionDays = 30
 )
@@ -54,22 +55,23 @@ const (
 
 // Trace is one versioned record of one skill run.
 type Trace struct {
-	SchemaVersion      int              `json:"schema_version"`
-	RunID              string           `json:"run_id"`
-	ScenarioID         string           `json:"scenario_id,omitempty"`
-	SkillID            string           `json:"skill_id"`
-	SkillVersion       string           `json:"skill_version"`
-	GraphVersion       int              `json:"graph_version"`
-	Host               string           `json:"host"`
-	HostVersion        string           `json:"host_version,omitempty"`
-	Model              string           `json:"model"`
-	ModelTier          string           `json:"model_tier,omitempty"`
-	RepositoryRevision string           `json:"repository_revision"`
-	StartedAt          string           `json:"started_at"`
-	Usage              *Usage           `json:"usage,omitempty"`
-	Events             []Event          `json:"events"`
-	Terminal           Terminal         `json:"terminal"`
-	Redaction          RedactionSummary `json:"redaction"`
+	SchemaVersion      int                    `json:"schema_version"`
+	RunID              string                 `json:"run_id"`
+	ScenarioID         string                 `json:"scenario_id,omitempty"`
+	SkillID            string                 `json:"skill_id"`
+	SkillVersion       string                 `json:"skill_version"`
+	GraphVersion       int                    `json:"graph_version"`
+	Host               string                 `json:"host"`
+	HostVersion        string                 `json:"host_version,omitempty"`
+	Model              string                 `json:"model"`
+	ModelTier          string                 `json:"model_tier,omitempty"`
+	RepositoryRevision string                 `json:"repository_revision"`
+	StartedAt          string                 `json:"started_at"`
+	Usage              *Usage                 `json:"usage,omitempty"`
+	Context            *skillcontext.Manifest `json:"context,omitempty"`
+	Events             []Event                `json:"events"`
+	Terminal           Terminal               `json:"terminal"`
+	Redaction          RedactionSummary       `json:"redaction"`
 }
 
 // Event is one ordered semantic execution event.
@@ -228,6 +230,9 @@ func Validate(t Trace) ValidationReport {
 		findings = append(findings, "started_at must be an RFC3339 timestamp")
 	}
 	findings = append(findings, validateUsage(t.Usage)...)
+	if t.Context != nil {
+		findings = append(findings, skillcontext.ValidateManifest(*t.Context)...)
+	}
 	findings = append(findings, validateEvents(t.Events)...)
 	findings = append(findings, validateTerminal(t.Terminal)...)
 	if len(t.Events) > 0 {
