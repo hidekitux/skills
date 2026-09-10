@@ -28,7 +28,8 @@ A scenario run records, for each result, exactly one verdict:
   missing host, auth failure, timeout).
 
 Provenance is recorded with every result: host, model (from `opencode.json`),
-prompt SHA-256, repository commit, and fixture IDs, so any result can be
+prompt SHA-256, repository commit, fixture IDs, and optional compiled-context
+manifest, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
@@ -48,7 +49,11 @@ tool output, source contents, credentials, and user data.
 
 Trace consumers use the JSONL trace and the structured evaluation records. They
 do not parse the Markdown report or host transcript. `cmd/validate-skill-trace`
-checks representative traces before a consumer reads them.
+checks representative traces before a consumer reads them. When
+`context_mode` is `compiled`, the evaluator compiles one manifest per scenario
+from the graph contract and carries it into the shared trace without copying
+module content. `evaluate-compaction` includes full and compact context token
+counts in `comparison.json`.
 
 ### What a prose observation cannot decide
 

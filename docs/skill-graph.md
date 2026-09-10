@@ -11,6 +11,12 @@ Use `cmd/read-skill-graph` when a consumer needs the full graph or one named
 skill. The command returns versioned JSON. Use `cmd/validate-skill-graph` to
 check the graph, the catalog, discovered skill paths, and this document.
 
+The graph's `context` section is the authoritative contract for bounded,
+task-aware context compilation. It declares critical invariants, four category
+budgets, global modules, per-skill modules, and observable activation signals.
+`cmd/compile-context` consumes this section; it does not select models or
+replace the skill graph's workflow transitions.
+
 ## Skill inventory
 
 The inventory below is a human-facing view of the graph. The repository check
