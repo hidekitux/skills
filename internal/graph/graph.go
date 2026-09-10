@@ -22,10 +22,79 @@ const Path = "workflow/skill-graph.yml"
 // CurrentSchemaVersion is the graph schema version implemented by this package.
 const CurrentSchemaVersion = 1
 
+// Context schema values are versioned independently from the workflow graph
+// because context packages evolve without changing handoff semantics.
+const CurrentContextSchemaVersion = 1
+
+// ContextCategory identifies one budgeted part of a compiled package.
+type ContextCategory string
+
+const (
+	ContextCoreInstructions   ContextCategory = "core_instructions"
+	ContextConditionalRefs    ContextCategory = "conditional_references"
+	ContextRepositoryEvidence ContextCategory = "repository_evidence"
+	ContextValidatorFeedback  ContextCategory = "validator_feedback"
+)
+
+var validContextCategories = map[ContextCategory]bool{
+	ContextCoreInstructions:   true,
+	ContextConditionalRefs:    true,
+	ContextRepositoryEvidence: true,
+	ContextValidatorFeedback:  true,
+}
+
 // Definition is a named graph registry entry.
 type Definition struct {
 	ID          string `yaml:"id" json:"id"`
 	Description string `yaml:"description" json:"description"`
+}
+
+// ContextBudget declares the maximum number of fixed-encoding tokens allowed
+// for each part of one skill's context package.
+type ContextBudget struct {
+	CoreInstructions   int `yaml:"core_instructions" json:"core_instructions"`
+	ConditionalRefs    int `yaml:"conditional_references" json:"conditional_references"`
+	RepositoryEvidence int `yaml:"repository_evidence" json:"repository_evidence"`
+	ValidatorFeedback  int `yaml:"validator_feedback" json:"validator_feedback"`
+}
+
+// ContextActivation describes observable signals that activate a module. All
+// non-empty signal groups must match; an empty activation matches every use of
+// the profile that declares the module. Signal-backed modules additionally
+// require at least one corresponding signal value.
+type ContextActivation struct {
+	TaskKinds       []string `yaml:"task_kinds,omitempty" json:"task_kinds,omitempty"`
+	PathPatterns    []string `yaml:"path_patterns,omitempty" json:"path_patterns,omitempty"`
+	DiagnosticCodes []string `yaml:"diagnostic_codes,omitempty" json:"diagnostic_codes,omitempty"`
+	FSLResults      []string `yaml:"fsl_results,omitempty" json:"fsl_results,omitempty"`
+	EvidenceKinds   []string `yaml:"evidence_kinds,omitempty" json:"evidence_kinds,omitempty"`
+}
+
+// ContextModule declares a file-backed or signal-backed context module.
+type ContextModule struct {
+	ID         string            `yaml:"id" json:"id"`
+	Category   ContextCategory   `yaml:"category" json:"category"`
+	Source     string            `yaml:"source,omitempty" json:"source,omitempty"`
+	Signal     string            `yaml:"signal,omitempty" json:"signal,omitempty"`
+	Required   bool              `yaml:"required" json:"required"`
+	Priority   int               `yaml:"priority" json:"priority"`
+	Activation ContextActivation `yaml:"activation,omitempty" json:"activation,omitempty"`
+}
+
+// ContextProfile declares the package contract for one skill.
+type ContextProfile struct {
+	Budgets            ContextBudget `yaml:"budgets" json:"budgets"`
+	CriticalInvariants []string      `yaml:"critical_invariants" json:"critical_invariants"`
+	Modules            []string      `yaml:"modules" json:"modules"`
+}
+
+// ContextConfig is the machine-readable context compiler contract.
+type ContextConfig struct {
+	SchemaVersion int                       `yaml:"schema_version" json:"schema_version"`
+	Invariants    []Definition              `yaml:"invariants" json:"invariants"`
+	Modules       []ContextModule           `yaml:"modules" json:"modules"`
+	GlobalModules []string                  `yaml:"global_modules" json:"global_modules"`
+	Profiles      map[string]ContextProfile `yaml:"profiles" json:"profiles"`
 }
 
 // Authority declares the permissions a skill requires. These values describe
@@ -76,13 +145,14 @@ type Skill struct {
 
 // Graph is the versioned machine-readable skill graph.
 type Graph struct {
-	SchemaVersion         int          `yaml:"schema_version" json:"schema_version"`
-	Artifacts             []Definition `yaml:"artifacts" json:"artifacts"`
-	Prerequisites         []Definition `yaml:"prerequisites" json:"prerequisites"`
-	TerminalOutcomes      []string     `yaml:"terminal_outcomes" json:"terminal_outcomes"`
-	TerminationConditions []Definition `yaml:"termination_conditions" json:"termination_conditions"`
-	Conditions            []Definition `yaml:"conditions" json:"conditions"`
-	Skills                []Skill      `yaml:"skills" json:"skills"`
+	SchemaVersion         int           `yaml:"schema_version" json:"schema_version"`
+	Artifacts             []Definition  `yaml:"artifacts" json:"artifacts"`
+	Prerequisites         []Definition  `yaml:"prerequisites" json:"prerequisites"`
+	TerminalOutcomes      []string      `yaml:"terminal_outcomes" json:"terminal_outcomes"`
+	TerminationConditions []Definition  `yaml:"termination_conditions" json:"termination_conditions"`
+	Conditions            []Definition  `yaml:"conditions" json:"conditions"`
+	Context               ContextConfig `yaml:"context" json:"context"`
+	Skills                []Skill       `yaml:"skills" json:"skills"`
 }
 
 // ValidationReport is the stable machine-readable result of graph validation.
@@ -215,7 +285,144 @@ func validateGraph(root string, graph *Graph) []string {
 	findings = append(findings, validateDiscoveredPaths(root, graph)...)
 	findings = append(findings, validateCycles(graph, nodes, terminationConditions)...)
 	findings = append(findings, validateDocumentation(root, graph)...)
+	findings = append(findings, validateContext(root, graph)...)
 	return findings
+}
+
+func validateContext(root string, graph *Graph) []string {
+	findings := []string{}
+	contextConfig := graph.Context
+	if contextConfig.SchemaVersion != CurrentContextSchemaVersion {
+		findings = append(findings, fmt.Sprintf("context.schema_version must be %d, got %d", CurrentContextSchemaVersion, contextConfig.SchemaVersion))
+	}
+
+	invariants := map[string]bool{}
+	for index, invariant := range contextConfig.Invariants {
+		if invariant.ID == "" {
+			findings = append(findings, fmt.Sprintf("context.invariants[%d].id is required", index))
+			continue
+		}
+		if invariants[invariant.ID] {
+			findings = append(findings, fmt.Sprintf("context invariant %q is duplicated", invariant.ID))
+		}
+		invariants[invariant.ID] = true
+		if strings.TrimSpace(invariant.Description) == "" {
+			findings = append(findings, fmt.Sprintf("context invariant %q description is required", invariant.ID))
+		}
+	}
+
+	modules := map[string]ContextModule{}
+	for index, module := range contextConfig.Modules {
+		if module.ID == "" {
+			findings = append(findings, fmt.Sprintf("context.modules[%d].id is required", index))
+			continue
+		}
+		if _, exists := modules[module.ID]; exists {
+			findings = append(findings, fmt.Sprintf("context module %q is duplicated", module.ID))
+		}
+		modules[module.ID] = module
+		if !validContextCategories[module.Category] {
+			findings = append(findings, fmt.Sprintf("context module %q has invalid category %q", module.ID, module.Category))
+		}
+		if module.Priority < 0 {
+			findings = append(findings, fmt.Sprintf("context module %q priority must not be negative", module.ID))
+		}
+		if (module.Source == "") == (module.Signal == "") {
+			findings = append(findings, fmt.Sprintf("context module %q must define exactly one source or signal", module.ID))
+		}
+		if module.Source != "" {
+			findings = append(findings, validateContextSource(root, module)...)
+		}
+		if module.Signal != "" && !oneOf(module.Signal, "validator_feedback", "fsl_result", "prior_evidence") {
+			findings = append(findings, fmt.Sprintf("context module %q signal %q is invalid", module.ID, module.Signal))
+		}
+		findings = append(findings, validateContextActivation(module)...)
+	}
+
+	findings = append(findings, validateContextModuleRefs("context.global_modules", contextConfig.GlobalModules, modules)...)
+	for skillID, profile := range contextConfig.Profiles {
+		if !skillExists(graph.Skills, skillID) {
+			findings = append(findings, fmt.Sprintf("context profile %q names unknown skill", skillID))
+		}
+		if profile.Budgets.CoreInstructions <= 0 || profile.Budgets.ConditionalRefs <= 0 || profile.Budgets.RepositoryEvidence <= 0 || profile.Budgets.ValidatorFeedback <= 0 {
+			findings = append(findings, fmt.Sprintf("context profile %q must define positive budgets for all categories", skillID))
+		}
+		for _, invariantID := range profile.CriticalInvariants {
+			if !invariants[invariantID] {
+				findings = append(findings, fmt.Sprintf("context profile %q references unknown invariant %q", skillID, invariantID))
+			}
+		}
+		findings = append(findings, validateContextModuleRefs(fmt.Sprintf("context profile %q modules", skillID), profile.Modules, modules)...)
+	}
+	for _, skill := range graph.Skills {
+		if _, exists := contextConfig.Profiles[skill.ID]; !exists {
+			findings = append(findings, fmt.Sprintf("context profile is missing for skill %q", skill.ID))
+		}
+	}
+	return findings
+}
+
+func validateContextSource(root string, module ContextModule) []string {
+	findings := []string{}
+	clean := filepath.Clean(filepath.FromSlash(module.Source))
+	if filepath.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
+		return []string{fmt.Sprintf("context module %q source must be a repository-relative path", module.ID)}
+	}
+	info, err := os.Stat(filepath.Join(root, clean))
+	if err != nil {
+		findings = append(findings, fmt.Sprintf("context module %q source %q is not readable: %v", module.ID, module.Source, err))
+	} else if !info.Mode().IsRegular() {
+		findings = append(findings, fmt.Sprintf("context module %q source %q is not a regular file", module.ID, module.Source))
+	}
+	return findings
+}
+
+func validateContextActivation(module ContextModule) []string {
+	findings := []string{}
+	groups := map[string][]string{
+		"task_kinds":       module.Activation.TaskKinds,
+		"path_patterns":    module.Activation.PathPatterns,
+		"diagnostic_codes": module.Activation.DiagnosticCodes,
+		"fsl_results":      module.Activation.FSLResults,
+		"evidence_kinds":   module.Activation.EvidenceKinds,
+	}
+	for name, values := range groups {
+		seen := map[string]bool{}
+		for _, value := range values {
+			if strings.TrimSpace(value) == "" {
+				findings = append(findings, fmt.Sprintf("context module %q has an empty %s activation", module.ID, name))
+			}
+			if seen[value] {
+				findings = append(findings, fmt.Sprintf("context module %q duplicates %s activation %q", module.ID, name, value))
+			}
+			seen[value] = true
+		}
+	}
+	return findings
+}
+
+func validateContextModuleRefs(label string, references []string, modules map[string]ContextModule) []string {
+	findings := []string{}
+	seen := map[string]bool{}
+	for _, reference := range references {
+		if _, exists := modules[reference]; !exists {
+			findings = append(findings, fmt.Sprintf("%s references unknown module %q", label, reference))
+		}
+		if seen[reference] {
+			findings = append(findings, fmt.Sprintf("%s duplicates module %q", label, reference))
+		}
+		seen[reference] = true
+	}
+	return findings
+}
+
+func skillExists(skills []Skill, id string) bool {
+	for _, skill := range skills {
+		if skill.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 func validateDefinitions(kind string, definitions []Definition, findings *[]string) map[string]bool {

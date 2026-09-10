@@ -131,6 +131,10 @@ run = "go run ./cmd/evaluate --smoke-only --host opencode,antigravity \"$@\""
 description = "Compare full and compact skill instruction sources on Codex and Claude Code"
 run = "go run ./cmd/evaluate-compaction \"$@\""
 
+[tasks."generate:context"]
+description = "Generate one bounded task-aware skill context package"
+run = "go run ./cmd/compile-context \"$@\""
+
 [tasks."verify:release"]
 description = "Verify a release tag matches the catalog and committed state"
 run = "go run ./cmd/verify-release \"$@\""

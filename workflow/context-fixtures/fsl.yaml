@@ -1,0 +1,7 @@
+id: fsl-selection
+skill: bootstrap-project
+signals:
+  task_kind: fsl
+  fsl: {spec: workflow-state, result: failed}
+include: [repository.fsl, feedback.fsl, reference.bootstrap.fsl]
+exclude: [feedback.validator, repository.documentation]
