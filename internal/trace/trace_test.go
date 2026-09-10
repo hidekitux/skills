@@ -4,6 +4,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	skillcontext "github.com/hidekitux/skills/internal/context"
+	"github.com/hidekitux/skills/internal/graph"
+	"github.com/hidekitux/skills/internal/instructions"
 )
 
 const testSHA = "0123456789abcdef0123456789abcdef01234567"
@@ -29,6 +33,36 @@ func validTrace() Trace {
 func TestValidateAcceptsSuccessTrace(t *testing.T) {
 	if report := Validate(validTrace()); !report.Valid {
 		t.Fatalf("valid trace rejected: %v", report.Findings)
+	}
+}
+
+func TestValidateAcceptsPrivacySafeContextManifest(t *testing.T) {
+	trace := validTrace()
+	trace.Context = &skillcontext.Manifest{
+		SchemaVersion: graph.CurrentContextSchemaVersion, Skill: trace.SkillID,
+		Encoding: instructions.EncodingName, TokenizerModule: instructions.TokenizerModule,
+		TokenizerVersion: instructions.TokenizerVersion,
+		Budgets:          graph.ContextBudget{CoreInstructions: 1, ConditionalRefs: 1, RepositoryEvidence: 1, ValidatorFeedback: 1},
+		Measured:         map[string]int{"core_instructions": 1}, TotalTokens: 1, TotalBudget: 4,
+		Decisions: []skillcontext.Decision{{ID: "core.plan-issue", Category: graph.ContextCoreInstructions, Source: "skills/plan-issue/SKILL.md", Reason: "core-skill", Required: true, Included: true, Tokens: 1}},
+	}
+	if report := Validate(trace); !report.Valid {
+		t.Fatalf("context manifest rejected: %v", report.Findings)
+	}
+}
+
+func TestValidateRejectsContextContentInManifest(t *testing.T) {
+	trace := validTrace()
+	trace.Context = &skillcontext.Manifest{
+		SchemaVersion: graph.CurrentContextSchemaVersion, Skill: trace.SkillID,
+		Encoding: instructions.EncodingName, TokenizerModule: instructions.TokenizerModule,
+		TokenizerVersion: instructions.TokenizerVersion,
+		Budgets:          graph.ContextBudget{CoreInstructions: 1, ConditionalRefs: 1, RepositoryEvidence: 1, ValidatorFeedback: 1},
+		Measured:         map[string]int{}, TotalBudget: 4,
+		Decisions: []skillcontext.Decision{{ID: "core.plan-issue", Category: graph.ContextCoreInstructions, Reason: "core-skill", Required: true, Included: true, Source: "source\ncontent"}},
+	}
+	if report := Validate(trace); report.Valid || !contains(report.Findings, "source is not a safe path") {
+		t.Fatalf("unsafe context manifest accepted: %v", report.Findings)
 	}
 }
 

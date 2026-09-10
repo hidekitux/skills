@@ -52,6 +52,7 @@ func main() {
 			SmokeOnly:          *smokeOnly,
 			Skills:             splitList(*skillsFlag),
 			OutputDir:          reportDir,
+			ContextMode:        "compiled",
 		}
 		if *reviewerFlag != "" {
 			opts.Reviewer = &eval.CommandReviewer{Command: *reviewerFlag}
