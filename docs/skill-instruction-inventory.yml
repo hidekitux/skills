@@ -52,15 +52,15 @@ skills:
   - name: create-issue
     path: skills/create-issue/SKILL.md
     before_tokens: 1233
-    after_tokens: 994
+    after_tokens: 534
     before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
     after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Body Structure, classification: task-procedure}
-      - {heading: Project Triage, classification: conditional-reference, load_condition: When the Issue must enter the repository Project, read the Project configuration and triage rules., reference: skills/create-issue/SKILL.md}
-      - {heading: Change Issues, classification: conditional-reference, load_condition: When creating a Change Issue, read this section., reference: skills/create-issue/SKILL.md}
-      - {heading: Release Issues, classification: conditional-reference, load_condition: When creating a Release Issue, read this section., reference: skills/create-issue/SKILL.md}
+      - {heading: Project Triage, classification: conditional-reference, load_condition: When the Issue must enter the repository Project, read the Project triage reference., reference: skills/create-issue/references/project-triage.md}
+      - {heading: Change Issues, classification: conditional-reference, load_condition: When creating a Change Issue, read the Change Issue rules., reference: skills/create-issue/references/change-issues.md}
+      - {heading: Release Issues, classification: conditional-reference, load_condition: When creating a Release Issue, read the Release Issue rules., reference: skills/create-issue/references/release-issues.md}
       - {heading: Writing quality, classification: task-procedure}
   - name: create-pr
     path: skills/create-pr/SKILL.md
