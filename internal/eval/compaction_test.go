@@ -49,6 +49,31 @@ func TestCompareReportsAcceptsPreservedPassAndRubric(t *testing.T) {
 	}
 }
 
+func TestCompareReportsAcceptsEqualDeterministicOutcomesWithoutRubric(t *testing.T) {
+	dir := t.TempDir()
+	fullPath := filepath.Join(dir, "full.jsonl")
+	compactPath := filepath.Join(dir, "compact.jsonl")
+
+	for _, verdict := range []string{VerdictPass, VerdictFail} {
+		t.Run(verdict, func(t *testing.T) {
+			base := Record{
+				Scenario: "demo", Skill: "debug-code", Host: "codex",
+				PromptSHA: "same", Verdict: verdict, RubricReview: RubricNA,
+			}
+			writeRecords(t, fullPath, []Record{base})
+			writeRecords(t, compactPath, []Record{base})
+
+			report, err := CompareReports(fullPath, compactPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(report.Results) != 1 || report.Results[0].Status != "pass" {
+				t.Fatalf("comparison = %+v, want one pass", report.Results)
+			}
+		})
+	}
+}
+
 func TestCompareReportsRejectsDeterministicRegression(t *testing.T) {
 	dir := t.TempDir()
 	fullPath := filepath.Join(dir, "full.jsonl")

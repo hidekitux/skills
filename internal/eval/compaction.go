@@ -122,9 +122,13 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 		case left.Verdict == VerdictSkipped || right.Verdict == VerdictSkipped:
 			result.Reasons = append(result.Reasons, "host or scenario was skipped")
 		}
-		if left.RubricReview == RubricComplete && right.RubricReview == RubricComplete {
+		switch {
+		case left.RubricReview == RubricComplete && right.RubricReview == RubricComplete:
 			result.Reasons = append(result.Reasons, compareScores(left.RubricScores, right.RubricScores)...)
-		} else {
+		case left.RubricReview == RubricNA && right.RubricReview == RubricNA:
+			// Deterministic evidence is sufficient when both runs explicitly opt
+			// out of rubric scoring.
+		default:
 			result.Reasons = append(result.Reasons, "rubric evidence pending")
 		}
 		switch {
