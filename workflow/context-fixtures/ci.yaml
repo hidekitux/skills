@@ -1,0 +1,7 @@
+id: ci-selection
+skill: plan-issue
+signals:
+  task_kind: ci
+  paths: [.github/workflows/validate.yml]
+include: [repository.ci, repository.validator-schema, repository.validation]
+exclude: [repository.documentation, repository.frontend, feedback.validator]

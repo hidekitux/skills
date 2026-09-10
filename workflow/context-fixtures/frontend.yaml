@@ -1,0 +1,7 @@
+id: frontend-selection
+skill: plan-issue
+signals:
+  task_kind: implementation
+  paths: [frontend/app.ts]
+include: [repository.frontend]
+exclude: [repository.backend, repository.ci]

@@ -1,0 +1,6 @@
+id: documentation-selection
+skill: plan-issue
+signals:
+  task_kind: documentation
+include: [repository.documentation, repository.style]
+exclude: [repository.ci, repository.frontend, feedback.fsl]

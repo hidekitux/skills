@@ -1,0 +1,7 @@
+id: backend-selection
+skill: plan-issue
+signals:
+  task_kind: implementation
+  paths: [internal/graph/graph.go]
+include: [repository.backend]
+exclude: [repository.frontend, repository.documentation, feedback.validator]

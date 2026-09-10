@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/hidekitux/skills/internal/check"
+	skillcontext "github.com/hidekitux/skills/internal/context"
 	"github.com/hidekitux/skills/internal/diagnostic"
 	"github.com/hidekitux/skills/internal/eval"
 	"github.com/hidekitux/skills/internal/graph"
@@ -51,6 +52,7 @@ var repoChecks = []repoCheck{
 	{name: "check-public-status", fn: publicstatus.Check},
 	{name: "validate-diagnostic", fn: diagnostic.CheckFixtures},
 	{name: "check-evaluation", fn: eval.CheckCorpus},
+	{name: "check-context", fn: skillcontext.CheckCases},
 	{name: "validate-skill-graph", fn: func(root string, out, errOut io.Writer) int {
 		report := graph.Validate(root)
 		if report.Valid {

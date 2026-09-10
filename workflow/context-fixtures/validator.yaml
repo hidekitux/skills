@@ -1,0 +1,8 @@
+id: validator-feedback
+skill: review-pr
+signals:
+  task_kind: review
+  diagnostics:
+    - {producer: check-repository, code: check-repository.failed, result: failed}
+include: [feedback.validator, reference.review.criteria]
+exclude: [feedback.fsl, feedback.evidence, reference.review.performance]

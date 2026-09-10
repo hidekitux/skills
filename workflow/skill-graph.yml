@@ -66,6 +66,281 @@ conditions:
   - id: related-refactor-needed
     description: The verified defect needs a behavior-preserving refactor.
 
+context:
+  schema_version: 1
+  invariants:
+    - id: todo-list-required
+      description: Create and maintain a Todo List with exactly one item in progress.
+    - id: scope-authority
+      description: Keep work within the governing request and stop when authority is missing.
+    - id: safety-privacy
+      description: Protect credentials and private content and avoid unauthorized destructive actions.
+    - id: validation-evidence
+      description: Validate the requested result and record the command or artifact that proves it.
+    - id: output-handoff
+      description: Report the result, remaining risk, and the next authorized handoff.
+  global_modules:
+    - repository.instructions
+    - repository.contract
+    - repository.graph
+    - repository.validation
+    - repository.style
+    - repository.backend
+    - repository.frontend
+    - repository.ci
+    - repository.documentation
+    - repository.validator-schema
+    - repository.fsl
+    - feedback.validator
+    - feedback.fsl
+    - feedback.evidence
+  modules:
+    - id: repository.instructions
+      category: repository_evidence
+      source: AGENTS.md
+      required: true
+      priority: 100
+    - id: repository.contract
+      category: repository_evidence
+      source: docs/skill-contract.md
+      required: true
+      priority: 90
+    - id: repository.graph
+      category: repository_evidence
+      source: docs/skill-graph.md
+      required: false
+      priority: 50
+      activation:
+        task_kinds: [process, governance]
+    - id: repository.validation
+      category: repository_evidence
+      source: docs/validation-tiers.md
+      required: false
+      priority: 50
+      activation:
+        task_kinds: [validation, ci, release]
+    - id: repository.style
+      category: repository_evidence
+      source: docs/writing-style.md
+      required: false
+      priority: 40
+      activation:
+        task_kinds: [documentation, process]
+    - id: repository.backend
+      category: repository_evidence
+      source: docs/skill-contract.md
+      required: false
+      priority: 20
+      activation:
+        path_patterns: [internal/**, cmd/**]
+    - id: repository.frontend
+      category: repository_evidence
+      source: docs/skill-contract.md
+      required: false
+      priority: 20
+      activation:
+        path_patterns: [frontend/**, web/**, ui/**]
+    - id: repository.ci
+      category: repository_evidence
+      source: docs/validation-tiers.md
+      required: false
+      priority: 30
+      activation:
+        task_kinds: [ci, release]
+        path_patterns: [.github/**, mise.toml]
+    - id: repository.documentation
+      category: repository_evidence
+      source: docs/writing-style.md
+      required: false
+      priority: 30
+      activation:
+        task_kinds: [documentation]
+    - id: repository.validator-schema
+      category: conditional_references
+      source: workflow/validator-diagnostic.schema.json
+      required: false
+      priority: 25
+      activation:
+        task_kinds: [validation, ci]
+    - id: repository.fsl
+      category: conditional_references
+      source: docs/fsl.md
+      required: false
+      priority: 25
+      activation:
+        task_kinds: [fsl, release]
+    - id: feedback.validator
+      category: validator_feedback
+      signal: validator_feedback
+      required: false
+      priority: 100
+    - id: feedback.fsl
+      category: validator_feedback
+      signal: fsl_result
+      required: false
+      priority: 100
+    - id: feedback.evidence
+      category: validator_feedback
+      signal: prior_evidence
+      required: false
+      priority: 90
+    - id: reference.audit.host
+      category: conditional_references
+      source: skills/audit-workflow-enforcement/references/hosts/codex.md
+      required: false
+      priority: 60
+      activation:
+        task_kinds: [host]
+    - id: reference.bootstrap.fsl
+      category: conditional_references
+      source: skills/bootstrap-project/references/fsl-adoption.md
+      required: false
+      priority: 70
+      activation:
+        task_kinds: [fsl]
+    - id: reference.create-issue.project
+      category: conditional_references
+      source: skills/create-issue/references/project-triage.md
+      required: false
+      priority: 60
+      activation:
+        task_kinds: [issue]
+    - id: reference.create-issue.change
+      category: conditional_references
+      source: skills/create-issue/references/change-issues.md
+      required: false
+      priority: 60
+      activation:
+        task_kinds: [issue]
+    - id: reference.create-issue.release
+      category: conditional_references
+      source: skills/create-issue/references/release-issues.md
+      required: false
+      priority: 60
+      activation:
+        task_kinds: [release]
+    - id: reference.create-pr.publish
+      category: conditional_references
+      source: skills/create-pr/references/publish.md
+      required: false
+      priority: 70
+      activation:
+        task_kinds: [pull-request]
+    - id: reference.fix-pr.publish
+      category: conditional_references
+      source: skills/fix-pr/references/publish.md
+      required: false
+      priority: 70
+      activation:
+        task_kinds: [pull-request]
+    - id: reference.implement.details
+      category: conditional_references
+      source: skills/implement-issue/references/implementation-details.md
+      required: false
+      priority: 70
+      activation:
+        task_kinds: [implementation]
+    - id: reference.merge.integration
+      category: conditional_references
+      source: skills/merge-pr/references/integration.md
+      required: false
+      priority: 70
+      activation:
+        task_kinds: [merge]
+    - id: reference.review.criteria
+      category: conditional_references
+      source: skills/review-pr/references/review-criteria.md
+      required: false
+      priority: 70
+      activation:
+        task_kinds: [review]
+    - id: reference.review.security
+      category: conditional_references
+      source: skills/review-pr/references/security-review.md
+      required: false
+      priority: 80
+      activation:
+        task_kinds: [security]
+    - id: reference.review.performance
+      category: conditional_references
+      source: skills/review-pr/references/performance-review.md
+      required: false
+      priority: 50
+      activation:
+        task_kinds: [performance]
+    - id: reference.review.accessibility
+      category: conditional_references
+      source: skills/review-pr/references/accessibility-review.md
+      required: false
+      priority: 50
+      activation:
+        task_kinds: [accessibility]
+  profiles:
+    plan-issue:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    create-pr:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.create-pr.publish]
+    merge-pr:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.merge.integration]
+    create-issue:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.create-issue.project, reference.create-issue.change, reference.create-issue.release]
+    bootstrap-project:
+      budgets: {core_instructions: 3000, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.bootstrap.fsl]
+    audit-workflow-enforcement:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.audit.host]
+    implement-issue:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.implement.details]
+    debug-code:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    fix-pr:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.fix-pr.publish]
+    review-pr:
+      budgets: {core_instructions: 2500, conditional_references: 3000, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: [reference.review.criteria, reference.review.security, reference.review.performance, reference.review.accessibility]
+    analyze-project:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 3000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    refactor-code:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    write-tests:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    improve-project:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 3000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    deliver-change:
+      budgets: {core_instructions: 3000, conditional_references: 3000, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    resolve-defect:
+      budgets: {core_instructions: 3000, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+
 skills:
   - id: plan-issue
     path: skills/plan-issue/SKILL.md
