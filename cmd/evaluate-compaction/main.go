@@ -86,19 +86,27 @@ func main() {
 			fmt.Fprintf(os.Stderr, "comparison %s/%s: %s (%s)\n", result.Scenario, result.Host, result.Status, strings.Join(result.Reasons, "; "))
 		}
 	}
+	os.Exit(compactionExitCode(fullCode, compactCode, pair.Results))
+}
+
+// compactionExitCode lets the paired comparison distinguish a common
+// baseline failure from a compact-source regression. Source assertion codes
+// are evidence for the paired report, not a comparison verdict.
+func compactionExitCode(fullCode, compactCode int, results []eval.PairResult) int {
 	for _, code := range []int{fullCode, compactCode} {
-		if code == eval.ExitAssertion {
-			os.Exit(eval.ExitAssertion)
+		if code == eval.ExitUsage {
+			return eval.ExitUsage
 		}
 	}
-	for _, result := range pair.Results {
-		if result.Status == "fail" {
-			os.Exit(eval.ExitAssertion)
-		}
-		if result.Status == "inconclusive" {
-			os.Exit(eval.ExitInfra)
+	for _, result := range results {
+		switch result.Status {
+		case "fail":
+			return eval.ExitAssertion
+		case "inconclusive":
+			return eval.ExitInfra
 		}
 	}
+	return eval.ExitOK
 }
 
 func splitList(value string) []string {
