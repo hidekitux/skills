@@ -167,7 +167,7 @@ skills:
   - name: plan-issue
     path: skills/plan-issue/SKILL.md
     before_tokens: 1533
-    after_tokens: 1294
+    after_tokens: 1533
     before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
     after_commit: 42296b4
     sections:
