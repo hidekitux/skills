@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
 	"github.com/hidekitux/skills/internal/instructions"
 )
@@ -49,6 +50,26 @@ func TestValidateAcceptsPrivacySafeContextManifest(t *testing.T) {
 	}
 	if report := Validate(trace); !report.Valid {
 		t.Fatalf("context manifest rejected: %v", report.Findings)
+	}
+}
+
+func TestValidateAcceptsPrivacySafeEnvironmentManifest(t *testing.T) {
+	trace := validTrace()
+	trace.Environment = &skillenvironment.Manifest{
+		SchemaVersion: 1, EnvironmentID: "env-199", SkillID: trace.SkillID, GraphVersion: 1,
+		Profile: skillenvironment.ProfileReadOnly, WorkspaceKind: skillenvironment.WorkspaceDetachedSnapshot,
+		RepositoryRevision: testSHA,
+		Permissions:        skillenvironment.Permissions{Repository: "read", Git: "read", GitHub: "read", ExternalMutation: "none"},
+		Setup:              skillenvironment.Setup{Status: skillenvironment.SetupSucceeded},
+		Ownership:          skillenvironment.Ownership{Status: skillenvironment.OwnershipVerified},
+		Cleanup:            skillenvironment.CleanupNotRequested,
+	}
+	clean, err := Sanitize(trace)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if clean.Environment == nil || clean.Environment.EnvironmentID != "env-199" {
+		t.Fatalf("environment manifest was not preserved: %#v", clean.Environment)
 	}
 }
 
