@@ -140,27 +140,29 @@ No rubric score gates a verdict.
 A cataloged skill may be promoted from `experimental` to `stable` only when
 all of the following hold, verified against a retained evaluation run:
 
-1. **No deterministic failures.** Every success and failure/boundary scenario
-   of the skill passes its deterministic assertions on the smoke run for the
-   evaluated drivers. `fail` verdicts of any kind block promotion.
-2. **Rubric floor.** Reviewed scenarios score the seven rubric dimensions
-   (`evaluations/rubric.md`) with no dimension below 3 and a mean of at least
-   4.0. Rubric scores are opinion and never override deterministic failures.
-3. **Regression-free.** The same scenario set passed on the two most recent
-   consecutive runs: a deterministic assertion that passed before and fails
-   now is a regression that blocks promotion and triggers demotion review.
-4. **Bounded variance.** Re-running an unchanged scenario produces identical
-   deterministic verdicts and rubric scores within ±1 per dimension.
-5. **Retained evidence.** A machine-readable report recording a qualifying
-   pass for the skill exists under `evaluations/reports/`: a record whose
-   `verdict` is `pass` for that skill **and** whose `rubric_review` is
-   `complete` with all seven `rubric_scores` present (a pass for another
-   skill in the same file, or a pass without a completed rubric review, is
-   not retained evidence). This is enforced by `check-evaluation` (part of
-   `check:repository`): a catalog entry with `status: stable` and no
-   qualifying evidence fails repository validation. The remaining threshold
-   items (rubric floor, regression-free, bounded variance) are verified by
-   the release flow against the retained runs.
+1. **No deterministic failures.** Every direct `positive`, `negative`, and
+   `boundary` scenario of the skill has a record in each of the two most
+   recent complete runs. Every evaluated driver record has a `pass` verdict.
+   Missing, `fail`, `skipped`, `infrastructure_error`, and `interrupted`
+   records block promotion.
+2. **Rubric floor.** Every required record has a completed review of the seven
+   rubric dimensions (`evaluations/rubric.md`). No dimension is below 3, and
+   the mean is at least 4.0. Rubric scores are opinion, so the reviewer owns
+   producing them while the release checker enforces their shape and bounds.
+3. **Regression-free.** The same required scenario set passes on the two most
+   recent runs at the current repository revision. A newer required-scenario
+   failure cannot be hidden by an older passing record.
+4. **Bounded variance.** The two runs keep the same scenario/host keys and
+   prompt SHA-256 values. Re-running an unchanged scenario keeps deterministic
+   verdicts identical and keeps every rubric dimension within ±1.
+5. **Retained evidence.** Each record identifies `skill`, `run_id`,
+   `repo_commit`, `skill_source_commit`, `scenario`, `host`, and
+   `finished_at`. `repo_commit` and `skill_source_commit` must match the
+   current committed revision. `check-evaluation` (part of
+   `check:repository`) checks that a `stable` catalog entry has a same-record
+   pass with a completed seven-dimension review. The release flow runs
+   `check:promotion` through `verify:release` to enforce the two-run,
+   revision, rubric, regression, and variance conditions.
 
 Skills also contract to **name the next owner**: when a scenario's `handoff`
 is a cataloged skill name (per `docs/skill-contract.md`), the transcript
@@ -169,8 +171,10 @@ deterministically. Outcome markers such as boundary stop conditions are
 asserted through `transcript_must` / `transcript_must_any`.
 
 Changing a skill's actual `status` is release-flow work (and later Sub-issues
-of Issue 165); this document defines the threshold that the release flow must
-satisfy, and `specs/evaluation-gate.fsl` models the transition.
+of Issue 165). This document defines the evidence threshold that the release
+flow must satisfy. `specs/evaluation-gate.fsl` models status consistency and
+the existence of promotion evidence; `check:promotion` verifies the actual
+retained reports.
 
 ## Regressions block promotion
 
