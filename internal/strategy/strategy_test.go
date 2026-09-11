@@ -68,7 +68,7 @@ func TestSelectsDeterministicallyForRepresentativeSignals(t *testing.T) {
 			if !reflect.DeepEqual(first, second) {
 				t.Fatalf("decision changed: first=%#v second=%#v", first, second)
 			}
-		if first.Rule != tc.wantRule || first.Strategy != tc.wantProfile || first.ValidationTier != tc.wantTier || first.Outcome != tc.wantOutcome {
+			if first.Rule != tc.wantRule || first.Strategy != tc.wantProfile || first.ValidationTier != tc.wantTier || first.Outcome != tc.wantOutcome {
 				t.Fatalf("decision = %#v", first)
 			}
 		})
