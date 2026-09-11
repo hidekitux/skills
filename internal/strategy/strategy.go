@@ -9,9 +9,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/hidekitux/skills/internal/deliberation"
 	"github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
 	"gopkg.in/yaml.v3"
@@ -21,6 +23,8 @@ const (
 	Path                 = "workflow/execution-strategy-policy.yml"
 	CurrentSchemaVersion = 1
 )
+
+var identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*$`)
 
 type Level string
 
@@ -111,16 +115,17 @@ type Overrides struct {
 // Input is the privacy-safe selector input. It contains no prompt, source,
 // command output, credential, or user content.
 type Input struct {
-	Skill               string      `json:"skill"`
-	Impact              Level       `json:"impact"`
-	Reversibility       Level       `json:"reversibility"`
-	Ambiguity           Level       `json:"ambiguity"`
-	SecuritySensitivity Level       `json:"security_sensitivity"`
-	StateMutation       Level       `json:"state_mutation"`
-	EvidenceQuality     Level       `json:"evidence_quality"`
-	ValidationCost      Level       `json:"validation_cost"`
-	Overrides           UserChoices `json:"overrides,omitempty"`
-	Evidence            []Evidence  `json:"evidence,omitempty"`
+	Skill                string      `json:"skill"`
+	Impact               Level       `json:"impact"`
+	Reversibility        Level       `json:"reversibility"`
+	Ambiguity            Level       `json:"ambiguity"`
+	SecuritySensitivity  Level       `json:"security_sensitivity"`
+	StateMutation        Level       `json:"state_mutation"`
+	EvidenceQuality      Level       `json:"evidence_quality"`
+	ValidationCost       Level       `json:"validation_cost"`
+	ConfiguredModelTiers []string    `json:"configured_model_tiers,omitempty"`
+	Overrides            UserChoices `json:"overrides,omitempty"`
+	Evidence             []Evidence  `json:"evidence,omitempty"`
 }
 
 // UserChoices contains explicit user selections that the policy may preserve.
@@ -171,6 +176,73 @@ type ValidationReport struct {
 	Findings      []string `json:"findings,omitempty"`
 }
 
+// ValidateDecision checks the privacy-safe decision contract independently of
+// the policy source. Trace consumers use this check before persistence.
+func ValidateDecision(decision Decision) []string {
+	findings := []string{}
+	if decision.SchemaVersion != CurrentSchemaVersion {
+		findings = append(findings, "decision.schema_version is unsupported")
+	}
+	if decision.PolicyVersion < 1 {
+		findings = append(findings, "decision.policy_version must be positive")
+	}
+	for name, value := range map[string]string{
+		"rule": decision.Rule, "strategy": decision.Strategy, "skill": decision.Skill,
+		"model_tier": decision.ModelTier, "context_profile": decision.ContextProfile,
+		"validation_tier": decision.ValidationTier, "parallelism": decision.Parallelism,
+		"escalation": decision.Escalation, "outcome": decision.Outcome,
+	} {
+		if !identifierPattern.MatchString(value) {
+			findings = append(findings, "decision."+name+" is invalid")
+		}
+	}
+	if !oneOf(decision.ModelTier, "high", "mid", "low") {
+		findings = append(findings, "decision.model_tier is invalid")
+	}
+	if tierRank(decision.ValidationTier) == 0 {
+		findings = append(findings, "decision.validation_tier is invalid")
+	}
+	if decision.ContextProfile != "selected-skill" {
+		findings = append(findings, "decision.context_profile is invalid")
+	}
+	if !oneOf(decision.Parallelism, "single-agent", "independent-candidates", "fan-out-investigation") {
+		findings = append(findings, "decision.parallelism is invalid")
+	}
+	if decision.MaxRetries < 0 || decision.MaxRetries > 1 || decision.MaxElapsedMillis <= 0 {
+		findings = append(findings, "decision retry or elapsed bound is invalid")
+	}
+	if !oneOf(decision.Escalation, "none", "validation-failure", "review", "ask_user") {
+		findings = append(findings, "decision.escalation is invalid")
+	}
+	if !oneOf(decision.Outcome, "selected", "ask_user", "blocked") {
+		findings = append(findings, "decision.outcome is invalid")
+	}
+	for name, value := range map[string]string{
+		"repository": decision.Authority.Repository, "git": decision.Authority.Git,
+		"github": decision.Authority.GitHub, "external_mutation": decision.Authority.ExternalMutation,
+	} {
+		valid := oneOf(value, "none", "read", "write")
+		if name == "external_mutation" {
+			valid = oneOf(value, "none", "issue", "pull_request", "repository_configuration")
+		}
+		if !valid {
+			findings = append(findings, "decision.authority."+name+" is invalid")
+		}
+	}
+	if len(decision.Reasons) == 0 {
+		findings = append(findings, "decision.reasons must not be empty")
+	}
+	for index, evidence := range decision.Evidence {
+		if !oneOf(evidence.Kind, "path", "command", "issue", "pull_request", "commit", "validation") || !identifierPattern.MatchString(evidence.Ref) {
+			findings = append(findings, fmt.Sprintf("decision.evidence[%d] is unsafe or invalid", index))
+		}
+		if evidence.Result != "" && !identifierPattern.MatchString(evidence.Result) {
+			findings = append(findings, fmt.Sprintf("decision.evidence[%d].result is invalid", index))
+		}
+	}
+	return findings
+}
+
 // Load reads the policy with strict YAML field checking.
 func Load(root string) (*Policy, error) {
 	content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(Path)))
@@ -203,6 +275,13 @@ func Validate(root string) ValidationReport {
 		return report
 	}
 	findings := ValidatePolicy(policy, graphDocument)
+	deliberationPolicy, deliberationErr := deliberation.Load(root)
+	if deliberationErr != nil {
+		findings = append(findings, deliberationErr.Error())
+	} else {
+		findings = append(findings, deliberation.Validate(deliberationPolicy)...)
+		findings = append(findings, validateDeliberationReferences(policy, deliberationPolicy)...)
+	}
 	sort.Strings(findings)
 	report.Findings = findings
 	report.Valid = len(findings) == 0
@@ -223,6 +302,16 @@ func ValidatePolicy(policy *Policy, graphDocument *graph.Graph) []string {
 	}
 	if policy.Defaults.MaxElapsedMillis <= 0 || policy.Defaults.MaxInputTokens <= 0 || policy.Defaults.MaxOutputTokens <= 0 || policy.Defaults.MaxCostMicros <= 0 {
 		findings = append(findings, "defaults must define positive resource bounds")
+	}
+	for name, value := range map[string]string{
+		"model_unavailable":   policy.Fallback.ModelUnavailable,
+		"incomplete_evidence": policy.Fallback.IncompleteEvidence,
+		"failed_validation":   policy.Fallback.FailedValidation,
+		"external_mutation":   policy.Fallback.ExternalMutation,
+	} {
+		if !identifierPattern.MatchString(value) {
+			findings = append(findings, "fallback."+name+" is missing or invalid")
+		}
 	}
 	validSignals := map[string]map[string]bool{}
 	seenSignals := map[string]bool{}
@@ -319,6 +408,20 @@ func ValidatePolicy(policy *Policy, graphDocument *graph.Graph) []string {
 	return findings
 }
 
+func validateDeliberationReferences(policy *Policy, deliberationPolicy *deliberation.Policy) []string {
+	patterns := map[string]bool{}
+	for _, pattern := range deliberationPolicy.Patterns {
+		patterns[pattern.ID] = true
+	}
+	findings := []string{}
+	for _, profile := range policy.Strategies {
+		if profile.Parallelism != "single-agent" && !patterns[profile.Parallelism] {
+			findings = append(findings, fmt.Sprintf("strategy %q references unknown deliberation pattern %q", profile.ID, profile.Parallelism))
+		}
+	}
+	return findings
+}
+
 // Select loads the policy and graph and returns one deterministic decision.
 func Select(root string, input Input) (Decision, error) {
 	policy, err := Load(root)
@@ -346,6 +449,9 @@ func SelectWithPolicy(policy *Policy, graphDocument *graph.Graph, input Input) (
 	skill, ok := graphDocument.Skill(input.Skill)
 	if !ok {
 		return Decision{}, fmt.Errorf("skill %q is not in the graph", input.Skill)
+	}
+	if _, ok := graphDocument.Context.Profiles[input.Skill]; !ok {
+		return Decision{}, fmt.Errorf("skill %q has no context profile", input.Skill)
 	}
 	if findings := validateInput(policy, input); len(findings) > 0 {
 		return Decision{}, fmt.Errorf("strategy input is invalid: %s", strings.Join(findings, "; "))
@@ -414,6 +520,7 @@ func SelectWithPolicy(policy *Policy, graphDocument *graph.Graph, input Input) (
 		decision.Reasons = append(decision.Reasons, "selected skill does not declare external mutation authority")
 	}
 	decision = applyOverrides(decision, input.Overrides)
+	decision = resolveConfiguredModelTier(decision, input.ConfiguredModelTiers)
 	return decision, nil
 }
 
@@ -481,6 +588,33 @@ func applyOverrides(decision Decision, choices UserChoices) Decision {
 	return decision
 }
 
+func resolveConfiguredModelTier(decision Decision, configured []string) Decision {
+	if len(configured) == 0 {
+		return decision
+	}
+	available := map[string]bool{}
+	for _, tier := range configured {
+		available[tier] = true
+	}
+	if available[decision.ModelTier] {
+		return decision
+	}
+	for _, tier := range []string{"low", "mid", "high"} {
+		if !available[tier] {
+			continue
+		}
+		decision.Overrides.ModelTier = tier
+		decision.Overrides.Values = append(decision.Overrides.Values, "model-unavailable-fallback")
+		decision.Reasons = append(decision.Reasons, "selected model tier is unavailable; using the lowest-cost configured tier")
+		decision.ModelTier = tier
+		return decision
+	}
+	decision.Outcome = "ask_user"
+	decision.Escalation = "ask_user"
+	decision.Reasons = append(decision.Reasons, "no configured model tier can execute the selected strategy")
+	return decision
+}
+
 func tierRank(value string) int {
 	switch value {
 	case "tier-1":
@@ -526,9 +660,19 @@ func validateInput(policy *Policy, input Input) []string {
 	if input.Overrides.ValidationTier != "" && tierRank(input.Overrides.ValidationTier) == 0 {
 		findings = append(findings, "overrides.validation_tier is invalid")
 	}
+	seenTiers := map[string]bool{}
+	for _, tier := range input.ConfiguredModelTiers {
+		if !oneOf(tier, "high", "mid", "low") || seenTiers[tier] {
+			findings = append(findings, "configured_model_tiers contains an invalid or duplicate tier")
+		}
+		seenTiers[tier] = true
+	}
 	for index, item := range input.Evidence {
-		if strings.TrimSpace(item.Kind) == "" || strings.TrimSpace(item.Ref) == "" {
+		if !oneOf(item.Kind, "path", "command", "issue", "pull_request", "commit", "validation") || !identifierPattern.MatchString(item.Ref) {
 			findings = append(findings, fmt.Sprintf("evidence[%d] requires kind and ref", index))
+		}
+		if item.Result != "" && !identifierPattern.MatchString(item.Result) {
+			findings = append(findings, fmt.Sprintf("evidence[%d].result is invalid", index))
 		}
 	}
 	return findings

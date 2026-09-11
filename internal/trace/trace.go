@@ -21,12 +21,13 @@ import (
 	skillcontext "github.com/hidekitux/skills/internal/context"
 	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"gopkg.in/yaml.v3"
 )
 
 const (
 	// CurrentSchemaVersion is the version implemented by this package.
-	CurrentSchemaVersion = 3
+	CurrentSchemaVersion = 4
 	// DefaultRetentionDays bounds the local retention period for persisted traces.
 	DefaultRetentionDays = 30
 )
@@ -56,25 +57,26 @@ const (
 
 // Trace is one versioned record of one skill run.
 type Trace struct {
-	SchemaVersion      int                        `json:"schema_version"`
-	RunID              string                     `json:"run_id"`
-	ScenarioID         string                     `json:"scenario_id,omitempty"`
-	SkillID            string                     `json:"skill_id"`
-	SkillVersion       string                     `json:"skill_version"`
-	GraphVersion       int                        `json:"graph_version"`
-	Host               string                     `json:"host"`
-	HostVersion        string                     `json:"host_version,omitempty"`
-	Model              string                     `json:"model"`
-	ModelTier          string                     `json:"model_tier,omitempty"`
-	RepositoryRevision string                     `json:"repository_revision"`
-	StartedAt          string                     `json:"started_at"`
-	Usage              *Usage                     `json:"usage,omitempty"`
-	Context            *skillcontext.Manifest     `json:"context,omitempty"`
-	Environment        *skillenvironment.Manifest `json:"environment,omitempty"`
-	Deliberation       *Deliberation              `json:"deliberation,omitempty"`
-	Events             []Event                    `json:"events"`
-	Terminal           Terminal                   `json:"terminal"`
-	Redaction          RedactionSummary           `json:"redaction"`
+	SchemaVersion      int                         `json:"schema_version"`
+	RunID              string                      `json:"run_id"`
+	ScenarioID         string                      `json:"scenario_id,omitempty"`
+	SkillID            string                      `json:"skill_id"`
+	SkillVersion       string                      `json:"skill_version"`
+	GraphVersion       int                         `json:"graph_version"`
+	Host               string                      `json:"host"`
+	HostVersion        string                      `json:"host_version,omitempty"`
+	Model              string                      `json:"model"`
+	ModelTier          string                      `json:"model_tier,omitempty"`
+	RepositoryRevision string                      `json:"repository_revision"`
+	StartedAt          string                      `json:"started_at"`
+	Usage              *Usage                      `json:"usage,omitempty"`
+	Context            *skillcontext.Manifest      `json:"context,omitempty"`
+	Environment        *skillenvironment.Manifest  `json:"environment,omitempty"`
+	Deliberation       *Deliberation               `json:"deliberation,omitempty"`
+	Strategy           *executionstrategy.Decision `json:"strategy,omitempty"`
+	Events             []Event                     `json:"events"`
+	Terminal           Terminal                    `json:"terminal"`
+	Redaction          RedactionSummary            `json:"redaction"`
 }
 
 // Event is one ordered semantic execution event.
@@ -289,6 +291,9 @@ func Validate(t Trace) ValidationReport {
 	}
 	if t.Deliberation != nil {
 		findings = append(findings, validateDeliberation(*t.Deliberation)...)
+	}
+	if t.Strategy != nil {
+		findings = append(findings, executionstrategy.ValidateDecision(*t.Strategy)...)
 	}
 	if t.Environment != nil {
 		findings = append(findings, skillenvironment.Validate(*t.Environment)...)
@@ -709,6 +714,13 @@ func Sanitize(input Trace) (Trace, error) {
 		cleaned, omitted := sanitizeDeliberation(*input.Deliberation, redact)
 		output.Deliberation = &cleaned
 		output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, omitted...)
+	}
+	if input.Strategy != nil {
+		copyStrategy := *input.Strategy
+		copyStrategy.Reasons = append([]string(nil), input.Strategy.Reasons...)
+		copyStrategy.Overrides.Values = append([]string(nil), input.Strategy.Overrides.Values...)
+		copyStrategy.Evidence = append([]executionstrategy.Evidence(nil), input.Strategy.Evidence...)
+		output.Strategy = &copyStrategy
 	}
 	if input.Environment != nil {
 		copyEnvironment := *input.Environment
