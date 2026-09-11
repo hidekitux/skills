@@ -232,6 +232,67 @@ type itemListDTO struct {
 	Items []itemDTO `json:"items"`
 }
 
+// projectSnapshot contains the immutable Project data needed by one
+// high-level operation. The item slice stays intact so duplicate content URLs
+// remain detectable by itemForIssue.
+type projectSnapshot struct {
+	number   int64
+	id       string
+	fields   map[string]fieldDTO
+	items    []itemDTO
+	hasItems bool
+}
+
+// projectSnapshot resolves the Project identity and fields once, and loads
+// the bounded item list when the operation needs item state.
+func (c *Client) projectSnapshot(cfg *Config, includeItems bool) (projectSnapshot, error) {
+	number, id, err := c.ProjectTarget(cfg)
+	if err != nil {
+		return projectSnapshot{}, err
+	}
+	fields, err := c.resolvedFields(cfg, number)
+	if err != nil {
+		return projectSnapshot{}, err
+	}
+	snapshot := projectSnapshot{number: number, id: id, fields: fields}
+	if !includeItems {
+		return snapshot, nil
+	}
+	items, err := c.Items(number)
+	if err != nil {
+		return projectSnapshot{}, err
+	}
+	snapshot.items = items
+	snapshot.hasItems = true
+	return snapshot, nil
+}
+
+// itemForIssue returns the sole Project item for an Issue URL from the
+// snapshot. A missing item returns ok=false; more than one item is an
+// ambiguity error.
+func (s projectSnapshot) itemForIssue(issueURL string) (itemDTO, bool, error) {
+	if !s.hasItems {
+		return itemDTO{}, false, errors.New("Project item state was not loaded for this operation")
+	}
+	var match itemDTO
+	found := 0
+	for _, item := range s.items {
+		if item.Content.URL != issueURL {
+			continue
+		}
+		match = item
+		found++
+	}
+	switch found {
+	case 0:
+		return itemDTO{}, false, nil
+	case 1:
+		return match, true, nil
+	default:
+		return itemDTO{}, false, fmt.Errorf("Issue %s has %d Project items; exactly one is required", issueURL, found)
+	}
+}
+
 // Items returns every Project item with its content URL and field values.
 func (c *Client) Items(number int64) ([]itemDTO, error) {
 	out, err := c.run("project", "item-list", fmt.Sprint(number), "--owner", c.Owner, "--limit", itemLimit, "--format", "json")
