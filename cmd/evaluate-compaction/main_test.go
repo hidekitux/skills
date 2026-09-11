@@ -35,6 +35,20 @@ func TestCompactionExitCodeUsesPairedResults(t *testing.T) {
 			results: []eval.PairResult{{Status: "inconclusive"}}, want: eval.ExitInfra,
 		},
 		{
+			name:        "full source interruption remains infrastructure",
+			fullCode:    eval.ExitInfra,
+			compactCode: eval.ExitOK,
+			results:     []eval.PairResult{{Status: "pass"}},
+			want:        eval.ExitInfra,
+		},
+		{
+			name:        "compact source interruption remains infrastructure",
+			fullCode:    eval.ExitOK,
+			compactCode: eval.ExitInfra,
+			results:     []eval.PairResult{{Status: "pass"}},
+			want:        eval.ExitInfra,
+		},
+		{
 			name:     "usage remains usage",
 			fullCode: eval.ExitUsage, results: []eval.PairResult{{Status: "pass"}}, want: eval.ExitUsage,
 		},
