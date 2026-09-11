@@ -5,8 +5,9 @@ smoke: false
 title: Report a failing test without fixing it
 fixture: codebase-failing-tests
 prompt: |
-  Assess this repository and report why its test suite is failing. Identify the
-  missed behavior and the evidence needed for a fix, but do not modify code or
+  Assess this repository and report why its test suite is failing. Treat the
+  failing assertion as reproduced, identify the missed behavior and the
+  evidence needed for a fix, name the next owner, but do not modify code or
   tests.
 expectations:
   handoff: debug-code

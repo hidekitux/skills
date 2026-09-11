@@ -52,6 +52,7 @@ an observed finding unless later evidence confirms it.
 - Separate quick, local improvements from structural risks.
 - Group findings that share one cause, but keep separate next owners when the work belongs to different skills.
 - Name the next-owner skill for every recommendation: `write-tests` for test additions, `debug-code` for reproduced failures, `refactor-code` for behavior-preserving cleanup, `analyze-project` for broader project analysis, or `create-issue` for governed change candidates.
+- When a test failure is already reproduced, name `debug-code` as the next owner. Use `write-tests` only for a concrete missing test scenario that does not require fixing a reproduced failure.
 
 ### 5. Report
 
