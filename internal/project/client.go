@@ -199,8 +199,8 @@ func optionID(fields map[string]fieldDTO, role, option string) (string, error) {
 }
 
 // itemLimit keeps one Project item-list read bounded while covering the
-// supported migration size.
-const itemLimit = "100"
+// supported migration size and the current Project item count.
+const itemLimit = "1000"
 
 // fieldValueDTO is one entry of the fieldValues array that older gh versions
 // emit; newer gh versions flatten known single-select values into top-level

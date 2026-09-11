@@ -106,7 +106,7 @@ func TestApplyAndVerifyBackfill(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemsJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemsJSON).
 		respond([]string{"project", "item-add", "3", "--owner", "acme",
 			"--url", "https://github.com/acme/sample/issues/202", "--format", "json"},
 			`{"id":"ITEM_3","content":{"url":"https://github.com/acme/sample/issues/202"}}`)
@@ -148,14 +148,14 @@ func TestVerifyBackfillChecksEveryPlannedItem(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1"))
 	if err := VerifyBackfill(runner, cfg, valid); err != nil {
 		t.Fatalf("VerifyBackfill on valid items: %v", err)
 	}
 	incomplete := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, `{"items":[]}`)
 	if err := VerifyBackfill(incomplete, cfg, valid); err == nil {
 		t.Fatal("expected missing item to fail verification")
 	}
@@ -171,7 +171,7 @@ func TestApplyBackfillFailsBeforeMutationOnUndeclaredOption(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, `{"items":[]}`)
 	if count, err := ApplyBackfill(runner, cfg, plans); err == nil {
 		t.Fatal("expected undeclared option to fail")
 	} else if count != 0 {

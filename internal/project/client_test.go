@@ -112,7 +112,7 @@ func defaultScriptedRunner(t *testing.T, itemJSON string) (*fakeRunner, *Client,
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemJSON)
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemJSON)
 	return runner, NewClient(runner, cfg.Project.Owner), cfg
 }
 
@@ -154,7 +154,7 @@ func TestProjectSnapshotReadsEachProjectSourceOnce(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1"))
 	client := NewClient(runner, cfg.Project.Owner)
 	if _, err := client.projectSnapshot(cfg, true); err != nil {
 		t.Fatalf("projectSnapshot: %v", err)
@@ -162,7 +162,7 @@ func TestProjectSnapshotReadsEachProjectSourceOnce(t *testing.T) {
 	for _, args := range [][]string{
 		{"project", "list", "--owner", "acme", "--format", "json"},
 		{"project", "field-list", "3", "--owner", "acme", "--format", "json"},
-		{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"},
+		{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"},
 	} {
 		if got := runner.callCount(args...); got != 1 {
 			t.Fatalf("call count for %v = %d, want 1", args, got)
@@ -236,7 +236,7 @@ func TestAddItemCreatesMissingItemOnce(t *testing.T) {
 }
 
 func TestItemForIssueFailsOnAmbiguity(t *testing.T) {
-	runner := newFakeRunner().respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"},
+	runner := newFakeRunner().respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"},
 		`{"items":[{"id":"A","content":{"url":"`+issueURL205+`"}},{"id":"B","content":{"url":"`+issueURL205+`"}}]}`)
 	client := NewClient(runner, "acme")
 	if _, _, err := client.ItemForIssue(3, issueURL205); err == nil {
@@ -269,7 +269,7 @@ func TestVerifyIssueAcceptsFlattenedFieldShape(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"},
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"},
 			`{"items":[{"id":"ITEM_1","status":"Backlog","priority":"Medium","scope":"Improvement","content":{"url":"`+issueURL205+`"}}]}`)
 	client := NewClient(runner, cfg.Project.Owner)
 	if err := client.VerifyIssue(cfg, issueURL205); err != nil {
