@@ -2,6 +2,7 @@ package project
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -47,6 +48,12 @@ func PullRequestStatus(event PullRequestEvent) (string, bool, error) {
 // configuration errors. Every mutable ID is resolved before any mutation;
 // when skipClosed is set, a closed Issue is never moved away from Done.
 func SetIssueStatus(run Runner, cfg *Config, repo string, issueNumber int64, status string, dryRun, skipClosed bool, out, errOut io.Writer) int {
+	return SetIssueStatusWithRetries(run, cfg, repo, issueNumber, status, dryRun, skipClosed, 1, out, errOut)
+}
+
+// SetIssueStatusWithRetries performs one status operation while retrying only
+// the idempotent item-edit mutation. Immutable Project reads happen once.
+func SetIssueStatusWithRetries(run Runner, cfg *Config, repo string, issueNumber int64, status string, dryRun, skipClosed bool, mutationAttempts int, out, errOut io.Writer) int {
 	owner, name, ok := splitRepo(repo)
 	if !ok {
 		fmt.Fprintf(errOut, "error: --repo must be owner/name\n")
@@ -54,6 +61,10 @@ func SetIssueStatus(run Runner, cfg *Config, repo string, issueNumber int64, sta
 	}
 	if issueNumber <= 0 {
 		fmt.Fprintf(errOut, "error: --issue must be a positive Issue number\n")
+		return 2
+	}
+	if mutationAttempts < 1 {
+		fmt.Fprintln(errOut, "error: --max-attempts must be at least 1")
 		return 2
 	}
 	statusField, _ := cfg.Field("status")
@@ -74,28 +85,25 @@ func SetIssueStatus(run Runner, cfg *Config, repo string, issueNumber int64, sta
 	}
 	client := NewClient(run, owner)
 	issueURL := IssueURL(owner, name, issueNumber)
-	number, projectID, err := client.ProjectTarget(cfg)
+	includeItems := !dryRun || status == "Planned"
+	snapshot, err := client.projectSnapshot(cfg, includeItems)
 	if err != nil {
 		return hardFailure(err, out, errOut)
 	}
-	fields, err := client.resolvedFields(cfg, number)
-	if err != nil {
-		return hardFailure(err, out, errOut)
-	}
-	statusID, err := optionID(fields, "status", status)
+	statusID, err := optionID(snapshot.fields, "status", status)
 	if err != nil {
 		return hardFailure(err, out, errOut)
 	}
 	var item itemDTO
 	present := false
-	if status == "Planned" {
-		item, present, err = client.ItemForIssue(number, issueURL)
+	if includeItems {
+		item, present, err = snapshot.itemForIssue(issueURL)
 		if err != nil {
 			return hardFailure(err, out, errOut)
 		}
 	}
 	if present && status == "Planned" {
-		current, err := itemFieldNames(item, fields)
+		current, err := itemFieldNames(item, snapshot.fields)
 		if err != nil {
 			return hardFailure(err, out, errOut)
 		}
@@ -116,16 +124,34 @@ func SetIssueStatus(run Runner, cfg *Config, repo string, issueNumber int64, sta
 	if present {
 		itemID = item.ID
 	} else {
-		itemID, err = client.AddItem(number, issueURL)
+		itemID, err = client.addItemUnchecked(snapshot.number, issueURL)
 		if err != nil {
 			return hardFailure(err, out, errOut)
 		}
 	}
-	if err := client.SetSingleSelect(projectID, itemID, fields["status"].ID, statusID); err != nil {
+	if err := setSingleSelectWithRetries(client, snapshot.id, itemID, snapshot.fields["status"].ID, statusID, mutationAttempts, errOut); err != nil {
 		return hardFailure(err, out, errOut)
 	}
 	fmt.Fprintf(out, "Issue %s Status set to %q\n", issueURL, status)
 	return 0
+}
+
+// setSingleSelectWithRetries retries only an item-edit after the Project
+// snapshot has loaded. Access errors stop immediately because retrying cannot
+// make a missing credential scope available.
+func setSingleSelectWithRetries(client *Client, projectID, itemID, fieldID, optionID string, attempts int, errOut io.Writer) error {
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if err := client.SetSingleSelect(projectID, itemID, fieldID, optionID); err != nil {
+			var access *AccessError
+			if errors.As(err, &access) || attempt == attempts {
+				return err
+			}
+			fmt.Fprintf(errOut, "warning: Project item edit attempt %d/%d failed; retrying.\n", attempt, attempts)
+			continue
+		}
+		return nil
+	}
+	return nil
 }
 
 // issueIsClosed reports whether the Issue is currently closed.
