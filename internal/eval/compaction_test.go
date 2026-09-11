@@ -74,6 +74,68 @@ func TestCompareReportsAcceptsEqualDeterministicOutcomesWithoutRubric(t *testing
 	}
 }
 
+func TestCompareReportsMarksInterruptedSourcesInconclusive(t *testing.T) {
+	tests := []struct {
+		name           string
+		fullVerdict    string
+		compactVerdict string
+		fullReason     string
+		compactReason  string
+	}{
+		{
+			name:           "full source",
+			fullVerdict:    VerdictInterrupted,
+			compactVerdict: VerdictPass,
+			fullReason:     "full source was interrupted",
+		},
+		{
+			name:           "compact source",
+			fullVerdict:    VerdictPass,
+			compactVerdict: VerdictInterrupted,
+			compactReason:  "compact source was interrupted",
+		},
+		{
+			name:           "both sources",
+			fullVerdict:    VerdictInterrupted,
+			compactVerdict: VerdictInterrupted,
+			fullReason:     "full source was interrupted",
+			compactReason:  "compact source was interrupted",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			dir := t.TempDir()
+			fullPath := filepath.Join(dir, "full.jsonl")
+			compactPath := filepath.Join(dir, "compact.jsonl")
+			full := Record{
+				Scenario: "demo", Skill: "debug-code", Host: "codex",
+				PromptSHA: "same", Verdict: test.fullVerdict, RubricReview: RubricNA,
+			}
+			compact := full
+			compact.Verdict = test.compactVerdict
+			writeRecords(t, fullPath, []Record{full})
+			writeRecords(t, compactPath, []Record{compact})
+
+			report, err := CompareReports(fullPath, compactPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result := report.Results[0]
+			if result.Status != "inconclusive" {
+				t.Fatalf("status = %q, want inconclusive; reasons = %v", result.Status, result.Reasons)
+			}
+			if result.FullVerdict != test.fullVerdict || result.CompactVerdict != test.compactVerdict {
+				t.Fatalf("verdicts = (%q, %q), want (%q, %q)", result.FullVerdict, result.CompactVerdict, test.fullVerdict, test.compactVerdict)
+			}
+			for _, reason := range []string{test.fullReason, test.compactReason} {
+				if reason != "" && !containsReason(result.Reasons, reason) {
+					t.Fatalf("reasons = %v, want %q", result.Reasons, reason)
+				}
+			}
+		})
+	}
+}
+
 func TestCompareReportsRejectsDeterministicRegression(t *testing.T) {
 	dir := t.TempDir()
 	fullPath := filepath.Join(dir, "full.jsonl")
