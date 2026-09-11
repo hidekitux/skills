@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	"github.com/hidekitux/skills/internal/trace"
 )
 
 // Record is one scenario result. It distinguishes deterministic failures,
@@ -28,6 +29,8 @@ type Record struct {
 	InstructionVariant string                 `json:"instruction_variant,omitempty"`
 	ContextMode        string                 `json:"context_mode,omitempty"`
 	Context            *skillcontext.Manifest `json:"context,omitempty"`
+	Deliberation       *trace.Deliberation    `json:"deliberation,omitempty"`
+	Comparison         *Comparison            `json:"comparison,omitempty"`
 	PromptSHA          string                 `json:"prompt_sha256"`
 	Fixtures           []string               `json:"fixtures,omitempty"`
 	Verdict            string                 `json:"verdict"`
@@ -44,6 +47,31 @@ type Record struct {
 	FailureID          string                 `json:"failure_id,omitempty"`
 	FailureCause       string                 `json:"failure_cause,omitempty"`
 	FailureRecurrence  int                    `json:"failure_recurrence_count,omitempty"`
+}
+
+// Comparison records the measurable difference between the single-agent
+// baseline and the bounded deliberation result. Token and monetary meters are
+// explicit about availability because the local HostRunner contract does not
+// expose provider usage data.
+type Comparison struct {
+	Pattern                      string `json:"pattern"`
+	BaselineVerdict              string `json:"baseline_verdict"`
+	DeliberatedVerdict           string `json:"deliberated_verdict"`
+	CandidateCount               int    `json:"candidate_count"`
+	CandidatePassCount           int    `json:"candidate_pass_count"`
+	CandidateFailureCount        int    `json:"candidate_failure_count"`
+	CandidateInfrastructureCount int    `json:"candidate_infrastructure_error_count"`
+	DisagreementCount            int    `json:"disagreement_count"`
+	FalsePositiveCount           int    `json:"false_positive_count"`
+	QualityDelta                 int    `json:"quality_delta"`
+	BaselineElapsedMillis        int64  `json:"baseline_elapsed_millis"`
+	DeliberationElapsedMillis    int64  `json:"deliberation_elapsed_millis"`
+	MarginalElapsedMillis        int64  `json:"marginal_elapsed_millis"`
+	MarginalRetries              int    `json:"marginal_retries"`
+	InputTokensAvailable         bool   `json:"input_tokens_available"`
+	OutputTokensAvailable        bool   `json:"output_tokens_available"`
+	ContextTokensAvailable       bool   `json:"context_tokens_available"`
+	CostAvailable                bool   `json:"cost_available"`
 }
 
 // writeJSONL appends one JSON record per scenario result.
@@ -86,6 +114,26 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 		}
 		seen[record.Scenario] = true
 		fmt.Fprintf(w, "| %s | %s |\n", record.Scenario, gates[record.Scenario])
+	}
+
+	comparisons := make([]Record, 0)
+	for _, record := range records {
+		if record.Comparison != nil {
+			comparisons = append(comparisons, record)
+		}
+	}
+	if len(comparisons) > 0 {
+		fmt.Fprintln(w, "\n## Deliberation comparison (Issue 173)")
+		fmt.Fprintln(w, "| scenario | pattern | baseline | deliberated | quality_delta | disagreements | false_positives | marginal_elapsed_ms | marginal_retries |")
+		fmt.Fprintln(w, "| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+		for _, record := range comparisons {
+			comparison := record.Comparison
+			fmt.Fprintf(w, "| %s | %s | %s | %s | %d | %d | %d | %d | %d |\n",
+				record.Scenario, comparison.Pattern, comparison.BaselineVerdict,
+				comparison.DeliberatedVerdict, comparison.QualityDelta,
+				comparison.DisagreementCount, comparison.FalsePositiveCount,
+				comparison.MarginalElapsedMillis, comparison.MarginalRetries)
+		}
 	}
 
 	fmt.Fprintln(w, "\n## Failure recurrence")

@@ -112,8 +112,44 @@ func validateScenario(sc *Scenario, catalogNames map[string]bool, seen map[strin
 	if sc.Expectations.Handoff == "" {
 		*findings = append(*findings, fmt.Sprintf("%s: expectations.handoff is required", sc.ID))
 	}
+	validateDeliberationSpec(sc, findings)
 	validateRubric(sc, findings)
 	validatePromptLeaks(sc, catalogNames, findings)
+}
+
+func validateDeliberationSpec(sc *Scenario, findings *[]string) {
+	if sc.Deliberation == nil {
+		return
+	}
+	d := sc.Deliberation
+	if d.Pattern != "independent-candidates" && d.Pattern != "fan-out-investigation" {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation.pattern must be independent-candidates or fan-out-investigation", sc.ID))
+	}
+	if len(d.Signals) == 0 || len(d.Signals) > 5 {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation.signals must contain between 1 and 5 signals", sc.ID))
+	}
+	for _, signal := range d.Signals {
+		switch signal {
+		case "architectural-ambiguity", "security-sensitivity", "high-risk-migration", "conflicting-hypotheses", "independently-reviewable-evidence":
+		default:
+			*findings = append(*findings, fmt.Sprintf("%s: deliberation signal %q is unknown", sc.ID, signal))
+		}
+	}
+	if d.Reason == "" || d.Independence == "" || d.Authority == "" || d.Concurrency == "" || d.Judge == "" {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation must declare reason, independence, authority, concurrency, and judge", sc.ID))
+	}
+	if d.Independence != "isolated-context" || d.Authority != "read-only" || d.Concurrency != "parallel-read-only" || d.Judge != "evidence-required-not-majority" {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation must use isolated parallel read-only candidates and an evidence-required judge", sc.ID))
+	}
+	if d.CandidateCount < 2 || d.CandidateCount > 3 || d.CandidateCount > d.Bounds.MaxAgents {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation candidate_count must be 2 or 3 and fit max_agents", sc.ID))
+	}
+	if d.Bounds.MaxAgents < 1 || d.Bounds.MaxAgents > 3 || d.Bounds.MaxRetries < 0 || d.Bounds.MaxElapsedMillis < 1 || d.Bounds.MaxInputTokens < 1 || d.Bounds.MaxOutputTokens < 1 || d.Bounds.MaxCostMicros < 1 {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation bounds must be positive and bounded", sc.ID))
+	}
+	if !d.CompareBaseline {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation.compare_baseline must be true", sc.ID))
+	}
 }
 
 // validateRubric requires guidance for every scoring dimension.

@@ -165,8 +165,20 @@ func shouldSkip(sc *Scenario, opts *Options) (string, bool) {
 	return "", false
 }
 
-// runOne evaluates one scenario on one driver and returns its record.
-func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) (record Record) {
+// runOne evaluates one scenario on one driver and returns its record. A
+// deliberation declaration opts the scenario into the bounded baseline
+// comparison; all other scenarios retain the single-agent path.
+func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) Record {
+	if sc.Deliberation != nil {
+		return runOneDeliberation(ctx, sc, host, opts, out, errOut)
+	}
+	return runOneSingle(ctx, sc, host, opts, out, errOut)
+}
+
+// runOneSingle evaluates one scenario on one driver without deliberation.
+// Deliberation candidates call this function with their declaration removed,
+// so a candidate cannot see another candidate's context or result.
+func runOneSingle(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) (record Record) {
 	started := time.Now().UTC()
 	record = Record{
 		RunID:              time.Now().UTC().Format("20060102T150405Z"),
