@@ -317,7 +317,7 @@ context:
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: [reference.review.criteria, reference.review.security, reference.review.performance, reference.review.accessibility]
     analyze-project:
-      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 3000, validator_feedback: 1200}
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
     refactor-code:
@@ -329,7 +329,7 @@ context:
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
     improve-project:
-      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 3000, validator_feedback: 1200}
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
     deliver-change:

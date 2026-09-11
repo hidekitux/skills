@@ -81,6 +81,28 @@ func TestDecodeSignalsRejectsTrailingJSON(t *testing.T) {
 	}
 }
 
+func TestAllProfilesCompileWithRepresentativeCounter(t *testing.T) {
+	root := repositoryRoot(t)
+	// This deterministic approximation catches profile wiring and budget
+	// regressions without making unit tests depend on tokenizer downloads.
+	counter := testCounter(func(value string) (int, error) {
+		return len([]byte(value))/5 + 1, nil
+	})
+	skills := []string{
+		"analyze-project", "audit-workflow-enforcement", "bootstrap-project", "create-issue",
+		"create-pr", "debug-code", "deliver-change", "fix-pr", "implement-issue",
+		"improve-project", "merge-pr", "plan-issue", "refactor-code", "resolve-defect",
+		"review-pr", "write-tests",
+	}
+	for _, skill := range skills {
+		t.Run(skill, func(t *testing.T) {
+			if compiled, err := (Compiler{Root: root, Counter: counter}).Compile(skill, Signals{}); err != nil {
+				t.Fatalf("compile failed: %v; manifest=%#v", err, compiled.Manifest)
+			}
+		})
+	}
+}
+
 func hasModule(modules []Module, id string) bool {
 	for _, module := range modules {
 		if module.ID == id {
