@@ -79,7 +79,7 @@ func TestSetIssueStatusSetsStatusAndAddsItemOnce(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, `{"items":[]}`).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, `{"items":[]}`).
 		respond([]string{"project", "item-add", "3", "--owner", "acme",
 			"--url", issueURL205, "--format", "json"}, fmt.Sprintf(`{"id":"ITEM_9","content":{"url":%q}}`, issueURL205)).
 		respond([]string{"project", "item-edit", "--id", "ITEM_9", "--field-id", "F_STATUS",
@@ -92,7 +92,7 @@ func TestSetIssueStatusSetsStatusAndAddsItemOnce(t *testing.T) {
 		"--project-id", "PVT_1", "--single-select-option-id", "O_BACKLOG") {
 		t.Fatal("expected Status mutation")
 	}
-	if got := runner.callCount("project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"); got != 1 {
+	if got := runner.callCount("project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"); got != 1 {
 		t.Fatalf("expected one item-list read for a missing item, got %d", got)
 	}
 	if got := runner.callCount("project", "item-add", "3", "--owner", "acme", "--url", issueURL205, "--format", "json"); got != 1 {
@@ -107,7 +107,7 @@ func TestSetIssueStatusRetriesItemEditWithoutRepeatingReads(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1")).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1")).
 		respond(itemEdit, "")
 	runner.failOnce(itemEdit, errors.New("transient item-edit failure"))
 	var out, errOut bytes.Buffer
@@ -120,7 +120,7 @@ func TestSetIssueStatusRetriesItemEditWithoutRepeatingReads(t *testing.T) {
 	if got := runner.callCount("project", "field-list", "3", "--owner", "acme", "--format", "json"); got != 1 {
 		t.Fatalf("expected one field read, got %d", got)
 	}
-	if got := runner.callCount("project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"); got != 1 {
+	if got := runner.callCount("project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"); got != 1 {
 		t.Fatalf("expected one item read, got %d", got)
 	}
 	if got := runner.callCount(itemEdit...); got != 2 {
@@ -135,7 +135,7 @@ func TestSetIssueStatusStopsAtMutationAttemptBound(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1")).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1")).
 		fail(itemEdit, errors.New("persistent item-edit failure"))
 	var out, errOut bytes.Buffer
 	if code := SetIssueStatusWithRetries(runner, cfg, "acme/sample", 205, "In progress", false, false, 3, &out, &errOut); code != 1 {
@@ -151,7 +151,7 @@ func TestSetIssueStatusDoesNotRegressPlannedFromLaterLifecycleState(t *testing.T
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1", "O_INPROGRESS", "O_MEDIUM", "O_IMPROV"))
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1", "O_INPROGRESS", "O_MEDIUM", "O_IMPROV"))
 	var out, errOut bytes.Buffer
 	if code := SetIssueStatus(runner, cfg, "acme/sample", 205, "Planned", false, false, &out, &errOut); code != 0 {
 		t.Fatalf("expected success, got %d (out=%s err=%s)", code, out.String(), errOut.String())
@@ -169,7 +169,7 @@ func TestSetIssueStatusDoesNotMutateAlreadyPlannedItem(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1", "O_PLANNED", "O_MEDIUM", "O_IMPROV"))
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1", "O_PLANNED", "O_MEDIUM", "O_IMPROV"))
 	var out, errOut bytes.Buffer
 	if code := SetIssueStatus(runner, cfg, "acme/sample", 205, "Planned", false, false, &out, &errOut); code != 0 {
 		t.Fatalf("expected success, got %d (out=%s err=%s)", code, out.String(), errOut.String())

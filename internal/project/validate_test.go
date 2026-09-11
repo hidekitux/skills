@@ -24,7 +24,7 @@ func TestCheckIssueProjectRejectsInvalidContract(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, `{"items":[]}`)
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, `{"items":[]}`)
 	var out, errOut bytes.Buffer
 	if code := CheckIssueProject(runner, cfg, "acme/sample", 205, &out, &errOut); code != 1 {
 		t.Fatalf("expected invalid contract code 1, got %d", code)
@@ -36,7 +36,7 @@ func TestCheckIssueProjectAcceptsValidContract(t *testing.T) {
 	runner := newFakeRunner().
 		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
 		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
-		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", itemLimit, "--format", "json"}, itemListJSON("ITEM_1"))
 	var out, errOut bytes.Buffer
 	if code := CheckIssueProject(runner, cfg, "acme/sample", 205, &out, &errOut); code != 0 {
 		t.Fatalf("expected valid contract code 0, got %d: %s", code, errOut.String())
