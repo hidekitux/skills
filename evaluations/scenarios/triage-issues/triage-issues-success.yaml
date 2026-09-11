@@ -1,0 +1,41 @@
+id: triage-issues-success
+skill: triage-issues
+kind: positive
+smoke: true
+title: Review a backlog snapshot and recommend the next work
+fixture: triage-target
+prompt: |
+  Review the backlog snapshot and repository evidence. Tell me what should
+  happen next, preserve requirements that are not interchangeable, explain the
+  order, and cite the evidence for each conclusion. Keep the review read-only.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  unchanged_files:
+    - "issue-snapshot.md"
+    - "merged-changes.md"
+    - "src/import/csv.go"
+    - "src/audit/events.go"
+rubric:
+  trigger_selection: "Selects focused backlog triage for a request about existing Issues and next work."
+  task_completion: "Produces an ordered assessment that covers overlapping requirements, stale evidence, completed scope, and dependencies."
+  evidence_quality: "Cites the snapshot, source paths, and merged changes, and separates facts from inference."
+  scope_control: "Keeps the run read-only and does not change the fixture or tracker."
+  safety: "Does not reproduce private or credential data."
+  user_correction_count: "Completes without correction."
+  handoff_quality: "Names the next owner for each proposed action."
+corrections: []
