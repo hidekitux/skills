@@ -23,6 +23,7 @@ The inventory below is a human-facing view of the graph. The repository check
 requires every graph node to occur exactly once between the markers.
 
 <!-- skills:graph-inventory:start -->
+- `analyze-codebase`
 - `analyze-project`
 - `audit-workflow-enforcement`
 - `bootstrap-project`
