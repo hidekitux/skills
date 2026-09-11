@@ -3,8 +3,9 @@
 `workflow/skill-trace.schema.json` defines the versioned record for one skill
 run. The trace is host-neutral. A host adapter maps provider events into the
 semantic events in this schema. Schema version 3 may include the privacy-safe
-context manifest produced by `cmd/compile-context` and the deliberation
-summary defined by [multi-agent deliberation](multi-agent-deliberation.md).
+context manifest produced by `cmd/compile-context`, the deliberation summary
+defined by [multi-agent deliberation](multi-agent-deliberation.md), and the
+environment manifest produced by the Issue #199 provisioner.
 
 ## Persistence boundary
 
@@ -17,7 +18,7 @@ transcript.
 The writer uses an allowlist. It stores run identity, skill and graph versions,
 host and model identifiers, repository revision, ordered event outcomes, safe
 evidence references, usage numbers, context provenance, deliberation routing
-and cost provenance, and terminal state. It omits prompts,
+and cost provenance, environment identity, and terminal state. It omits prompts,
 model reasoning, tool arguments, tool output, source contents, credentials,
 user data, and unknown host fields.
 

@@ -22,6 +22,7 @@
     "usage": { "$ref": "#/$defs/usage" },
     "context": { "$ref": "#/$defs/context_manifest" },
     "deliberation": { "$ref": "#/$defs/deliberation" },
+    "environment": { "$ref": "#/$defs/environment_manifest" },
     "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/event" } },
     "terminal": { "$ref": "#/$defs/terminal" },
     "redaction": { "$ref": "#/$defs/redaction" }
@@ -251,6 +252,48 @@
         "required_tokens": { "type": "integer", "minimum": 0 },
         "budget": { "type": "integer", "minimum": 1 },
         "action": { "const": "stop-and-escalate" }
+      }
+    },
+    "environment_manifest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "environment_id", "skill_id", "graph_version", "profile", "workspace_kind", "repository_revision", "permissions", "setup", "ownership", "cleanup"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "environment_id": { "$ref": "#/$defs/identifier" },
+        "skill_id": { "$ref": "#/$defs/identifier" },
+        "graph_version": { "type": "integer", "minimum": 1 },
+        "profile": { "enum": ["read_only", "repository_write", "external_mutation"] },
+        "workspace_kind": { "enum": ["detached_snapshot", "issue_worktree"] },
+        "repository_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "branch": { "type": "string", "pattern": "^issue/[1-9][0-9]*$" },
+        "issue_number": { "type": "integer", "minimum": 1 },
+        "permissions": { "$ref": "#/$defs/environment_permissions" },
+        "setup": { "$ref": "#/$defs/environment_setup" },
+        "ownership": { "$ref": "#/$defs/environment_ownership" },
+        "cleanup": { "enum": ["not_requested", "retained", "removed_after_review", "blocked_material", "blocked_active"] }
+      }
+    },
+    "environment_permissions": {
+      "type": "object", "additionalProperties": false, "required": ["repository", "git", "github", "external_mutation"],
+      "properties": {
+        "repository": { "enum": ["none", "read", "write"] },
+        "git": { "enum": ["none", "read", "write"] },
+        "github": { "enum": ["none", "read", "write"] },
+        "external_mutation": { "enum": ["none", "issue", "pull_request", "repository_configuration"] }
+      }
+    },
+    "environment_setup": {
+      "type": "object", "additionalProperties": false, "required": ["status"],
+      "properties": {
+        "status": { "enum": ["pending", "succeeded", "failed", "missing"] },
+        "diagnostic": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "environment_ownership": {
+      "type": "object", "additionalProperties": false, "required": ["status"],
+      "properties": {
+        "status": { "enum": ["pending", "verified", "failed", "concurrent"] },
+        "diagnostic": { "$ref": "#/$defs/identifier" }
       }
     }
   }

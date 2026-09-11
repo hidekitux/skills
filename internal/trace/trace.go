@@ -19,6 +19,7 @@ import (
 	"time"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
 	"gopkg.in/yaml.v3"
 )
@@ -55,24 +56,25 @@ const (
 
 // Trace is one versioned record of one skill run.
 type Trace struct {
-	SchemaVersion      int                    `json:"schema_version"`
-	RunID              string                 `json:"run_id"`
-	ScenarioID         string                 `json:"scenario_id,omitempty"`
-	SkillID            string                 `json:"skill_id"`
-	SkillVersion       string                 `json:"skill_version"`
-	GraphVersion       int                    `json:"graph_version"`
-	Host               string                 `json:"host"`
-	HostVersion        string                 `json:"host_version,omitempty"`
-	Model              string                 `json:"model"`
-	ModelTier          string                 `json:"model_tier,omitempty"`
-	RepositoryRevision string                 `json:"repository_revision"`
-	StartedAt          string                 `json:"started_at"`
-	Usage              *Usage                 `json:"usage,omitempty"`
-	Context            *skillcontext.Manifest `json:"context,omitempty"`
-	Deliberation       *Deliberation          `json:"deliberation,omitempty"`
-	Events             []Event                `json:"events"`
-	Terminal           Terminal               `json:"terminal"`
-	Redaction          RedactionSummary       `json:"redaction"`
+	SchemaVersion      int                        `json:"schema_version"`
+	RunID              string                     `json:"run_id"`
+	ScenarioID         string                     `json:"scenario_id,omitempty"`
+	SkillID            string                     `json:"skill_id"`
+	SkillVersion       string                     `json:"skill_version"`
+	GraphVersion       int                        `json:"graph_version"`
+	Host               string                     `json:"host"`
+	HostVersion        string                     `json:"host_version,omitempty"`
+	Model              string                     `json:"model"`
+	ModelTier          string                     `json:"model_tier,omitempty"`
+	RepositoryRevision string                     `json:"repository_revision"`
+	StartedAt          string                     `json:"started_at"`
+	Usage              *Usage                     `json:"usage,omitempty"`
+	Context            *skillcontext.Manifest     `json:"context,omitempty"`
+	Environment        *skillenvironment.Manifest `json:"environment,omitempty"`
+	Deliberation       *Deliberation              `json:"deliberation,omitempty"`
+	Events             []Event                    `json:"events"`
+	Terminal           Terminal                   `json:"terminal"`
+	Redaction          RedactionSummary           `json:"redaction"`
 }
 
 // Event is one ordered semantic execution event.
@@ -287,6 +289,9 @@ func Validate(t Trace) ValidationReport {
 	}
 	if t.Deliberation != nil {
 		findings = append(findings, validateDeliberation(*t.Deliberation)...)
+	}
+	if t.Environment != nil {
+		findings = append(findings, skillenvironment.Validate(*t.Environment)...)
 	}
 	findings = append(findings, validateEvents(t.Events)...)
 	findings = append(findings, validateTerminal(t.Terminal)...)
@@ -704,6 +709,11 @@ func Sanitize(input Trace) (Trace, error) {
 		cleaned, omitted := sanitizeDeliberation(*input.Deliberation, redact)
 		output.Deliberation = &cleaned
 		output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, omitted...)
+	}
+	if input.Environment != nil {
+		copyEnvironment := *input.Environment
+		copyEnvironment.Permissions = input.Environment.Permissions
+		output.Environment = &copyEnvironment
 	}
 	output.Events = make([]Event, 0, len(input.Events))
 	for _, event := range input.Events {
