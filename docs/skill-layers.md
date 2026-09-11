@@ -13,6 +13,36 @@ list is the current publishable inventory, and each entry's `layer` and
 only when it is absent from the catalog. Issue #98 establishes this model for
 the whole skill set.
 
+## Directory hierarchy
+
+Published skills use their layer as the first directory below `skills/`:
+`skills/<layer>/<skill-name>/SKILL.md`. The layer is a navigation category, not
+part of the public skill name. The category answers the user's task before the
+skill name identifies the exact workflow.
+
+| Category | Choose this category when | Published skills | Reserved sibling skills |
+| --- | --- | --- | --- |
+| `process` | You need to move a governed change through Issues, plans, Pull Requests, or reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` | None |
+| `analyze` | You need read-only evidence about a project, a completed session, or an Issue backlog. | `analyze-project` | `retrospect-work` (#285), `triage-issues` (#286) |
+| `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` | None |
+| `govern` | You need to establish or audit repository rules and their enforcement. | `bootstrap-project`, `audit-workflow-enforcement` | None |
+
+Use these representative requests to navigate without repository history:
+
+| User task | Category | Skill |
+| --- | --- | --- |
+| Understand a repository and its technical debt. | `analyze` | `analyze-project` |
+| Review a completed session for a recurring workaround. | `analyze` | `retrospect-work` when Issue #285 lands |
+| Review the backlog and choose the next Issue. | `analyze` | `triage-issues` when Issue #286 lands |
+| Plan and deliver a governed repository change. | `process` | `deliver-change` |
+| Repair a reproduced defect. | `fix` | `debug-code` or `resolve-defect` |
+| Add focused tests for a defined target. | `fix` | `write-tests` |
+| Refactor against a passing baseline. | `fix` | `refactor-code` |
+
+Issue #288 places `refactor-code` at `skills/fix/refactor-code`. This category
+location is the final destination reconciled with Issue #287's earlier direct
+path request; the public name remains `refactor-code`.
+
 ## The four layers
 
 ### process
