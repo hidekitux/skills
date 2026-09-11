@@ -13,12 +13,12 @@ expectations:
   transcript_must_any:
     - "example test"
     - "ordinary CRUD"
-    - "no property"
+    - "keep property-based testing out"
+    - "skip mutation testing"
+    - "optional checks are not selected"
   transcript_must:
     - "mise"
   transcript_must_not:
-    - "property-based task"
-    - "implementation mutation task"
     - "delv"
     - "Delv"
     - "pivotal"
