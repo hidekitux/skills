@@ -53,6 +53,29 @@ func TestCodexAndClaudeAdaptersProduceEquivalentSemanticFields(t *testing.T) {
 	}
 }
 
+func TestAdaptersPreserveExecutionStrategy(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "hosts", "codex", "trace-fixture.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var envelope map[string]any
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	envelope["strategy"] = validStrategyDecision()
+	data, err = json.Marshal(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	item, err := AdaptCodex(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Strategy == nil || item.Strategy.Strategy != "high-risk-deliberated" {
+		t.Fatalf("strategy was not preserved: %#v", item.Strategy)
+	}
+}
+
 func TestAdaptersRejectUnknownEvents(t *testing.T) {
 	data := []byte(`{"run_id":"run-1","skill":{"id":"plan-issue","version":"0.1.0"},"graph_version":1,"host":{"name":"codex","version":"1"},"model":"gpt-5","repository_revision":"0123456789abcdef0123456789abcdef01234567","started_at":"2026-09-09T12:00:00Z","events":[{"sequence":1,"at":"2026-09-09T12:00:00Z","type":"unknown"}]}`)
 	if _, err := AdaptCodex(data); err == nil {

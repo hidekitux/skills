@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "run_id", "skill_id", "skill_version", "graph_version", "host", "model", "repository_revision", "started_at", "events", "terminal", "redaction"],
   "properties": {
-    "schema_version": { "type": "integer", "const": 3 },
+    "schema_version": { "type": "integer", "const": 4 },
     "run_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._/:-]*$", "maxLength": 128 },
     "scenario_id": { "$ref": "#/$defs/identifier" },
     "skill_id": { "$ref": "#/$defs/identifier" },
@@ -22,6 +22,7 @@
     "usage": { "$ref": "#/$defs/usage" },
     "context": { "$ref": "#/$defs/context_manifest" },
     "deliberation": { "$ref": "#/$defs/deliberation" },
+    "strategy": { "$ref": "#/$defs/strategy_decision" },
     "environment": { "$ref": "#/$defs/environment_manifest" },
     "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/event" } },
     "terminal": { "$ref": "#/$defs/terminal" },
@@ -157,6 +158,51 @@
         "candidates": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/candidate" } },
         "judge": { "$ref": "#/$defs/judge" },
         "marginal_cost": { "$ref": "#/$defs/marginal_cost" }
+      }
+    },
+    "strategy_decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "policy_version", "rule", "strategy", "skill", "model_tier", "context_profile", "validation_tier", "parallelism", "max_retries", "max_elapsed_millis", "escalation", "authority", "signals", "reasons", "outcome"],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "policy_version": { "type": "integer", "minimum": 1 },
+        "rule": { "$ref": "#/$defs/identifier" },
+        "strategy": { "$ref": "#/$defs/identifier" },
+        "skill": { "$ref": "#/$defs/identifier" },
+        "model_tier": { "enum": ["high", "mid", "low"] },
+        "context_profile": { "const": "selected-skill" },
+        "validation_tier": { "enum": ["tier-1", "tier-2", "tier-3", "tier-4"] },
+        "parallelism": { "enum": ["single-agent", "independent-candidates", "fan-out-investigation"] },
+        "max_retries": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "max_elapsed_millis": { "type": "integer", "minimum": 1 },
+        "escalation": { "enum": ["none", "validation-failure", "review", "ask_user"] },
+        "authority": { "$ref": "#/$defs/environment_permissions" },
+        "signals": { "$ref": "#/$defs/strategy_signals" },
+        "reasons": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 256 } },
+        "overrides": { "$ref": "#/$defs/strategy_overrides" },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "outcome": { "enum": ["selected", "ask_user", "blocked"] }
+      }
+    },
+    "strategy_signals": {
+      "type": "object", "additionalProperties": false,
+      "required": ["impact", "reversibility", "ambiguity", "security_sensitivity", "state_mutation", "evidence_quality", "validation_cost"],
+      "properties": {
+        "impact": { "enum": ["low", "medium", "high", "unknown"] },
+        "reversibility": { "enum": ["high", "medium", "low", "unknown"] },
+        "ambiguity": { "enum": ["low", "medium", "high", "unknown"] },
+        "security_sensitivity": { "enum": ["low", "medium", "high", "unknown"] },
+        "state_mutation": { "enum": ["none", "repository", "external", "unknown"] },
+        "evidence_quality": { "enum": ["complete", "partial", "missing", "unknown"] },
+        "validation_cost": { "enum": ["low", "medium", "high", "unknown"] }
+      }
+    },
+    "strategy_overrides": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "model_tier": { "enum": ["high", "mid", "low"] },
+        "validation_tier": { "enum": ["tier-1", "tier-2", "tier-3", "tier-4"] },
+        "values": { "type": "array", "items": { "$ref": "#/$defs/identifier" } }
       }
     },
     "deliberation_bounds": {

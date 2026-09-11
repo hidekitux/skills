@@ -10,6 +10,7 @@ import (
 	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
 	"github.com/hidekitux/skills/internal/instructions"
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 )
 
 const testSHA = "0123456789abcdef0123456789abcdef01234567"
@@ -122,6 +123,25 @@ func TestValidateAcceptsBoundedDeliberation(t *testing.T) {
 	trace.Deliberation = func() *Deliberation { value := validDeliberation(); return &value }()
 	if report := Validate(trace); !report.Valid {
 		t.Fatalf("valid deliberation rejected: %v", report.Findings)
+	}
+}
+
+func validStrategyDecision() *executionstrategy.Decision {
+	return &executionstrategy.Decision{
+		SchemaVersion: 1, PolicyVersion: 1, Rule: "security-sensitive", Strategy: "high-risk-deliberated",
+		Skill: "plan-issue", ModelTier: "high", ContextProfile: "selected-skill", ValidationTier: "tier-2",
+		Parallelism: "independent-candidates", MaxRetries: 1, MaxElapsedMillis: 300000, Escalation: "review",
+		Authority: skillenvironment.Permissions{Repository: "read", Git: "read", GitHub: "read", ExternalMutation: "none"},
+		Signals:   executionstrategy.InputSignals{Impact: executionstrategy.Medium, Reversibility: executionstrategy.Medium, Ambiguity: executionstrategy.Low, SecuritySensitivity: executionstrategy.High, StateMutation: executionstrategy.None, EvidenceQuality: executionstrategy.Complete, ValidationCost: executionstrategy.Medium},
+		Reasons:   []string{"security-sensitive work requires independent reviewable reasoning"}, Outcome: "selected",
+	}
+}
+
+func TestValidateAcceptsBoundedExecutionStrategy(t *testing.T) {
+	trace := validTrace()
+	trace.Strategy = validStrategyDecision()
+	if report := Validate(trace); !report.Valid {
+		t.Fatalf("valid execution strategy rejected: %v", report.Findings)
 	}
 }
 

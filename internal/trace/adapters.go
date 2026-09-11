@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	skillenvironment "github.com/hidekitux/skills/internal/environment"
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"io"
 )
 
@@ -21,6 +22,7 @@ func AdaptCodex(data []byte) (Trace, error) {
 		RepositoryRevision: input.RepositoryRevision, StartedAt: input.StartedAt,
 		Environment:  input.Environment,
 		Deliberation: input.Deliberation,
+		Strategy:     input.Strategy,
 	}
 	for _, event := range input.Events {
 		converted, err := convertCodexEvent(event)
@@ -49,6 +51,7 @@ func AdaptClaudeCode(data []byte) (Trace, error) {
 		RepositoryRevision: input.RepositoryRevision, StartedAt: input.StartedAt,
 		Environment:  input.Environment,
 		Deliberation: input.Deliberation,
+		Strategy:     input.Strategy,
 	}
 	for _, event := range input.Events {
 		converted, err := convertClaudeEvent(event)
@@ -65,16 +68,17 @@ func AdaptClaudeCode(data []byte) (Trace, error) {
 }
 
 type codexEnvelope struct {
-	RunID              string                     `json:"run_id"`
-	Skill              skillIdentity              `json:"skill"`
-	GraphVersion       int                        `json:"graph_version"`
-	Host               hostIdentity               `json:"host"`
-	Model              string                     `json:"model"`
-	RepositoryRevision string                     `json:"repository_revision"`
-	StartedAt          string                     `json:"started_at"`
-	Environment        *skillenvironment.Manifest `json:"environment,omitempty"`
-	Deliberation       *Deliberation              `json:"deliberation,omitempty"`
-	Events             []codexEvent               `json:"events"`
+	RunID              string                      `json:"run_id"`
+	Skill              skillIdentity               `json:"skill"`
+	GraphVersion       int                         `json:"graph_version"`
+	Host               hostIdentity                `json:"host"`
+	Model              string                      `json:"model"`
+	RepositoryRevision string                      `json:"repository_revision"`
+	StartedAt          string                      `json:"started_at"`
+	Environment        *skillenvironment.Manifest  `json:"environment,omitempty"`
+	Deliberation       *Deliberation               `json:"deliberation,omitempty"`
+	Strategy           *executionstrategy.Decision `json:"strategy,omitempty"`
+	Events             []codexEvent                `json:"events"`
 }
 
 type skillIdentity struct {
@@ -115,17 +119,18 @@ type codexEvent struct {
 }
 
 type claudeEnvelope struct {
-	SessionID          string                     `json:"session_id"`
-	SkillName          string                     `json:"skill_name"`
-	SkillVersion       string                     `json:"skill_version"`
-	GraphSchema        int                        `json:"graph_schema"`
-	ProviderVersion    string                     `json:"provider_version"`
-	Model              string                     `json:"model"`
-	RepositoryRevision string                     `json:"repository_revision"`
-	StartedAt          string                     `json:"started_at"`
-	Environment        *skillenvironment.Manifest `json:"environment,omitempty"`
-	Deliberation       *Deliberation              `json:"deliberation,omitempty"`
-	Events             []claudeEvent              `json:"events"`
+	SessionID          string                      `json:"session_id"`
+	SkillName          string                      `json:"skill_name"`
+	SkillVersion       string                      `json:"skill_version"`
+	GraphSchema        int                         `json:"graph_schema"`
+	ProviderVersion    string                      `json:"provider_version"`
+	Model              string                      `json:"model"`
+	RepositoryRevision string                      `json:"repository_revision"`
+	StartedAt          string                      `json:"started_at"`
+	Environment        *skillenvironment.Manifest  `json:"environment,omitempty"`
+	Deliberation       *Deliberation               `json:"deliberation,omitempty"`
+	Strategy           *executionstrategy.Decision `json:"strategy,omitempty"`
+	Events             []claudeEvent               `json:"events"`
 }
 
 type claudeEvent struct {
