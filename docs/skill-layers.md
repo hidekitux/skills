@@ -10,8 +10,8 @@ their feature Issues. The current inventory, layer, and status claims in this
 document and the README derive from `CATALOG.yml`: presence in its `skills:`
 list is the current publishable inventory, and each entry's `layer` and
 `status` fields drive the layer and status documentation. A skill is planned
-only when it is absent from the catalog. Issue #98 establishes this model for
-the whole skill set.
+only when it is absent from the catalog. This model applies to the whole skill
+set.
 
 ## Directory hierarchy
 
@@ -23,7 +23,7 @@ skill name identifies the exact workflow.
 | Category | Choose this category when | Published skills | Reserved sibling skills |
 | --- | --- | --- | --- |
 | `process` | You need to move a governed change through Issues, plans, Pull Requests, or reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` | None |
-| `analyze` | You need read-only evidence about a project, a completed session, or an Issue backlog. | `analyze-project` | retrospect-work (#285), triage-issues (#286) |
+| `analyze` | You need read-only evidence about a project, a completed session, or an Issue backlog. | `analyze-project` | retrospect-work, triage-issues |
 | `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` | None |
 | `govern` | You need to establish or audit repository rules and their enforcement. | `bootstrap-project`, `audit-workflow-enforcement` | None |
 
@@ -32,17 +32,17 @@ Use these representative requests to navigate without repository history:
 | User task | Category | Recommended workflow |
 | --- | --- | --- |
 | Understand a repository and its technical debt. | `analyze` | `analyze-project` |
-| Review a completed session for a recurring workaround. | `analyze` | retrospect-work (Issue #285) |
-| Review the backlog and choose the next Issue. | `analyze` | triage-issues (Issue #286) |
+| Review a completed session for a recurring workaround. | `analyze` | retrospect-work |
+| Review the backlog and choose the next Issue. | `analyze` | triage-issues |
 | Plan and deliver a governed repository change. | `process` | `deliver-change` |
 | Repair a reproduced defect. | `fix` | `debug-code` |
 | Resolve a verified defect end to end. | `fix` | `resolve-defect` |
 | Add focused tests for a defined target. | `fix` | `write-tests` |
 | Refactor against a passing baseline. | `fix` | `refactor-code` |
 
-Issue #288 places `refactor-code` at `skills/fix/refactor-code`. This category
-location is the final destination reconciled with Issue #287's earlier direct
-path request; the public name remains `refactor-code`.
+`refactor-code` is at `skills/fix/refactor-code`. This category location keeps
+the public name as `refactor-code` while placing the skill with the other
+repair workflows.
 
 ## The four layers
 
@@ -59,7 +59,7 @@ apply review fixes; substantive drift returns to `fix-pr`.
 
 - Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`,
   `review-pr`, `fix-pr`, `merge-pr`
-- Entry points: `improve-project`, `deliver-change` ([#175](https://github.com/hidekitux/skills/issues/175))
+- Entry points: `improve-project`, `deliver-change`
 
 ### analyze
 
@@ -67,12 +67,9 @@ Read-only investigation skills that discover, prioritize, and report
 evidence-backed findings. They never modify files and never create Issues or
 Pull Requests; candidates for change are recommendations only.
 
-- Published: `analyze-project` ([#76](https://github.com/hidekitux/skills/issues/76)),
-  which owns the analysis area and folds in error, tests, dependencies, docs,
-  performance, and security investigation modes (the separate proposals
-  [#77](https://github.com/hidekitux/skills/issues/77)-
-  [#82](https://github.com/hidekitux/skills/issues/82) are superseded by
-  [#112](https://github.com/hidekitux/skills/issues/112))
+- Published: `analyze-project`, which owns the analysis area and folds in
+  error, tests, dependencies, docs, performance, and security investigation
+  modes.
 
 ### fix
 
@@ -82,9 +79,8 @@ refactoring against a test baseline without changing behavior. They work from a
 defined task or Issue and hand their result to the next owner or into the
 governed flow at `create-issue` instead of inventing scope.
 
-- Published: `debug-code`, `write-tests` ([#69](https://github.com/hidekitux/skills/issues/69)),
-  `refactor-code` ([#70](https://github.com/hidekitux/skills/issues/70))
-- Entry points: `resolve-defect` ([#175](https://github.com/hidekitux/skills/issues/175))
+- Published: `debug-code`, `write-tests`, `refactor-code`
+- Entry points: `resolve-defect`
 
 ### govern
 
