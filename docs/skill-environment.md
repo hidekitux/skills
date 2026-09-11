@@ -28,7 +28,7 @@ Codex maps `read_only` to its read-only workspace and approval settings. When th
 
 `workflow/skill-environment.schema.json` defines the privacy-safe manifest. It records the environment identifier, skill and graph identity, profile, workspace kind, repository revision, Issue branch identity when present, declared permissions, setup status, ownership status, and cleanup disposition. It never records absolute paths, credentials, command output, prompts, reasoning, source contents, or user data.
 
-The manifest is an optional `environment` object in trace schema version 2. Trace validation keeps the existing allowlist and redaction rules. The manifest records what provisioning observed; it does not prove that a host enforced the boundary or that a remote branch remained unchanged after provisioning.
+The manifest is an optional `environment` object in trace schema version 3. Trace validation keeps the existing allowlist and redaction rules. The manifest records what provisioning observed; it does not prove that a host enforced the boundary or that a remote branch remained unchanged after provisioning.
 
 ## Cleanup
 
