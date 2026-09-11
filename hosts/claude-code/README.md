@@ -17,6 +17,20 @@ The Claude Code adapter accepts the provider event shape in
 reasoning, and unknown fields are not persisted. Verify semantic parity with
 `go test ./internal/trace`.
 
+## Execution environment
+
+Claude Code maps the `read_only` profile to its planning or read-only
+permission mode. It enables repository edits only inside the verified
+`issue/<number>` worktree for `repository_write`. The `external_mutation`
+profile records the graph declaration without granting credentials, bypass
+approval, or remote-write permission.
+
+When the permission mode is unavailable, keep the generated command policy,
+stop before execution, and ask for host direction. Verify the boundary with
+`git worktree list --porcelain`, the manifest's `ownership.status`, and the
+read-only mutation fixture in `go test ./internal/environment`. Never pass a
+bypass-approval option to make a denied operation run.
+
 ## Model selection
 
 Skills select role-specific models from the shared convention in
