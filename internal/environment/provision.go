@@ -170,13 +170,13 @@ func (p Provisioner) provisionIssueWorktree(ctx context.Context, root, destinati
 		return err
 	}
 	for _, worktree := range worktrees {
-		if filepath.Clean(worktree.Path) == filepath.Clean(destination) && worktree.Branch == branch {
+		if equivalentPath(worktree.Path, destination) && worktree.Branch == branch {
 			return nil
 		}
-		if worktree.Branch == branch && filepath.Clean(worktree.Path) != filepath.Clean(destination) {
+		if worktree.Branch == branch && !equivalentPath(worktree.Path, destination) {
 			return fmt.Errorf("branch %s is already owned by %s", branch, worktree.Path)
 		}
-		if filepath.Clean(worktree.Path) == filepath.Clean(destination) && worktree.Branch != branch {
+		if equivalentPath(worktree.Path, destination) && worktree.Branch != branch {
 			return fmt.Errorf("destination is owned by branch %s, not %s", worktree.Branch, branch)
 		}
 	}

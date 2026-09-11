@@ -129,6 +129,78 @@ func TestProvisionWriteProfileFailsWithoutIssueVerification(t *testing.T) {
 	}
 }
 
+func TestCleanupRetainsActiveOrMaterialWorktree(t *testing.T) {
+	provisioner, result := provisionIssueEnvironment(t)
+
+	active, err := provisioner.Cleanup(context.Background(), CleanupRequest{
+		Provisioned: result, Active: true, ReviewApproved: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if active.Cleanup != CleanupBlockedActive {
+		t.Fatalf("active cleanup = %q, want %q", active.Cleanup, CleanupBlockedActive)
+	}
+
+	if err := os.WriteFile(filepath.Join(result.WorkspacePath, "README.md"), []byte("material\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	material, err := provisioner.Cleanup(context.Background(), CleanupRequest{
+		Provisioned: result, ReviewApproved: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if material.Cleanup != CleanupBlockedMaterial {
+		t.Fatalf("material cleanup = %q, want %q", material.Cleanup, CleanupBlockedMaterial)
+	}
+	if err := os.WriteFile(filepath.Join(result.WorkspacePath, "README.md"), []byte("fixture\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	removed, err := provisioner.Cleanup(context.Background(), CleanupRequest{
+		Provisioned: result, ReviewApproved: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if removed.Cleanup != CleanupRemovedReviewed {
+		t.Fatalf("clean cleanup = %q, want %q", removed.Cleanup, CleanupRemovedReviewed)
+	}
+	if _, err := os.Stat(result.WorkspacePath); !os.IsNotExist(err) {
+		t.Fatalf("worktree still exists after guarded removal: %v", err)
+	}
+}
+
+func provisionIssueEnvironment(t *testing.T) (Provisioner, Provisioned) {
+	t.Helper()
+	root, revision := testRepository(t)
+	provisioner := Provisioner{
+		Root: root,
+		Graph: &graph.Graph{
+			SchemaVersion: 1,
+			Skills: []graph.Skill{{
+				ID:        "implement-issue",
+				Authority: graph.Authority{Repository: "write", Git: "write", GitHub: "read", ExternalMutation: "none"},
+			}},
+		},
+		Runner: &provisioningRunner{},
+		VerifyIssue: func(_ context.Context, issue int) error {
+			if issue != 199 {
+				t.Fatalf("verified issue = %d, want 199", issue)
+			}
+			return nil
+		},
+	}
+	result, err := provisioner.Provision(context.Background(), ProvisionRequest{
+		SkillID: "implement-issue", Destination: filepath.Join(t.TempDir(), "issue-worktree"),
+		Revision: revision, IssueNumber: 199,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return provisioner, result
+}
+
 func testRepository(t *testing.T) (string, string) {
 	t.Helper()
 	root := t.TempDir()
