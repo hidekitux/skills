@@ -145,6 +145,32 @@ func TestValidateAcceptsBoundedExecutionStrategy(t *testing.T) {
 	}
 }
 
+func TestSanitizeRedactsStrategyReasonsAndOmitsUnsafeEvidence(t *testing.T) {
+	trace := validTrace()
+	decision := validStrategyDecision()
+	decision.Reasons = []string{"token=secret"}
+	decision.Evidence = []executionstrategy.Evidence{{Kind: "path", Ref: "https://private.example/source"}}
+	trace.Strategy = decision
+
+	clean, err := Sanitize(trace)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if clean.Strategy == nil || len(clean.Strategy.Reasons) != 1 || clean.Strategy.Reasons[0] != "[REDACTED]" {
+		t.Fatalf("strategy reason was not redacted: %#v", clean.Strategy)
+	}
+	if len(clean.Strategy.Evidence) != 0 || !contains(clean.Redaction.OmittedFields, "strategy.evidence.ref") {
+		t.Fatalf("unsafe strategy evidence was not omitted: %#v", clean)
+	}
+	encoded, err := json.Marshal(clean)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "secret") || strings.Contains(string(encoded), "private.example") {
+		t.Fatalf("unsafe strategy data survived: %s", encoded)
+	}
+}
+
 func TestValidateRejectsUnboundedDeliberation(t *testing.T) {
 	trace := validTrace()
 	deliberation := validDeliberation()

@@ -717,9 +717,23 @@ func Sanitize(input Trace) (Trace, error) {
 	}
 	if input.Strategy != nil {
 		copyStrategy := *input.Strategy
-		copyStrategy.Reasons = append([]string(nil), input.Strategy.Reasons...)
+		copyStrategy.Reasons = make([]string, 0, len(input.Strategy.Reasons))
+		for _, reason := range input.Strategy.Reasons {
+			copyStrategy.Reasons = append(copyStrategy.Reasons, redact(reason))
+		}
 		copyStrategy.Overrides.Values = append([]string(nil), input.Strategy.Overrides.Values...)
-		copyStrategy.Evidence = append([]executionstrategy.Evidence(nil), input.Strategy.Evidence...)
+		copyStrategy.Evidence = make([]executionstrategy.Evidence, 0, len(input.Strategy.Evidence))
+		for _, evidence := range input.Strategy.Evidence {
+			cleanRef, changed := redactString(evidence.Ref)
+			if changed || !validEvidenceRef(evidence.Kind, cleanRef) {
+				output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, "strategy.evidence.ref")
+				continue
+			}
+			copyEvidence := evidence
+			copyEvidence.Ref = cleanRef
+			copyEvidence.Result = redact(evidence.Result)
+			copyStrategy.Evidence = append(copyStrategy.Evidence, copyEvidence)
+		}
 		output.Strategy = &copyStrategy
 	}
 	if input.Environment != nil {
