@@ -77,6 +77,54 @@ func TestProvisionReadOnlySnapshotRunsSetupAndDeniesMutation(t *testing.T) {
 	}
 }
 
+func TestGHPolicyDeniesMutationForms(t *testing.T) {
+	directory := t.TempDir()
+	realGH := filepath.Join(directory, "real-gh")
+	policyGH := filepath.Join(directory, "gh")
+	if err := os.WriteFile(realGH, []byte("#!/bin/sh\nprintf '%s\\n' \"$*\"\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(policyGH, []byte(ghPolicyScript(realGH)), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	denied := [][]string{
+		{"api", "-X", "POST", "repos/hidekitux/skills/issues/199"},
+		{"api", "--method", "PATCH", "repos/hidekitux/skills/issues/199"},
+		{"api", "--method=PUT", "repos/hidekitux/skills/issues/199"},
+		{"api", "-XDELETE", "repos/hidekitux/skills/issues/199"},
+		{"api", "-f", "body=closed", "repos/hidekitux/skills/issues/199"},
+		{"api", "--field=body=closed", "repos/hidekitux/skills/issues/199"},
+		{"api", "--input", "payload.json", "repos/hidekitux/skills/issues/199"},
+	}
+	for _, args := range denied {
+		name := strings.Join(args, "_")
+		t.Run(name, func(t *testing.T) {
+			command := exec.Command(policyGH, args...)
+			output, err := command.CombinedOutput()
+			if err == nil || !strings.Contains(string(output), "denied GitHub mutation") {
+				t.Fatalf("mutation was not denied: err=%v output=%q", err, output)
+			}
+		})
+	}
+
+	allowed := [][]string{
+		{"api", "repos/hidekitux/skills/issues/199"},
+		{"api", "-X", "GET", "repos/hidekitux/skills/issues", "-f", "state=open"},
+		{"api", "--method=HEAD", "repos/hidekitux/skills/issues/199"},
+	}
+	for _, args := range allowed {
+		name := "allow_" + strings.Join(args, "_")
+		t.Run(name, func(t *testing.T) {
+			command := exec.Command(policyGH, args...)
+			output, err := command.CombinedOutput()
+			if err != nil || !strings.Contains(string(output), "api") {
+				t.Fatalf("safe API request was not allowed: err=%v output=%q", err, output)
+			}
+		})
+	}
+}
+
 func TestProvisionWriteProfileRequiresAndOwnsIssueBranch(t *testing.T) {
 	root, revision := testRepository(t)
 	destination := filepath.Join(t.TempDir(), "issue-worktree")

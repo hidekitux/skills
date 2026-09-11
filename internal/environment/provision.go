@@ -299,24 +299,68 @@ func ghPolicyScript(realGH string) string {
 	return fmt.Sprintf(`#!/bin/sh
 set -eu
 if [ -z %s ]; then
-  echo "skill-environment: GitHub CLI is unavailable" >&2
-  exit 126
+	echo "skill-environment: GitHub CLI is unavailable" >&2
+	exit 126
 fi
+deny() {
+	echo "skill-environment: denied GitHub mutation or unknown operation" >&2
+	exit 126
+}
+checkAPI() {
+	shift
+	method=GET
+	explicitMethod=0
+	hasPayload=0
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		-X|--method)
+			[ "$#" -ge 2 ] || deny
+			method="$2"
+			explicitMethod=1
+			shift 2
+			;;
+		--method=*)
+			method="${1#--method=}"
+			explicitMethod=1
+			shift
+			;;
+		-X?*)
+			method="${1#-X}"
+			explicitMethod=1
+			shift
+			;;
+		-f|-F|--raw-field|--field|--input)
+			hasPayload=1
+			[ "$#" -ge 2 ] || deny
+			shift 2
+			;;
+		-f=*|-F=*|--raw-field=*|--field=*|--input=*)
+			hasPayload=1
+			shift
+			;;
+		*)
+			shift
+			;;
+		esac
+	done
+	case "$method" in
+	GET|HEAD) ;;
+	*) deny ;;
+	esac
+	[ "$hasPayload" -eq 0 ] || [ "$explicitMethod" -eq 1 ] || deny
+}
 case "${1-}" in
-  issue|pr|repo)
-    case "${2-}" in
-      view|list|status|checks) exec %s "$@" ;;
-    esac
-    ;;
-  api)
-    case " $* " in
-      *" --method POST "*|*" --method PATCH "*|*" --method PUT "*|*" --method DELETE "*) ;;
-      *) exec %s "$@" ;;
-    esac
-    ;;
+	issue|pr|repo)
+		case "${2-}" in
+		view|list|status|checks) exec %s "$@" ;;
+		esac
+		;;
+	api)
+		checkAPI "$@"
+		exec %s "$@"
+		;;
 esac
-echo "skill-environment: denied GitHub mutation or unknown operation" >&2
-exit 126
+deny
 `, shellQuote(realGH), shellQuote(realGH), shellQuote(realGH))
 }
 
