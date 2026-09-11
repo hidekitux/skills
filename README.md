@@ -176,7 +176,7 @@ Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` con
 
 ## FSL
 
-FSL verifies state transitions and publication conditions, not `SKILL.md` prose. Place a skill-owned source in `skills/<skill-name>/specs/*.fsl` and expose it with a relative symbolic link at `specs/<skill-name>/`; place repository-owned or cross-cutting sources directly in `specs/`. Confirm a formalization memo before adding or changing a specification, then run:
+FSL verifies state transitions and publication conditions, not `SKILL.md` prose. Place a skill-owned source in `skills/<category>/<skill-name>/specs/*.fsl` and expose it with a relative symbolic link at `specs/<category>/<skill-name>/`; place repository-owned or cross-cutting sources directly in `specs/`. Confirm a formalization memo before adding or changing a specification, then run:
 
 ```bash
 mise run verify:fsl
