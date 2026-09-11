@@ -46,6 +46,8 @@
 "cmd/check-evaluation" = "./internal/eval"
 "cmd/compile-context" = "./internal/context"
 "cmd/validate-deliberation-policy" = "./internal/deliberation"
+"cmd/select-execution-strategy" = "./internal/strategy"
+"cmd/validate-execution-strategy" = "./internal/strategy"
 "cmd/generate-public-status" = "./internal/publicstatus"
 
 [scripts]

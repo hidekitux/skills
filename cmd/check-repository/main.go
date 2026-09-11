@@ -23,6 +23,7 @@ import (
 	"github.com/hidekitux/skills/internal/graph"
 	"github.com/hidekitux/skills/internal/publicstatus"
 	"github.com/hidekitux/skills/internal/replay"
+	"github.com/hidekitux/skills/internal/strategy"
 	"github.com/hidekitux/skills/internal/support"
 	"github.com/hidekitux/skills/internal/trace"
 	"github.com/hidekitux/skills/internal/validate"
@@ -68,6 +69,7 @@ var repoChecks = []repoCheck{
 	{name: "validate-skill-trace", fn: trace.CheckFixtures},
 	{name: "validate-replay-fixtures", fn: replay.CheckFixtures},
 	{name: "validate-deliberation-policy", fn: deliberation.Check},
+	{name: "validate-execution-strategy", fn: strategy.Check},
 }
 
 type checkResult struct {
