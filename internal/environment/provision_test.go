@@ -96,6 +96,8 @@ func TestGHPolicyDeniesMutationForms(t *testing.T) {
 		{"api", "-f", "body=closed", "repos/hidekitux/skills/issues/199"},
 		{"api", "--field=body=closed", "repos/hidekitux/skills/issues/199"},
 		{"api", "--input", "payload.json", "repos/hidekitux/skills/issues/199"},
+		{"api", "-fbody=closed", "repos/hidekitux/skills/issues/199"},
+		{"api", "-Fbody=closed", "repos/hidekitux/skills/issues/199"},
 	}
 	for _, args := range denied {
 		name := strings.Join(args, "_")
