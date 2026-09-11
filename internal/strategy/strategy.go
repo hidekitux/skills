@@ -253,6 +253,7 @@ func ValidateDecision(decision Decision) []string {
 			findings = append(findings, fmt.Sprintf("decision.evidence[%d].result is invalid", index))
 		}
 	}
+	sort.Strings(findings)
 	return findings
 }
 
