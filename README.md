@@ -146,7 +146,7 @@ Pinned installation is documented from retained release evidence only. No verifi
 
 ## Development workflow
 
-1. Add `skills/<skill-name>/SKILL.md`.
+1. Add `skills/<category>/<skill-name>/SKILL.md`.
 2. Record its purpose, owner, and supported agents in `CATALOG.yml`.
 3. Run `mise run validate:all` before publishing.
 4. Run `mise run validate:skill-creator` when it is available in Codex.

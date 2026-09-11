@@ -47,7 +47,7 @@ func TestValidateAcceptsPrivacySafeContextManifest(t *testing.T) {
 		TokenizerVersion: instructions.TokenizerVersion,
 		Budgets:          graph.ContextBudget{CoreInstructions: 1, ConditionalRefs: 1, RepositoryEvidence: 1, ValidatorFeedback: 1},
 		Measured:         map[string]int{"core_instructions": 1}, TotalTokens: 1, TotalBudget: 4,
-		Decisions: []skillcontext.Decision{{ID: "core.plan-issue", Category: graph.ContextCoreInstructions, Source: "skills/plan-issue/SKILL.md", Reason: "core-skill", Required: true, Included: true, Tokens: 1}},
+		Decisions: []skillcontext.Decision{{ID: "core.plan-issue", Category: graph.ContextCoreInstructions, Source: "skills/process/plan-issue/SKILL.md", Reason: "core-skill", Required: true, Included: true, Tokens: 1}},
 	}
 	if report := Validate(trace); !report.Valid {
 		t.Fatalf("context manifest rejected: %v", report.Findings)

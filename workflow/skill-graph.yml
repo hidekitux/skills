@@ -186,91 +186,91 @@ context:
       priority: 90
     - id: reference.audit.host
       category: conditional_references
-      source: skills/audit-workflow-enforcement/references/hosts/codex.md
+      source: skills/govern/audit-workflow-enforcement/references/hosts/codex.md
       required: false
       priority: 60
       activation:
         task_kinds: [host]
     - id: reference.bootstrap.fsl
       category: conditional_references
-      source: skills/bootstrap-project/references/fsl-adoption.md
+      source: skills/govern/bootstrap-project/references/fsl-adoption.md
       required: false
       priority: 70
       activation:
         task_kinds: [fsl]
     - id: reference.create-issue.project
       category: conditional_references
-      source: skills/create-issue/references/project-triage.md
+      source: skills/process/create-issue/references/project-triage.md
       required: false
       priority: 60
       activation:
         task_kinds: [issue]
     - id: reference.create-issue.change
       category: conditional_references
-      source: skills/create-issue/references/change-issues.md
+      source: skills/process/create-issue/references/change-issues.md
       required: false
       priority: 60
       activation:
         task_kinds: [issue]
     - id: reference.create-issue.release
       category: conditional_references
-      source: skills/create-issue/references/release-issues.md
+      source: skills/process/create-issue/references/release-issues.md
       required: false
       priority: 60
       activation:
         task_kinds: [release]
     - id: reference.create-pr.publish
       category: conditional_references
-      source: skills/create-pr/references/publish.md
+      source: skills/process/create-pr/references/publish.md
       required: false
       priority: 70
       activation:
         task_kinds: [pull-request]
     - id: reference.fix-pr.publish
       category: conditional_references
-      source: skills/fix-pr/references/publish.md
+      source: skills/process/fix-pr/references/publish.md
       required: false
       priority: 70
       activation:
         task_kinds: [pull-request]
     - id: reference.implement.details
       category: conditional_references
-      source: skills/implement-issue/references/implementation-details.md
+      source: skills/process/implement-issue/references/implementation-details.md
       required: false
       priority: 70
       activation:
         task_kinds: [implementation]
     - id: reference.merge.integration
       category: conditional_references
-      source: skills/merge-pr/references/integration.md
+      source: skills/process/merge-pr/references/integration.md
       required: false
       priority: 70
       activation:
         task_kinds: [merge]
     - id: reference.review.criteria
       category: conditional_references
-      source: skills/review-pr/references/review-criteria.md
+      source: skills/process/review-pr/references/review-criteria.md
       required: false
       priority: 70
       activation:
         task_kinds: [review]
     - id: reference.review.security
       category: conditional_references
-      source: skills/review-pr/references/security-review.md
+      source: skills/process/review-pr/references/security-review.md
       required: false
       priority: 80
       activation:
         task_kinds: [security]
     - id: reference.review.performance
       category: conditional_references
-      source: skills/review-pr/references/performance-review.md
+      source: skills/process/review-pr/references/performance-review.md
       required: false
       priority: 50
       activation:
         task_kinds: [performance]
     - id: reference.review.accessibility
       category: conditional_references
-      source: skills/review-pr/references/accessibility-review.md
+      source: skills/process/review-pr/references/accessibility-review.md
       required: false
       priority: 50
       activation:
@@ -343,7 +343,7 @@ context:
 
 skills:
   - id: plan-issue
-    path: skills/plan-issue/SKILL.md
+    path: skills/process/plan-issue/SKILL.md
     layer: process
     capabilities: [investigate-premises, resolve-decisions, derive-plan]
     inputs: [governed-change-issue, repository-context]
@@ -363,7 +363,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: create-pr
-    path: skills/create-pr/SKILL.md
+    path: skills/process/create-pr/SKILL.md
     layer: process
     capabilities: [inspect-branch, validate-pull-request, publish-pull-request]
     inputs: [implementation-commits, issue-branch, user-approval]
@@ -383,7 +383,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: merge-pr
-    path: skills/merge-pr/SKILL.md
+    path: skills/process/merge-pr/SKILL.md
     layer: process
     capabilities: [recheck-pull-request, guarded-merge, verify-linked-work]
     inputs: [pull-request, review-findings, user-approval]
@@ -403,7 +403,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: create-issue
-    path: skills/create-issue/SKILL.md
+    path: skills/process/create-issue/SKILL.md
     layer: process
     capabilities: [define-change-issue, validate-issue, publish-issue]
     inputs: [analysis-findings, user-approval]
@@ -423,7 +423,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: bootstrap-project
-    path: skills/bootstrap-project/SKILL.md
+    path: skills/govern/bootstrap-project/SKILL.md
     layer: govern
     capabilities: [inspect-project, establish-foundation, protect-pull-requests]
     inputs: [repository-context, user-approval]
@@ -443,7 +443,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: audit-workflow-enforcement
-    path: skills/audit-workflow-enforcement/SKILL.md
+    path: skills/govern/audit-workflow-enforcement/SKILL.md
     layer: govern
     capabilities: [inspect-rules, test-enforcement, report-gaps]
     inputs: [repository-context]
@@ -463,7 +463,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: implement-issue
-    path: skills/implement-issue/SKILL.md
+    path: skills/process/implement-issue/SKILL.md
     layer: process
     capabilities: [resolve-issue-branch, implement-scoped-plan, record-commit-evidence]
     inputs: [verified-plan, issue-branch]
@@ -483,7 +483,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: debug-code
-    path: skills/debug-code/SKILL.md
+    path: skills/fix/debug-code/SKILL.md
     layer: fix
     capabilities: [reproduce-defect, isolate-root-cause, verify-fix]
     inputs: [reproducible-defect, repository-context]
@@ -509,7 +509,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: fix-pr
-    path: skills/fix-pr/SKILL.md
+    path: skills/process/fix-pr/SKILL.md
     layer: process
     capabilities: [resolve-review-findings, publish-fixes, sync-pull-request]
     inputs: [pull-request, review-findings, review-artifact]
@@ -534,7 +534,7 @@ skills:
         destination: {terminal_outcome: retry_exhausted}
 
   - id: review-pr
-    path: skills/review-pr/SKILL.md
+    path: skills/process/review-pr/SKILL.md
     layer: process
     capabilities: [assemble-contract, trace-change, report-findings]
     inputs: [pull-request]
@@ -567,7 +567,7 @@ skills:
         destination: {terminal_outcome: retry_exhausted}
 
   - id: analyze-project
-    path: skills/analyze-project/SKILL.md
+    path: skills/analyze/analyze-project/SKILL.md
     layer: analyze
     capabilities: [inspect-architecture, inspect-validation, prioritize-findings]
     inputs: [repository-context]
@@ -587,7 +587,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: refactor-code
-    path: skills/skills/refactor-code/SKILL.md
+    path: skills/fix/refactor-code/SKILL.md
     layer: fix
     capabilities: [preserve-behavior, refactor-root-cause, verify-baseline]
     inputs: [defect-evidence, test-baseline]
@@ -607,7 +607,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: write-tests
-    path: skills/write-tests/SKILL.md
+    path: skills/fix/write-tests/SKILL.md
     layer: fix
     capabilities: [derive-test-cases, add-regression-tests, record-failure-evidence]
     inputs: [defect-evidence, repository-context]
@@ -627,7 +627,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: improve-project
-    path: skills/improve-project/SKILL.md
+    path: skills/process/improve-project/SKILL.md
     layer: process
     capabilities: [coordinate-project-improvement, preserve-phase-authority, report-completion]
     inputs: [repository-context, user-approval]
@@ -647,7 +647,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: deliver-change
-    path: skills/deliver-change/SKILL.md
+    path: skills/process/deliver-change/SKILL.md
     layer: process
     capabilities: [coordinate-governed-change, preserve-handoffs, report-completion]
     inputs: [governed-change-issue, repository-context, user-approval]
@@ -667,7 +667,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: resolve-defect
-    path: skills/resolve-defect/SKILL.md
+    path: skills/fix/resolve-defect/SKILL.md
     layer: fix
     capabilities: [coordinate-defect-resolution, preserve-fix-boundaries, report-completion]
     inputs: [reproducible-defect, repository-context, user-approval]

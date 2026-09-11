@@ -1,6 +1,6 @@
 # Repository guidance
 
-- Publishable skills belong in `skills/<skill-name>/` or `skills/<namespace>/<skill-name>/`.
+- Publishable skills belong in `skills/<category>/<skill-name>/`. The repository also supports `skills/<namespace>/<skill-name>/` for arbitrary namespaced discovery tests and compatible sources.
 - Give every skill a `SKILL.md` with `name` and `description` frontmatter. The `name` must match its directory name.
 - License every published skill as `Apache-2.0`, the repository standard. Do not add a different license or a non-Apache dependency bundled with a published skill without explicit user approval. Development and CI tools are not bundled dependencies; keep them pinned in `mise.toml`, use them only for development or checks, and review their licenses when adding them.
 - Keep `LICENSE` as the unmodified Apache-2.0 legal text and keep the repository copyright attribution in `NOTICE`.

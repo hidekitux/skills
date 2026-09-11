@@ -23,8 +23,8 @@ while IFS= read -r manifest; do
   found=1
   skill_dir=$(dirname "${manifest}")
   skill_name=$(basename "${skill_dir}")
-  # Canonical repository-relative skill path under skills/, e.g. "refactor-code"
-  # for a flat skill or "skills/refactor-code" for a namespaced skill.
+  # Canonical repository-relative skill path under skills/, e.g. "process/plan-issue"
+  # for a category skill or "vendor/refactor-code" for an arbitrary namespace.
   skill_rel=${skill_dir#"${source_root}/"}
   target="../../skills/${skill_rel}"
 
