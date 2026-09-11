@@ -65,6 +65,10 @@ conditions:
     description: The verified defect needs focused regression tests.
   - id: related-refactor-needed
     description: The verified defect needs a behavior-preserving refactor.
+  - id: actionable-repository-follow-up
+    description: The retrospective found a repository-owned follow-up that is not already tracked.
+  - id: no-warranted-follow-up
+    description: The retrospective found no supported durable repository follow-up.
 
 context:
   schema_version: 1
@@ -321,6 +325,10 @@ context:
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
     triage-issues:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    retrospect-work:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
@@ -606,6 +614,32 @@ skills:
         artifact: analysis-findings
         destination: {skill: create-issue}
       - id: stop-with-triage-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: retrospect-work
+    path: skills/analyze/retrospect-work/SKILL.md
+    layer: analyze
+    capabilities: [inspect-session, classify-findings, recommend-durable-follow-up]
+    inputs: [repository-context]
+    outputs: [analysis-findings, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-change-issue
+        outcome: success
+        condition: actionable-repository-follow-up
+        artifact: analysis-findings
+        destination: {skill: create-issue}
+      - id: complete-without-follow-up
+        outcome: success
+        condition: no-warranted-follow-up
+        artifact: analysis-findings
+        destination: {terminal_outcome: success}
+      - id: stop-with-retrospective-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}

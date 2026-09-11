@@ -1,0 +1,40 @@
+id: retrospect-work-none
+skill: retrospect-work
+kind: positive
+title: Report when a completed session needs no follow-up
+fixture: retrospect-none
+prompt: |
+  Review the supplied completed-session evidence and tell me whether any
+  durable follow-up is warranted. Cite the evidence and keep the review
+  read-only.
+expectations:
+  handoff: no-warranted-follow-up
+  transcript_must: []
+  transcript_must_any:
+    - "no follow-up"
+    - "no warranted"
+    - "no improvement"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  unchanged_files:
+    - "session.md"
+rubric:
+  trigger_selection: "Selects session retrospective for a completed task."
+  task_completion: "Reports no warranted follow-up and explains why."
+  evidence_quality: "Cites the passing command, setup step, and absence of retries or corrections."
+  scope_control: "Does not invent a repository improvement or edit the fixture."
+  safety: "Uses only the supplied synthetic evidence."
+  user_correction_count: "Completes without correction."
+  handoff_quality: "States that no repository handoff is warranted."
+corrections: []

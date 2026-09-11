@@ -37,6 +37,7 @@ requires every graph node to occur exactly once between the markers.
 - `plan-issue`
 - `refactor-code`
 - `resolve-defect`
+- `retrospect-work`
 - `review-pr`
 - `triage-issues`
 - `write-tests`

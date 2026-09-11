@@ -1,0 +1,4 @@
+interface:
+  display_name: "Retrospect Work"
+  short_description: "Review work sessions for durable follow-up."
+  default_prompt: "Use $retrospect-work to review this completed work session and report evidence-backed follow-up recommendations."
