@@ -42,6 +42,6 @@ the rare cases where independent reasoning may improve a decision.
 
 ## Fallback
 
-When the configured model selector is unavailable on a host, use the host's lowest-cost capable model and name the fallback in the handoff. A host that does not expose the config variable applies the same rule with the documented default for the tier.
+When the configured model selector is unavailable on a host, use the host's lowest-cost capable model and name the fallback in the handoff. The bounded selector and its recorded fallback are defined in [execution strategy](execution-strategy.md). A host that does not expose the config variable applies the same rule with the documented default for the tier.
 
 Host-specific reading notes are in `hosts/codex/README.md` and `hosts/claude-code/README.md`. Router consumption and verification guidance is in [model-routing.md](model-routing.md).

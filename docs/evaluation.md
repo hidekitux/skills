@@ -33,6 +33,18 @@ manifest, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
+## Execution strategy comparison
+
+Issue 204 adds optional `execution_strategy` inputs to scenarios. The evaluator
+selects the adaptive strategy from the repository policy and compares it with
+a named fixed profile. The record reports the selected outcome, validation
+tier, retry and elapsed-time bounds, parallelism, and whether the adaptive
+path changed while preserving its safety floor. The quality delta is based on
+the same deterministic scenario assertions, so it is zero when both paths
+share the assertions. Provider token and cost usage remains unavailable unless
+the host driver exposes it; the report does not turn unavailable usage into
+zero.
+
 ## Bounded deliberation comparison
 
 Issue 200 adds an opt-in comparison for scenarios that declare architectural

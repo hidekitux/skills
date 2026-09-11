@@ -40,7 +40,7 @@ CI-bound evaluation check.
 | Command / job | Tier | Trigger | Owner | Expected duration | Failure policy |
 | --- | --- | --- | --- | --- | --- |
 | `check:all` (`check:repository`, `check:branch-policy`, `check:diff`, `check:tasks`) | 1 | every PR / `main` push / local | repository owner | ~1s warm | blocking |
-| `check:repository` (thirteen repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.3s warm | blocking |
+| `check:repository` (twenty-one repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.3s warm | blocking |
 | `check:tasks` (`cmd/validate-mise-tasks`) | 1 | every PR / `main` push / local | repository owner | ~0.7s warm | blocking |
 | `check:hosts` (`cmd/validate-hosts`) | 1 | every PR / `main` push | repository owner | ~0.4s warm | blocking |
 | `check:branch-policy` (`cmd/validate-branch-policy`) | 1 | every PR / `main` push | repository owner | ~0.2s | blocking |
@@ -60,7 +60,7 @@ CI-bound evaluation check.
 
 ## Writing-quality check boundary
 
-`check:repository` includes `check-writing-quality` as its thirteenth check. The check reads only tracked Markdown from Git and fails on deterministic violations. A passing result does not prove full prose conformance; `REVIEWING.md` still requires human review against [docs/writing-style.md](writing-style.md).
+`check:repository` includes `check-writing-quality` as one of its repository checks. The check reads only tracked Markdown from Git and fails on deterministic violations. A passing result does not prove full prose conformance; `REVIEWING.md` still requires human review against [docs/writing-style.md](writing-style.md).
 
 | Measured rule | Exclusions and candidate handling | Failure behavior |
 | --- | --- | --- |
