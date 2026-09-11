@@ -18,6 +18,7 @@ deliberation:
   concurrency: parallel-read-only
   bounds: {max_agents: 3, max_retries: 1, max_elapsed_millis: 450000, max_input_tokens: 3000, max_output_tokens: 3000, max_cost_micros: 250000}
   candidate_count: 3
+  candidate_scopes: ["read the persisted-format compatibility evidence", "read the rollback and recovery evidence", "read the version-transition test evidence"]
   compare_baseline: true
   judge: evidence-required-not-majority
 expectations:

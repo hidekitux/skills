@@ -72,6 +72,7 @@ deliberation:                   # optional bounded baseline comparison
   bounds: {max_agents: 2, max_retries: 1, max_elapsed_millis: 300000,
            max_input_tokens: 4000, max_output_tokens: 4000, max_cost_micros: 250000}
   candidate_count: 2
+  candidate_scopes: ["compatibility evidence", "rollback evidence"]
   compare_baseline: true
   judge: evidence-required-not-majority
 expectations:
