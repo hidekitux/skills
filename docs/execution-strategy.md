@@ -48,7 +48,8 @@ JSON input and JSON or text output. The repository check invokes the focused
 validator.
 
 Behavioral evaluation scenarios may declare `execution_strategy` with a fixed
-baseline. Their JSONL record stores both the adaptive decision and a
-deterministic comparison of validation, retry, elapsed-time, and parallelism
-bounds. Host token and cost usage remains unavailable unless the host driver
-exposes it; unavailable usage is not reported as zero.
+baseline. Their JSONL record stores the adaptive decision and the policy
+difference from the named fixed profile. The current `HostRunner` contract
+cannot execute a second run with a strategy override, so the comparison is
+recorded as `status: unavailable` with a reason. It does not infer completion,
+quality, latency, token, cost, or retry deltas from one adaptive run.

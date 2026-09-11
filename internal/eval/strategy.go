@@ -30,16 +30,17 @@ func selectExecutionStrategy(root string, sc *Scenario) (*executionstrategy.Deci
 		return nil, nil, fmt.Errorf("fixed strategy %q is not defined", sc.ExecutionStrategy.FixedStrategy)
 	}
 	comparison := &StrategyComparison{
-		FixedStrategy:       baseline.ID,
-		AdaptiveStrategy:    decision.Strategy,
-		AdaptiveOutcome:     decision.Outcome,
-		Changed:             baseline.ID != decision.Strategy,
-		SafetyPreserved:     strategyTierRank(decision.ValidationTier) >= strategyTierRank(baseline.ValidationTier),
-		QualityDelta:        0,
-		ValidationTierDelta: strategyTierRank(decision.ValidationTier) - strategyTierRank(baseline.ValidationTier),
-		RetryBoundDelta:     decision.MaxRetries - baseline.MaxRetries,
-		ElapsedBoundDelta:   decision.MaxElapsedMillis - baseline.MaxElapsedMillis,
-		ParallelismChanged:  baseline.Parallelism != decision.Parallelism,
+		Status:                     "unavailable",
+		UnavailableReason:          "host runner does not expose strategy-aware baseline execution",
+		FixedStrategy:              baseline.ID,
+		AdaptiveStrategy:           decision.Strategy,
+		AdaptiveOutcome:            decision.Outcome,
+		Changed:                    baseline.ID != decision.Strategy,
+		PolicySafetyFloorPreserved: strategyTierRank(decision.ValidationTier) >= strategyTierRank(baseline.ValidationTier),
+		ValidationTierDelta:        strategyTierRank(decision.ValidationTier) - strategyTierRank(baseline.ValidationTier),
+		RetryBoundDelta:            decision.MaxRetries - baseline.MaxRetries,
+		ElapsedBoundDelta:          decision.MaxElapsedMillis - baseline.MaxElapsedMillis,
+		ParallelismChanged:         baseline.Parallelism != decision.Parallelism,
 	}
 	return &decision, comparison, nil
 }

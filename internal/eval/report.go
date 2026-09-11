@@ -52,20 +52,21 @@ type Record struct {
 	FailureRecurrence  int                         `json:"failure_recurrence_count,omitempty"`
 }
 
-// StrategyComparison records the deterministic policy difference between an
-// adaptive decision and a fixed baseline. Provider usage remains separate and
-// is reported only when the host exposes it.
+// StrategyComparison records the policy difference between an adaptive
+// decision and a fixed baseline. The fixed baseline is unavailable until a
+// HostRunner can execute a scenario with an explicit strategy override.
 type StrategyComparison struct {
-	FixedStrategy       string `json:"fixed_strategy"`
-	AdaptiveStrategy    string `json:"adaptive_strategy"`
-	AdaptiveOutcome     string `json:"adaptive_outcome"`
-	Changed             bool   `json:"changed"`
-	SafetyPreserved     bool   `json:"safety_preserved"`
-	QualityDelta        int    `json:"quality_delta"`
-	ValidationTierDelta int    `json:"validation_tier_delta"`
-	RetryBoundDelta     int    `json:"retry_bound_delta"`
-	ElapsedBoundDelta   int    `json:"elapsed_bound_delta_millis"`
-	ParallelismChanged  bool   `json:"parallelism_changed"`
+	Status                     string `json:"status"`
+	UnavailableReason          string `json:"unavailable_reason,omitempty"`
+	FixedStrategy              string `json:"fixed_strategy"`
+	AdaptiveStrategy           string `json:"adaptive_strategy"`
+	AdaptiveOutcome            string `json:"adaptive_outcome"`
+	Changed                    bool   `json:"changed"`
+	PolicySafetyFloorPreserved bool   `json:"policy_safety_floor_preserved"`
+	ValidationTierDelta        int    `json:"validation_tier_delta"`
+	RetryBoundDelta            int    `json:"retry_bound_delta"`
+	ElapsedBoundDelta          int    `json:"elapsed_bound_delta_millis"`
+	ParallelismChanged         bool   `json:"parallelism_changed"`
 }
 
 // Comparison records the measurable difference between the single-agent
@@ -165,15 +166,15 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 	}
 	if len(strategyComparisons) > 0 {
 		fmt.Fprintln(w, "\n## Execution strategy comparison (Issue 204)")
-		fmt.Fprintln(w, "The quality delta is zero because both paths use the same deterministic scenario assertions. Host usage remains unavailable unless the driver exposes it.")
-		fmt.Fprintln(w, "| scenario | fixed | adaptive | outcome | changed | safety_preserved | quality_delta | validation_tier_delta | retry_bound_delta | elapsed_bound_delta_ms | parallelism_changed |")
-		fmt.Fprintln(w, "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+		fmt.Fprintln(w, "The fixed baseline was not executed because the HostRunner contract has no strategy override. This comparison is unavailable; no completion, quality, latency, token, cost, or retry delta is inferred.")
+		fmt.Fprintln(w, "| scenario | status | unavailable_reason | fixed | adaptive | selection_outcome | changed | policy_safety_floor_preserved | validation_tier_delta | retry_bound_delta | elapsed_bound_delta_ms | parallelism_changed |")
+		fmt.Fprintln(w, "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
 		for _, record := range strategyComparisons {
 			comparison := record.StrategyComparison
-			fmt.Fprintf(w, "| %s | %s | %s | %s | %t | %t | %d | %d | %d | %d | %t |\n",
-				record.Scenario, comparison.FixedStrategy, comparison.AdaptiveStrategy,
-				comparison.AdaptiveOutcome, comparison.Changed, comparison.SafetyPreserved,
-				comparison.QualityDelta, comparison.ValidationTierDelta, comparison.RetryBoundDelta,
+			fmt.Fprintf(w, "| %s | %s | %s | %s | %s | %s | %t | %t | %d | %d | %d | %t |\n",
+				record.Scenario, comparison.Status, comparison.UnavailableReason,
+				comparison.FixedStrategy, comparison.AdaptiveStrategy, comparison.AdaptiveOutcome,
+				comparison.Changed, comparison.PolicySafetyFloorPreserved, comparison.ValidationTierDelta, comparison.RetryBoundDelta,
 				comparison.ElapsedBoundDelta, comparison.ParallelismChanged)
 		}
 	}
