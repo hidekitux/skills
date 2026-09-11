@@ -1,0 +1,33 @@
+id: e2e-deliberation-conflicting-hypotheses
+skill: e2e
+kind: negative
+title: Compare independent candidates for competing root-cause hypotheses
+fixture: deliberation-policy
+stages:
+  - skill: debug-code
+    prompt: |
+      Two competing root-cause hypotheses explain the observed failure. Test
+      the local evidence without changing shared state and leave the verified
+      result ready for the next owner.
+deliberation:
+  pattern: independent-candidates
+  signals: [conflicting-hypotheses]
+  reason: competing-hypotheses-need-independent-tests
+  independence: isolated-context
+  authority: read-only
+  concurrency: parallel-read-only
+  bounds: {max_agents: 2, max_retries: 1, max_elapsed_millis: 300000, max_input_tokens: 4000, max_output_tokens: 4000, max_cost_micros: 250000}
+  candidate_count: 2
+  compare_baseline: true
+  judge: evidence-required-not-majority
+expectations:
+  handoff: write-tests
+  transcript_must: []
+rubric:
+  trigger_selection: "Uses bounded independent analysis when hypotheses conflict."
+  task_completion: "Produces a verified result for the next owner."
+  evidence_quality: "Grounds the decision in independent evidence."
+  scope_control: "Keeps every candidate read-only and within the task."
+  safety: "Does not expose private candidate context or credentials."
+  user_correction_count: "Completes without unnecessary corrections."
+  handoff_quality: "Names the documented next owner."

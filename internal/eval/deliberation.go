@@ -126,6 +126,10 @@ func deliberationTrace(spec *DeliberationSpec, baseline Record, candidates []Rec
 		ElapsedMillis: deliberationElapsed(baseline, candidates),
 		Retries:       marginalRetries(candidates),
 	}
+	if baseline.Context != nil {
+		contextTokens := int64(len(candidates) * baseline.Context.TotalTokens)
+		output.MarginalCost.ContextTokens = &contextTokens
+	}
 	return output
 }
 
@@ -162,6 +166,10 @@ func deliberationComparison(sc *Scenario, baseline Record, candidates []Record, 
 	comparison.QualityDelta = verdictScore(selected.Verdict) - verdictScore(baseline.Verdict)
 	if baseline.Context != nil {
 		comparison.ContextTokensAvailable = true
+		baselineTokens := int64(baseline.Context.TotalTokens)
+		deliberationTokens := int64(len(candidates) * baseline.Context.TotalTokens)
+		comparison.BaselineContextTokens = &baselineTokens
+		comparison.DeliberationContextTokens = &deliberationTokens
 	}
 	return comparison
 }

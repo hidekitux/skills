@@ -1,0 +1,34 @@
+id: e2e-deliberation-architectural-ambiguity
+skill: e2e
+kind: positive
+title: Compare independent candidates for an ambiguous design choice
+fixture: deliberation-policy
+stages:
+  - skill: debug-code
+    prompt: |
+      Two fixes could satisfy the reported behavior, but they have different
+      compatibility and maintenance costs. Inspect the evidence, explain the
+      tradeoff, and leave the verified result ready for the next owner.
+deliberation:
+  pattern: independent-candidates
+  signals: [architectural-ambiguity]
+  reason: architectural-choice-changes-behavior
+  independence: isolated-context
+  authority: read-only
+  concurrency: parallel-read-only
+  bounds: {max_agents: 2, max_retries: 1, max_elapsed_millis: 300000, max_input_tokens: 4000, max_output_tokens: 4000, max_cost_micros: 250000}
+  candidate_count: 2
+  compare_baseline: true
+  judge: evidence-required-not-majority
+expectations:
+  handoff: write-tests
+  transcript_must: []
+  transcript_must_not: ["delv", "Delv", "pivotal", "Pivotal", "multifaceted", "Multifaceted", "facilitat", "Facilitat", "commenc", "Commenc"]
+rubric:
+  trigger_selection: "Uses bounded independent analysis only when ambiguity changes the decision."
+  task_completion: "Produces a verified result for the next owner."
+  evidence_quality: "Grounds the decision in independent evidence."
+  scope_control: "Keeps every candidate read-only and within the task."
+  safety: "Does not expose private candidate context or credentials."
+  user_correction_count: "Completes without unnecessary corrections."
+  handoff_quality: "Names the documented next owner."

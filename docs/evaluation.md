@@ -33,6 +33,27 @@ manifest, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
+## Bounded deliberation comparison
+
+Issue 200 adds an opt-in comparison for scenarios that declare architectural
+ambiguity, security sensitivity, high-risk migration, conflicting hypotheses,
+or independently reviewable evidence. Deterministic checks still run first;
+ordinary scenarios remain single-agent. A comparison executes one baseline and
+the declared number of independent candidates in isolated sandboxes, with
+explicit agent, retry, elapsed-time, input-token, output-token, and cost
+bounds. Candidate contexts do not contain expected findings or peer results,
+and shared mutation is prohibited.
+
+The deterministic judge selects a candidate only from its sanitized result and
+validation evidence, never from a majority count. Each comparison records the
+baseline and deliberated verdicts, candidate outcomes, disagreements,
+false-positive count, quality delta, elapsed time, retries, and marginal cost.
+Unavailable provider token or cost meters remain unavailable rather than being
+reported as zero. The shared trace stores only the routing reason, bounds,
+candidate identifiers, safe evidence references, judge decision, and measured
+marginal cost; it does not store prompts, transcripts, reasoning, or tool
+arguments.
+
 Validation failures may include a reference to the versioned diagnostic
 contract in `workflow/validator-diagnostic.schema.json`. Evaluation records and
 traces keep the diagnostic producer and stable code, while detailed output
