@@ -334,7 +334,7 @@ checkAPI() {
 			[ "$#" -ge 2 ] || deny
 			shift 2
 			;;
-		-f=*|-F=*|--raw-field=*|--field=*|--input=*)
+		-f=*|-F=*|-f?*|-F?*|--raw-field=*|--field=*|--input=*)
 			hasPayload=1
 			shift
 			;;
