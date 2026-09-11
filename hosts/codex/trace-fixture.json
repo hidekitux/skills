@@ -21,6 +21,19 @@
     "judge": {"decision": "finding-reviewed", "evidence": [{"kind": "command", "ref": "check-repository", "result": "passed"}]},
     "marginal_cost": {"available": true, "input_tokens": 120, "output_tokens": 80, "context_tokens": 240, "cost_micros": 12, "elapsed_millis": 3000, "retries": 0}
   },
+  "environment": {
+    "schema_version": 1,
+    "environment_id": "env-199",
+    "skill_id": "plan-issue",
+    "graph_version": 1,
+    "profile": "read_only",
+    "workspace_kind": "detached_snapshot",
+    "repository_revision": "0123456789abcdef0123456789abcdef01234567",
+    "permissions": {"repository": "read", "git": "read", "github": "read", "external_mutation": "none"},
+    "setup": {"status": "succeeded"},
+    "ownership": {"status": "verified"},
+    "cleanup": "not_requested"
+  },
   "events": [
     {"sequence": 1, "at": "2026-09-09T12:00:00Z", "type": "session_start"},
     {"sequence": 2, "at": "2026-09-09T12:00:01Z", "type": "todo", "item_id": "discover", "from": "pending", "to": "in_progress"},

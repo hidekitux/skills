@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"io"
 )
 
@@ -18,6 +19,7 @@ func AdaptCodex(data []byte) (Trace, error) {
 		SkillVersion: input.Skill.Version, GraphVersion: input.GraphVersion,
 		Host: input.Host.Name, HostVersion: input.Host.Version, Model: input.Model,
 		RepositoryRevision: input.RepositoryRevision, StartedAt: input.StartedAt,
+		Environment:  input.Environment,
 		Deliberation: input.Deliberation,
 	}
 	for _, event := range input.Events {
@@ -45,6 +47,7 @@ func AdaptClaudeCode(data []byte) (Trace, error) {
 		SkillVersion: input.SkillVersion, GraphVersion: input.GraphSchema,
 		Host: "claude-code", HostVersion: input.ProviderVersion, Model: input.Model,
 		RepositoryRevision: input.RepositoryRevision, StartedAt: input.StartedAt,
+		Environment:  input.Environment,
 		Deliberation: input.Deliberation,
 	}
 	for _, event := range input.Events {
@@ -62,15 +65,16 @@ func AdaptClaudeCode(data []byte) (Trace, error) {
 }
 
 type codexEnvelope struct {
-	RunID              string        `json:"run_id"`
-	Skill              skillIdentity `json:"skill"`
-	GraphVersion       int           `json:"graph_version"`
-	Host               hostIdentity  `json:"host"`
-	Model              string        `json:"model"`
-	RepositoryRevision string        `json:"repository_revision"`
-	StartedAt          string        `json:"started_at"`
-	Deliberation       *Deliberation `json:"deliberation,omitempty"`
-	Events             []codexEvent  `json:"events"`
+	RunID              string                     `json:"run_id"`
+	Skill              skillIdentity              `json:"skill"`
+	GraphVersion       int                        `json:"graph_version"`
+	Host               hostIdentity               `json:"host"`
+	Model              string                     `json:"model"`
+	RepositoryRevision string                     `json:"repository_revision"`
+	StartedAt          string                     `json:"started_at"`
+	Environment        *skillenvironment.Manifest `json:"environment,omitempty"`
+	Deliberation       *Deliberation              `json:"deliberation,omitempty"`
+	Events             []codexEvent               `json:"events"`
 }
 
 type skillIdentity struct {
@@ -111,16 +115,17 @@ type codexEvent struct {
 }
 
 type claudeEnvelope struct {
-	SessionID          string        `json:"session_id"`
-	SkillName          string        `json:"skill_name"`
-	SkillVersion       string        `json:"skill_version"`
-	GraphSchema        int           `json:"graph_schema"`
-	ProviderVersion    string        `json:"provider_version"`
-	Model              string        `json:"model"`
-	RepositoryRevision string        `json:"repository_revision"`
-	StartedAt          string        `json:"started_at"`
-	Deliberation       *Deliberation `json:"deliberation,omitempty"`
-	Events             []claudeEvent `json:"events"`
+	SessionID          string                     `json:"session_id"`
+	SkillName          string                     `json:"skill_name"`
+	SkillVersion       string                     `json:"skill_version"`
+	GraphSchema        int                        `json:"graph_schema"`
+	ProviderVersion    string                     `json:"provider_version"`
+	Model              string                     `json:"model"`
+	RepositoryRevision string                     `json:"repository_revision"`
+	StartedAt          string                     `json:"started_at"`
+	Environment        *skillenvironment.Manifest `json:"environment,omitempty"`
+	Deliberation       *Deliberation              `json:"deliberation,omitempty"`
+	Events             []claudeEvent              `json:"events"`
 }
 
 type claudeEvent struct {

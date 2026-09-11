@@ -39,6 +39,14 @@ func TestCodexAndClaudeAdaptersProduceEquivalentSemanticFields(t *testing.T) {
 	if string(codexJSON) != string(claudeJSON) {
 		t.Fatalf("semantic events differ:\ncodex=%s\nclaude=%s", codexJSON, claudeJSON)
 	}
+	codexEnvironment, _ := json.Marshal(codex.Environment)
+	claudeEnvironment, _ := json.Marshal(claude.Environment)
+	if string(codexEnvironment) != string(claudeEnvironment) {
+		t.Fatalf("environment manifests differ:\ncodex=%s\nclaude=%s", codexEnvironment, claudeEnvironment)
+	}
+	if codex.Environment == nil || codex.Environment.Profile != "read_only" {
+		t.Fatalf("read-only environment was not normalized: %#v", codex.Environment)
+	}
 	validation := codex.Events[3].Validation
 	if validation == nil || len(validation.Diagnostics) != 1 || validation.Diagnostics[0].Producer != "validate-issue-body" || validation.Diagnostics[0].Code != "validate-issue-body.invalid" {
 		t.Fatalf("diagnostic reference was not normalized: %#v", validation)
