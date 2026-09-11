@@ -44,6 +44,7 @@
 "cmd/evaluate-compaction" = "./cmd/evaluate-compaction"
 "cmd/measure-instructions" = "./cmd/measure-instructions"
 "cmd/check-evaluation" = "./internal/eval"
+"cmd/check-promotion" = "./internal/eval"
 "cmd/compile-context" = "./internal/context"
 "cmd/validate-deliberation-policy" = "./internal/deliberation"
 "cmd/select-execution-strategy" = "./internal/strategy"
