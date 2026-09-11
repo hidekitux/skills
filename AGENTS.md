@@ -42,12 +42,12 @@
 ## Host compatibility
 
 - Keep the core behavior, output contract, and safety rules in the skill's `SKILL.md`; do not duplicate a complete skill per agent.
-- Put a host-specific capability note at `skills/<skill-name>/references/hosts/<host>.md` only when the difference changes execution, safety, or the output. State the capability, the preferred path, the fallback, and how to verify the result.
+- Put a host-specific capability note at `skills/<category>/<skill-name>/references/hosts/<host>.md` only when the difference changes execution, safety, or the output. State the capability, the preferred path, the fallback, and how to verify the result.
 - Use `agents/openai.yaml` only for Codex UI metadata. Put repository-level configuration examples and installation notes in `hosts/codex/` or `hosts/claude-code/`; these directories are not publishable skills.
 - Do not put shared source in `.codex/`, `.claude/`, or `.agents/`. Those hidden directories are local installation state and are intentionally ignored.
 
 - Use FSL for stateful workflow contracts such as review, validation, publishing, versioning, and deprecation. Do not claim that FSL verifies the prose instructions in a `SKILL.md`.
-- Place a skill-owned FSL source file in `skills/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify:fsl` after changes.
+- Place a skill-owned FSL source file in `skills/<category>/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<category>/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify:fsl` after changes.
 
 ## Writing quality
 
