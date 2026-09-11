@@ -23,7 +23,7 @@ skill name identifies the exact workflow.
 | Category | Choose this category when | Published skills | Reserved sibling skills |
 | --- | --- | --- | --- |
 | `process` | You need to move a governed change through Issues, plans, Pull Requests, or reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` | None |
-| `analyze` | You need read-only evidence about a project, a completed session, or an Issue backlog. | `analyze-project` | retrospect-work, triage-issues |
+| `analyze` | You need read-only evidence about a project, a completed session, or an Issue backlog. | `analyze-project`, `triage-issues` | retrospect-work |
 | `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` | None |
 | `govern` | You need to establish or audit repository rules and their enforcement. | `bootstrap-project`, `audit-workflow-enforcement` | None |
 
@@ -67,9 +67,8 @@ Read-only investigation skills that discover, prioritize, and report
 evidence-backed findings. They never modify files and never create Issues or
 Pull Requests; candidates for change are recommendations only.
 
-- Published: `analyze-project`, which owns the analysis area and folds in
-  error, tests, dependencies, docs, performance, and security investigation
-  modes.
+- Published: `analyze-project`, which owns whole-project investigation, and
+  `triage-issues`, which owns Issue backlog comparison and ordering.
 
 ### fix
 
@@ -104,6 +103,7 @@ missing; they do not implement the audited rules themselves.
 | process | improve-project | experimental |
 | process | deliver-change | experimental |
 | analyze | analyze-project | experimental |
+| analyze | triage-issues | experimental |
 | fix | debug-code | experimental |
 | fix | resolve-defect | experimental |
 | fix | write-tests | experimental |

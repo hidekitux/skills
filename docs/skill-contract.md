@@ -67,7 +67,7 @@ report → issue → plan → implementation → pull request → review → fix
 
 | Stage | Owner skill | Result artifact | Handed to |
 | --- | --- | --- | --- |
-| Report | `analyze-*` (`analyze-project`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
+| Report | `analyze-*` (`analyze-project`, `triage-issues`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
 | Issue | `create-issue` | Problem statement in a Change or release Issue | `plan-issue` |
 | Plan | `plan-issue` | Investigated cause and chosen approach in a verified implementation plan posted as an Issue comment | `implement-issue` |
 | Implementation | `implement-issue` | In-scope changes committed per task with evidence | `create-pr` |
@@ -88,7 +88,7 @@ Every skill names its result, the next-owner skill, and what it must not do.
 
 | Skill | Produces | Handoff target | Ownership boundary |
 | --- | --- | --- | --- |
-| `analyze-*` (`analyze-project`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
+| `analyze-*` (`analyze-project`, `triage-issues`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
 | `create-issue` | Problem statement in a compliant change or release Issue | `plan-issue` | Only Issue creator; records the problem and boundaries, but does not investigate the cause, choose an approach, or implement |
 | `plan-issue` | Verified implementation plan with investigated cause and resolved approach (Issue comment) | `implement-issue` | Investigates premises and surfaces decisions; plans only and does not implement |
 | `implement-issue` | In-scope edits committed per task with evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
@@ -183,7 +183,7 @@ Rules:
 
 Every skill writes prose, and each `SKILL.md` carries its own `Writing quality`
 section so the rules reach an installation that has neither `AGENTS.md` nor
-`docs/`. Two tiers divide the 16 skills by where that prose goes. Tier A prose
+`docs/`. Two tiers divide the 17 skills by where that prose goes. Tier A prose
 outlives the conversation, so its section names every surface it binds. Tier B
 prose is the conversational handoff report and nothing else, so its section is
 one sentence.
@@ -191,7 +191,7 @@ one sentence.
 | Tier | Skills | Prose that leaves the conversation |
 | --- | --- | --- |
 | A | `create-issue`, `create-pr`, `plan-issue`, `review-pr`, `fix-pr`, `implement-issue`, `bootstrap-project` | Issue body, Pull Request body, plan comment, review comment, commit message body, files written into the target project |
-| B | `analyze-project`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
+| B | `analyze-project`, `triage-issues`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
 
 A Tier B skill emits no prose deliverable that outlives the conversation, and
 that is why it carries the shorter section rather than no section at all.

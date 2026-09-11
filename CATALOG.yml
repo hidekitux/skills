@@ -107,6 +107,15 @@ skills:
     version: 0.1.0
     layer: analyze
     related: [create-issue]
+  - name: triage-issues
+    summary: Review an Issue backlog for evidence-backed duplicates, stale premises, completion, dependencies, and next work.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: analyze
+    related: [analyze-project, create-issue]
   - name: refactor-code
     summary: Perform small, behavior-preserving code refactorings verified against a test baseline.
     owner: hidekitux

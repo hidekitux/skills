@@ -224,6 +224,23 @@ skills:
       - {heading: Verify the Baseline, classification: invariant}
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
+  - name: triage-issues
+    path: skills/analyze/triage-issues/SKILL.md
+    before_tokens: 1278
+    after_tokens: 1278
+    before_commit: f636594674162bb97515a13c90d20eb2c805d058
+    after_commit: f636594674162bb97515a13c90d20eb2c805d058
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: "1. Define the review", classification: task-procedure}
+      - {heading: "2. Build the evidence record", classification: task-procedure}
+      - {heading: "3. Classify Issue relationships", classification: task-procedure}
+      - {heading: "4. Prioritize and validate", classification: task-procedure}
+      - {heading: Report, classification: task-procedure}
+      - {heading: Read-only boundary, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
   - name: write-tests
     path: skills/fix/write-tests/SKILL.md
     before_tokens: 1238
