@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,6 +16,30 @@ import (
 	"github.com/hidekitux/skills/internal/eval"
 	"github.com/hidekitux/skills/internal/support"
 )
+
+type compactionRunner func(context.Context, *eval.Options, io.Writer, io.Writer) int
+
+func runCompactionSource(ctx context.Context, opts *eval.Options, runner compactionRunner) (int, string, error) {
+	code := runner(ctx, opts, os.Stdout, os.Stderr)
+	reportPath := filepath.Join(opts.OutputDir, opts.RunID+".jsonl")
+	info, err := os.Stat(reportPath)
+	if err != nil {
+		return code, "", fmt.Errorf("%s current report %q is unavailable: %w", opts.InstructionVariant, reportPath, err)
+	}
+	if !info.Mode().IsRegular() {
+		return code, "", fmt.Errorf("%s current report %q is not a regular file", opts.InstructionVariant, reportPath)
+	}
+	records, err := eval.LoadRecords(reportPath)
+	if err != nil {
+		return code, "", fmt.Errorf("%s current report %q is unreadable: %w", opts.InstructionVariant, reportPath, err)
+	}
+	for _, record := range records {
+		if record.RunID != opts.RunID {
+			return code, "", fmt.Errorf("%s current report %q has run ID %q, want %q", opts.InstructionVariant, reportPath, record.RunID, opts.RunID)
+		}
+	}
+	return code, reportPath, nil
+}
 
 func main() {
 	fs := flag.NewFlagSet("evaluate-compaction", flag.ContinueOnError)
@@ -43,7 +68,8 @@ func main() {
 		output = filepath.Join(root, "evaluations", "reports", "compaction", time.Now().UTC().Format("20060102T150405Z"))
 	}
 	hosts := splitList(*hostFlag)
-	common := func(skillRoot, variant, reportDir string) int {
+	runID := time.Now().UTC().Format("20060102T150405.000000000Z")
+	runSource := func(skillRoot, variant, reportDir string) (int, string, error) {
 		opts := &eval.Options{
 			Root:               root,
 			SkillRoot:          skillRoot,
@@ -52,26 +78,29 @@ func main() {
 			SmokeOnly:          *smokeOnly,
 			Skills:             splitList(*skillsFlag),
 			OutputDir:          reportDir,
+			RunID:              runID + "-" + variant,
 			ContextMode:        "compiled",
 		}
 		if *reviewerFlag != "" {
 			opts.Reviewer = &eval.CommandReviewer{Command: *reviewerFlag}
 		}
-		return eval.Run(context.Background(), opts, os.Stdout, os.Stderr)
+		return runCompactionSource(context.Background(), opts, eval.Run)
 	}
 	fullDir := filepath.Join(output, "full")
 	compactDir := filepath.Join(output, "compact")
-	fullCode := common(*fullFlag, "full", fullDir)
-	compactCode := common(*compactFlag, "compact", compactDir)
-	fullReport, err := eval.LatestReport(fullDir)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "evaluate-compaction: full report: %v\n", err)
-		os.Exit(2)
-	}
-	compactReport, err := eval.LatestReport(compactDir)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "evaluate-compaction: compact report: %v\n", err)
-		os.Exit(2)
+	fullCode, fullReport, fullErr := runSource(*fullFlag, "full", fullDir)
+	compactCode, compactReport, compactErr := runSource(*compactFlag, "compact", compactDir)
+	if fullErr != nil || compactErr != nil {
+		if fullErr != nil {
+			fmt.Fprintf(os.Stderr, "evaluate-compaction: full report: %v\n", fullErr)
+		}
+		if compactErr != nil {
+			fmt.Fprintf(os.Stderr, "evaluate-compaction: compact report: %v\n", compactErr)
+		}
+		if fullCode == eval.ExitUsage || compactCode == eval.ExitUsage {
+			os.Exit(eval.ExitUsage)
+		}
+		os.Exit(eval.ExitInfra)
 	}
 	pair, err := eval.CompareReports(fullReport, compactReport)
 	if err != nil {
