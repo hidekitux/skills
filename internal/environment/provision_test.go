@@ -2,6 +2,7 @@ package environment
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,12 +14,13 @@ import (
 
 type provisioningRunner struct {
 	setupCalls int
+	setupErr   error
 }
 
 func (r *provisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
 	if name == "mise" {
 		r.setupCalls++
-		return "", nil
+		return "", r.setupErr
 	}
 	return (OSCommandRunner{}).Run(ctx, dir, env, name, args...)
 }
@@ -65,6 +67,13 @@ func TestProvisionReadOnlySnapshotRunsSetupAndDeniesMutation(t *testing.T) {
 	output, err := cmd.CombinedOutput()
 	if err == nil || !strings.Contains(string(output), "denied") {
 		t.Fatalf("read-only branch deletion was not denied: err=%v output=%q", err, output)
+	}
+	policyGH := filepath.Join(result.PolicyDir, "bin", "gh")
+	remote := exec.Command(policyGH, "issue", "close", "199")
+	remote.Dir = destination
+	remoteOutput, remoteErr := remote.CombinedOutput()
+	if remoteErr == nil || !strings.Contains(string(remoteOutput), "skill-environment") {
+		t.Fatalf("read-only GitHub mutation was not denied: err=%v output=%q", remoteErr, remoteOutput)
 	}
 }
 
@@ -129,6 +138,72 @@ func TestProvisionWriteProfileFailsWithoutIssueVerification(t *testing.T) {
 	}
 }
 
+func TestProvisionRejectsWrongAndConcurrentIssueWorktrees(t *testing.T) {
+	root, revision := testRepository(t)
+	makeProvisioner := func() Provisioner {
+		return Provisioner{
+			Root: root,
+			Graph: &graph.Graph{
+				SchemaVersion: 1,
+				Skills: []graph.Skill{{
+					ID:        "implement-issue",
+					Authority: graph.Authority{Repository: "write", Git: "write", GitHub: "read", ExternalMutation: "none"},
+				}},
+			},
+			Runner: &provisioningRunner{},
+			VerifyIssue: func(_ context.Context, issue int) error {
+				if issue != 199 {
+					t.Fatalf("verified issue = %d, want 199", issue)
+				}
+				return nil
+			},
+		}
+	}
+
+	wrongPath := filepath.Join(t.TempDir(), "wrong-branch")
+	addWorktree(t, root, wrongPath, "-b", "unrelated", revision)
+	_, err := makeProvisioner().Provision(context.Background(), ProvisionRequest{
+		SkillID: "implement-issue", Destination: wrongPath, Revision: revision, IssueNumber: 199,
+	})
+	if err == nil || !strings.Contains(err.Error(), "destination is owned by branch unrelated") {
+		t.Fatalf("wrong branch was not rejected: %v", err)
+	}
+
+	ownedPath := filepath.Join(t.TempDir(), "owned-branch")
+	addWorktree(t, root, ownedPath, "-b", "issue/199", revision)
+	_, err = makeProvisioner().Provision(context.Background(), ProvisionRequest{
+		SkillID: "implement-issue", Destination: filepath.Join(t.TempDir(), "concurrent"), Revision: revision, IssueNumber: 199,
+	})
+	if err == nil || !strings.Contains(err.Error(), "already owned") {
+		t.Fatalf("concurrent branch was not rejected: %v", err)
+	}
+}
+
+func TestProvisionStopsBeforeExecutionWhenSetupFails(t *testing.T) {
+	root, revision := testRepository(t)
+	runner := &provisioningRunner{setupErr: errors.New("mise unavailable")}
+	provisioner := Provisioner{
+		Root: root,
+		Graph: &graph.Graph{
+			SchemaVersion: 1,
+			Skills: []graph.Skill{{
+				ID:        "plan-issue",
+				Authority: graph.Authority{Repository: "read", Git: "read", GitHub: "read", ExternalMutation: "none"},
+			}},
+		},
+		Runner: runner,
+	}
+	_, err := provisioner.Provision(context.Background(), ProvisionRequest{
+		SkillID: "plan-issue", Destination: filepath.Join(t.TempDir(), "snapshot"), Revision: revision,
+	})
+	if err == nil || !strings.Contains(err.Error(), "setup:all") {
+		t.Fatalf("setup failure was not fatal: %v", err)
+	}
+	if runner.setupCalls != 1 {
+		t.Fatalf("setup calls = %d, want 1", runner.setupCalls)
+	}
+}
+
 func TestCleanupRetainsActiveOrMaterialWorktree(t *testing.T) {
 	provisioner, result := provisionIssueEnvironment(t)
 
@@ -157,6 +232,21 @@ func TestCleanupRetainsActiveOrMaterialWorktree(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(result.WorkspacePath, "README.md"), []byte("fixture\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.WriteFile(filepath.Join(result.WorkspacePath, "README.md"), []byte("unpushed\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runFixtureGit(t, result.WorkspacePath, "add", "README.md")
+	runFixtureGit(t, result.WorkspacePath, "commit", "-q", "-m", "unpushed fixture")
+	unpushed, err := provisioner.Cleanup(context.Background(), CleanupRequest{
+		Provisioned: result, ReviewApproved: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if unpushed.Cleanup != CleanupBlockedMaterial {
+		t.Fatalf("unpushed cleanup = %q, want %q", unpushed.Cleanup, CleanupBlockedMaterial)
+	}
+	runFixtureGit(t, result.WorkspacePath, "reset", "--hard", result.Manifest.RepositoryRevision)
 	removed, err := provisioner.Cleanup(context.Background(), CleanupRequest{
 		Provisioned: result, ReviewApproved: true,
 	})
@@ -224,6 +314,27 @@ func testRepository(t *testing.T) (string, string) {
 	run("add", "README.md")
 	run("commit", "-q", "-m", "fixture")
 	return root, run("rev-parse", "HEAD")
+}
+
+func addWorktree(t *testing.T, root, destination string, branchArgs ...string) {
+	t.Helper()
+	args := append([]string{"worktree", "add"}, append(branchArgs[:len(branchArgs)-1], destination, branchArgs[len(branchArgs)-1])...)
+	cmd := exec.Command("git", args...)
+	cmd.Dir = root
+	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git %v: %v\n%s", args, err, output)
+	}
+}
+
+func runFixtureGit(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git %v: %v\n%s", args, err, output)
+	}
 }
 
 func fileMode(t *testing.T, path string) os.FileMode {
