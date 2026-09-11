@@ -34,7 +34,11 @@ The OpenCode CLI is not part of this setup. The models are provided by OpenCode 
 
 ## Subagent use
 
-Use Subagents only for work that is independent, read-only, and parallelizable with bounded context. Do not use them for deterministic checks, single-session edits, or work that must share mutable state.
+Use Subagents only under the bounded deliberation policy in
+[docs/multi-agent-deliberation.md](multi-agent-deliberation.md). The policy
+keeps deterministic checks and ordinary work on one agent, and it defines the
+signals, isolation, authority, concurrency, termination, and cost bounds for
+the rare cases where independent reasoning may improve a decision.
 
 ## Fallback
 
