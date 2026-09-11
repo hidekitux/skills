@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -77,6 +78,65 @@ func TestValidateAcceptsSafeDiagnosticReference(t *testing.T) {
 	}
 	if report := Validate(trace); !report.Valid {
 		t.Fatalf("safe diagnostic reference rejected: %v", report.Findings)
+	}
+}
+
+func validDeliberation() Deliberation {
+	return Deliberation{
+		Pattern: "independent-candidates", Signals: []string{"security-sensitivity"},
+		Reason: "independent-review-improves-abuse-path-coverage", Independence: "isolated-context",
+		Authority: "read-only", Concurrency: "parallel-read-only",
+		Bounds: DeliberationBounds{MaxAgents: 2, MaxRetries: 1, MaxElapsedMillis: 300000, MaxInputTokens: 4000, MaxOutputTokens: 4000, MaxCostMicros: 250000},
+		Candidates: []Candidate{
+			{ID: "candidate-a", Result: "no-finding", Evidence: []Evidence{{Kind: "command", Ref: "check-repository", Result: "passed"}}},
+			{ID: "candidate-b", Result: "finding-reviewed", Evidence: []Evidence{{Kind: "command", Ref: "check-repository", Result: "passed"}}},
+		},
+		Judge:        &Judge{Decision: "finding-reviewed", Evidence: []Evidence{{Kind: "command", Ref: "check-repository", Result: "passed"}}},
+		MarginalCost: &MarginalCost{Available: true, ElapsedMillis: 3000, Retries: 0},
+	}
+}
+
+func TestValidateAcceptsBoundedDeliberation(t *testing.T) {
+	trace := validTrace()
+	trace.Deliberation = func() *Deliberation { value := validDeliberation(); return &value }()
+	if report := Validate(trace); !report.Valid {
+		t.Fatalf("valid deliberation rejected: %v", report.Findings)
+	}
+}
+
+func TestValidateRejectsUnboundedDeliberation(t *testing.T) {
+	trace := validTrace()
+	deliberation := validDeliberation()
+	deliberation.Bounds.MaxRetries = -1
+	deliberation.Judge = nil
+	deliberation.Concurrency = "shared-mutation"
+	trace.Deliberation = &deliberation
+	findings := Validate(trace).Findings
+	for _, want := range []string{"max_retries must not be negative", "must be read-only without shared mutation", "requires a judge"} {
+		if !contains(findings, want) {
+			t.Errorf("finding %q missing from %v", want, findings)
+		}
+	}
+}
+
+func TestSanitizeDeliberationOmitsUnsafeEvidence(t *testing.T) {
+	trace := validTrace()
+	deliberation := validDeliberation()
+	deliberation.Candidates[0].Evidence = append(deliberation.Candidates[0].Evidence, Evidence{Kind: "path", Ref: "https://private.example/source"})
+	trace.Deliberation = &deliberation
+	clean, err := Sanitize(trace)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(clean.Deliberation.Candidates[0].Evidence) != 1 || !contains(clean.Redaction.OmittedFields, "deliberation.candidates.evidence.ref") {
+		t.Fatalf("unsafe deliberation evidence was not omitted: %#v", clean)
+	}
+	encoded, err := json.Marshal(clean)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "private.example") {
+		t.Fatalf("private deliberation evidence survived: %s", encoded)
 	}
 }
 

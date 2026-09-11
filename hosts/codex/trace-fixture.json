@@ -6,6 +6,21 @@
   "model": "gpt-5",
   "repository_revision": "0123456789abcdef0123456789abcdef01234567",
   "started_at": "2026-09-09T12:00:00Z",
+  "deliberation": {
+    "pattern": "independent-candidates",
+    "signals": ["security-sensitivity"],
+    "reason": "independent-review-improves-abuse-path-coverage",
+    "independence": "isolated-context",
+    "authority": "read-only",
+    "concurrency": "parallel-read-only",
+    "bounds": {"max_agents": 2, "max_retries": 1, "max_elapsed_millis": 300000, "max_input_tokens": 4000, "max_output_tokens": 4000, "max_cost_micros": 250000},
+    "candidates": [
+      {"id": "candidate-a", "result": "no-finding", "evidence": [{"kind": "command", "ref": "check-repository", "result": "passed"}]},
+      {"id": "candidate-b", "result": "finding-reviewed", "evidence": [{"kind": "command", "ref": "check-repository", "result": "passed"}]}
+    ],
+    "judge": {"decision": "finding-reviewed", "evidence": [{"kind": "command", "ref": "check-repository", "result": "passed"}]},
+    "marginal_cost": {"available": true, "input_tokens": 120, "output_tokens": 80, "context_tokens": 240, "cost_micros": 12, "elapsed_millis": 3000, "retries": 0}
+  },
   "events": [
     {"sequence": 1, "at": "2026-09-09T12:00:00Z", "type": "session_start"},
     {"sequence": 2, "at": "2026-09-09T12:00:01Z", "type": "todo", "item_id": "discover", "from": "pending", "to": "in_progress"},
