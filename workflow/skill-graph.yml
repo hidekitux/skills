@@ -320,6 +320,10 @@ context:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
+    triage-issues:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
     refactor-code:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
@@ -582,6 +586,26 @@ skills:
         artifact: analysis-findings
         destination: {skill: create-issue}
       - id: stop-with-analysis-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: triage-issues
+    path: skills/analyze/triage-issues/SKILL.md
+    layer: analyze
+    capabilities: [inspect-issues, compare-requirements, prioritize-findings]
+    inputs: [repository-context]
+    outputs: [analysis-findings, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-change-issue
+        outcome: success
+        artifact: analysis-findings
+        destination: {skill: create-issue}
+      - id: stop-with-triage-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}

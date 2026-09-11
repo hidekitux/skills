@@ -38,6 +38,7 @@ requires every graph node to occur exactly once between the markers.
 - `refactor-code`
 - `resolve-defect`
 - `review-pr`
+- `triage-issues`
 - `write-tests`
 <!-- skills:graph-inventory:end -->
 
