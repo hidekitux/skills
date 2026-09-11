@@ -202,20 +202,12 @@ func PlanBackfill(run Runner, cfg *Config, repo string) ([]BackfillPlan, []Issue
 // untouched, so repeated runs are idempotent and cheap.
 func ApplyBackfill(run Runner, cfg *Config, plans []BackfillPlan) (int, error) {
 	client := NewClient(run, cfg.Project.Owner)
-	number, projectID, err := client.ProjectTarget(cfg)
-	if err != nil {
-		return 0, err
-	}
-	fields, err := client.resolvedFields(cfg, number)
-	if err != nil {
-		return 0, err
-	}
-	items, err := client.Items(number)
+	snapshot, err := client.projectSnapshot(cfg, true)
 	if err != nil {
 		return 0, err
 	}
 	byURL := map[string]itemDTO{}
-	for _, item := range items {
+	for _, item := range snapshot.items {
 		byURL[item.Content.URL] = item
 	}
 
@@ -225,7 +217,7 @@ func ApplyBackfill(run Runner, cfg *Config, plans []BackfillPlan) (int, error) {
 		// missing option never leaves a partially mutated item.
 		desiredIDs := map[string]string{}
 		for _, role := range RequiredFields {
-			optionID, err := optionID(fields, role, planValue(plan, role))
+			optionID, err := optionID(snapshot.fields, role, planValue(plan, role))
 			if err != nil {
 				return processed, err
 			}
@@ -237,12 +229,12 @@ func ApplyBackfill(run Runner, cfg *Config, plans []BackfillPlan) (int, error) {
 		itemID := ""
 		if exists {
 			itemID = item.ID
-			current, err = itemFieldNames(item, fields)
+			current, err = itemFieldNames(item, snapshot.fields)
 			if err != nil {
 				return processed, err
 			}
 		} else {
-			itemID, err = client.addItemUnchecked(number, plan.Issue.URL)
+			itemID, err = client.addItemUnchecked(snapshot.number, plan.Issue.URL)
 			if err != nil {
 				return processed, err
 			}
@@ -253,7 +245,7 @@ func ApplyBackfill(run Runner, cfg *Config, plans []BackfillPlan) (int, error) {
 			if exists && current[role] == planValue(plan, role) {
 				continue
 			}
-			if err := client.SetSingleSelect(projectID, itemID, fields[role].ID, desiredIDs[role]); err != nil {
+			if err := client.SetSingleSelect(snapshot.id, itemID, snapshot.fields[role].ID, desiredIDs[role]); err != nil {
 				return processed, err
 			}
 		}
@@ -280,20 +272,12 @@ func planValue(plan BackfillPlan, role string) string {
 // Projects API rate budget.
 func VerifyBackfill(run Runner, cfg *Config, plans []BackfillPlan) error {
 	client := NewClient(run, cfg.Project.Owner)
-	number, err := client.ProjectNumber(cfg)
-	if err != nil {
-		return err
-	}
-	fields, err := client.resolvedFields(cfg, number)
-	if err != nil {
-		return err
-	}
-	items, err := client.Items(number)
+	snapshot, err := client.projectSnapshot(cfg, true)
 	if err != nil {
 		return err
 	}
 	byURL := map[string]itemDTO{}
-	for _, item := range items {
+	for _, item := range snapshot.items {
 		byURL[item.Content.URL] = item
 	}
 	for _, plan := range plans {
@@ -301,7 +285,7 @@ func VerifyBackfill(run Runner, cfg *Config, plans []BackfillPlan) error {
 		if !exists {
 			return fmt.Errorf("Issue %s has no item in the declared Project; expected exactly one", plan.Issue.URL)
 		}
-		current, err := itemFieldNames(item, fields)
+		current, err := itemFieldNames(item, snapshot.fields)
 		if err != nil {
 			return err
 		}
