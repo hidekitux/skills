@@ -68,11 +68,11 @@ Never use `--force` to check out `main` in multiple worktrees.
 ## Layout and skill contract
 
 ```text
-skills/<skill-name>/SKILL.md
-skills/<namespace>/<skill-name>/SKILL.md
+skills/<category>/<skill-name>/SKILL.md
+skills/<namespace>/<skill-name>/SKILL.md  # supported for arbitrary namespaces
 ```
 
-Every skill requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/` with shared packages under `internal/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
+Every published skill uses a category directory and requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. The category is not part of the public skill name. See [`skills/README.md`](skills/README.md) for the category map and task navigation. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/` with shared packages under `internal/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
