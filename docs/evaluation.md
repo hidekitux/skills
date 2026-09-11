@@ -200,10 +200,15 @@ mise run evaluate:all -- --host opencode,antigravity --skills plan-issue
 mise run evaluate:compaction -- --full-skill-root <full-root> --compact-skill-root <compact-root> --host codex,claude-code
 ```
 
-The compaction command writes one JSONL report per source and a paired
-`comparison.json` plus `comparison.md`. It preserves deterministic failures,
-skips, infrastructure errors, and pending rubric review as distinct evidence;
-it exits inconclusive when either required host cannot produce usable evidence.
+The compaction command assigns a distinct run ID to each source and reads the
+exact JSONL report for that run. It does not select the newest file from a
+reused output directory. A missing current report is an infrastructure failure,
+even when an older report remains readable. The command writes one JSONL report
+per source and a paired `comparison.json` plus `comparison.md`; both paired
+artifacts include the full and compact run IDs. It preserves deterministic
+failures, skips, infrastructure errors, and pending rubric review as distinct
+evidence; it exits inconclusive when either required host cannot produce usable
+evidence.
 
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
 `claude-code` (needs login; default `claude-sonnet-5`), `opencode` (reads
