@@ -1,6 +1,8 @@
 package eval
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 
 	executionstrategy "github.com/hidekitux/skills/internal/strategy"
@@ -28,8 +30,18 @@ func TestSelectExecutionStrategyRecordsAdaptiveBaselineComparison(t *testing.T) 
 	if decision.Strategy != "high-risk-deliberated" || comparison == nil {
 		t.Fatalf("decision=%#v comparison=%#v", decision, comparison)
 	}
-	if !comparison.Changed || !comparison.SafetyPreserved || comparison.ValidationTierDelta != 1 || !comparison.ParallelismChanged {
+	if !comparison.Changed || !comparison.PolicySafetyFloorPreserved || comparison.ValidationTierDelta != 1 || !comparison.ParallelismChanged {
 		t.Fatalf("comparison=%#v", comparison)
+	}
+	if comparison.Status != "unavailable" || comparison.UnavailableReason == "" {
+		t.Fatalf("comparison availability = %#v, want explicit unavailable reason", comparison)
+	}
+	encoded, err := json.Marshal(comparison)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "quality_delta") {
+		t.Fatalf("unmeasured quality delta was reported: %s", encoded)
 	}
 }
 

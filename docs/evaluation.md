@@ -36,14 +36,12 @@ a human-readable Markdown summary under `evaluations/reports/`.
 ## Execution strategy comparison
 
 Issue 204 adds optional `execution_strategy` inputs to scenarios. The evaluator
-selects the adaptive strategy from the repository policy and compares it with
-a named fixed profile. The record reports the selected outcome, validation
-tier, retry and elapsed-time bounds, parallelism, and whether the adaptive
-path changed while preserving its safety floor. The quality delta is based on
-the same deterministic scenario assertions, so it is zero when both paths
-share the assertions. Provider token and cost usage remains unavailable unless
-the host driver exposes it; the report does not turn unavailable usage into
-zero.
+selects the adaptive strategy from the repository policy and records its
+policy difference from a named fixed profile. Because the current HostRunner
+contract cannot execute a second run with a strategy override, the comparison
+is explicitly `unavailable` with a reason. The report does not infer a
+completion result, quality delta, latency, token usage, cost, or retry count
+from the single adaptive run.
 
 ## Bounded deliberation comparison
 
