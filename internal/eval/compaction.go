@@ -120,6 +120,12 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 		if left.PromptSHA != right.PromptSHA {
 			result.Reasons = append(result.Reasons, "prompt hash changed")
 		}
+		if left.Verdict == VerdictInterrupted {
+			result.Reasons = append(result.Reasons, "full source was interrupted")
+		}
+		if right.Verdict == VerdictInterrupted {
+			result.Reasons = append(result.Reasons, "compact source was interrupted")
+		}
 		switch {
 		case left.Verdict == VerdictPass && right.Verdict == VerdictFail:
 			result.Reasons = append(result.Reasons, "compact source lost a deterministic pass")
@@ -138,6 +144,8 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 			result.Reasons = append(result.Reasons, "rubric evidence pending")
 		}
 		switch {
+		case containsReason(result.Reasons, "source was interrupted"):
+			result.Status = "inconclusive"
 		case containsReason(result.Reasons, "compact source lost a deterministic pass"):
 			result.Status = "fail"
 		case len(result.Reasons) == 0:
