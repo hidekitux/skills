@@ -1,0 +1,4 @@
+interface:
+  display_name: "Triage Issues"
+  short_description: "Review Issues and recommend the next work."
+  default_prompt: "Use $triage-issues to review the backlog and recommend an evidence-backed order without changing Issues."
