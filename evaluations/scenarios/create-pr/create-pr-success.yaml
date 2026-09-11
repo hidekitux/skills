@@ -9,6 +9,8 @@ prompt: |
   The implementation branch issue/173-implement is validated locally with a
   passing suite. Open the pull request for the change issue following the
   repository policy, without duplicating an existing pull request.
+context_signals:
+  task_kind: pull-request
 expectations:
   handoff: review-pr
   transcript_must:
