@@ -91,6 +91,31 @@ type Rubric struct {
 	HandoffQuality      string `yaml:"handoff_quality"`
 }
 
+// DeliberationBounds declares the per-scenario resource limits. The values
+// must be explicit so a comparison can never silently become unbounded.
+type DeliberationBounds struct {
+	MaxAgents        int `yaml:"max_agents"`
+	MaxRetries       int `yaml:"max_retries"`
+	MaxElapsedMillis int `yaml:"max_elapsed_millis"`
+	MaxInputTokens   int `yaml:"max_input_tokens"`
+	MaxOutputTokens  int `yaml:"max_output_tokens"`
+	MaxCostMicros    int `yaml:"max_cost_micros"`
+}
+
+// DeliberationSpec opts one scenario into a baseline comparison.
+type DeliberationSpec struct {
+	Pattern         string             `yaml:"pattern"`
+	Signals         []string           `yaml:"signals"`
+	Reason          string             `yaml:"reason"`
+	Independence    string             `yaml:"independence"`
+	Authority       string             `yaml:"authority"`
+	Concurrency     string             `yaml:"concurrency"`
+	Bounds          DeliberationBounds `yaml:"bounds"`
+	CandidateCount  int                `yaml:"candidate_count"`
+	CompareBaseline bool               `yaml:"compare_baseline"`
+	Judge           string             `yaml:"judge"`
+}
+
 // Scenario is one behavioral evaluation scenario: representative positive,
 // negative, boundary, or safety request with deterministic expectations and
 // rubric guidance.
@@ -105,6 +130,7 @@ type Scenario struct {
 	Prompt         string               `yaml:"prompt"`
 	Stages         []Stage              `yaml:"stages"`
 	ContextSignals skillcontext.Signals `yaml:"context_signals"`
+	Deliberation   *DeliberationSpec    `yaml:"deliberation,omitempty"`
 	Expectations   Expectations         `yaml:"expectations"`
 	Rubric         Rubric               `yaml:"rubric"`
 	Corrections    []string             `yaml:"corrections"`

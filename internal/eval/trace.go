@@ -33,6 +33,7 @@ func traceForRecord(sc *Scenario, record Record, graphVersion int, skillVersion 
 		RepositoryRevision: normalizedRevision(record.Commit),
 		StartedAt:          started,
 		Context:            record.Context,
+		Deliberation:       record.Deliberation,
 		Usage:              &trace.Usage{Available: false, ElapsedMillis: record.ElapsedMillis},
 		Terminal:           terminal,
 		Redaction:          trace.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}, RetentionDays: trace.DefaultRetentionDays},
