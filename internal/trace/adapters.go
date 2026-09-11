@@ -18,6 +18,7 @@ func AdaptCodex(data []byte) (Trace, error) {
 		SkillVersion: input.Skill.Version, GraphVersion: input.GraphVersion,
 		Host: input.Host.Name, HostVersion: input.Host.Version, Model: input.Model,
 		RepositoryRevision: input.RepositoryRevision, StartedAt: input.StartedAt,
+		Deliberation: input.Deliberation,
 	}
 	for _, event := range input.Events {
 		converted, err := convertCodexEvent(event)
@@ -44,6 +45,7 @@ func AdaptClaudeCode(data []byte) (Trace, error) {
 		SkillVersion: input.SkillVersion, GraphVersion: input.GraphSchema,
 		Host: "claude-code", HostVersion: input.ProviderVersion, Model: input.Model,
 		RepositoryRevision: input.RepositoryRevision, StartedAt: input.StartedAt,
+		Deliberation: input.Deliberation,
 	}
 	for _, event := range input.Events {
 		converted, err := convertClaudeEvent(event)
@@ -67,6 +69,7 @@ type codexEnvelope struct {
 	Model              string        `json:"model"`
 	RepositoryRevision string        `json:"repository_revision"`
 	StartedAt          string        `json:"started_at"`
+	Deliberation       *Deliberation `json:"deliberation,omitempty"`
 	Events             []codexEvent  `json:"events"`
 }
 
@@ -116,6 +119,7 @@ type claudeEnvelope struct {
 	Model              string        `json:"model"`
 	RepositoryRevision string        `json:"repository_revision"`
 	StartedAt          string        `json:"started_at"`
+	Deliberation       *Deliberation `json:"deliberation,omitempty"`
 	Events             []claudeEvent `json:"events"`
 }
 

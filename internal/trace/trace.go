@@ -25,7 +25,7 @@ import (
 
 const (
 	// CurrentSchemaVersion is the version implemented by this package.
-	CurrentSchemaVersion = 2
+	CurrentSchemaVersion = 3
 	// DefaultRetentionDays bounds the local retention period for persisted traces.
 	DefaultRetentionDays = 30
 )
@@ -69,6 +69,7 @@ type Trace struct {
 	StartedAt          string                 `json:"started_at"`
 	Usage              *Usage                 `json:"usage,omitempty"`
 	Context            *skillcontext.Manifest `json:"context,omitempty"`
+	Deliberation       *Deliberation          `json:"deliberation,omitempty"`
 	Events             []Event                `json:"events"`
 	Terminal           Terminal               `json:"terminal"`
 	Redaction          RedactionSummary       `json:"redaction"`
@@ -139,6 +140,57 @@ type Retry struct {
 	Attempt     int    `json:"attempt"`
 	MaxAttempts int    `json:"max_attempts"`
 	Reason      string `json:"reason"`
+}
+
+// Deliberation records the privacy-safe routing and result summary for a
+// single-agent or bounded multi-agent decision. It never stores raw model
+// output, prompts, reasoning, or tool arguments.
+type Deliberation struct {
+	Pattern      string             `json:"pattern"`
+	Signals      []string           `json:"signals"`
+	Reason       string             `json:"reason"`
+	Independence string             `json:"independence"`
+	Authority    string             `json:"authority"`
+	Concurrency  string             `json:"concurrency"`
+	Bounds       DeliberationBounds `json:"bounds"`
+	Candidates   []Candidate        `json:"candidates,omitempty"`
+	Judge        *Judge             `json:"judge,omitempty"`
+	MarginalCost *MarginalCost      `json:"marginal_cost,omitempty"`
+}
+
+// DeliberationBounds are explicit upper limits for one deliberation run.
+type DeliberationBounds struct {
+	MaxAgents        int `json:"max_agents"`
+	MaxRetries       int `json:"max_retries"`
+	MaxElapsedMillis int `json:"max_elapsed_millis"`
+	MaxInputTokens   int `json:"max_input_tokens"`
+	MaxOutputTokens  int `json:"max_output_tokens"`
+	MaxCostMicros    int `json:"max_cost_micros"`
+}
+
+// Candidate is a sanitized candidate outcome and safe evidence pointer.
+type Candidate struct {
+	ID       string     `json:"id"`
+	Result   string     `json:"result"`
+	Evidence []Evidence `json:"evidence"`
+}
+
+// Judge records an evidence-backed decision without the judge's raw output.
+type Judge struct {
+	Decision string     `json:"decision"`
+	Evidence []Evidence `json:"evidence"`
+}
+
+// MarginalCost records the additional measured cost of deliberation over the
+// single-agent baseline. Unavailable meters are represented by Available=false.
+type MarginalCost struct {
+	Available     bool   `json:"available"`
+	InputTokens   *int64 `json:"input_tokens,omitempty"`
+	OutputTokens  *int64 `json:"output_tokens,omitempty"`
+	ContextTokens *int64 `json:"context_tokens,omitempty"`
+	CostMicros    *int64 `json:"cost_micros,omitempty"`
+	ElapsedMillis int64  `json:"elapsed_millis"`
+	Retries       int    `json:"retries"`
 }
 
 // Terminal records the final run state.
@@ -232,6 +284,9 @@ func Validate(t Trace) ValidationReport {
 	findings = append(findings, validateUsage(t.Usage)...)
 	if t.Context != nil {
 		findings = append(findings, skillcontext.ValidateManifest(*t.Context)...)
+	}
+	if t.Deliberation != nil {
+		findings = append(findings, validateDeliberation(*t.Deliberation)...)
 	}
 	findings = append(findings, validateEvents(t.Events)...)
 	findings = append(findings, validateTerminal(t.Terminal)...)
@@ -439,6 +494,125 @@ func validateRetry(retry Retry) []string {
 	return findings
 }
 
+func validateDeliberation(deliberation Deliberation) []string {
+	findings := []string{}
+	if !oneOf(deliberation.Pattern, "single-agent", "independent-candidates", "fan-out-investigation", "judge") {
+		findings = append(findings, "deliberation.pattern is invalid")
+	}
+	if len(deliberation.Signals) == 0 || len(deliberation.Signals) > 5 {
+		findings = append(findings, "deliberation.signals must contain between 1 and 5 signals")
+	}
+	seenSignals := map[string]bool{}
+	for index, signal := range deliberation.Signals {
+		if !validIdentifier(signal) {
+			findings = append(findings, fmt.Sprintf("deliberation.signals[%d] is invalid", index))
+		}
+		if seenSignals[signal] {
+			findings = append(findings, fmt.Sprintf("deliberation.signals[%d] is duplicated", index))
+		}
+		seenSignals[signal] = true
+	}
+	for name, value := range map[string]string{
+		"reason": deliberation.Reason, "independence": deliberation.Independence,
+		"authority": deliberation.Authority, "concurrency": deliberation.Concurrency,
+	} {
+		if !validIdentifier(value) {
+			findings = append(findings, "deliberation."+name+" is invalid")
+		}
+	}
+	findings = append(findings, validateDeliberationBounds(deliberation.Bounds)...)
+	if deliberation.Pattern == "single-agent" {
+		if len(deliberation.Candidates) != 0 || deliberation.Judge != nil {
+			findings = append(findings, "single-agent deliberation cannot contain candidates or a judge")
+		}
+		if deliberation.Bounds.MaxAgents != 1 || deliberation.Concurrency != "serial" {
+			findings = append(findings, "single-agent deliberation must be serial and allow one agent")
+		}
+		return findings
+	}
+	if deliberation.Independence != "isolated-context" && deliberation.Pattern != "judge" {
+		findings = append(findings, "multi-agent deliberation requires isolated-context independence")
+	}
+	if deliberation.Authority != "read-only" || deliberation.Concurrency == "shared-mutation" {
+		findings = append(findings, "multi-agent deliberation must be read-only without shared mutation")
+	}
+	if len(deliberation.Candidates) < 2 {
+		findings = append(findings, "multi-agent deliberation requires at least two candidates")
+	}
+	if len(deliberation.Candidates) > deliberation.Bounds.MaxAgents {
+		findings = append(findings, "deliberation candidates exceed max_agents")
+	}
+	seenCandidates := map[string]bool{}
+	for index, candidate := range deliberation.Candidates {
+		if !validIdentifier(candidate.ID) || !validIdentifier(candidate.Result) {
+			findings = append(findings, fmt.Sprintf("deliberation.candidates[%d] has an invalid id or result", index))
+		}
+		if seenCandidates[candidate.ID] {
+			findings = append(findings, fmt.Sprintf("deliberation.candidates[%d].id is duplicated", index))
+		}
+		seenCandidates[candidate.ID] = true
+		if len(candidate.Evidence) == 0 {
+			findings = append(findings, fmt.Sprintf("deliberation.candidates[%d] requires evidence", index))
+		}
+		for _, evidence := range candidate.Evidence {
+			findings = append(findings, prefixFindings("deliberation.candidates["+fmt.Sprint(index)+"].evidence", validateEvidence(evidence))...)
+		}
+	}
+	if deliberation.Judge == nil {
+		findings = append(findings, "multi-agent deliberation requires a judge")
+	} else {
+		if !validIdentifier(deliberation.Judge.Decision) {
+			findings = append(findings, "deliberation.judge.decision is invalid")
+		}
+		if len(deliberation.Judge.Evidence) == 0 {
+			findings = append(findings, "deliberation.judge requires evidence")
+		}
+		for _, evidence := range deliberation.Judge.Evidence {
+			findings = append(findings, prefixFindings("deliberation.judge.evidence", validateEvidence(evidence))...)
+		}
+	}
+	if deliberation.MarginalCost == nil {
+		findings = append(findings, "multi-agent deliberation requires marginal_cost")
+	} else {
+		findings = append(findings, validateMarginalCost(*deliberation.MarginalCost)...)
+	}
+	return findings
+}
+
+func validateDeliberationBounds(bounds DeliberationBounds) []string {
+	findings := []string{}
+	if bounds.MaxAgents < 1 || bounds.MaxAgents > 3 {
+		findings = append(findings, "deliberation.bounds.max_agents must be between 1 and 3")
+	}
+	if bounds.MaxRetries < 0 {
+		findings = append(findings, "deliberation.bounds.max_retries must not be negative")
+	}
+	if bounds.MaxElapsedMillis < 1 || bounds.MaxInputTokens < 1 || bounds.MaxOutputTokens < 1 || bounds.MaxCostMicros < 1 {
+		findings = append(findings, "deliberation.bounds must contain positive elapsed, token, and cost limits")
+	}
+	return findings
+}
+
+func validateMarginalCost(cost MarginalCost) []string {
+	findings := []string{}
+	if cost.ElapsedMillis < 0 || cost.Retries < 0 {
+		findings = append(findings, "deliberation.marginal_cost elapsed and retries must not be negative")
+	}
+	for name, value := range map[string]*int64{"input_tokens": cost.InputTokens, "output_tokens": cost.OutputTokens, "context_tokens": cost.ContextTokens, "cost_micros": cost.CostMicros} {
+		if value != nil && *value < 0 {
+			findings = append(findings, "deliberation.marginal_cost."+name+" must not be negative")
+		}
+	}
+	return findings
+}
+
+func prefixFindings(prefix string, findings []string) []string {
+	for index := range findings {
+		findings[index] = prefix + "." + findings[index]
+	}
+	return findings
+}
+
 func validateTerminal(terminal Terminal) []string {
 	findings := []string{}
 	if !oneOf(terminal.Status, "success", "failed", "skipped", "interrupted", "infrastructure_error") {
@@ -526,6 +700,11 @@ func Sanitize(input Trace) (Trace, error) {
 	}
 	output.RepositoryRevision = strings.ToLower(input.RepositoryRevision)
 	output.StartedAt = input.StartedAt
+	if input.Deliberation != nil {
+		cleaned, omitted := sanitizeDeliberation(*input.Deliberation, redact)
+		output.Deliberation = &cleaned
+		output.Redaction.OmittedFields = append(output.Redaction.OmittedFields, omitted...)
+	}
 	output.Events = make([]Event, 0, len(input.Events))
 	for _, event := range input.Events {
 		copyEvent := event
@@ -591,6 +770,55 @@ func Sanitize(input Trace) (Trace, error) {
 		return Trace{}, errors.New(strings.Join(report.Findings, "; "))
 	}
 	return output, nil
+}
+
+func sanitizeDeliberation(input Deliberation, redact func(string) string) (Deliberation, []string) {
+	output := input
+	output.Pattern = redact(input.Pattern)
+	output.Reason = redact(input.Reason)
+	output.Independence = redact(input.Independence)
+	output.Authority = redact(input.Authority)
+	output.Concurrency = redact(input.Concurrency)
+	output.Signals = make([]string, 0, len(input.Signals))
+	for _, signal := range input.Signals {
+		output.Signals = append(output.Signals, redact(signal))
+	}
+	omitted := []string{}
+	output.Candidates = make([]Candidate, 0, len(input.Candidates))
+	for _, candidate := range input.Candidates {
+		copyCandidate := candidate
+		copyCandidate.ID = redact(candidate.ID)
+		copyCandidate.Result = redact(candidate.Result)
+		copyCandidate.Evidence, omitted = sanitizeEvidenceList(candidate.Evidence, "deliberation.candidates.evidence", redact, omitted)
+		output.Candidates = append(output.Candidates, copyCandidate)
+	}
+	if input.Judge != nil {
+		copyJudge := *input.Judge
+		copyJudge.Decision = redact(input.Judge.Decision)
+		copyJudge.Evidence, omitted = sanitizeEvidenceList(input.Judge.Evidence, "deliberation.judge.evidence", redact, omitted)
+		output.Judge = &copyJudge
+	}
+	if input.MarginalCost != nil {
+		copyCost := *input.MarginalCost
+		output.MarginalCost = &copyCost
+	}
+	return output, omitted
+}
+
+func sanitizeEvidenceList(input []Evidence, field string, redact func(string) string, omitted []string) ([]Evidence, []string) {
+	output := make([]Evidence, 0, len(input))
+	for _, evidence := range input {
+		copyEvidence := evidence
+		copyEvidence.Result = redact(evidence.Result)
+		clean, changed := redactString(evidence.Ref)
+		if changed || !validEvidenceRef(evidence.Kind, clean) {
+			omitted = append(omitted, field+".ref")
+			continue
+		}
+		copyEvidence.Ref = clean
+		output = append(output, copyEvidence)
+	}
+	return output, omitted
 }
 
 // WriteJSONL validates, sanitizes, and appends traces to an explicitly chosen path.

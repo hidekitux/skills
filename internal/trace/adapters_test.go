@@ -31,6 +31,9 @@ func TestCodexAndClaudeAdaptersProduceEquivalentSemanticFields(t *testing.T) {
 	if codex.Model != claude.Model || codex.SkillID != claude.SkillID || codex.SkillVersion != claude.SkillVersion || codex.GraphVersion != claude.GraphVersion || codex.RepositoryRevision != claude.RepositoryRevision {
 		t.Fatalf("identity differs: codex=%#v claude=%#v", codex, claude)
 	}
+	if codex.Deliberation == nil || claude.Deliberation == nil || codex.Deliberation.Pattern != claude.Deliberation.Pattern || len(codex.Deliberation.Candidates) != 2 || len(claude.Deliberation.Candidates) != 2 {
+		t.Fatalf("deliberation summary was not normalized: codex=%#v claude=%#v", codex.Deliberation, claude.Deliberation)
+	}
 	codexJSON, _ := json.Marshal(codex.Events)
 	claudeJSON, _ := json.Marshal(claude.Events)
 	if string(codexJSON) != string(claudeJSON) {

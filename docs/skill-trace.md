@@ -2,8 +2,9 @@
 
 `workflow/skill-trace.schema.json` defines the versioned record for one skill
 run. The trace is host-neutral. A host adapter maps provider events into the
-semantic events in this schema. Schema version 2 may include the privacy-safe
-context manifest produced by `cmd/compile-context`.
+semantic events in this schema. Schema version 3 may include the privacy-safe
+context manifest produced by `cmd/compile-context` and the deliberation
+summary defined by [multi-agent deliberation](multi-agent-deliberation.md).
 
 ## Persistence boundary
 
@@ -15,7 +16,8 @@ transcript.
 
 The writer uses an allowlist. It stores run identity, skill and graph versions,
 host and model identifiers, repository revision, ordered event outcomes, safe
-evidence references, usage numbers, context provenance, and terminal state. It omits prompts,
+evidence references, usage numbers, context provenance, deliberation routing
+and cost provenance, and terminal state. It omits prompts,
 model reasoning, tool arguments, tool output, source contents, credentials,
 user data, and unknown host fields.
 
@@ -48,6 +50,16 @@ and a status. The event kind selects one payload:
 - `handoff` records the destination skill and named artifact.
 - `retry` records a bounded attempt and a reason code.
 - `run_finished` records the terminal status.
+
+## Deliberation summary
+
+The optional `deliberation` summary records the routing signals and reason,
+selected pattern, independence, authority, concurrency, resource bounds,
+sanitized candidate result labels, judge evidence, and marginal cost. A
+multi-agent record is invalid without isolated or candidate-only context,
+read-only authority, explicit bounds, candidate evidence, judge evidence, and
+measured marginal cost. Raw candidate output, prompts, reasoning, and peer
+conclusions are not trace fields.
 
 The terminal status is one of `success`, `failed`, `skipped`, `interrupted`,
 or `infrastructure_error`. Failure classifications distinguish deterministic
