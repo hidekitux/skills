@@ -1,0 +1,140 @@
+schema_version: 1
+
+signals:
+  - id: impact
+    levels: [low, medium, high, unknown]
+    description: Material effect of an incorrect result.
+  - id: reversibility
+    levels: [high, medium, low, unknown]
+    description: Ease of reversing an incorrect result.
+  - id: ambiguity
+    levels: [low, medium, high, unknown]
+    description: Number of plausible interpretations or solutions.
+  - id: security_sensitivity
+    levels: [low, medium, high, unknown]
+    description: Exposure of a security boundary or abuse path.
+  - id: state_mutation
+    levels: [none, repository, external, unknown]
+    description: State that the task may change.
+  - id: evidence_quality
+    levels: [complete, partial, missing, unknown]
+    description: Completeness of the recorded task evidence.
+  - id: validation_cost
+    levels: [low, medium, high, unknown]
+    description: Cost of the validation needed for the task.
+
+defaults:
+  strategy: low-risk
+  deterministic_checks_first: true
+  max_elapsed_millis: 300000
+  max_input_tokens: 4000
+  max_output_tokens: 4000
+  max_cost_micros: 250000
+
+fallback:
+  model_unavailable: lowest-cost-capable-configured-tier
+  incomplete_evidence: ask_user
+  failed_validation: bounded-retry-then-escalate
+  external_mutation: no-automatic-retry
+
+strategies:
+  - id: low-risk
+    model_tier: low
+    context_profile: selected-skill
+    validation_tier: tier-1
+    parallelism: single-agent
+    max_retries: 1
+    max_elapsed_millis: 300000
+    escalation: none
+    authority_ceiling: graph
+  - id: standard
+    model_tier: mid
+    context_profile: selected-skill
+    validation_tier: tier-1
+    parallelism: single-agent
+    max_retries: 1
+    max_elapsed_millis: 300000
+    escalation: validation-failure
+    authority_ceiling: graph
+  - id: high-risk
+    model_tier: high
+    context_profile: selected-skill
+    validation_tier: tier-2
+    parallelism: single-agent
+    max_retries: 1
+    max_elapsed_millis: 300000
+    escalation: review
+    authority_ceiling: graph
+  - id: high-risk-deliberated
+    model_tier: high
+    context_profile: selected-skill
+    validation_tier: tier-2
+    parallelism: independent-candidates
+    max_retries: 1
+    max_elapsed_millis: 300000
+    escalation: review
+    authority_ceiling: graph
+  - id: blocked-evidence
+    model_tier: mid
+    context_profile: selected-skill
+    validation_tier: tier-2
+    parallelism: single-agent
+    max_retries: 0
+    max_elapsed_millis: 300000
+    escalation: ask_user
+    authority_ceiling: graph
+  - id: blocked-authority
+    model_tier: high
+    context_profile: selected-skill
+    validation_tier: tier-2
+    parallelism: single-agent
+    max_retries: 0
+    max_elapsed_millis: 300000
+    escalation: ask_user
+    authority_ceiling: graph
+
+rules:
+  - id: missing-evidence
+    when:
+      evidence_quality: [missing, unknown]
+    strategy: blocked-evidence
+    reason: Required evidence is missing or unknown.
+  - id: external-mutation
+    when:
+      state_mutation: [external]
+    strategy: high-risk
+    reason: External mutation requires high-risk validation and no automatic mutation retry.
+  - id: security-sensitive
+    when:
+      security_sensitivity: [high]
+    strategy: high-risk-deliberated
+    reason: Security-sensitive work requires independent reviewable reasoning.
+  - id: ambiguous
+    when:
+      ambiguity: [high]
+    strategy: high-risk-deliberated
+    reason: Ambiguous work has multiple plausible approaches.
+  - id: high-impact
+    when:
+      impact: [high]
+    strategy: high-risk
+    reason: High-impact work requires proportionate validation.
+  - id: hard-to-reverse
+    when:
+      reversibility: [low]
+    strategy: high-risk
+    reason: Low reversibility raises rollback cost.
+  - id: expensive-validation
+    when:
+      validation_cost: [high]
+    strategy: high-risk
+    reason: High validation cost requires an explicit validation tier.
+  - id: medium-risk
+    when:
+      impact: [medium]
+    strategy: standard
+    reason: Medium-impact work uses the capable mid tier.
+  - id: default
+    when: {}
+    strategy: low-risk
+    reason: No elevated risk signal is present.
