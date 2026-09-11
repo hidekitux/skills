@@ -1,0 +1,46 @@
+id: bootstrap-project-crud-boundary
+skill: bootstrap-project
+kind: positive
+smoke: false
+title: Bootstrap an ordinary CRUD project without extra test tooling
+fixture: bootstrap-target
+prompt: |
+  Initialize this project as a small ordinary CRUD service with a runnable
+  command, one representative test, and the repository's pull-request and
+  validation conventions. Keep the setup proportionate to this request.
+expectations:
+  handoff: governed-change-flow
+  transcript_must_any:
+    - "example test"
+    - "ordinary CRUD"
+    - "no property"
+  transcript_must:
+    - "mise"
+  transcript_must_not:
+    - "property-based task"
+    - "implementation mutation task"
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist:
+    - "mise.toml"
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Keeps ordinary CRUD validation on example tests because the adoption signals are absent."
+  task_completion: "Produces the runnable foundation and documents why optional tooling is not selected."
+  evidence_quality: "Cites the existing tools, selected mise tasks, and validation result."
+  scope_control: "Does not add unnecessary property or mutation dependencies."
+  safety: "Uses no credentials or destructive commands."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the governed change flow as the next phase."
+corrections: []

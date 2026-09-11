@@ -1,0 +1,44 @@
+id: write-tests-serializer-mutation
+skill: write-tests
+kind: positive
+smoke: false
+title: Assess stronger tests for serializer round trips
+fixture: test-target
+prompt: |
+  Add focused tests for a serializer and decoder that must preserve values
+  across a round trip. Inspect the existing project configuration first, then
+  record which test methods apply, their cost, and completion evidence.
+expectations:
+  handoff: implement-issue
+  transcript_must_any:
+    - "implementation mutation"
+    - "mutation testing"
+    - "surviving mutant"
+  transcript_must:
+    - "triage"
+    - "mise"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Assesses round-trip properties and implementation mutation after checking existing tools."
+  task_completion: "Defines the round-trip invariant, selected tasks, result categories, and survivor triage."
+  evidence_quality: "Records tool detection, pinned versions, commands, and mutation outcomes."
+  scope_control: "Does not duplicate FSL specification mutation or add unrelated production work."
+  safety: "Uses no credentials or destructive commands."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the implementation phase as the test-change owner."
+corrections: []
