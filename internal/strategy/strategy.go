@@ -535,6 +535,11 @@ func SelectWithPolicy(policy *Policy, graphDocument *graph.Graph, input Input) (
 	}
 	decision = applyOverrides(decision, input.Overrides)
 	decision = resolveConfiguredModelTier(decision, input.ConfiguredModelTiers)
+	if input.StateMutation == External {
+		// An external mutation is never safe to repeat automatically, even when
+		// the selected profile allows bounded retries for other failures.
+		decision.MaxRetries = 0
+	}
 	return decision, nil
 }
 
