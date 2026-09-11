@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hidekitux/skills/blob/main/workflow/skill-environment.schema.json",
+  "title": "Skill execution environment manifest",
+  "description": "A privacy-safe description of one provisioned skill execution environment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "environment_id", "skill_id", "graph_version", "profile", "workspace_kind", "repository_revision", "permissions", "setup", "ownership", "cleanup"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "environment_id": { "$ref": "#/$defs/identifier" },
+    "skill_id": { "$ref": "#/$defs/identifier" },
+    "graph_version": { "type": "integer", "minimum": 1 },
+    "profile": { "enum": ["read_only", "repository_write", "external_mutation"] },
+    "workspace_kind": { "enum": ["detached_snapshot", "issue_worktree"] },
+    "repository_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "branch": { "type": "string", "pattern": "^issue/[1-9][0-9]*$" },
+    "issue_number": { "type": "integer", "minimum": 1 },
+    "permissions": { "$ref": "#/$defs/permissions" },
+    "setup": { "$ref": "#/$defs/setup" },
+    "ownership": { "$ref": "#/$defs/ownership" },
+    "cleanup": { "enum": ["not_requested", "retained", "removed_after_review", "blocked_material", "blocked_active"] }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._/:-]*$", "maxLength": 128 },
+    "permission": { "type": "string", "enum": ["none", "read", "write"] },
+    "permissions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repository", "git", "github", "external_mutation"],
+      "properties": {
+        "repository": { "$ref": "#/$defs/permission" },
+        "git": { "$ref": "#/$defs/permission" },
+        "github": { "$ref": "#/$defs/permission" },
+        "external_mutation": { "enum": ["none", "issue", "pull_request", "repository_configuration"] }
+      }
+    },
+    "setup": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["pending", "succeeded", "failed", "missing"] },
+        "diagnostic": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "ownership": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["pending", "verified", "failed", "concurrent"] },
+        "diagnostic": { "$ref": "#/$defs/identifier" }
+      }
+    }
+  }
+}
