@@ -30,10 +30,12 @@ type PairResult struct {
 
 // PairReport is the machine-readable comparison artifact for Issue #197.
 type PairReport struct {
-	Encoding string       `json:"encoding"`
-	Full     string       `json:"full_report"`
-	Compact  string       `json:"compact_report"`
-	Results  []PairResult `json:"results"`
+	Encoding     string       `json:"encoding"`
+	Full         string       `json:"full_report"`
+	FullRunID    string       `json:"full_run_id"`
+	Compact      string       `json:"compact_report"`
+	CompactRunID string       `json:"compact_run_id"`
+	Results      []PairResult `json:"results"`
 }
 
 // LoadRecords reads one JSONL evaluation report.
@@ -93,12 +95,26 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 	if len(fullByKey) != len(compactByKey) {
 		return PairReport{}, fmt.Errorf("paired reports contain different record counts: full=%d compact=%d", len(fullByKey), len(compactByKey))
 	}
+	fullRunID, err := reportRunID(fullPath, full)
+	if err != nil {
+		return PairReport{}, err
+	}
+	compactRunID, err := reportRunID(compactPath, compact)
+	if err != nil {
+		return PairReport{}, err
+	}
 	keys := make([]string, 0, len(fullByKey))
 	for key := range fullByKey {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
-	report := PairReport{Encoding: "cl100k_base", Full: fullPath, Compact: compactPath}
+	report := PairReport{
+		Encoding:     "cl100k_base",
+		Full:         fullPath,
+		FullRunID:    fullRunID,
+		Compact:      compactPath,
+		CompactRunID: compactRunID,
+	}
 	for _, key := range keys {
 		left := fullByKey[key]
 		right, ok := compactByKey[key]
@@ -158,6 +174,19 @@ func CompareReports(fullPath, compactPath string) (PairReport, error) {
 		report.Results = append(report.Results, result)
 	}
 	return report, nil
+}
+
+func reportRunID(path string, records []Record) (string, error) {
+	if len(records) == 0 {
+		return "", nil
+	}
+	runID := records[0].RunID
+	for _, record := range records[1:] {
+		if record.RunID != runID {
+			return "", fmt.Errorf("report %s contains mixed run IDs: %q and %q", path, runID, record.RunID)
+		}
+	}
+	return runID, nil
 }
 
 func contextTokens(record Record) int {
@@ -250,6 +279,8 @@ func WritePairReport(dir string, report PairReport, out io.Writer) error {
 	fmt.Fprintln(file, "# Instruction compaction comparison")
 	fmt.Fprintln(file)
 	fmt.Fprintf(file, "Encoding: `%s`.\n\n", report.Encoding)
+	fmt.Fprintf(file, "Full report: `%s` (run `%s`).\n\n", report.Full, report.FullRunID)
+	fmt.Fprintf(file, "Compact report: `%s` (run `%s`).\n\n", report.Compact, report.CompactRunID)
 	fmt.Fprintln(file, "| scenario | skill | host | full | compact | status | reason |")
 	fmt.Fprintln(file, "| --- | --- | --- | --- | --- | --- | --- |")
 	for _, result := range report.Results {

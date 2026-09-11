@@ -1,9 +1,11 @@
 package eval
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -46,6 +48,83 @@ func TestCompareReportsAcceptsPreservedPassAndRubric(t *testing.T) {
 	}
 	if len(report.Results) != 1 || report.Results[0].Status != "pass" {
 		t.Fatalf("comparison = %+v, want one pass", report.Results)
+	}
+}
+
+func TestCompareReportsRecordsSourceRunIDs(t *testing.T) {
+	dir := t.TempDir()
+	fullPath := filepath.Join(dir, "full.jsonl")
+	compactPath := filepath.Join(dir, "compact.jsonl")
+	full := Record{
+		RunID: "full-run", Scenario: "demo", Skill: "debug-code", Host: "codex",
+		PromptSHA: "same", Verdict: VerdictPass, RubricReview: RubricNA,
+	}
+	compact := full
+	compact.RunID = "compact-run"
+	writeRecords(t, fullPath, []Record{full})
+	writeRecords(t, compactPath, []Record{compact})
+
+	report, err := CompareReports(fullPath, compactPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.FullRunID != full.RunID || report.CompactRunID != compact.RunID {
+		t.Fatalf("run IDs = (%q, %q), want (%q, %q)", report.FullRunID, report.CompactRunID, full.RunID, compact.RunID)
+	}
+}
+
+func TestCompareReportsRejectsMixedRunIDs(t *testing.T) {
+	dir := t.TempDir()
+	fullPath := filepath.Join(dir, "full.jsonl")
+	compactPath := filepath.Join(dir, "compact.jsonl")
+	base := Record{
+		RunID: "full-run", Scenario: "demo", Skill: "debug-code", Host: "codex",
+		PromptSHA: "same", Verdict: VerdictPass, RubricReview: RubricNA,
+	}
+	second := base
+	second.Scenario = "other"
+	second.RunID = "different-run"
+	writeRecords(t, fullPath, []Record{base, second})
+	writeRecords(t, compactPath, []Record{base, second})
+
+	if _, err := CompareReports(fullPath, compactPath); err == nil || !containsReason([]string{err.Error()}, "mixed run IDs") {
+		t.Fatalf("error = %v, want mixed run ID error", err)
+	}
+}
+
+func TestWritePairReportIncludesSourceRunIDs(t *testing.T) {
+	dir := t.TempDir()
+	report := PairReport{
+		Encoding:     "cl100k_base",
+		Full:         filepath.Join(dir, "full.jsonl"),
+		FullRunID:    "full-run",
+		Compact:      filepath.Join(dir, "compact.jsonl"),
+		CompactRunID: "compact-run",
+	}
+	var out bytes.Buffer
+	if err := WritePairReport(dir, report, &out); err != nil {
+		t.Fatal(err)
+	}
+	jsonData, err := os.ReadFile(filepath.Join(dir, "comparison.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var written PairReport
+	if err := json.Unmarshal(jsonData, &written); err != nil {
+		t.Fatal(err)
+	}
+	if written.FullRunID != report.FullRunID || written.CompactRunID != report.CompactRunID {
+		t.Fatalf("JSON run IDs = (%q, %q), want (%q, %q)", written.FullRunID, written.CompactRunID, report.FullRunID, report.CompactRunID)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "comparison.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	for _, want := range []string{"Full report:", "full-run", "Compact report:", "compact-run"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("comparison Markdown missing %q:\n%s", want, text)
+		}
 	}
 }
 
