@@ -2,10 +2,11 @@
 
 `workflow/skill-trace.schema.json` defines the versioned record for one skill
 run. The trace is host-neutral. A host adapter maps provider events into the
-semantic events in this schema. Schema version 3 may include the privacy-safe
-context manifest produced by `cmd/compile-context`, the deliberation summary
-defined by [multi-agent deliberation](multi-agent-deliberation.md), and the
-environment manifest produced by the Issue #199 provisioner.
+semantic events in this schema. Schema version 4 may include the privacy-safe
+context manifest produced by `cmd/compile-context` and the execution strategy
+decision. It may also include the deliberation summary defined by
+[multi-agent deliberation](multi-agent-deliberation.md) and the environment
+manifest produced by the Issue #199 provisioner.
 
 ## Persistence boundary
 
@@ -61,6 +62,15 @@ multi-agent record is invalid without isolated or candidate-only context,
 read-only authority, explicit bounds, candidate evidence, judge evidence, and
 measured marginal cost. Raw candidate output, prompts, reasoning, and peer
 conclusions are not trace fields.
+
+## Execution strategy decision
+
+The optional `strategy` decision records the finite signals, selected profile,
+model tier, validation tier, parallelism, resource bounds, escalation,
+graph-derived authority, reasons, safe evidence references, and outcome. It
+does not record a provider model name, prompt, reasoning, command output, or
+user data. The decision is valid only when its schema version and authority
+values pass the selector contract.
 
 The terminal status is one of `success`, `failed`, `skipped`, `interrupted`,
 or `infrastructure_error`. Failure classifications distinguish deterministic

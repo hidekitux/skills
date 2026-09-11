@@ -112,6 +112,7 @@ Where the related guides live:
 - [docs/worktrees.md](docs/worktrees.md) — the worktree policy, commands, and setup.
 - [docs/fsl.md](docs/fsl.md) — the FSL specification boundary and verification.
 - [docs/model-selection.md](docs/model-selection.md) — role-tier model selection.
+- [docs/execution-strategy.md](docs/execution-strategy.md) — risk- and evidence-based execution strategy selection.
 - [docs/model-routing.md](docs/model-routing.md) — how each host consumes and verifies the selected models.
 - [docs/writing-style.md](docs/writing-style.md) — the writing rules for agent prose, the machine-typical patterns to avoid, and the thresholds with their counting exceptions.
 - [docs/term-glossary.md](docs/term-glossary.md) — the Japanese term this repository uses for each concept its English artifacts name.
