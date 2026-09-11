@@ -107,31 +107,44 @@ type Evidence struct {
 
 // Overrides records explicit choices or safe fallback actions.
 type Overrides struct {
-	ModelTier      string   `json:"model_tier,omitempty"`
-	ValidationTier string   `json:"validation_tier,omitempty"`
-	Values         []string `json:"values,omitempty"`
+	ModelTier      string   `json:"model_tier,omitempty" yaml:"model_tier,omitempty"`
+	ValidationTier string   `json:"validation_tier,omitempty" yaml:"validation_tier,omitempty"`
+	Values         []string `json:"values,omitempty" yaml:"values,omitempty"`
 }
 
 // Input is the privacy-safe selector input. It contains no prompt, source,
 // command output, credential, or user content.
 type Input struct {
-	Skill                string      `json:"skill"`
-	Impact               Level       `json:"impact"`
-	Reversibility        Level       `json:"reversibility"`
-	Ambiguity            Level       `json:"ambiguity"`
-	SecuritySensitivity  Level       `json:"security_sensitivity"`
-	StateMutation        Level       `json:"state_mutation"`
-	EvidenceQuality      Level       `json:"evidence_quality"`
-	ValidationCost       Level       `json:"validation_cost"`
-	ConfiguredModelTiers []string    `json:"configured_model_tiers,omitempty"`
-	Overrides            UserChoices `json:"overrides,omitempty"`
-	Evidence             []Evidence  `json:"evidence,omitempty"`
+	Skill                string      `json:"skill" yaml:"skill"`
+	Impact               Level       `json:"impact" yaml:"impact"`
+	Reversibility        Level       `json:"reversibility" yaml:"reversibility"`
+	Ambiguity            Level       `json:"ambiguity" yaml:"ambiguity"`
+	SecuritySensitivity  Level       `json:"security_sensitivity" yaml:"security_sensitivity"`
+	StateMutation        Level       `json:"state_mutation" yaml:"state_mutation"`
+	EvidenceQuality      Level       `json:"evidence_quality" yaml:"evidence_quality"`
+	ValidationCost       Level       `json:"validation_cost" yaml:"validation_cost"`
+	ConfiguredModelTiers []string    `json:"configured_model_tiers,omitempty" yaml:"configured_model_tiers,omitempty"`
+	Overrides            UserChoices `json:"overrides,omitempty" yaml:"overrides,omitempty"`
+	Evidence             []Evidence  `json:"evidence,omitempty" yaml:"evidence,omitempty"`
 }
 
 // UserChoices contains explicit user selections that the policy may preserve.
 type UserChoices struct {
-	ModelTier      string `json:"model_tier,omitempty"`
-	ValidationTier string `json:"validation_tier,omitempty"`
+	ModelTier      string `json:"model_tier,omitempty" yaml:"model_tier,omitempty"`
+	ValidationTier string `json:"validation_tier,omitempty" yaml:"validation_tier,omitempty"`
+}
+
+// Profile returns one named profile from a loaded policy.
+func Profile(policy *Policy, id string) (Strategy, bool) {
+	if policy == nil {
+		return Strategy{}, false
+	}
+	for _, profile := range policy.Strategies {
+		if profile.ID == id {
+			return profile, true
+		}
+	}
+	return Strategy{}, false
 }
 
 // Decision is the stable machine-readable selection result.
