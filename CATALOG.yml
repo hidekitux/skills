@@ -116,6 +116,15 @@ skills:
     version: 0.1.0
     layer: analyze
     related: [analyze-project, create-issue]
+  - name: retrospect-work
+    summary: Review a development session for recurring workarounds, unresolved causes, duplicate follow-ups, and evidence gaps.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: analyze
+    related: [analyze-project, triage-issues, create-issue]
   - name: refactor-code
     summary: Perform small, behavior-preserving code refactorings verified against a test baseline.
     owner: hidekitux

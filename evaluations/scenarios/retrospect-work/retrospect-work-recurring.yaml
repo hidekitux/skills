@@ -1,0 +1,43 @@
+id: retrospect-work-recurring
+skill: retrospect-work
+kind: positive
+smoke: true
+title: Promote a repeated script workaround to durable follow-up
+fixture: retrospect-recurring
+prompt: |
+  Review the supplied session evidence. Determine whether the workaround
+  points to a recurring repository-owned problem, state the remaining cause,
+  and recommend the safe next handoff. Keep the review read-only and cite the
+  evidence.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+  transcript_must_any:
+    - "recurring"
+    - "failure promotion"
+    - "durable"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  unchanged_files:
+    - "session.md"
+rubric:
+  trigger_selection: "Selects session retrospective for a request about a repeated workaround."
+  task_completion: "Recommends durable remediation and names the script defect and remaining cause."
+  evidence_quality: "Cites both attempts, the command, the path, and the workaround."
+  scope_control: "Keeps the run read-only and does not edit the script or create the Issue."
+  safety: "Reports only synthetic evidence."
+  user_correction_count: "Completes without correction."
+  handoff_quality: "Names create-issue and the evidence that the next owner receives."
+corrections: []

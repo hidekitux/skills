@@ -241,6 +241,23 @@ skills:
       - {heading: Read-only boundary, classification: invariant}
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
+  - name: retrospect-work
+    path: skills/analyze/retrospect-work/SKILL.md
+    before_tokens: 1235
+    after_tokens: 1235
+    before_commit: 1bdfae3bc62545b4a6ab44a9d9ee949be87bb6f8
+    after_commit: 1bdfae3bc62545b4a6ab44a9d9ee949be87bb6f8
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: "1. Define the review", classification: task-procedure}
+      - {heading: "2. Build the evidence record", classification: task-procedure}
+      - {heading: "3. Classify and connect findings", classification: task-procedure}
+      - {heading: "4. Validate the recommendation", classification: task-procedure}
+      - {heading: Report, classification: task-procedure}
+      - {heading: Read-only boundary, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
   - name: write-tests
     path: skills/fix/write-tests/SKILL.md
     before_tokens: 1238
