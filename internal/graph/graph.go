@@ -347,9 +347,19 @@ func validateContext(root string, graph *Graph) []string {
 		if profile.Budgets.CoreInstructions <= 0 || profile.Budgets.ConditionalRefs <= 0 || profile.Budgets.RepositoryEvidence <= 0 || profile.Budgets.ValidatorFeedback <= 0 {
 			findings = append(findings, fmt.Sprintf("context profile %q must define positive budgets for all categories", skillID))
 		}
+		profileInvariants := map[string]bool{}
 		for _, invariantID := range profile.CriticalInvariants {
+			if profileInvariants[invariantID] {
+				findings = append(findings, fmt.Sprintf("context profile %q duplicates critical invariant %q", skillID, invariantID))
+			}
+			profileInvariants[invariantID] = true
 			if !invariants[invariantID] {
 				findings = append(findings, fmt.Sprintf("context profile %q references unknown invariant %q", skillID, invariantID))
+			}
+		}
+		for _, invariant := range contextConfig.Invariants {
+			if invariant.ID != "" && !profileInvariants[invariant.ID] {
+				findings = append(findings, fmt.Sprintf("context profile %q omits critical invariant %q", skillID, invariant.ID))
 			}
 		}
 		findings = append(findings, validateContextModuleRefs(fmt.Sprintf("context profile %q modules", skillID), profile.Modules, modules)...)

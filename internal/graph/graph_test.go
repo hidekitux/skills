@@ -92,6 +92,29 @@ func TestValidateRejectsUnboundedCycle(t *testing.T) {
 	}
 }
 
+func TestValidateContextRejectsIncompleteCriticalInvariantCoverage(t *testing.T) {
+	graph := &Graph{
+		Skills: []Skill{{ID: "demo"}},
+		Context: ContextConfig{
+			SchemaVersion: CurrentContextSchemaVersion,
+			Invariants: []Definition{
+				{ID: "scope", Description: "Keep work in scope."},
+				{ID: "privacy", Description: "Protect private content."},
+			},
+			Profiles: map[string]ContextProfile{
+				"demo": {
+					Budgets:            ContextBudget{CoreInstructions: 1, ConditionalRefs: 1, RepositoryEvidence: 1, ValidatorFeedback: 1},
+					CriticalInvariants: []string{"scope"},
+				},
+			},
+		},
+	}
+	findings := validateContext("", graph)
+	if !containsFinding(findings, `profile "demo" omits critical invariant "privacy"`) {
+		t.Fatalf("expected incomplete critical invariant finding, got %v", findings)
+	}
+}
+
 func fixtureSkill(id string, transitions ...Transition) Skill {
 	return Skill{
 		ID: id, Path: filepath.ToSlash(filepath.Join("skills", id, "SKILL.md")),
