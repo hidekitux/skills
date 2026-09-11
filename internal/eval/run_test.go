@@ -300,6 +300,72 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 			t.Fatalf("unexpected report names: %v", names)
 		}
 	})
+
+	t.Run("uses a supplied run ID", func(t *testing.T) {
+		outputDir := t.TempDir()
+		const runID = "explicit-run"
+		opts := &Options{Root: root, Hosts: []string{"codex"}, OutputDir: outputDir, RunID: runID,
+			RunnerFor: func(name string) HostRunner {
+				return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
+			}}
+		var out, errOut bytes.Buffer
+		if code := Run(context.Background(), opts, &out, &errOut); code != ExitOK {
+			t.Fatalf("exit = %d, want 0", code)
+		}
+		records, err := LoadRecords(filepath.Join(outputDir, runID+".jsonl"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(records) != 1 || records[0].RunID != runID {
+			t.Fatalf("records = %#v, want one record with run ID %q", records, runID)
+		}
+		if _, err := os.Stat(filepath.Join(outputDir, runID+".md")); err != nil {
+			t.Fatalf("Markdown report missing: %v", err)
+		}
+	})
+}
+
+func TestRunReturnsInfrastructureErrorWhenCurrentJSONLReportCannotBeWritten(t *testing.T) {
+	sc := &Scenario{
+		ID:     "plan-issue-success",
+		Skill:  "plan-issue",
+		Kind:   KindPositive,
+		Title:  "Plan a ready issue",
+		Prompt: "Produce an ordered plan for the ready issue before coding.",
+		Expectations: Expectations{
+			Handoff:        "implement-issue",
+			TranscriptMust: []string{"implement-issue"},
+		},
+		Rubric: fullRubric(),
+	}
+	root := scaffoldEval(t,
+		[]map[string]string{skillEntry("plan-issue", "experimental")},
+		[]*Scenario{sc},
+		nil,
+	)
+	outputDir := t.TempDir()
+	stalePath := filepath.Join(outputDir, "older.jsonl")
+	if err := os.WriteFile(stalePath, []byte("{\"run_id\":\"older-run\"}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const runID = "current-run"
+	currentPath := filepath.Join(outputDir, runID+".jsonl")
+	if err := os.Mkdir(currentPath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	opts := &Options{
+		Root: root, Hosts: []string{"codex"}, OutputDir: outputDir, RunID: runID,
+		RunnerFor: func(name string) HostRunner {
+			return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
+		},
+	}
+	var out, errOut bytes.Buffer
+	if code := Run(context.Background(), opts, &out, &errOut); code != ExitInfra {
+		t.Fatalf("exit = %d, want %d\n%s", code, ExitInfra, errOut.String())
+	}
+	if _, err := LoadRecords(stalePath); err != nil {
+		t.Fatalf("stale report was not preserved: %v", err)
+	}
 }
 
 // TestRunUsesEitherPassPolicyAcrossDrivers verifies the local either-pass

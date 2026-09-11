@@ -43,12 +43,16 @@ type Options struct {
 	ScenarioID         string
 	Skills             []string
 	OutputDir          string
-	TraceOutputDir     string
-	ContextMode        string
-	Context            *skillcontext.Manifest
-	DryRun             bool
-	Model              string
-	Commit             string
+	// RunID identifies the invocation in report filenames. When empty, Run
+	// generates a timestamp-based identifier for compatibility with existing
+	// callers.
+	RunID          string
+	TraceOutputDir string
+	ContextMode    string
+	Context        *skillcontext.Manifest
+	DryRun         bool
+	Model          string
+	Commit         string
 	// RunnerFor substitutes host runners (tests). When nil, runnerFor(name)
 	// provides the real drivers.
 	RunnerFor func(name string) HostRunner
@@ -490,7 +494,10 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 		}
 	}
 
-	runID := time.Now().UTC().Format("20060102T150405Z")
+	runID := opts.RunID
+	if runID == "" {
+		runID = time.Now().UTC().Format("20060102T150405Z")
+	}
 	var records []Record
 	gates := map[string]string{}
 	for _, sc := range scenarios {
