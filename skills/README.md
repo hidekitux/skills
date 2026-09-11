@@ -11,7 +11,8 @@ workflow.
 | `fix` | Reproduced repairs, focused tests, and behavior-preserving refactors. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` |
 | `govern` | Repository setup and enforcement audits. | `bootstrap-project`, `audit-workflow-enforcement` |
 
-The canonical layout is `skills/<category>/<skill-name>/SKILL.md`. The category
-is a path namespace only. Installation and invocation continue to use the bare
+The usual layout is `skills/<category>/<skill-name>/SKILL.md`, but an Issue may
+approve a direct layout such as `skills/refactor-code/SKILL.md`. The category is
+a path namespace only. Installation and invocation continue to use the bare
 skill name from `SKILL.md`. `refactor-code` is canonical at
-`skills/fix/refactor-code`.
+`skills/refactor-code` under Issue #287 while remaining a `fix`-layer skill.

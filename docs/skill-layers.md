@@ -15,10 +15,11 @@ set.
 
 ## Directory hierarchy
 
-Published skills use their layer as the first directory below `skills/`:
-`skills/<layer>/<skill-name>/SKILL.md`. The layer is a navigation category, not
-part of the public skill name. The category answers the user's task before the
-skill name identifies the exact workflow.
+Published skills usually use their layer as the first directory below
+`skills/`, while an Issue may approve a direct location:
+`skills/<layer>/<skill-name>/SKILL.md` or `skills/<skill-name>/SKILL.md`. The
+layer is a navigation category, not part of the public skill name. The category
+answers the user's task before the skill name identifies the exact workflow.
 
 | Category | Choose this category when | Published skills | Reserved sibling skills |
 | --- | --- | --- | --- |
@@ -40,9 +41,9 @@ Use these representative requests to navigate without repository history:
 | Add focused tests for a defined target. | `fix` | `write-tests` |
 | Refactor against a passing baseline. | `fix` | `refactor-code` |
 
-`refactor-code` is at `skills/fix/refactor-code`. This category location keeps
-the public name as `refactor-code` while placing the skill with the other
-repair workflows.
+`refactor-code` is at the direct path `skills/refactor-code` under Issue #287.
+Its `fix` layer remains a navigation and contract classification; it does not
+require the layer to appear in the repository path.
 
 ## The four layers
 

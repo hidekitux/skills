@@ -1,6 +1,6 @@
 # Repository guidance
 
-- Publishable skills belong in `skills/<category>/<skill-name>/`. The repository also supports `skills/<namespace>/<skill-name>/` for arbitrary namespaced discovery tests and compatible sources.
+- Publishable skills belong in `skills/<category>/<skill-name>/` or an explicitly approved direct path such as `skills/refactor-code/`. The repository also supports `skills/<namespace>/<skill-name>/` for arbitrary namespaced discovery tests and compatible sources.
 - Give every skill a `SKILL.md` with `name` and `description` frontmatter. The `name` must match its directory name.
 - License every published skill as `Apache-2.0`, the repository standard. Do not add a different license or a non-Apache dependency bundled with a published skill without explicit user approval. Development and CI tools are not bundled dependencies; keep them pinned in `mise.toml`, use them only for development or checks, and review their licenses when adding them.
 - Keep `LICENSE` as the unmodified Apache-2.0 legal text and keep the repository copyright attribution in `NOTICE`.
@@ -42,12 +42,12 @@
 ## Host compatibility
 
 - Keep the core behavior, output contract, and safety rules in the skill's `SKILL.md`; do not duplicate a complete skill per agent.
-- Put a host-specific capability note at `skills/<category>/<skill-name>/references/hosts/<host>.md` only when the difference changes execution, safety, or the output. State the capability, the preferred path, the fallback, and how to verify the result.
+- Put a host-specific capability note at `skills/<skill-name>/references/hosts/<host>.md` or `skills/<category>/<skill-name>/references/hosts/<host>.md` only when the difference changes execution, safety, or the output. State the capability, the preferred path, the fallback, and how to verify the result.
 - Use `agents/openai.yaml` only for Codex UI metadata. Put repository-level configuration examples and installation notes in `hosts/codex/` or `hosts/claude-code/`; these directories are not publishable skills.
 - Do not put shared source in `.codex/`, `.claude/`, or `.agents/`. Those hidden directories are local installation state and are intentionally ignored.
 
 - Use FSL for stateful workflow contracts such as review, validation, publishing, versioning, and deprecation. Do not claim that FSL verifies the prose instructions in a `SKILL.md`.
-- Place a skill-owned FSL source file in `skills/<category>/<skill-name>/specs/`; expose it in the repository through a relative symbolic link at `specs/<category>/<skill-name>/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify:fsl` after changes.
+- Place a skill-owned FSL source file in `skills/<skill-name>/specs/` or `skills/<category>/<skill-name>/specs/`; expose it in the repository through a relative symbolic link that mirrors the source path under `specs/`. Place only repository-owned or cross-skill FSL sources directly in `specs/`. Before authoring or changing one, obtain confirmation of a formalization memo for choices that affect behavior. Expose FSL validation through `mise run verify:fsl` after changes.
 
 ## Writing quality
 

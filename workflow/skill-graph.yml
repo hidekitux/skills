@@ -587,7 +587,7 @@ skills:
         destination: {terminal_outcome: blocked}
 
   - id: refactor-code
-    path: skills/fix/refactor-code/SKILL.md
+    path: skills/refactor-code/SKILL.md
     layer: fix
     capabilities: [preserve-behavior, refactor-root-cause, verify-baseline]
     inputs: [defect-evidence, test-baseline]

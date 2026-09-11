@@ -211,7 +211,7 @@ skills:
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
   - name: refactor-code
-    path: skills/fix/refactor-code/SKILL.md
+    path: skills/refactor-code/SKILL.md
     before_tokens: 727
     after_tokens: 655
     before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73

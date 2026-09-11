@@ -68,11 +68,12 @@ Never use `--force` to check out `main` in multiple worktrees.
 ## Layout and skill contract
 
 ```text
-skills/<category>/<skill-name>/SKILL.md
+skills/<skill-name>/SKILL.md              # direct layout when approved
+skills/<category>/<skill-name>/SKILL.md   # category layout
 skills/<namespace>/<skill-name>/SKILL.md  # supported for arbitrary namespaces
 ```
 
-Every published skill uses a category directory and requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. The category is not part of the public skill name. See [`skills/README.md`](skills/README.md) for the category map and task navigation. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/` with shared packages under `internal/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
+Every published skill requires `SKILL.md`; its `name` matches the parent directory and uses lowercase letters, digits, and hyphens. Published skills usually use a category directory, but an Issue may approve a direct location. The category is not part of the public skill name. See [`skills/README.md`](skills/README.md) for the category map and task navigation. Add `scripts/`, `references/`, and `assets/` only when reusable resources are needed. Repository automation is implemented as Go commands under `cmd/` with shared packages under `internal/`; the retained shell helpers live under `scripts/fsl/` and `scripts/setup/`.
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
@@ -146,7 +147,7 @@ Pinned installation is documented from retained release evidence only. No verifi
 
 ## Development workflow
 
-1. Add `skills/<category>/<skill-name>/SKILL.md`.
+1. Add `skills/<category>/<skill-name>/SKILL.md`, or an Issue-approved direct path such as `skills/refactor-code/SKILL.md`.
 2. Record its purpose, owner, and supported agents in `CATALOG.yml`.
 3. Run `mise run validate:all` before publishing.
 4. Run `mise run validate:skill-creator` when it is available in Codex.
@@ -176,7 +177,7 @@ Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` con
 
 ## FSL
 
-FSL verifies state transitions and publication conditions, not `SKILL.md` prose. Place a skill-owned source in `skills/<category>/<skill-name>/specs/*.fsl` and expose it with a relative symbolic link at `specs/<category>/<skill-name>/`; place repository-owned or cross-cutting sources directly in `specs/`. Confirm a formalization memo before adding or changing a specification, then run:
+FSL verifies state transitions and publication conditions, not `SKILL.md` prose. Place a skill-owned source in `skills/<skill-name>/specs/*.fsl` or `skills/<category>/<skill-name>/specs/*.fsl` and expose it with a relative symbolic link that mirrors the source path under `specs/`; place repository-owned or cross-cutting sources directly in `specs/`. Confirm a formalization memo before adding or changing a specification, then run:
 
 ```bash
 mise run verify:fsl
