@@ -129,9 +129,10 @@ Contract rules enforced by `cmd/check-evaluation` (wired into
   skill and a completed seven-dimension rubric review (`rubric_review:
   complete` with all `rubric_scores` present). A passing verdict for another
   skill in the same file does not count. `check-evaluation` checks this static
-  evidence shape. The release flow runs `check:promotion` through
-  `verify:release` to check the current revision, two recent complete runs,
-  scenario coverage, score floor, regression, and bounded variance.
+  evidence shape. The release flow's `verify:release` step applies the same
+  promotion check as `mise run check:promotion` to check the current revision,
+  two recent complete runs, scenario coverage, score floor, regression, and
+  bounded variance.
 
 One further rule is enforced by `internal/eval/prose_test.go` rather than by
 `cmd/check-evaluation`, so it fails `mise run test:go` instead of

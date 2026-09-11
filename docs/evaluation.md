@@ -160,9 +160,10 @@ all of the following hold, verified against a retained evaluation run:
    `finished_at`. `repo_commit` and `skill_source_commit` must match the
    current committed revision. `check-evaluation` (part of
    `check:repository`) checks that a `stable` catalog entry has a same-record
-   pass with a completed seven-dimension review. The release flow runs
-   `check:promotion` through `verify:release` to enforce the two-run,
-   revision, rubric, regression, and variance conditions.
+   pass with a completed seven-dimension review. The release flow's
+   `verify:release` step applies the same promotion check as `mise run
+   check:promotion` to enforce the two-run, revision, rubric, regression, and
+   variance conditions.
 
 Skills also contract to **name the next owner**: when a scenario's `handoff`
 is a cataloged skill name (per `docs/skill-contract.md`), the transcript
