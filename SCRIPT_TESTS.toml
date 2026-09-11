@@ -45,6 +45,7 @@
 "cmd/measure-instructions" = "./cmd/measure-instructions"
 "cmd/check-evaluation" = "./internal/eval"
 "cmd/compile-context" = "./internal/context"
+"cmd/validate-deliberation-policy" = "./internal/deliberation"
 "cmd/generate-public-status" = "./internal/publicstatus"
 
 [scripts]

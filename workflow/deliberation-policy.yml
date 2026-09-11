@@ -1,0 +1,81 @@
+schema_version: 1
+
+defaults:
+  deterministic_checks_first: true
+  pattern: single-agent
+  max_agents: 1
+  max_retries: 1
+  max_elapsed_millis: 300000
+  max_input_tokens: 4000
+  max_output_tokens: 4000
+  max_cost_micros: 250000
+  authority: read_only
+  concurrency: serial
+  mutation: parent_serialized
+
+signals:
+  - id: architectural-ambiguity
+    description: More than one design can satisfy the task contract and the choice changes behavior or structure.
+  - id: security-sensitivity
+    description: The task handles a security boundary, sensitive data, or an abuse path where an independent read improves detection.
+  - id: high-risk-migration
+    description: The task changes a format, state model, dependency, or compatibility boundary with material rollback cost.
+  - id: conflicting-hypotheses
+    description: Independent evidence supports competing explanations or findings that must be tested separately.
+  - id: independently-reviewable-evidence
+    description: The candidate work can inspect the same evidence independently without shared mutable state.
+
+patterns:
+  - id: independent-candidates
+    purpose: Obtain two independent read-only analyses before a decision.
+    required_signals: [architectural-ambiguity, security-sensitivity, high-risk-migration, conflicting-hypotheses]
+    independence: isolated_context
+    authority: read_only
+    concurrency: parallel_read_only
+    mutation: parent_serialized
+    bounds:
+      max_agents: 2
+      max_retries: 1
+      max_elapsed_millis: 300000
+      max_input_tokens: 4000
+      max_output_tokens: 4000
+      max_cost_micros: 250000
+    candidate_context: no_expected_findings_or_peer_conclusions
+    termination: all_candidates_complete_or_bound_exhausted
+    judge: evidence_required_not_majority
+
+  - id: fan-out-investigation
+    purpose: Split independently reviewable read-only investigation areas across bounded candidates.
+    required_signals: [independently-reviewable-evidence]
+    independence: isolated_context
+    authority: read_only
+    concurrency: parallel_read_only
+    mutation: parent_serialized
+    bounds:
+      max_agents: 3
+      max_retries: 1
+      max_elapsed_millis: 450000
+      max_input_tokens: 3000
+      max_output_tokens: 3000
+      max_cost_micros: 250000
+    candidate_context: scoped_evidence_only_without_peer_conclusions
+    termination: all_candidates_complete_or_bound_exhausted
+    judge: evidence_required_not_majority
+
+  - id: judge
+    purpose: Select or reject a decision after bounded independent candidates complete.
+    required_signals: [architectural-ambiguity, security-sensitivity, high-risk-migration, conflicting-hypotheses, independently-reviewable-evidence]
+    independence: candidate_outputs_only
+    authority: read_only
+    concurrency: serial_after_candidates
+    mutation: parent_serialized
+    bounds:
+      max_agents: 1
+      max_retries: 1
+      max_elapsed_millis: 180000
+      max_input_tokens: 5000
+      max_output_tokens: 3000
+      max_cost_micros: 150000
+    candidate_context: sanitized_candidate_results_and_evidence_only
+    termination: evidence_based_decision_or_blocked
+    judge: evidence_required_not_majority
