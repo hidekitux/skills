@@ -75,6 +75,29 @@ func TestSelectsDeterministicallyForRepresentativeSignals(t *testing.T) {
 	}
 }
 
+func TestExternalMutationNeverReceivesAutomaticRetry(t *testing.T) {
+	root := repositoryRoot(t)
+	policy, err := Load(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	graphDocument, err := graph.Load(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decision, err := SelectWithPolicy(policy, graphDocument, Input{
+		Skill: "create-pr", Impact: Low, Reversibility: High, Ambiguity: Low,
+		SecuritySensitivity: Low, StateMutation: External,
+		EvidenceQuality: Complete, ValidationCost: Low,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decision.Outcome != "selected" || decision.MaxRetries != 0 {
+		t.Fatalf("external mutation decision = %#v, want selected with max_retries=0", decision)
+	}
+}
+
 func TestSelectRejectsAuthorityExpansionAndUnsafeValidationOverride(t *testing.T) {
 	root := repositoryRoot(t)
 	policy, err := Load(root)
