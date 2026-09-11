@@ -28,9 +28,27 @@ func (OSCommandRunner) Run(ctx context.Context, dir string, env []string, name s
 	command.Dir = dir
 	if env != nil {
 		command.Env = env
+	} else if name == "git" {
+		command.Env = withoutGitContext(os.Environ())
 	}
 	output, err := command.CombinedOutput()
 	return string(output), err
+}
+
+func withoutGitContext(environment []string) []string {
+	blocked := map[string]bool{
+		"GIT_COMMON_DIR": true, "GIT_DIR": true, "GIT_INDEX_FILE": true,
+		"GIT_PREFIX": true, "GIT_WORK_TREE": true,
+	}
+	clean := make([]string, 0, len(environment))
+	for _, value := range environment {
+		name, _, ok := strings.Cut(value, "=")
+		if ok && blocked[name] {
+			continue
+		}
+		clean = append(clean, value)
+	}
+	return clean
 }
 
 type IssueVerifier func(context.Context, int) error
