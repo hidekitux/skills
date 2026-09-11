@@ -17,6 +17,7 @@ func runOneDeliberation(ctx context.Context, sc *Scenario, host HostRunner, opts
 	started := time.Now()
 	baselineScenario := *sc
 	baselineScenario.Deliberation = nil
+	baselineScenario.Corrections = boundedCorrections(sc.Corrections, sc.Deliberation.Bounds.MaxRetries)
 
 	boundedCtx, cancel := context.WithTimeout(ctx, time.Duration(sc.Deliberation.Bounds.MaxElapsedMillis)*time.Millisecond)
 	defer cancel()
@@ -77,6 +78,16 @@ func addCandidateScope(scenario Scenario, scope string) Scenario {
 	}
 	scenario.Prompt += "\n\nCandidate scope: " + scope
 	return scenario
+}
+
+func boundedCorrections(corrections []string, maxRetries int) []string {
+	if maxRetries <= 0 {
+		return nil
+	}
+	if len(corrections) <= maxRetries {
+		return append([]string(nil), corrections...)
+	}
+	return append([]string(nil), corrections[:maxRetries]...)
 }
 
 // judgeDeliberation applies an evidence-required deterministic rule. A

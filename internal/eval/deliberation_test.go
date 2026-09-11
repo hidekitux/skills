@@ -108,6 +108,20 @@ func TestRunOneOrdinaryScenarioRemainsSingleAgent(t *testing.T) {
 	}
 }
 
+func TestRunOneDeliberationBoundsCorrections(t *testing.T) {
+	scenario := &Scenario{
+		ID: "deliberation-retries", Skill: "debug-code", Kind: KindPositive,
+		Prompt:       "Investigate the reported failure and hand off the verified result.",
+		Deliberation: deliberationForTest(), Corrections: []string{"first correction", "second correction"},
+		Expectations: Expectations{Handoff: "write-tests", TranscriptMust: []string{"write-tests"}},
+	}
+	host := &recordingHost{name: "codex", available: true}
+	record := runOneForTest(t, scenario, host, &Options{Commit: "test-commit"})
+	if record.Verdict != VerdictPass || record.CorrectionsUsed != 3 {
+		t.Fatalf("verdict = %s, corrections used = %d, want baseline and two candidates to use one each", record.Verdict, record.CorrectionsUsed)
+	}
+}
+
 func TestJudgeDeliberationDoesNotUseMajority(t *testing.T) {
 	baseline := Record{Verdict: VerdictFail}
 	candidates := []Record{{Verdict: VerdictFail}, {Verdict: VerdictFail}, {Verdict: VerdictPass}}
