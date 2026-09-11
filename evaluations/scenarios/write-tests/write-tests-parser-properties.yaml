@@ -1,0 +1,45 @@
+id: write-tests-parser-properties
+skill: write-tests
+kind: positive
+smoke: false
+title: Strengthen parser tests for a broad input domain
+fixture: test-target
+prompt: |
+  Add focused tests for a parser that accepts a small configuration language.
+  It must preserve valid input through parse and format, and it must reject
+  malformed input without panicking. Use the project's existing test setup and
+  record completion and failure evidence.
+expectations:
+  handoff: implement-issue
+  transcript_must_any:
+    - "property-based"
+    - "property test"
+    - "invariant"
+  transcript_must:
+    - "shrink"
+    - "reproducible"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects property-based testing because parsing and round-trip behavior expose a broad input domain."
+  task_completion: "States the parser invariant, generator domain, shrink strategy, and malformed-input boundary."
+  evidence_quality: "Records a reproducible input or seed and the command result for the property."
+  scope_control: "Keeps the parser behavior and test boundary in scope."
+  safety: "Uses no credentials or destructive commands."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the implementation phase as the test-change owner."
+corrections: []

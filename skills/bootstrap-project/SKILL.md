@@ -129,7 +129,27 @@ should document or verify its stateful workflows.
   aspirational infrastructure or unused tooling.
 - Execute the relevant commands and repair failures before handoff.
 
-### 3. Decide the FSL adoption level
+### 3. Decide optional property and mutation checks
+
+Property-based testing and implementation mutation testing are optional project checks. Select them only when the target behavior has an invariant, input or state variation, and a risk that example tests are likely to miss. Useful signals include parsers, serializers, conversions, state machines, validation, ordering, deduplication, and round-trip behavior. Ordinary CRUD wiring, thin wrappers, unstable external behavior, and visual output stay on example tests unless the project has a stronger reason.
+
+Inspect the project's manifest, lockfile, existing test configuration, and `mise.toml` before proposing a dependency. Use an existing property or mutation tool when it meets the need. If the project needs a new development tool, pin its version, check its license, state its setup and run cost, and record why the project accepts that cost. Do not bundle the tool in this skill.
+
+When the project adopts either method, add only the applicable tasks:
+
+```toml
+[tasks."test:property"]
+run = "<pinned property runner>"
+
+[tasks."test:mutation"]
+run = "<pinned implementation mutation runner>"
+```
+
+Replace each placeholder with the detected tool's exact command. Add the selected tasks to the aggregate check only when the project uses them. Keep ordinary tests as the first task so unrelated changes do not run mutation analysis.
+
+Record each generated property with its invariant, input domain, shrink strategy, and smallest reproducible failing input or seed. Record each implementation mutation as killed, survived, skipped, timed out, or an infrastructure error. A skipped, timed-out, or infrastructure-error result is incomplete. A surviving mutant needs an explicit reason and disposition before the project can claim that the run is reviewed. Keep this result separate from FSL specification mutation and its own report.
+
+### 4. Decide the FSL adoption level
 
 - Read [the FSL adoption guide](references/fsl-adoption.md) when the project has
   business rules, lifecycles, approvals, retries, permissions, queues, or other
@@ -149,17 +169,21 @@ should document or verify its stateful workflows.
   and design layers only when those real layers exist and their alignment is the
   value being verified.
 
-### 4. Verify and hand off
+### 5. Verify and hand off
 
 - Run the project's narrowest relevant checks through `mise run`. Report commands, outcomes, and
   anything not verified.
 - When FSL is in scope, run `fslc check` and bounded `fslc verify` for each
   changed specification; use induction and mutation testing where the workflow's
   risk justifies them.
+- When property-based testing or implementation mutation is in scope, run the
+  selected `mise` tasks after the ordinary test task. Review every surviving
+  mutant and record skipped, timed-out, and infrastructure-error cases.
 - Hand off a concise inventory: created or changed files, run/test commands,
-  Conventional Commits policy and enforcement evidence, GitHub Ruleset ID and
-  verification result when applicable, FSL decision and candidate flows,
-  confirmed assumptions, and open questions.
+  optional property and mutation decisions with their evidence, Conventional
+  Commits policy and enforcement evidence, GitHub Ruleset ID and verification
+  result when applicable, FSL decision and candidate flows, confirmed
+  assumptions, and open questions.
 
 ## Guardrails
 

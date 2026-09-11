@@ -36,7 +36,7 @@ skills:
   - name: bootstrap-project
     path: skills/bootstrap-project/SKILL.md
     before_tokens: 2591
-    after_tokens: 2352
+    after_tokens: 2772
     before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
     after_commit: 42296b4
     sections:
@@ -45,8 +45,9 @@ skills:
       - {heading: "0. Create and maintain the Todo List", classification: invariant}
       - {heading: "1. Establish the project boundary", classification: task-procedure}
       - {heading: "2. Build a minimal, runnable foundation", classification: task-procedure}
-      - {heading: "3. Decide the FSL adoption level", classification: conditional-reference, load_condition: When the project has stateful behavior, read the FSL adoption guide., reference: skills/bootstrap-project/references/fsl-adoption.md}
-      - {heading: "4. Verify and hand off", classification: task-procedure}
+      - {heading: "3. Decide optional property and mutation checks", classification: task-procedure}
+      - {heading: "4. Decide the FSL adoption level", classification: conditional-reference, load_condition: When the project has stateful behavior, read the FSL adoption guide., reference: skills/bootstrap-project/references/fsl-adoption.md}
+      - {heading: "5. Verify and hand off", classification: task-procedure}
       - {heading: Guardrails, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
   - name: create-issue
@@ -226,13 +227,16 @@ skills:
   - name: write-tests
     path: skills/write-tests/SKILL.md
     before_tokens: 1238
-    after_tokens: 1166
+    after_tokens: 1920
     before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
     after_commit: 42296b4
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
       - {heading: Choose the test level, classification: task-procedure}
+      - {heading: Decide property-based testing, classification: task-procedure}
+      - {heading: Decide implementation mutation, classification: task-procedure}
+      - {heading: Route optional checks through mise, classification: task-procedure}
       - {heading: Derive test cases, classification: task-procedure}
       - {heading: Record completion and failure evidence per case, classification: invariant}
       - {heading: Run and record, classification: task-procedure}

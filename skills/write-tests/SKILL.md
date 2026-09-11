@@ -33,6 +33,50 @@ Pick the smallest level that reliably verifies the defined behavior:
 
 Use one level unless the acceptance criteria genuinely span levels. Record the choice and its reason with the test cases.
 
+## Decide property-based testing
+
+Use property-based testing when a behavior has a stable invariant and a useful input or state space. Look for parsers and serializers that must preserve a grammar or a round trip, conversions that preserve units or bounds, state machines with legal transitions, validators with a broad invalid domain, ordering and deduplication, and transformations whose examples cover only a few combinations.
+
+Keep example tests when the behavior is ordinary CRUD wiring, a thin wrapper, unstable external behavior, visual output, or a case whose setup and review cost exceeds the risk it reduces. Do not add a property because a tool makes one possible.
+
+Before writing a property, record the invariant, generated input domain, expected relation, and reason examples are insufficient. Configure a bounded generator and shrink strategy. Retain the smallest failing input or seed, tool version, and reproduction command. A passing property is evidence only when its invariant and input domain are explicit.
+
+## Decide implementation mutation
+
+Implementation mutation changes production code and checks whether the test suite detects each changed behavior. It is separate from specification mutation: an FSL mutation changes a specification and remains owned by the FSL workflow. Do not claim implementation coverage from FSL mutation results.
+
+Inspect the target project's manifest, lockfile, `mise.toml`, test configuration, and existing mutation reports before proposing a tool. Use the existing tool when it meets the result contract. If no tool exists, propose a development-only dependency only after checking its license, pinning its version, and recording its cost and support boundary.
+
+Normalize the mutation report into these outcomes:
+
+| Outcome | Meaning | Completion rule |
+| --- | --- | --- |
+| killed | The test suite detects the mutant. | Record the test command and result. |
+| survived | The test suite accepts the changed behavior. | Triage the mutant with a reason and a fix plan or accepted disposition. |
+| skipped | The tool did not run the mutant by selection or policy. | Report the skip; it is not a pass. |
+| timed out | The mutation run exceeded its wall-clock limit. | Report the limit and treat the result as incomplete. |
+| infrastructure error | Setup, execution, parsing, or reporting failed. | Report the error and do not claim test effectiveness. |
+
+Do not collapse these outcomes into a percentage or aggregate green status. A survivor needs explicit review before handoff. Record whether the survivor is equivalent, redundant, accepted with a reason, or assigned a fix. Use `needs-review` for an unresolved survivor and keep the run incomplete.
+
+## Route optional checks through mise
+
+Add `test:property` and `test:mutation` only when the adoption decision selects them. Route both tasks through `mise` and include them in the project's aggregate check only when they apply. Keep the ordinary test task separate so an unrelated change does not pay for mutation analysis.
+
+For a Go project, use its existing fuzz target or property package and configured implementation mutation runner. For a Python project, use the existing test runner and configured property or mutation package. For a JavaScript or TypeScript project, use the existing test runner and configured property or mutation package. In each case, pin the development tool in the project's `mise.toml`, package manifest, or lockfile, then record the license and exact command in the task.
+
+Example task names are stable across these technologies, but command lines are project-specific:
+
+```toml
+[tasks."test:property"]
+run = "<pinned property runner>"
+
+[tasks."test:mutation"]
+run = "<pinned implementation mutation runner>"
+```
+
+Do not present the placeholders as runnable commands. Replace them only after the target project's tool and version are known.
+
 ## Derive test cases
 
 Map each acceptance criterion, requirement, or failure scenario to at least one test case. Derive cases from the target's inputs and states, including boundary and empty values, state changes, error paths, retries, ordering, and duplicate execution, plus the verified failing scenario when one exists. Drop cases that do not map to a requirement or scenario.
@@ -53,7 +97,7 @@ Run tests with the repository's prescribed commands, using mise tasks when the r
 
 ## Handoff
 
-- Report the chosen test level and reason, the test cases with intention, completion and failure evidence, the changed test file paths, the commands run with their results, and the next owner: `implement-issue`, which takes the focused tests into the verified fix or governed change.
+- Report the chosen test level and reason, the adoption decision for property-based testing and implementation mutation, the test cases with intention, completion and failure evidence, the changed test file paths, the commands run with their results, and the next owner: `implement-issue`, which takes the focused tests into the verified fix or governed change.
 - Never fix production code, never take over a project's whole test suite, and never create Issues or Pull Requests; those belong to other skills or later phases.
 
 ## Writing quality

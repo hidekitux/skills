@@ -1,0 +1,46 @@
+id: bootstrap-project-state-machine-checks
+skill: bootstrap-project
+kind: positive
+smoke: false
+title: Bootstrap a project with a stateful validation boundary
+fixture: bootstrap-target
+prompt: |
+  Initialize this project as a runnable service with a lifecycle state machine,
+  invalid-transition checks, and retry behavior. Inspect the existing project
+  tools before choosing the validation commands, and leave a clear handoff for
+  the project team.
+expectations:
+  handoff: governed-change-flow
+  transcript_must_any:
+    - "property-based"
+    - "property test"
+    - "invariant"
+  transcript_must:
+    - "mise"
+    - "mutation"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist:
+    - "mise.toml"
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects optional property and mutation checks because a state machine has invariants and invalid transitions."
+  task_completion: "Inspects existing tools, pins selected development tools, and routes applicable checks through mise."
+  evidence_quality: "Records the invariant, cost, failure policy, and survivor-triage evidence."
+  scope_control: "Keeps the foundation runnable and does not invent unrelated services."
+  safety: "Uses no credentials or destructive commands."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the governed change flow as the next phase."
+corrections: []
