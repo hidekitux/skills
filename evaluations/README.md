@@ -36,6 +36,12 @@ evaluations/
   under evaluation, so trigger selection is measured, not assumed.
 - Scenario and fixture content never contains credentials, private URLs, user
   paths, or real user transcripts (Issue 173 Out-scope).
+- A `deliberation` block is opt-in. It runs the same scenario once as a
+  single-agent baseline and then runs bounded candidates in isolated
+  sandboxes; candidate prompts receive no expected findings or peer results.
+  The resulting JSONL record reports deterministic disagreement, quality
+  delta, false-positive count, elapsed time, retries, and whether token or
+  cost meters were available.
 
 ## Scenario schema
 
@@ -56,6 +62,18 @@ stages:                         # e2e flows only (skill: e2e)
     prompt: |
       Second stage prompt.
 fixture: governed-change        # key into fixtures/<key>/ (optional)
+deliberation:                   # optional bounded baseline comparison
+  pattern: independent-candidates
+  signals: [conflicting-hypotheses]
+  reason: independent-evidence-needed
+  independence: isolated-context
+  authority: read-only
+  concurrency: parallel-read-only
+  bounds: {max_agents: 2, max_retries: 1, max_elapsed_millis: 300000,
+           max_input_tokens: 4000, max_output_tokens: 4000, max_cost_micros: 250000}
+  candidate_count: 2
+  compare_baseline: true
+  judge: evidence-required-not-majority
 expectations:
   handoff: plan-issue           # named next-owner per docs/skill-contract.md;
                                  # asserted against the transcript when it
@@ -98,6 +116,9 @@ Contract rules enforced by `cmd/check-evaluation` (wired into
   stage prompts (expected-answer leak guard).
 - Every cataloged skill has at least one `positive` and one `negative` or
   `boundary` scenario.
+- A deliberation scenario declares a supported trigger signal, explicit
+  positive bounds, isolated read-only concurrency, a baseline comparison, and
+  an evidence-required judge that does not use a majority vote.
 - A `handoff` that names a cataloged skill is asserted against the transcript:
   the evaluated agent must name the documented next owner. Outcome markers
   (for example a boundary stop condition such as `blocked-ask`) are asserted

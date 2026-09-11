@@ -71,6 +71,8 @@ type Comparison struct {
 	InputTokensAvailable         bool   `json:"input_tokens_available"`
 	OutputTokensAvailable        bool   `json:"output_tokens_available"`
 	ContextTokensAvailable       bool   `json:"context_tokens_available"`
+	BaselineContextTokens        *int64 `json:"baseline_context_tokens,omitempty"`
+	DeliberationContextTokens    *int64 `json:"deliberation_context_tokens,omitempty"`
 	CostAvailable                bool   `json:"cost_available"`
 }
 
