@@ -34,6 +34,7 @@ func traceForRecord(sc *Scenario, record Record, graphVersion int, skillVersion 
 		StartedAt:          started,
 		Context:            record.Context,
 		Deliberation:       record.Deliberation,
+		Strategy:           record.Strategy,
 		Usage:              &trace.Usage{Available: false, ElapsedMillis: record.ElapsedMillis},
 		Terminal:           terminal,
 		Redaction:          trace.RedactionSummary{Mode: "allowlist", OmittedFields: []string{}, RetentionDays: trace.DefaultRetentionDays},

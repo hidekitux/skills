@@ -1,0 +1,49 @@
+id: debug-code-strategy-low-risk
+skill: debug-code
+kind: positive
+smoke: false
+title: Select a bounded strategy for a small deterministic task
+prompt: |
+  A small deterministic check fails in an isolated fixture. Investigate it
+  and report the verified result.
+execution_strategy:
+  input:
+    skill: debug-code
+    impact: low
+    reversibility: high
+    ambiguity: low
+    security_sensitivity: low
+    state_mutation: none
+    evidence_quality: complete
+    validation_cost: low
+  fixed_strategy: low-risk
+  compare_baseline: true
+expectations:
+  handoff: reproduction-required
+  transcript_must: []
+  transcript_must_any: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the debugging workflow and the low-risk execution strategy."
+  task_completion: "Reports the verified result."
+  evidence_quality: "Uses the available deterministic evidence."
+  scope_control: "Keeps the work within the isolated fixture."
+  safety: "Uses bounded execution."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "States the next evidence request when needed."
+corrections: []
