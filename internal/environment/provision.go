@@ -89,9 +89,6 @@ func (p Provisioner) Provision(ctx context.Context, request ProvisionRequest) (P
 	if sameOrWithin(root, destination) {
 		return Provisioned{}, errors.New("provision destination must be outside the source repository")
 	}
-	if err := ensureEmptyDestination(destination); err != nil {
-		return Provisioned{}, err
-	}
 	revision, err := p.resolveRevision(ctx, root, request.Revision)
 	if err != nil {
 		return Provisioned{}, err
@@ -117,6 +114,9 @@ func (p Provisioner) Provision(ctx context.Context, request ProvisionRequest) (P
 		return Provisioned{}, err
 	}
 	if workspace == WorkspaceDetachedSnapshot {
+		if err := ensureEmptyDestination(destination); err != nil {
+			return Provisioned{}, err
+		}
 		if _, err := p.runGit(ctx, root, "worktree", "add", "--detach", destination, revision); err != nil {
 			return Provisioned{}, fmt.Errorf("create detached snapshot: %w", err)
 		}
@@ -179,6 +179,9 @@ func (p Provisioner) provisionIssueWorktree(ctx context.Context, root, destinati
 		if equivalentPath(worktree.Path, destination) && worktree.Branch != branch {
 			return fmt.Errorf("destination is owned by branch %s, not %s", worktree.Branch, branch)
 		}
+	}
+	if err := ensureEmptyDestination(destination); err != nil {
+		return err
 	}
 	if _, err := p.runGit(ctx, root, "show-ref", "--verify", "--quiet", "refs/heads/"+branch); err == nil {
 		if _, err := p.runGit(ctx, root, "worktree", "add", destination, branch); err != nil {

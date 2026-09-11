@@ -61,7 +61,7 @@ func (p Provisioner) Cleanup(ctx context.Context, request CleanupRequest) (Manif
 		manifest.Cleanup = CleanupBlockedActive
 		return manifest, nil
 	}
-	if material, err := p.hasMaterialChanges(ctx, workspace); err != nil {
+	if material, err := p.hasMaterialChanges(ctx, workspace, manifest.RepositoryRevision); err != nil {
 		return manifest, err
 	} else if material {
 		manifest.Cleanup = CleanupBlockedMaterial
@@ -98,7 +98,7 @@ func canonicalPath(path string) string {
 	return filepath.Clean(abs)
 }
 
-func (p Provisioner) hasMaterialChanges(ctx context.Context, workspace string) (bool, error) {
+func (p Provisioner) hasMaterialChanges(ctx context.Context, workspace, baseline string) (bool, error) {
 	status, err := p.runGit(ctx, workspace, "status", "--porcelain=v1", "--untracked-files=all")
 	if err != nil {
 		return false, fmt.Errorf("inspect worktree changes: %w", err)
@@ -108,7 +108,11 @@ func (p Provisioner) hasMaterialChanges(ctx context.Context, workspace string) (
 	}
 	upstream, err := p.runGit(ctx, workspace, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
 	if err != nil {
-		return false, nil
+		head, headErr := p.runGit(ctx, workspace, "rev-parse", "HEAD")
+		if headErr != nil {
+			return false, fmt.Errorf("inspect worktree head: %w", headErr)
+		}
+		return strings.TrimSpace(head) != baseline, nil
 	}
 	counts, err := p.runGit(ctx, workspace, "rev-list", "--left-right", "--count", "HEAD..."+strings.TrimSpace(upstream))
 	if err != nil {
