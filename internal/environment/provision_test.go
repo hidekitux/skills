@@ -348,7 +348,7 @@ func testRepository(t *testing.T) (string, string) {
 		t.Helper()
 		cmd := exec.Command("git", args...)
 		cmd.Dir = root
-		cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null")
+		cmd.Env = fixtureGitEnvironment()
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, output)
@@ -371,7 +371,7 @@ func addWorktree(t *testing.T, root, destination string, branchArgs ...string) {
 	args := append([]string{"worktree", "add"}, append(branchArgs[:len(branchArgs)-1], destination, branchArgs[len(branchArgs)-1])...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = root
-	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null")
+	cmd.Env = fixtureGitEnvironment()
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("git %v: %v\n%s", args, err, output)
 	}
@@ -381,10 +381,14 @@ func runFixtureGit(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null")
+	cmd.Env = fixtureGitEnvironment()
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("git %v: %v\n%s", args, err, output)
 	}
+}
+
+func fixtureGitEnvironment() []string {
+	return append(withoutGitContext(os.Environ()), "GIT_CONFIG_GLOBAL=/dev/null")
 }
 
 func fileMode(t *testing.T, path string) os.FileMode {
