@@ -9,13 +9,14 @@ import (
 
 // fakeRunner scripts gh responses by exact argument string, recording calls.
 type fakeRunner struct {
-	calls     [][]string
-	responses map[string]string
-	failures  map[string]error
+	calls          [][]string
+	responses      map[string]string
+	failures       map[string]error
+	failOnceErrors map[string][]error
 }
 
 func newFakeRunner() *fakeRunner {
-	return &fakeRunner{responses: map[string]string{}, failures: map[string]error{}}
+	return &fakeRunner{responses: map[string]string{}, failures: map[string]error{}, failOnceErrors: map[string][]error{}}
 }
 
 func (f *fakeRunner) respond(args []string, output string) *fakeRunner {
@@ -28,9 +29,19 @@ func (f *fakeRunner) fail(args []string, err error) *fakeRunner {
 	return f
 }
 
+func (f *fakeRunner) failOnce(args []string, err error) *fakeRunner {
+	key := strings.Join(args, " ")
+	f.failOnceErrors[key] = append(f.failOnceErrors[key], err)
+	return f
+}
+
 func (f *fakeRunner) Run(args ...string) (string, error) {
 	f.calls = append(f.calls, args)
 	key := strings.Join(args, " ")
+	if failures := f.failOnceErrors[key]; len(failures) > 0 {
+		f.failOnceErrors[key] = failures[1:]
+		return "", failures[0]
+	}
 	if err, ok := f.failures[key]; ok {
 		return "", err
 	}
@@ -38,6 +49,17 @@ func (f *fakeRunner) Run(args ...string) (string, error) {
 		return output, nil
 	}
 	return "", fmt.Errorf("unexpected gh call: %s", key)
+}
+
+func (f *fakeRunner) callCount(args ...string) int {
+	key := strings.Join(args, " ")
+	count := 0
+	for _, call := range f.calls {
+		if strings.Join(call, " ") == key {
+			count++
+		}
+	}
+	return count
 }
 
 func (f *fakeRunner) called(args ...string) bool {
@@ -124,6 +146,27 @@ func TestProjectNumberResolvesUniqueTitle(t *testing.T) {
 	}
 	if number != 3 {
 		t.Fatalf("expected title-resolved number 3, got %d", number)
+	}
+}
+
+func TestProjectSnapshotReadsEachProjectSourceOnce(t *testing.T) {
+	cfg := mustConfig(t)
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1"))
+	client := NewClient(runner, cfg.Project.Owner)
+	if _, err := client.projectSnapshot(cfg, true); err != nil {
+		t.Fatalf("projectSnapshot: %v", err)
+	}
+	for _, args := range [][]string{
+		{"project", "list", "--owner", "acme", "--format", "json"},
+		{"project", "field-list", "3", "--owner", "acme", "--format", "json"},
+		{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"},
+	} {
+		if got := runner.callCount(args...); got != 1 {
+			t.Fatalf("call count for %v = %d, want 1", args, got)
+		}
 	}
 }
 
