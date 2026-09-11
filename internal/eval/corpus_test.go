@@ -221,6 +221,25 @@ func TestCheckCorpusRejectsMissingFixture(t *testing.T) {
 	}
 }
 
+func TestCheckCorpusRejectsFanOutWithoutCandidateScopes(t *testing.T) {
+	positive := baseScenario()
+	positive.Deliberation = &DeliberationSpec{
+		Pattern: "fan-out-investigation", Signals: []string{"independently-reviewable-evidence"},
+		Reason: "independent-evidence", Independence: "isolated-context", Authority: "read-only",
+		Concurrency: "parallel-read-only", Bounds: DeliberationBounds{MaxAgents: 2, MaxRetries: 1, MaxElapsedMillis: 1000, MaxInputTokens: 1, MaxOutputTokens: 1, MaxCostMicros: 1},
+		CandidateCount: 2, CompareBaseline: true, Judge: "evidence-required-not-majority",
+	}
+	root := scaffoldEval(t,
+		[]map[string]string{skillEntry("plan-issue", "experimental")},
+		[]*Scenario{positive, {ID: "plan-issue-boundary", Skill: "plan-issue", Kind: KindBoundary, Title: "Boundary", Prompt: "Plan the draft issue.", Expectations: Expectations{Handoff: "blocked-ask"}, Rubric: fullRubric()}},
+		nil,
+	)
+	code, _, errOut := runCheckCorpus(t, root)
+	if code != 1 || !strings.Contains(errOut, "fan-out-investigation requires one scope per candidate") {
+		t.Fatalf("expected fan-out scope finding, got code %d: %s", code, errOut)
+	}
+}
+
 func TestCheckCorpusRejectsStagesWithoutE2E(t *testing.T) {
 	sc := baseScenario()
 	sc.Stages = []Stage{{Skill: "plan-issue", Prompt: "stage prompt"}}
