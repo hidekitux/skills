@@ -1,7 +1,10 @@
 package fsl
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -84,7 +87,15 @@ func ChangedSpecs(root, baseRev string) ([]string, error) {
 		if !isScopedFSLPath(rel) {
 			continue
 		}
-		canon, err := filepath.EvalSymlinks(filepath.Join(absRoot, filepath.FromSlash(rel)))
+		path := filepath.Join(absRoot, filepath.FromSlash(rel))
+		if _, err := os.Lstat(path); errors.Is(err, fs.ErrNotExist) {
+			// A deleted spec cannot be mutated from the working tree. This also
+			// covers the old path when a repository-level exposure is moved.
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf("inspect changed FSL spec %q: %w", rel, err)
+		}
+		canon, err := filepath.EvalSymlinks(path)
 		if err != nil {
 			return nil, fmt.Errorf("resolve changed FSL spec %q: %w", rel, err)
 		}

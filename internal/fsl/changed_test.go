@@ -1,6 +1,7 @@
 package fsl
 
 import (
+	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
@@ -182,6 +183,26 @@ func TestChangedSpecsDedupesSymlinkedExposure(t *testing.T) {
 	}
 	if !reflect.DeepEqual(specs, []string{"skills/example/specs/flow.fsl"}) {
 		t.Fatalf("expected one deduplicated spec, got %v", specs)
+	}
+}
+
+func TestChangedSpecsIgnoresDeletedSpecs(t *testing.T) {
+	root := t.TempDir()
+	gitTest(t, root, "init")
+	write(t, root, "skills/example/specs/flow.fsl", "x")
+	writeLink(t, root, "specs/example/flow.fsl", "../../skills/example/specs/flow.fsl")
+	base := baseCommit(t, root)
+
+	if err := os.Remove(filepath.Join(root, "specs/example/flow.fsl")); err != nil {
+		t.Fatal(err)
+	}
+
+	specs, err := ChangedSpecs(root, base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(specs) != 0 {
+		t.Fatalf("expected deleted specs to be ignored, got %v", specs)
 	}
 }
 
