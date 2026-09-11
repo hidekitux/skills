@@ -9,6 +9,8 @@ name: Policy (Project)
 #   release Issue tracked with Tracks stays non-terminal until publication.
 # - issue_comment.created from the repository owner with the complete
 #   plan-issue marker and required headings -> Planned; other comments are ignored.
+# The status command retries only its idempotent item-edit mutation, so these
+# event handlers do not retry the full Project read sequence.
 #
 # The default GITHUB_TOKEN cannot mutate Projects v2, so the step needs a
 # least-privilege PAT with `project` scope in the PROJECTS_TOKEN secret.
@@ -87,7 +89,8 @@ jobs:
             --issue "$ISSUE" \
             --pr-type "$PR_TYPE" \
             --pr-draft "$PR_DRAFT" \
-            --pr-merged "$PR_MERGED"
+            --pr-merged "$PR_MERGED" \
+            --max-attempts 3
 
   sync-planned:
     if: github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.user.login == github.repository_owner
@@ -136,18 +139,5 @@ jobs:
             echo "::error::Issue comment is not an authoritative plan comment for Issue #$ISSUE; expected the exact marker and required non-empty sections."
             exit 1
           fi
-          attempt=1
-          while [ "$attempt" -le 3 ]; do
-            if go run ./cmd/set-issue-project-status --root . --repo "$REPOSITORY" \
-              --issue "$ISSUE" --status "Planned"; then
-              echo "Project Status synchronization succeeded on attempt $attempt for Issue #$ISSUE."
-              exit 0
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo "::error::Project Status synchronization failed after $attempt attempts for Issue #$ISSUE; inspect the preceding Project, item, permission, and API diagnostics."
-              exit 1
-            fi
-            echo "::warning::Project Status synchronization attempt $attempt failed for Issue #$ISSUE; retrying after propagation/API backoff."
-            sleep $((attempt * 2))
-            attempt=$((attempt + 1))
-          done
+          go run ./cmd/set-issue-project-status --root . --repo "$REPOSITORY" \
+            --issue "$ISSUE" --status "Planned" --max-attempts 3

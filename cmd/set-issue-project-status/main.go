@@ -27,6 +27,7 @@ func main() {
 	prDraft := fs.String("pr-draft", "false", "whether the Pull Request is a draft")
 	prMerged := fs.String("pr-merged", "false", "whether a closed Pull Request was merged")
 	dryRun := fs.Bool("dry-run", false, "resolve and report without mutating")
+	maxAttempts := fs.Int("max-attempts", 3, "maximum attempts for the idempotent Project item edit")
 	config := fs.String("config", "", "Project configuration path (default: <root>/.github/issue-project.toml)")
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		os.Exit(2)
@@ -41,6 +42,10 @@ func main() {
 	if !set["status"] && !set["pr-type"] {
 		fmt.Fprintln(os.Stderr, "flag: --status or --pr-type is required")
 		fs.Usage()
+		os.Exit(2)
+	}
+	if *maxAttempts < 1 {
+		fmt.Fprintln(os.Stderr, "error: --max-attempts must be at least 1")
 		os.Exit(2)
 	}
 	repoRoot, err := support.ResolveRoot(*root)
@@ -87,5 +92,5 @@ func main() {
 		skipClosed = true
 	}
 
-	os.Exit(project.SetIssueStatus(project.GH{}, cfg, *repo, *issue, target, *dryRun, skipClosed, os.Stdout, os.Stderr))
+	os.Exit(project.SetIssueStatusWithRetries(project.GH{}, cfg, *repo, *issue, target, *dryRun, skipClosed, *maxAttempts, os.Stdout, os.Stderr))
 }
