@@ -92,6 +92,58 @@ func TestSetIssueStatusSetsStatusAndAddsItemOnce(t *testing.T) {
 		"--project-id", "PVT_1", "--single-select-option-id", "O_BACKLOG") {
 		t.Fatal("expected Status mutation")
 	}
+	if got := runner.callCount("project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"); got != 1 {
+		t.Fatalf("expected one item-list read for a missing item, got %d", got)
+	}
+	if got := runner.callCount("project", "item-add", "3", "--owner", "acme", "--url", issueURL205, "--format", "json"); got != 1 {
+		t.Fatalf("expected one item-add mutation, got %d", got)
+	}
+}
+
+func TestSetIssueStatusRetriesItemEditWithoutRepeatingReads(t *testing.T) {
+	cfg := mustConfig(t)
+	itemEdit := []string{"project", "item-edit", "--id", "ITEM_1", "--field-id", "F_STATUS",
+		"--project-id", "PVT_1", "--single-select-option-id", "O_INPROGRESS"}
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1")).
+		respond(itemEdit, "")
+	runner.failOnce(itemEdit, errors.New("transient item-edit failure"))
+	var out, errOut bytes.Buffer
+	if code := SetIssueStatusWithRetries(runner, cfg, "acme/sample", 205, "In progress", false, false, 3, &out, &errOut); code != 0 {
+		t.Fatalf("expected retry to succeed, got %d (out=%s err=%s)", code, out.String(), errOut.String())
+	}
+	if got := runner.callCount("project", "list", "--owner", "acme", "--format", "json"); got != 1 {
+		t.Fatalf("expected one Project read, got %d", got)
+	}
+	if got := runner.callCount("project", "field-list", "3", "--owner", "acme", "--format", "json"); got != 1 {
+		t.Fatalf("expected one field read, got %d", got)
+	}
+	if got := runner.callCount("project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"); got != 1 {
+		t.Fatalf("expected one item read, got %d", got)
+	}
+	if got := runner.callCount(itemEdit...); got != 2 {
+		t.Fatalf("expected one retry, got %d item-edit calls", got)
+	}
+}
+
+func TestSetIssueStatusStopsAtMutationAttemptBound(t *testing.T) {
+	cfg := mustConfig(t)
+	itemEdit := []string{"project", "item-edit", "--id", "ITEM_1", "--field-id", "F_STATUS",
+		"--project-id", "PVT_1", "--single-select-option-id", "O_INPROGRESS"}
+	runner := newFakeRunner().
+		respond([]string{"project", "list", "--owner", "acme", "--format", "json"}, projectListJSON).
+		respond([]string{"project", "field-list", "3", "--owner", "acme", "--format", "json"}, fieldListJSON).
+		respond([]string{"project", "item-list", "3", "--owner", "acme", "--limit", "100", "--format", "json"}, itemListJSON("ITEM_1")).
+		fail(itemEdit, errors.New("persistent item-edit failure"))
+	var out, errOut bytes.Buffer
+	if code := SetIssueStatusWithRetries(runner, cfg, "acme/sample", 205, "In progress", false, false, 3, &out, &errOut); code != 1 {
+		t.Fatalf("expected bounded failure code 1, got %d", code)
+	}
+	if got := runner.callCount(itemEdit...); got != 3 {
+		t.Fatalf("expected three bounded attempts, got %d", got)
+	}
 }
 
 func TestSetIssueStatusDoesNotRegressPlannedFromLaterLifecycleState(t *testing.T) {

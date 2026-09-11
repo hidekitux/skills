@@ -40,22 +40,18 @@ func (e *ContractError) Error() string { return e.Message }
 // VerifyIssue checks that the Issue has exactly one Project item whose
 // Status, Priority, and Scope values are each one of the declared options.
 func (c *Client) VerifyIssue(cfg *Config, issueURL string) error {
-	number, err := c.ProjectNumber(cfg)
+	snapshot, err := c.projectSnapshot(cfg, true)
 	if err != nil {
 		return err
 	}
-	fields, err := c.resolvedFields(cfg, number)
-	if err != nil {
-		return err
-	}
-	item, present, err := c.ItemForIssue(number, issueURL)
+	item, present, err := snapshot.itemForIssue(issueURL)
 	if err != nil {
 		return err
 	}
 	if !present {
 		return &ContractError{Message: fmt.Sprintf("Issue %s has no item in the declared Project; expected exactly one", issueURL)}
 	}
-	current, err := itemFieldNames(item, fields)
+	current, err := itemFieldNames(item, snapshot.fields)
 	if err != nil {
 		return &ContractError{Message: err.Error()}
 	}
