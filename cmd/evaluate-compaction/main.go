@@ -99,6 +99,11 @@ func compactionExitCode(fullCode, compactCode int, results []eval.PairResult) in
 			return eval.ExitUsage
 		}
 	}
+	for _, code := range []int{fullCode, compactCode} {
+		if code == eval.ExitInfra {
+			return eval.ExitInfra
+		}
+	}
 	for _, result := range results {
 		switch result.Status {
 		case "fail":
