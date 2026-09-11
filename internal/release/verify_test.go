@@ -212,6 +212,27 @@ func TestVerifyReleaseRejectsCatalogTagMismatch(t *testing.T) {
 	}
 }
 
+func TestVerifyReleaseRejectsStableCatalogWithoutPromotionEvidence(t *testing.T) {
+	root := writeReleaseFixture(t, "1.2.3")
+	catalogPath := filepath.Join(root, "CATALOG.yml")
+	catalog, err := os.ReadFile(catalogPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog = []byte(strings.Replace(string(catalog), "version: 1.2.3", "status: stable\n    version: 1.2.3", 1))
+	if err := os.WriteFile(catalogPath, catalog, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runner := newFakeReleaseRunner()
+	var out, errOut bytes.Buffer
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 1 {
+		t.Fatalf("expected stable promotion evidence to block release, got %d", code)
+	}
+	if !strings.Contains(errOut.String(), "stable promotion requires") {
+		t.Fatalf("expected promotion finding, got %q", errOut.String())
+	}
+}
+
 func TestVerifyReleaseRejectsExistingLocalTag(t *testing.T) {
 	root := writeReleaseFixture(t, "1.2.3")
 	runner := newFakeReleaseRunner()

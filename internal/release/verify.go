@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/hidekitux/skills/internal/discover"
+	"github.com/hidekitux/skills/internal/eval"
 	"github.com/hidekitux/skills/internal/support"
 	"gopkg.in/yaml.v3"
 )
@@ -160,6 +161,7 @@ func verifyRelease(tag, root string, out, errOut io.Writer, runner releaseComman
 			}
 		}
 	}
+	errors = append(errors, eval.PromotionFindings(root)...)
 
 	if _, err := runner.gitOutput(root, "diff", "--quiet"); err != nil {
 		errors = append(errors, "working tree has unstaged changes")
