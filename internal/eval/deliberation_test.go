@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
@@ -15,6 +16,7 @@ type recordingHost struct {
 	name      string
 	available bool
 	sandboxes []string
+	prompts   []string
 }
 
 func (h *recordingHost) Name() string          { return h.name }
@@ -23,9 +25,10 @@ func (h *recordingHost) InstallSkills(context.Context, string, string, io.Writer
 	return nil
 }
 
-func (h *recordingHost) Run(_ context.Context, sandboxDir, _ string, out io.Writer) error {
+func (h *recordingHost) Run(_ context.Context, sandboxDir, prompt string, out io.Writer) error {
 	h.mu.Lock()
 	h.sandboxes = append(h.sandboxes, sandboxDir)
+	h.prompts = append(h.prompts, prompt)
 	h.mu.Unlock()
 	_, err := io.WriteString(out, "handing the verified result to write-tests")
 	return err
@@ -41,6 +44,7 @@ func deliberationForTest() *DeliberationSpec {
 		Concurrency:     "parallel-read-only",
 		Bounds:          DeliberationBounds{MaxAgents: 2, MaxRetries: 1, MaxElapsedMillis: 5000, MaxInputTokens: 1000, MaxOutputTokens: 1000, MaxCostMicros: 10000},
 		CandidateCount:  2,
+		CandidateScopes: []string{"scope-a", "scope-b"},
 		CompareBaseline: true,
 		Judge:           "evidence-required-not-majority",
 	}
@@ -77,6 +81,14 @@ func TestRunOneDeliberationUsesIndependentSandboxesAndRecordsComparison(t *testi
 	}
 	if len(seen) != 3 {
 		t.Fatalf("sandboxes are not isolated: %v", host.sandboxes)
+	}
+	hasScopeA, hasScopeB := false, false
+	for _, prompt := range host.prompts {
+		hasScopeA = hasScopeA || strings.Contains(prompt, "Candidate scope: scope-a")
+		hasScopeB = hasScopeB || strings.Contains(prompt, "Candidate scope: scope-b")
+	}
+	if len(host.prompts) != 3 || strings.Contains(host.prompts[0], "Candidate scope:") || !hasScopeA || !hasScopeB {
+		t.Fatalf("candidate scopes were not isolated in prompts: %v", host.prompts)
 	}
 }
 

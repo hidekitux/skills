@@ -144,6 +144,17 @@ func validateDeliberationSpec(sc *Scenario, findings *[]string) {
 	if d.CandidateCount < 2 || d.CandidateCount > 3 || d.CandidateCount > d.Bounds.MaxAgents {
 		*findings = append(*findings, fmt.Sprintf("%s: deliberation candidate_count must be 2 or 3 and fit max_agents", sc.ID))
 	}
+	if len(d.CandidateScopes) > 0 && len(d.CandidateScopes) != d.CandidateCount {
+		*findings = append(*findings, fmt.Sprintf("%s: deliberation.candidate_scopes must match candidate_count", sc.ID))
+	}
+	if d.Pattern == "fan-out-investigation" && len(d.CandidateScopes) != d.CandidateCount {
+		*findings = append(*findings, fmt.Sprintf("%s: fan-out-investigation requires one scope per candidate", sc.ID))
+	}
+	for index, scope := range d.CandidateScopes {
+		if strings.TrimSpace(scope) == "" {
+			*findings = append(*findings, fmt.Sprintf("%s: deliberation.candidate_scopes[%d] must not be empty", sc.ID, index))
+		}
+	}
 	if d.Bounds.MaxAgents < 1 || d.Bounds.MaxAgents > 3 || d.Bounds.MaxRetries < 0 || d.Bounds.MaxElapsedMillis < 1 || d.Bounds.MaxInputTokens < 1 || d.Bounds.MaxOutputTokens < 1 || d.Bounds.MaxCostMicros < 1 {
 		*findings = append(*findings, fmt.Sprintf("%s: deliberation bounds must be positive and bounded", sc.ID))
 	}
@@ -166,7 +177,11 @@ func validateRubric(sc *Scenario, findings *[]string) {
 // the named handoff and every cataloged skill name (trigger selection is
 // measured, not assumed) must be absent from all stage prompts.
 func validatePromptLeaks(sc *Scenario, catalogNames map[string]bool, findings *[]string) {
-	for _, prompt := range sc.prompts() {
+	prompts := sc.prompts()
+	if sc.Deliberation != nil {
+		prompts = append(prompts, sc.Deliberation.CandidateScopes...)
+	}
+	for _, prompt := range prompts {
 		if sc.Expectations.Handoff != "" && strings.Contains(prompt, sc.Expectations.Handoff) {
 			*findings = append(*findings, fmt.Sprintf("%s: prompt reveals the expected handoff %q", sc.ID, sc.Expectations.Handoff))
 		}

@@ -112,6 +112,7 @@ type DeliberationSpec struct {
 	Concurrency     string             `yaml:"concurrency"`
 	Bounds          DeliberationBounds `yaml:"bounds"`
 	CandidateCount  int                `yaml:"candidate_count"`
+	CandidateScopes []string           `yaml:"candidate_scopes,omitempty"`
 	CompareBaseline bool               `yaml:"compare_baseline"`
 	Judge           string             `yaml:"judge"`
 }

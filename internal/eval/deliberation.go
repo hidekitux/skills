@@ -29,6 +29,9 @@ func runOneDeliberation(ctx context.Context, sc *Scenario, host HostRunner, opts
 	var waitGroup sync.WaitGroup
 	for index := range candidates {
 		candidateScenario := baselineScenario
+		if index < len(sc.Deliberation.CandidateScopes) {
+			candidateScenario = addCandidateScope(candidateScenario, sc.Deliberation.CandidateScopes[index])
+		}
 		waitGroup.Add(1)
 		go func(index int, scenario Scenario) {
 			defer waitGroup.Done()
@@ -61,6 +64,19 @@ func runOneDeliberation(ctx context.Context, sc *Scenario, host HostRunner, opts
 		record.InfraError = "deliberation exceeded max_elapsed_millis"
 	}
 	return record
+}
+
+func addCandidateScope(scenario Scenario, scope string) Scenario {
+	if scope == "" {
+		return scenario
+	}
+	if len(scenario.Stages) > 0 {
+		scenario.Stages = append([]Stage(nil), scenario.Stages...)
+		scenario.Stages[0].Prompt += "\n\nCandidate scope: " + scope
+		return scenario
+	}
+	scenario.Prompt += "\n\nCandidate scope: " + scope
+	return scenario
 }
 
 // judgeDeliberation applies an evidence-required deterministic rule. A
