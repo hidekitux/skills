@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
 )
 
@@ -118,6 +119,22 @@ func TestSelectRejectsAuthorityExpansionAndUnsafeValidationOverride(t *testing.T
 	}
 	if !contains(decision.Overrides.Values, "unsafe-validation-tier-rejected") {
 		t.Fatalf("unsafe override was not recorded: %#v", decision.Overrides)
+	}
+}
+
+func TestValidateDecisionRejectsUnsafeReasonsAndEvidence(t *testing.T) {
+	decision := Decision{
+		SchemaVersion: 1, PolicyVersion: 1, Rule: "default", Strategy: "low-risk", Skill: "plan-issue",
+		ModelTier: "low", ContextProfile: "selected-skill", ValidationTier: "tier-1", Parallelism: "single-agent",
+		MaxRetries: 1, MaxElapsedMillis: 300000, Escalation: "none", Outcome: "selected",
+		Authority: environment.Permissions{Repository: "read", Git: "read", GitHub: "read", ExternalMutation: "none"},
+		Signals:   InputSignals{Impact: Low, Reversibility: High, Ambiguity: Low, SecuritySensitivity: Low, StateMutation: None, EvidenceQuality: Complete, ValidationCost: Low},
+		Reasons:   []string{"token=secret"},
+		Evidence:  []Evidence{{Kind: "path", Ref: "https://private.example/source"}},
+	}
+	findings := ValidateDecision(decision)
+	if !contains(findings, "decision.reasons[0] is unsafe or invalid") || !contains(findings, "decision.evidence[0] is unsafe or invalid") {
+		t.Fatalf("unsafe decision accepted: %v", findings)
 	}
 }
 

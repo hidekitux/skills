@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 )
 
 func TestCodexAndClaudeAdaptersProduceEquivalentSemanticFields(t *testing.T) {
@@ -73,6 +76,39 @@ func TestAdaptersPreserveExecutionStrategy(t *testing.T) {
 	}
 	if item.Strategy == nil || item.Strategy.Strategy != "high-risk-deliberated" {
 		t.Fatalf("strategy was not preserved: %#v", item.Strategy)
+	}
+}
+
+func TestAdaptersSanitizeExecutionStrategyPrivacy(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "hosts", "codex", "trace-fixture.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var envelope map[string]any
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	decision := validStrategyDecision()
+	decision.Reasons = []string{"token=secret"}
+	decision.Evidence = []executionstrategy.Evidence{{Kind: "path", Ref: "https://private.example/source"}}
+	envelope["strategy"] = decision
+	data, err = json.Marshal(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	item, err := AdaptCodex(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Strategy == nil || item.Strategy.Reasons[0] != "[REDACTED]" || len(item.Strategy.Evidence) != 0 {
+		t.Fatalf("adapter did not sanitize strategy: %#v", item.Strategy)
+	}
+	encoded, err := json.Marshal(item)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "secret") || strings.Contains(string(encoded), "private.example") {
+		t.Fatalf("unsafe strategy data survived adapter: %s", encoded)
 	}
 }
 

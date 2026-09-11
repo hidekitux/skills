@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -25,6 +26,9 @@ const (
 )
 
 var identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*$`)
+var decisionURLPattern = regexp.MustCompile(`https?://[^\s"']+`)
+var decisionCredentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
+var decisionCommitPattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
 
 type Level string
 
@@ -245,8 +249,13 @@ func ValidateDecision(decision Decision) []string {
 	if len(decision.Reasons) == 0 {
 		findings = append(findings, "decision.reasons must not be empty")
 	}
+	for index, reason := range decision.Reasons {
+		if !validDecisionReason(reason) {
+			findings = append(findings, fmt.Sprintf("decision.reasons[%d] is unsafe or invalid", index))
+		}
+	}
 	for index, evidence := range decision.Evidence {
-		if !oneOf(evidence.Kind, "path", "command", "issue", "pull_request", "commit", "validation") || !identifierPattern.MatchString(evidence.Ref) {
+		if !validDecisionEvidence(evidence) {
 			findings = append(findings, fmt.Sprintf("decision.evidence[%d] is unsafe or invalid", index))
 		}
 		if evidence.Result != "" && !identifierPattern.MatchString(evidence.Result) {
@@ -255,6 +264,49 @@ func ValidateDecision(decision Decision) []string {
 	}
 	sort.Strings(findings)
 	return findings
+}
+
+func validDecisionReason(value string) bool {
+	if value == "" || len(value) > 256 || strings.ContainsAny(value, "\r\n") ||
+		decisionCredentialPattern.MatchString(value) || strings.Contains(value, "-----BEGIN") {
+		return false
+	}
+	for _, rawURL := range decisionURLPattern.FindAllString(value, -1) {
+		parsed, err := url.Parse(rawURL)
+		if err != nil || parsed.Scheme != "https" || parsed.Host != "github.com" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+			return false
+		}
+	}
+	return true
+}
+
+func validDecisionEvidence(evidence Evidence) bool {
+	if evidence.Ref == "" || len(evidence.Ref) > 128 || decisionCredentialPattern.MatchString(evidence.Ref) ||
+		!oneOf(evidence.Kind, "issue", "pull_request") && decisionURLPattern.MatchString(evidence.Ref) {
+		return false
+	}
+	switch evidence.Kind {
+	case "path":
+		slashPath := filepath.ToSlash(evidence.Ref)
+		return !filepath.IsAbs(evidence.Ref) && evidence.Ref != "." && !strings.HasPrefix(slashPath, "../") && !strings.Contains(slashPath, "/../")
+	case "command", "validation":
+		return identifierPattern.MatchString(evidence.Ref)
+	case "commit":
+		return decisionCommitPattern.MatchString(evidence.Ref)
+	case "issue", "pull_request":
+		parsed, err := url.Parse(evidence.Ref)
+		if err != nil || parsed.Scheme != "https" || parsed.Host != "github.com" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+			return false
+		}
+		parts := strings.Split(strings.Trim(parsed.Path, "/"), "/")
+		want := "issues"
+		if evidence.Kind == "pull_request" {
+			want = "pull"
+		}
+		return len(parts) == 4 && parts[0] != "" && parts[1] != "" && parts[2] == want && parts[3] != ""
+	default:
+		return false
+	}
 }
 
 // Load reads the policy with strict YAML field checking.
