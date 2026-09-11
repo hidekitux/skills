@@ -68,5 +68,5 @@ validate:all` before pushes. Fix a reported failure before retrying the commit o
 push.
 
 For `bootstrap-project`, see
-`skills/bootstrap-project/references/hosts/codex.md` for the Codex-specific
+`skills/govern/bootstrap-project/references/hosts/codex.md` for the Codex-specific
 execution and handoff rules.

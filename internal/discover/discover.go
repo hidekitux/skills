@@ -19,8 +19,8 @@ type Skill struct {
 	// Name is the bare skill name: the directory that holds SKILL.md.
 	Name string
 	// Dir is the repository-relative, slash-separated directory of the skill,
-	// for example "skills/refactor-code" for a flat skill or
-	// "skills/skills/refactor-code" for a namespaced skill. This is the
+	// for example "skills/fix/refactor-code" for a category skill or
+	// "skills/vendor/refactor-code" for an arbitrary namespaced skill. This is the
 	// canonical path identity used to disambiguate duplicate bare names.
 	Dir string
 }

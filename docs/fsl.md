@@ -16,7 +16,7 @@ Use `gh skill publish --dry-run` for prose, file-name, and frontmatter checks.
 
 Keep a specification beside its owner; do not copy it.
 
-- A published skill workflow belongs in `skills/<skill-name>/specs/<topic>.fsl`. Create a **relative symbolic link** to that source at `specs/<skill-name>/<topic>.fsl` so the repository can verify and reference it.
+- A published skill workflow belongs in `skills/<category>/<skill-name>/specs/<topic>.fsl`. Create a **relative symbolic link** to that source at `specs/<category>/<skill-name>/<topic>.fsl` so the repository can verify and reference it.
 - A release gate or cross-cutting branch policy that belongs to no individual published skill belongs in `specs/<topic>.fsl` as a regular file.
 
 Issue #29 confirmed this packaging memo: `create-issue` owns `issue-creation.fsl`, `create-pr` owns `pull-request-creation.fsl`, and `branch-flow.fsl` and `release-gate.fsl` remain repository-owned. After adding a specification, run the following from the repository root:
