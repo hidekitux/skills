@@ -125,10 +125,13 @@ Contract rules enforced by `cmd/check-evaluation` (wired into
   (for example a boundary stop condition such as `blocked-ask`) are asserted
   through `transcript_must` / `transcript_must_any` instead.
 - A catalog entry with `status: stable` requires machine-readable evaluation
-  evidence under `evaluations/reports/`: a record with a `pass` verdict for
-  that skill and a completed seven-dimension rubric review (`rubric_review:
+  evidence under `evaluations/reports/`: a same-record `pass` verdict for that
+  skill and a completed seven-dimension rubric review (`rubric_review:
   complete` with all `rubric_scores` present). A passing verdict for another
-  skill in the same file does not count.
+  skill in the same file does not count. `check-evaluation` checks this static
+  evidence shape. The release flow runs `check:promotion` through
+  `verify:release` to check the current revision, two recent complete runs,
+  scenario coverage, score floor, regression, and bounded variance.
 
 One further rule is enforced by `internal/eval/prose_test.go` rather than by
 `cmd/check-evaluation`, so it fails `mise run test:go` instead of
