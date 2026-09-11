@@ -9,6 +9,8 @@ prompt: |
   The pull request for the change issue is ready for review. Review it before
   merge and report only findings the change introduces, ordered by severity,
   each backed by a concrete failing scenario.
+context_signals:
+  task_kind: review
 expectations:
   handoff: implement-issue
   transcript_must:

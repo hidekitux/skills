@@ -9,6 +9,8 @@ prompt: |
   The project has a change issue ready for the VAT work. Produce a verified,
   ordered implementation plan before anyone starts coding, and post it where
   the team can review it.
+context_signals:
+  task_kind: process
 expectations:
   handoff: implement-issue
   transcript_must:

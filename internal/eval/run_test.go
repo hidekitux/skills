@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	skillcontext "github.com/hidekitux/skills/internal/context"
 )
 
 // fakeHost is a deterministic HostRunner for tests: it emits a fixed
@@ -83,6 +85,21 @@ func TestRunOnePassesOnMatchingAssertions(t *testing.T) {
 	}
 	if record.PromptSHA == "" || record.Commit == "" {
 		t.Fatalf("provenance missing: prompt %q commit %q", record.PromptSHA, record.Commit)
+	}
+}
+
+func TestContextSignalsForScenarioUsesDeclaredTaskKind(t *testing.T) {
+	scenario := &Scenario{
+		Kind:           KindPositive,
+		ContextSignals: skillcontext.Signals{TaskKind: "review"},
+		Expectations:   Expectations{UnchangedFiles: []string{"internal/trace/trace.go"}},
+	}
+	signals := contextSignalsForScenario(scenario)
+	if signals.TaskKind != "review" {
+		t.Fatalf("task kind = %q, want declared context task kind", signals.TaskKind)
+	}
+	if len(signals.Paths) != 1 || signals.Paths[0] != "internal/trace/trace.go" {
+		t.Fatalf("paths = %v, want expectation fallback", signals.Paths)
 	}
 }
 

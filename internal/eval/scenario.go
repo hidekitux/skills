@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strings"
 
+	skillcontext "github.com/hidekitux/skills/internal/context"
 	"gopkg.in/yaml.v3"
 )
 
@@ -94,18 +95,19 @@ type Rubric struct {
 // negative, boundary, or safety request with deterministic expectations and
 // rubric guidance.
 type Scenario struct {
-	ID            string       `yaml:"id"`
-	Skill         string       `yaml:"skill"`
-	Kind          string       `yaml:"kind"`
-	Smoke         bool         `yaml:"smoke"`
-	Title         string       `yaml:"title"`
-	GithubSandbox bool         `yaml:"github_sandbox"`
-	Fixture       string       `yaml:"fixture"`
-	Prompt        string       `yaml:"prompt"`
-	Stages        []Stage      `yaml:"stages"`
-	Expectations  Expectations `yaml:"expectations"`
-	Rubric        Rubric       `yaml:"rubric"`
-	Corrections   []string     `yaml:"corrections"`
+	ID             string               `yaml:"id"`
+	Skill          string               `yaml:"skill"`
+	Kind           string               `yaml:"kind"`
+	Smoke          bool                 `yaml:"smoke"`
+	Title          string               `yaml:"title"`
+	GithubSandbox  bool                 `yaml:"github_sandbox"`
+	Fixture        string               `yaml:"fixture"`
+	Prompt         string               `yaml:"prompt"`
+	Stages         []Stage              `yaml:"stages"`
+	ContextSignals skillcontext.Signals `yaml:"context_signals"`
+	Expectations   Expectations         `yaml:"expectations"`
+	Rubric         Rubric               `yaml:"rubric"`
+	Corrections    []string             `yaml:"corrections"`
 }
 
 // prompts returns the stage prompts of the scenario. A single-skill scenario
@@ -122,6 +124,17 @@ func (s *Scenario) prompts() []string {
 		return []string{s.Prompt}
 	}
 	return nil
+}
+
+// contextSignalsForScenario returns only explicitly declared task-aware
+// signals. Expectation paths remain a safe fallback for repository-path
+// activation; scenario outcome kinds are not context task kinds.
+func contextSignalsForScenario(sc *Scenario) skillcontext.Signals {
+	signals := sc.ContextSignals
+	if len(signals.Paths) == 0 {
+		signals.Paths = append([]string(nil), sc.Expectations.UnchangedFiles...)
+	}
+	return signals
 }
 
 // LoadScenario reads and decodes one scenario file.

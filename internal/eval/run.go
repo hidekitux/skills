@@ -444,7 +444,7 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			if skillID == E2ESkill && len(sc.Stages) > 0 {
 				skillID = sc.Stages[0].Skill
 			}
-			manifestPackage, compileErr := compiler.Compile(skillID, skillcontext.Signals{TaskKind: sc.Kind, Paths: sc.Expectations.UnchangedFiles})
+			manifestPackage, compileErr := compiler.Compile(skillID, contextSignalsForScenario(sc))
 			if compileErr != nil && manifestPackage.Manifest.Overflow == nil {
 				fmt.Fprintf(errOut, "evaluate: compile context for %s: %v\n", sc.ID, compileErr)
 				return ExitInfra
