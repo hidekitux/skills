@@ -1,6 +1,9 @@
 package eval
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -95,5 +98,29 @@ func TestStableSkillPromotionRejectsUnmetEvidence(t *testing.T) {
 			}[name]
 			promotionFindingContains(t, records, want)
 		})
+	}
+}
+
+func TestLoadPromotionReportsReadsNestedReports(t *testing.T) {
+	root := t.TempDir()
+	reportPath := filepath.Join(root, "evaluations", "reports", "run-1", "results.jsonl")
+	if err := os.MkdirAll(filepath.Dir(reportPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	record := Record{RunID: "run-1", Skill: "demo", Scenario: "demo-success"}
+	content, err := json.Marshal(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(reportPath, append(content, '\n'), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	runs, findings := loadPromotionReports(root)
+	if len(findings) != 0 {
+		t.Fatalf("findings = %v, want none", findings)
+	}
+	if len(runs["demo"]) != 1 || runs["demo"][0].RunID != "run-1" {
+		t.Fatalf("runs = %#v, want nested report for run-1", runs)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -87,30 +88,35 @@ func CheckPromotion(root string, out, errOut io.Writer) int {
 func loadPromotionReports(root string) (map[string][]Record, []string) {
 	runs := map[string][]Record{}
 	reportsDir := filepath.Join(root, "evaluations", "reports")
-	entries, err := os.ReadDir(reportsDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return runs, nil
-		}
-		return runs, []string{fmt.Sprintf("cannot read evaluation reports: %v", err)}
-	}
 	var findings []string
-	for _, entry := range entries {
-		if entry.IsDir() || (filepath.Ext(entry.Name()) != ".jsonl" && filepath.Ext(entry.Name()) != ".json") {
-			continue
+	err := filepath.WalkDir(reportsDir, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-		path := filepath.Join(reportsDir, entry.Name())
+		if entry.IsDir() || (filepath.Ext(entry.Name()) != ".jsonl" && filepath.Ext(entry.Name()) != ".json") {
+			return nil
+		}
 		records, err := decodePromotionReport(path)
 		if err != nil {
-			findings = append(findings, fmt.Sprintf("evaluation report %s is invalid: %v", filepath.ToSlash(filepath.Join("evaluations", "reports", entry.Name())), err))
-			continue
+			relativePath, relativeErr := filepath.Rel(root, path)
+			if relativeErr != nil {
+				relativePath = path
+			}
+			findings = append(findings, fmt.Sprintf("evaluation report %s is invalid: %v", filepath.ToSlash(relativePath), err))
+			return nil
 		}
 		for _, record := range records {
-			if record.Skill == "" {
-				continue
+			if record.Skill != "" {
+				runs[record.Skill] = append(runs[record.Skill], record)
 			}
-			runs[record.Skill] = append(runs[record.Skill], record)
 		}
+		return nil
+	})
+	if err != nil {
+		if os.IsNotExist(err) {
+			return runs, findings
+		}
+		findings = append(findings, fmt.Sprintf("cannot read evaluation reports: %v", err))
 	}
 	return runs, findings
 }
