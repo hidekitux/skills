@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"github.com/hidekitux/skills/internal/trace"
 )
 
@@ -18,35 +19,53 @@ import (
 // (Acceptance criterion 4): host, model, prompt SHA-256, repository commit,
 // and fixture IDs.
 type Record struct {
-	RunID              string                 `json:"run_id"`
-	Scenario           string                 `json:"scenario"`
-	Skill              string                 `json:"skill"`
-	Kind               string                 `json:"kind"`
-	Host               string                 `json:"host"`
-	Model              string                 `json:"model,omitempty"`
-	Commit             string                 `json:"repo_commit"`
-	SkillSourceCommit  string                 `json:"skill_source_commit,omitempty"`
-	InstructionVariant string                 `json:"instruction_variant,omitempty"`
-	ContextMode        string                 `json:"context_mode,omitempty"`
-	Context            *skillcontext.Manifest `json:"context,omitempty"`
-	Deliberation       *trace.Deliberation    `json:"deliberation,omitempty"`
-	Comparison         *Comparison            `json:"comparison,omitempty"`
-	PromptSHA          string                 `json:"prompt_sha256"`
-	Fixtures           []string               `json:"fixtures,omitempty"`
-	Verdict            string                 `json:"verdict"`
-	SkipReason         string                 `json:"skip_reason,omitempty"`
-	Failures           []string               `json:"failures,omitempty"`
-	RubricScores       map[string]int         `json:"rubric_scores,omitempty"`
-	RubricReview       string                 `json:"rubric_review"`
-	CorrectionsUsed    int                    `json:"corrections_used"`
-	HandoffObserved    bool                   `json:"handoff_observed,omitempty"`
-	InfraError         string                 `json:"infra_error,omitempty"`
-	StartedAt          string                 `json:"started_at,omitempty"`
-	FinishedAt         string                 `json:"finished_at,omitempty"`
-	ElapsedMillis      int64                  `json:"elapsed_millis,omitempty"`
-	FailureID          string                 `json:"failure_id,omitempty"`
-	FailureCause       string                 `json:"failure_cause,omitempty"`
-	FailureRecurrence  int                    `json:"failure_recurrence_count,omitempty"`
+	RunID              string                      `json:"run_id"`
+	Scenario           string                      `json:"scenario"`
+	Skill              string                      `json:"skill"`
+	Kind               string                      `json:"kind"`
+	Host               string                      `json:"host"`
+	Model              string                      `json:"model,omitempty"`
+	Commit             string                      `json:"repo_commit"`
+	SkillSourceCommit  string                      `json:"skill_source_commit,omitempty"`
+	InstructionVariant string                      `json:"instruction_variant,omitempty"`
+	ContextMode        string                      `json:"context_mode,omitempty"`
+	Context            *skillcontext.Manifest      `json:"context,omitempty"`
+	Deliberation       *trace.Deliberation         `json:"deliberation,omitempty"`
+	Comparison         *Comparison                 `json:"comparison,omitempty"`
+	Strategy           *executionstrategy.Decision `json:"strategy,omitempty"`
+	StrategyComparison *StrategyComparison         `json:"strategy_comparison,omitempty"`
+	PromptSHA          string                      `json:"prompt_sha256"`
+	Fixtures           []string                    `json:"fixtures,omitempty"`
+	Verdict            string                      `json:"verdict"`
+	SkipReason         string                      `json:"skip_reason,omitempty"`
+	Failures           []string                    `json:"failures,omitempty"`
+	RubricScores       map[string]int              `json:"rubric_scores,omitempty"`
+	RubricReview       string                      `json:"rubric_review"`
+	CorrectionsUsed    int                         `json:"corrections_used"`
+	HandoffObserved    bool                        `json:"handoff_observed,omitempty"`
+	InfraError         string                      `json:"infra_error,omitempty"`
+	StartedAt          string                      `json:"started_at,omitempty"`
+	FinishedAt         string                      `json:"finished_at,omitempty"`
+	ElapsedMillis      int64                       `json:"elapsed_millis,omitempty"`
+	FailureID          string                      `json:"failure_id,omitempty"`
+	FailureCause       string                      `json:"failure_cause,omitempty"`
+	FailureRecurrence  int                         `json:"failure_recurrence_count,omitempty"`
+}
+
+// StrategyComparison records the deterministic policy difference between an
+// adaptive decision and a fixed baseline. Provider usage remains separate and
+// is reported only when the host exposes it.
+type StrategyComparison struct {
+	FixedStrategy       string `json:"fixed_strategy"`
+	AdaptiveStrategy    string `json:"adaptive_strategy"`
+	AdaptiveOutcome     string `json:"adaptive_outcome"`
+	Changed             bool   `json:"changed"`
+	SafetyPreserved     bool   `json:"safety_preserved"`
+	QualityDelta        int    `json:"quality_delta"`
+	ValidationTierDelta int    `json:"validation_tier_delta"`
+	RetryBoundDelta     int    `json:"retry_bound_delta"`
+	ElapsedBoundDelta   int    `json:"elapsed_bound_delta_millis"`
+	ParallelismChanged  bool   `json:"parallelism_changed"`
 }
 
 // Comparison records the measurable difference between the single-agent
@@ -135,6 +154,27 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 				comparison.DeliberatedVerdict, comparison.QualityDelta,
 				comparison.DisagreementCount, comparison.FalsePositiveCount,
 				comparison.MarginalElapsedMillis, comparison.MarginalRetries)
+		}
+	}
+
+	strategyComparisons := make([]Record, 0)
+	for _, record := range records {
+		if record.StrategyComparison != nil {
+			strategyComparisons = append(strategyComparisons, record)
+		}
+	}
+	if len(strategyComparisons) > 0 {
+		fmt.Fprintln(w, "\n## Execution strategy comparison (Issue 204)")
+		fmt.Fprintln(w, "The quality delta is zero because both paths use the same deterministic scenario assertions. Host usage remains unavailable unless the driver exposes it.")
+		fmt.Fprintln(w, "| scenario | fixed | adaptive | outcome | changed | safety_preserved | quality_delta | validation_tier_delta | retry_bound_delta | elapsed_bound_delta_ms | parallelism_changed |")
+		fmt.Fprintln(w, "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+		for _, record := range strategyComparisons {
+			comparison := record.StrategyComparison
+			fmt.Fprintf(w, "| %s | %s | %s | %s | %t | %t | %d | %d | %d | %d | %t |\n",
+				record.Scenario, comparison.FixedStrategy, comparison.AdaptiveStrategy,
+				comparison.AdaptiveOutcome, comparison.Changed, comparison.SafetyPreserved,
+				comparison.QualityDelta, comparison.ValidationTierDelta, comparison.RetryBoundDelta,
+				comparison.ElapsedBoundDelta, comparison.ParallelismChanged)
 		}
 	}
 

@@ -1,0 +1,40 @@
+id: debug-code-strategy-fallback
+skill: debug-code
+kind: boundary
+smoke: false
+title: Fall back when the requested model tier is unavailable
+prompt: |
+  Verify a reversible defect with the configured model capacity and record any
+  limitation that changes the verification path.
+execution_strategy:
+  input:
+    skill: debug-code
+    impact: high
+    reversibility: low
+    ambiguity: low
+    security_sensitivity: low
+    state_mutation: repository
+    evidence_quality: complete
+    validation_cost: high
+    configured_model_tiers: [low]
+  fixed_strategy: low-risk
+  compare_baseline: true
+expectations:
+  handoff: reproduction-required
+  transcript_must: []
+  transcript_must_any: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the debugging workflow and records a bounded capacity fallback."
+  task_completion: "Reports the verified result or limitation."
+  evidence_quality: "Names the configured capacity as evidence."
+  scope_control: "Keeps the work within the reversible defect."
+  safety: "Preserves validation bounds after fallback."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "States the next evidence request when needed."
+corrections: []

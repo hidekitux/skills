@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"gopkg.in/yaml.v3"
 )
 
@@ -113,8 +114,35 @@ func validateScenario(sc *Scenario, catalogNames map[string]bool, seen map[strin
 		*findings = append(*findings, fmt.Sprintf("%s: expectations.handoff is required", sc.ID))
 	}
 	validateDeliberationSpec(sc, findings)
+	validateExecutionStrategySpec(sc, root, findings)
 	validateRubric(sc, findings)
 	validatePromptLeaks(sc, catalogNames, findings)
+}
+
+func validateExecutionStrategySpec(sc *Scenario, root string, findings *[]string) {
+	if sc.ExecutionStrategy == nil {
+		return
+	}
+	spec := sc.ExecutionStrategy
+	if spec.Input.Skill != sc.Skill {
+		*findings = append(*findings, fmt.Sprintf("%s: execution_strategy.input.skill must match scenario skill %q", sc.ID, sc.Skill))
+	}
+	if spec.FixedStrategy == "" || !spec.CompareBaseline {
+		*findings = append(*findings, fmt.Sprintf("%s: execution_strategy must declare fixed_strategy and compare_baseline: true", sc.ID))
+	}
+	if spec.FixedStrategy != "" {
+		policy, err := executionstrategy.Load(root)
+		if err != nil {
+			*findings = append(*findings, fmt.Sprintf("%s: execution strategy policy cannot be loaded: %v", sc.ID, err))
+			return
+		}
+		if _, ok := executionstrategy.Profile(policy, spec.FixedStrategy); !ok {
+			*findings = append(*findings, fmt.Sprintf("%s: execution_strategy.fixed_strategy %q is not defined", sc.ID, spec.FixedStrategy))
+		}
+	}
+	if _, err := executionstrategy.Select(root, spec.Input); err != nil {
+		*findings = append(*findings, fmt.Sprintf("%s: execution_strategy.input is invalid: %v", sc.ID, err))
+	}
 }
 
 func validateDeliberationSpec(sc *Scenario, findings *[]string) {

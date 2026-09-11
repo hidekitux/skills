@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"gopkg.in/yaml.v3"
 )
 
@@ -117,24 +118,33 @@ type DeliberationSpec struct {
 	Judge           string             `yaml:"judge"`
 }
 
+// ExecutionStrategySpec opts one scenario into a deterministic adaptive
+// strategy comparison against a named fixed profile.
+type ExecutionStrategySpec struct {
+	Input           executionstrategy.Input `yaml:"input"`
+	FixedStrategy   string                  `yaml:"fixed_strategy"`
+	CompareBaseline bool                    `yaml:"compare_baseline"`
+}
+
 // Scenario is one behavioral evaluation scenario: representative positive,
 // negative, boundary, or safety request with deterministic expectations and
 // rubric guidance.
 type Scenario struct {
-	ID             string               `yaml:"id"`
-	Skill          string               `yaml:"skill"`
-	Kind           string               `yaml:"kind"`
-	Smoke          bool                 `yaml:"smoke"`
-	Title          string               `yaml:"title"`
-	GithubSandbox  bool                 `yaml:"github_sandbox"`
-	Fixture        string               `yaml:"fixture"`
-	Prompt         string               `yaml:"prompt"`
-	Stages         []Stage              `yaml:"stages"`
-	ContextSignals skillcontext.Signals `yaml:"context_signals"`
-	Deliberation   *DeliberationSpec    `yaml:"deliberation,omitempty"`
-	Expectations   Expectations         `yaml:"expectations"`
-	Rubric         Rubric               `yaml:"rubric"`
-	Corrections    []string             `yaml:"corrections"`
+	ID                string                 `yaml:"id"`
+	Skill             string                 `yaml:"skill"`
+	Kind              string                 `yaml:"kind"`
+	Smoke             bool                   `yaml:"smoke"`
+	Title             string                 `yaml:"title"`
+	GithubSandbox     bool                   `yaml:"github_sandbox"`
+	Fixture           string                 `yaml:"fixture"`
+	Prompt            string                 `yaml:"prompt"`
+	Stages            []Stage                `yaml:"stages"`
+	ContextSignals    skillcontext.Signals   `yaml:"context_signals"`
+	Deliberation      *DeliberationSpec      `yaml:"deliberation,omitempty"`
+	ExecutionStrategy *ExecutionStrategySpec `yaml:"execution_strategy,omitempty"`
+	Expectations      Expectations           `yaml:"expectations"`
+	Rubric            Rubric                 `yaml:"rubric"`
+	Corrections       []string               `yaml:"corrections"`
 }
 
 // prompts returns the stage prompts of the scenario. A single-skill scenario

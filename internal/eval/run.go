@@ -201,6 +201,16 @@ func runOneSingle(ctx context.Context, sc *Scenario, host HostRunner, opts *Opti
 		record.FinishedAt = finished.Format(time.RFC3339Nano)
 		record.ElapsedMillis = finished.Sub(started).Milliseconds()
 	}()
+	if sc.ExecutionStrategy != nil {
+		decision, comparison, err := selectExecutionStrategy(opts.Root, sc)
+		if err != nil {
+			record.Verdict = VerdictInfra
+			record.InfraError = "execution strategy selection: " + err.Error()
+			return record
+		}
+		record.Strategy = decision
+		record.StrategyComparison = comparison
+	}
 	if sc.Fixture != "" {
 		record.Fixtures = []string{sc.Fixture}
 	}
