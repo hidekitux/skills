@@ -47,9 +47,10 @@ Markdown checklist when no native list is available.
 
 ### 4. Describe a reversible direction
 
-- Break the selected direction into stages with a goal, dependency order, owner, exit evidence, compatibility boundary, and rollback condition for each stage.
-- Explain how old and new paths coexist, how data or interfaces stay compatible, how progress is observed, and what event triggers rollback or a pause.
-- Estimate implementation, migration, operation, and coordination costs. Mark estimates as assumptions and give the evidence that would refine them.
+- When a major redesign is supported, break the selected direction into stages with a goal, dependency order, owner, exit evidence, compatibility boundary, and rollback condition for each stage.
+- When a major redesign is supported, explain how old and new paths coexist, how data or interfaces stay compatible, how progress is observed, and what event triggers rollback or a pause.
+- Estimate the costs that apply to each recommendation. For a major redesign, include implementation, migration, operation, and coordination costs. For local or coordinated changes, estimate implementation and coordination costs. Mark estimates as assumptions and give the evidence that would refine them.
+- For local or coordinated changes, describe only the dependencies, rollout concerns, and rollback conditions that apply to that scope.
 - State expected effects and how they will be measured. Include risks, mitigations, affected users or systems, and failure modes.
 
 These are proposal-level boundaries, not an implementation plan. Do not break
