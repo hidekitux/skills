@@ -1,0 +1,45 @@
+id: plan-issue-confirmation-alternative
+skill: plan-issue
+kind: positive
+smoke: false
+title: Preserve an explicit non-recommended architecture choice
+github_sandbox: true
+fixture: plan-issue-architecture
+prompt: |
+  The change issue at issues/change-issue.md is ready. Produce a verified,
+  ordered implementation plan before coding begins, and post it where the
+  team can review it.
+context_signals:
+  task_kind: process
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "Resolved decisions"
+    - "implement-issue"
+    - "confirmation"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the planning workflow for the ready change issue."
+  task_completion: "Presents alternatives and posts a verified plan only after the requester explicitly selects a non-recommended option."
+  evidence_quality: "The final plan distinguishes the recommendation from the selected option and records the approval."
+  scope_control: "Plans only the checkout boundary and does not implement the change."
+  safety: "Does not silently replace the requester's selected architecture with the recommendation."
+  user_correction_count: "Uses the single explicit selection without another correction."
+  handoff_quality: "Names implement-issue and the confirmed plan comment."
+corrections:
+  - "I choose the second option for each architecture decision, even where it is not the recommendation. Record that explicit confirmation and continue with the final plan."
