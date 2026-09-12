@@ -41,9 +41,9 @@ skills:
   - name: propose-improvements
     path: skills/analyze/propose-improvements/SKILL.md
     before_tokens: 1242
-    after_tokens: 1740
+    after_tokens: 1804
     before_commit: 919ff0c
-    after_commit: 5ee292e
+    after_commit: 9dc4c2d
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Workflow, classification: task-procedure}
