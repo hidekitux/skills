@@ -1,5 +1,5 @@
-id: propose-rearchitecture-local-refactor
-skill: propose-rearchitecture
+id: propose-improvements-local-refactor
+skill: propose-improvements
 kind: boundary
 smoke: false
 title: Route an ordinary local refactor

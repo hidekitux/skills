@@ -1,5 +1,5 @@
-id: propose-rearchitecture-legacy
-skill: propose-rearchitecture
+id: propose-improvements-legacy
+skill: propose-improvements
 kind: positive
 smoke: false
 title: Propose a reversible legacy migration
