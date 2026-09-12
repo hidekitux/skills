@@ -107,6 +107,24 @@ skills:
     version: 0.1.0
     layer: analyze
     related: [create-issue]
+  - name: analyze-codebase
+    summary: Assess code structure, dependencies, tests, entry points, and technical debt with evidence.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: analyze
+    related: [analyze-project, create-issue, debug-code, write-tests, refactor-code]
+  - name: propose-improvements
+    summary: Investigate project-wide improvement opportunities and propose evidence-backed redesigns when major structural change is warranted.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.0
+    layer: analyze
+    related: [analyze-codebase, analyze-project, refactor-code, create-issue, plan-issue]
   - name: triage-issues
     summary: Review an Issue backlog for evidence-backed duplicates, stale premises, completion, dependencies, and next work.
     owner: hidekitux

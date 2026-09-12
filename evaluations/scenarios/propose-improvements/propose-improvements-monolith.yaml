@@ -1,0 +1,44 @@
+id: propose-improvements-monolith
+skill: propose-improvements
+kind: positive
+smoke: false
+title: Propose modularization for a monolith
+fixture: rearchitecture-monolith
+prompt: |
+  Assess this order service and draft a bounded proposal for modularizing the
+  monolith. Use the repository evidence, compare the current design with at
+  least one alternative, and describe stages, dependencies, compatibility,
+  rollback, risks, costs, and expected effects. Separate facts, assumptions,
+  and unresolved questions. Do not edit the repository.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+    - "plan-issue"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "main.go"
+    - "main_test.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects a redesign proposal for a cross-boundary modularization request."
+  task_completion: "States a target architecture, current-to-target gap, alternatives, staged migration, and expected effects."
+  evidence_quality: "Cites the module, service boundary, interface, and test evidence and labels assumptions."
+  scope_control: "Produces a proposal only and leaves the monolith unchanged."
+  safety: "Preserves compatibility and rollback boundaries instead of authorizing implementation."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names create-issue for untracked governed work and plan-issue for later planning."
+corrections: []

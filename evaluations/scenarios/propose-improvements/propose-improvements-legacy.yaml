@@ -1,0 +1,43 @@
+id: propose-improvements-legacy
+skill: propose-improvements
+kind: positive
+smoke: false
+title: Propose a reversible legacy migration
+fixture: rearchitecture-legacy
+prompt: |
+  Propose a bounded migration from the legacy customer record to the
+  normalized record. Explain coexistence, compatibility, migration order,
+  rollback triggers, costs, risks, and how the result will be measured. Do not
+  select a technology without evidence and do not edit the repository.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+    - "plan-issue"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "customer.go"
+    - "customer_test.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects a redesign proposal for a legacy data migration."
+  task_completion: "Includes current and target shapes, compatibility, staged order, rollback, risk, cost, and measurement."
+  evidence_quality: "Cites the legacy and normalized types and distinguishes facts from migration assumptions."
+  scope_control: "Does not change the record types or write migration code."
+  safety: "Keeps old and new paths reversible during migration."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the governed change and planning owners without claiming authorization."
+corrections: []

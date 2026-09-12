@@ -1,0 +1,42 @@
+id: analyze-codebase-service
+skill: analyze-codebase
+kind: positive
+smoke: false
+title: Map a multi-module service
+fixture: codebase-service
+prompt: |
+  Map this service codebase. Identify its modules, dependency relationship,
+  build or runtime entry points, and the evidence needed to assess its tests.
+  Separate observed facts from inferences and leave the repository unchanged.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "go.work"
+    - "api/handler.go"
+    - "worker/worker.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the focused codebase assessment for a multi-module service."
+  task_completion: "Maps both modules and their workspace relationship with useful next checks."
+  evidence_quality: "Cites the workspace, module manifests, symbols, and command results when run."
+  scope_control: "Does not redesign the service or perform a project-wide governance audit."
+  safety: "Leaves all modules unchanged."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Routes any governed change candidate to the change-issue owner."
+corrections: []

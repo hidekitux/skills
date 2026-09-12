@@ -1,0 +1,32 @@
+id: analyze-codebase-failing-tests
+skill: analyze-codebase
+kind: boundary
+smoke: false
+title: Report a failing test without fixing it
+fixture: codebase-failing-tests
+prompt: |
+  Assess this repository and report why its test suite is failing. Treat the
+  failing assertion as reproduced, identify the missed behavior and the
+  evidence needed for a fix, name the repository skill that owns the next
+  debugging phase, but do not modify code or tests.
+expectations:
+  handoff: debug-code
+  transcript_must:
+    - "debug-code"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "tax.go"
+    - "tax_test.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects the focused analysis and preserves its read-only boundary."
+  task_completion: "Reports the failing assertion and separates diagnosis from the fix."
+  evidence_quality: "Cites the test and implementation paths or actual test output."
+  scope_control: "Does not edit production code or tests."
+  safety: "Stops before an unverified fix."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the debugging owner for the reproduced failure."
+corrections: []

@@ -24,8 +24,8 @@ func TestValidateCurrentGraph(t *testing.T) {
 	if !report.Valid {
 		t.Fatalf("current graph is invalid: %s", strings.Join(report.Findings, "; "))
 	}
-	if report.SkillCount != 18 {
-		t.Fatalf("expected 18 skills, got %d", report.SkillCount)
+	if report.SkillCount != 20 {
+		t.Fatalf("expected 20 skills, got %d", report.SkillCount)
 	}
 }
 

@@ -1,0 +1,45 @@
+id: propose-improvements-platform
+skill: propose-improvements
+kind: positive
+smoke: false
+title: Propose a staged cross-cutting platform change
+fixture: rearchitecture-platform
+prompt: |
+  Draft a proposal for consolidating the two service HTTP clients into a
+  shared platform capability. Account for independent deployment, service
+  specific settings, staged rollout, rollback, ownership, cost, and expected
+  effects. Compare alternatives and identify evidence still needed. Leave the
+  repository unchanged.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+    - "plan-issue"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "orders/config.go"
+    - "payments/config.go"
+    - "deploy/README.md"
+  command_run: []
+rubric:
+  trigger_selection: "Selects a redesign proposal for a cross-cutting platform change."
+  task_completion: "Preserves service-specific compatibility while defining a shared target and staged rollout."
+  evidence_quality: "Uses both service configurations and deployment evidence and labels unknown workload data."
+  scope_control: "Does not implement a client, change settings, or choose a provider speculatively."
+  safety: "Names independent rollback and deployment boundaries."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the next governed and planning owners."
+corrections: []

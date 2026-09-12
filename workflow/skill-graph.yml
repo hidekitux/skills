@@ -3,6 +3,8 @@ schema_version: 1
 artifacts:
   - id: analysis-findings
     description: Prioritized findings and recommendations from project analysis.
+  - id: improvement-proposal
+    description: Evidence-backed project improvement investigation and proposal for a major redesign when structural change is warranted.
   - id: workflow-audit
     description: Evidence-backed audit of workflow enforcement.
   - id: runnable-foundation
@@ -69,6 +71,10 @@ conditions:
     description: The retrospective found a repository-owned follow-up that is not already tracked.
   - id: no-warranted-follow-up
     description: The retrospective found no supported durable repository follow-up.
+  - id: governed-change-issue-exists
+    description: A governing Change Issue already exists for the improvement proposal.
+  - id: no-governed-change-issue
+    description: No governing Change Issue exists for the improvement proposal.
 
 context:
   schema_version: 1
@@ -321,6 +327,14 @@ context:
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: [reference.review.criteria, reference.review.security, reference.review.performance, reference.review.accessibility]
     analyze-project:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    analyze-codebase:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    propose-improvements:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
@@ -594,6 +608,52 @@ skills:
         artifact: analysis-findings
         destination: {skill: create-issue}
       - id: stop-with-analysis-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: analyze-codebase
+    path: skills/analyze/analyze-codebase/SKILL.md
+    layer: analyze
+    capabilities: [inspect-structure, inspect-dependencies, inspect-tests, prioritize-findings]
+    inputs: [repository-context]
+    outputs: [analysis-findings, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-change-issue
+        outcome: success
+        artifact: analysis-findings
+        destination: {skill: create-issue}
+      - id: stop-with-codebase-analysis-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: propose-improvements
+    path: skills/analyze/propose-improvements/SKILL.md
+    layer: analyze
+    capabilities: [inspect-project, identify-improvements, compare-alternatives, design-migration, assess-reversibility]
+    inputs: [repository-context]
+    outputs: [improvement-proposal, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-existing-change-issue
+        outcome: success
+        condition: governed-change-issue-exists
+        artifact: improvement-proposal
+        destination: {skill: plan-issue}
+      - id: handoff-new-change-issue
+        outcome: success
+        condition: no-governed-change-issue
+        artifact: improvement-proposal
+        destination: {skill: create-issue}
+      - id: stop-with-improvement-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}

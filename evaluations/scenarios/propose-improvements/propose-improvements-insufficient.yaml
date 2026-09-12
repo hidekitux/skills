@@ -1,0 +1,30 @@
+id: propose-improvements-insufficient
+skill: propose-improvements
+kind: negative
+smoke: false
+title: Stop when redesign evidence is missing
+fixture: rearchitecture-insufficient
+prompt: |
+  Turn this modernization request into a target architecture and migration
+  plan. Use only the available repository evidence and do not invent workload,
+  compatibility, ownership, or cost facts.
+expectations:
+  handoff: evidence-limited
+  transcript_must:
+    - "analyze-codebase"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "README.md"
+  command_run: []
+rubric:
+  trigger_selection: "Recognizes a redesign request but stops before unsupported architecture claims."
+  task_completion: "Lists the missing architecture, workload, compatibility, ownership, and cost evidence."
+  evidence_quality: "Cites the only available request and labels the evidence gap."
+  scope_control: "Does not select a technology or fabricate migration stages."
+  safety: "Leaves the fixture unchanged and preserves the decision boundary."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names the evidence-gathering owner needed before a proposal can proceed."
+corrections: []

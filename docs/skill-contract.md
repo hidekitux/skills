@@ -67,9 +67,10 @@ report → issue → plan → implementation → pull request → review → fix
 
 | Stage | Owner skill | Result artifact | Handed to |
 | --- | --- | --- | --- |
-| Report | `analyze-*` (`analyze-project`, `retrospect-work`, `triage-issues`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
+| Report | `analyze-*` (`analyze-codebase`, `analyze-project`, `retrospect-work`, `triage-issues`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
+| Proposal | `propose-improvements` | Project-wide improvement investigation and, when warranted, a bounded redesign proposal with evidence, alternatives, migration, compatibility, rollback, risks, costs, and expected effects | `create-issue` or `plan-issue` |
 | Issue | `create-issue` | Problem statement in a Change or release Issue | `plan-issue` |
-| Plan | `plan-issue` | Investigated cause and chosen approach in a verified implementation plan posted as an Issue comment | `implement-issue` |
+| Plan | `plan-issue` | Investigated cause, requester-confirmed architecture decisions, and chosen approach in a verified implementation plan posted as an Issue comment | `implement-issue` |
 | Implementation | `implement-issue` | In-scope changes committed per task with evidence | `create-pr` |
 | Pull request | `create-pr` | Issue-backed Pull Request | `review-pr` |
 | Review | `review-pr` | Severity-ordered findings | `fix-pr` |
@@ -88,9 +89,10 @@ Every skill names its result, the next-owner skill, and what it must not do.
 
 | Skill | Produces | Handoff target | Ownership boundary |
 | --- | --- | --- | --- |
-| `analyze-*` (`analyze-project`, `retrospect-work`, `triage-issues`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
+| `analyze-*` (`analyze-codebase`, `analyze-project`, `retrospect-work`, `triage-issues`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
+| `propose-improvements` | Project-wide improvement inventory and, when warranted, an evidence-backed redesign proposal | `create-issue` or `plan-issue` | Read-only: investigates improvement opportunities and proposes a target and migration boundary, never plans or implements it |
 | `create-issue` | Problem statement in a compliant change or release Issue | `plan-issue` | Only Issue creator; records the problem and boundaries, but does not investigate the cause, choose an approach, or implement |
-| `plan-issue` | Verified implementation plan with investigated cause and resolved approach (Issue comment) | `implement-issue` | Investigates premises and surfaces decisions; plans only and does not implement |
+| `plan-issue` | Verified implementation plan with investigated cause, requester-confirmed architecture decisions, and resolved approach (Issue comment) | `implement-issue` | Investigates premises, surfaces architecture decisions, and waits for explicit requester confirmation; plans only and does not implement |
 | `implement-issue` | In-scope edits committed per task with evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
 | `review-pr` | Severity-ordered findings | `fix-pr` | Reviews; does not edit the branch or merge |
@@ -183,7 +185,7 @@ Rules:
 
 Every skill writes prose, and each `SKILL.md` carries its own `Writing quality`
 section so the rules reach an installation that has neither `AGENTS.md` nor
-`docs/`. Two tiers divide the 18 skills by where that prose goes. Tier A prose
+`docs/`. Two tiers divide the 20 skills by where that prose goes. Tier A prose
 outlives the conversation, so its section names every surface it binds. Tier B
 prose is the conversational handoff report and nothing else, so its section is
 one sentence.
@@ -191,12 +193,12 @@ one sentence.
 | Tier | Skills | Prose that leaves the conversation |
 | --- | --- | --- |
 | A | `create-issue`, `create-pr`, `plan-issue`, `review-pr`, `fix-pr`, `implement-issue`, `bootstrap-project` | Issue body, Pull Request body, plan comment, review comment, commit message body, files written into the target project |
-| B | `analyze-project`, `retrospect-work`, `triage-issues`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
+| B | `analyze-codebase`, `analyze-project`, `propose-improvements`, `retrospect-work`, `triage-issues`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
 
 A Tier B skill emits no prose deliverable that outlives the conversation, and
 that is why it carries the shorter section rather than no section at all.
 
-The evidence for a tier is the skill's own artifact. For the 13 skills the
+The evidence for a tier is the skill's own artifact. For the 17 skills the
 ownership boundary table lists, read its `Produces` column. `deliver-change`,
 `improve-project`, and `resolve-defect` are absent from that table because they
 are entry points; each returns one final report and creates no artifact of its

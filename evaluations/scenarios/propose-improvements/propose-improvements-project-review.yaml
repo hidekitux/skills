@@ -1,0 +1,44 @@
+id: propose-improvements-project-review
+skill: propose-improvements
+kind: positive
+smoke: false
+title: Find project-wide improvements before choosing a redesign
+fixture: rearchitecture-monolith
+prompt: |
+  Investigate this order service as a whole and identify the most valuable
+  improvements. Include architecture, tests, operational constraints, and
+  change risk in the investigation. Decide whether any improvement warrants a
+  major redesign, compare the supported directions, and leave the repository
+  unchanged. Do not invent workload or ownership facts.
+expectations:
+  handoff: create-issue
+  transcript_must:
+    - "create-issue"
+    - "plan-issue"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "main.go"
+    - "main_test.go"
+  command_run: []
+rubric:
+  trigger_selection: "Selects project-wide improvement investigation before deciding whether rearchitecture is warranted."
+  task_completion: "Returns an improvement inventory, a supported redesign decision, alternatives, and a proposal-level handoff."
+  evidence_quality: "Cites architecture, tests, and operational evidence and labels missing workload or ownership facts."
+  scope_control: "Does not force a redesign and does not edit the repository."
+  safety: "Keeps the result read-only and does not authorize implementation."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names create-issue for the untracked governed candidate and plan-issue for later planning."
+corrections: []
