@@ -71,6 +71,10 @@ conditions:
     description: The retrospective found a repository-owned follow-up that is not already tracked.
   - id: no-warranted-follow-up
     description: The retrospective found no supported durable repository follow-up.
+  - id: governed-change-issue-exists
+    description: A governing Change Issue already exists for the rearchitecture proposal.
+  - id: no-governed-change-issue
+    description: No governing Change Issue exists for the rearchitecture proposal.
 
 context:
   schema_version: 1
@@ -639,8 +643,14 @@ skills:
     prerequisites: [repository-context]
     outcomes: [success, blocked]
     transitions:
-      - id: handoff-governed-change
+      - id: handoff-existing-change-issue
         outcome: success
+        condition: governed-change-issue-exists
+        artifact: rearchitecture-proposal
+        destination: {skill: plan-issue}
+      - id: handoff-new-change-issue
+        outcome: success
+        condition: no-governed-change-issue
         artifact: rearchitecture-proposal
         destination: {skill: create-issue}
       - id: stop-with-rearchitecture-blocker
