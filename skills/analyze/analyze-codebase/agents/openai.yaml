@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Codebase"
+  short_description: "Assess code structure, tests, dependencies, and debt."
+  default_prompt: "Use $analyze-codebase to assess this codebase and report evidence-backed findings."

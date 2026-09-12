@@ -21,6 +21,40 @@ skills:
       - {heading: Read-only guardrails, classification: invariant}
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
+  - name: analyze-codebase
+    path: skills/analyze/analyze-codebase/SKILL.md
+    before_tokens: 1136
+    after_tokens: 1176
+    before_commit: da88217a667c53b0772e4b0b28b11ac1d76642a3
+    after_commit: 2cfc1c0
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: "1. Discover", classification: task-procedure}
+      - {heading: "2. Investigate", classification: task-procedure}
+      - {heading: "3. Validate findings", classification: task-procedure}
+      - {heading: "4. Prioritize", classification: task-procedure}
+      - {heading: "5. Report", classification: task-procedure}
+      - {heading: Read-only guardrails, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
+  - name: propose-rearchitecture
+    path: skills/analyze/propose-rearchitecture/SKILL.md
+    before_tokens: 1242
+    after_tokens: 1242
+    before_commit: 919ff0c
+    after_commit: 919ff0c
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Workflow, classification: task-procedure}
+      - {heading: "1. Define the decision", classification: task-procedure}
+      - {heading: "2. Build the evidence record", classification: task-procedure}
+      - {heading: "3. Design and compare", classification: task-procedure}
+      - {heading: "4. Make the migration reversible", classification: task-procedure}
+      - {heading: "5. Report and hand off", classification: task-procedure}
+      - {heading: Read-only guardrails, classification: invariant}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}
   - name: audit-workflow-enforcement
     path: skills/govern/audit-workflow-enforcement/SKILL.md
     before_tokens: 805
