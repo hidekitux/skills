@@ -42,4 +42,4 @@ rubric:
   user_correction_count: "Uses the single explicit selection without another correction."
   handoff_quality: "Names implement-issue and the confirmed plan comment."
 corrections:
-  - "I choose the second option for each architecture decision, even where it is not the recommendation. Record that explicit confirmation and continue with the final plan."
+  - "For each architecture decision, I choose the option you did not recommend. Record that explicit confirmation and continue with the final plan."
