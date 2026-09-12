@@ -1,0 +1,4 @@
+interface:
+  display_name: "Propose Improvements"
+  short_description: "Find improvements and propose major redesigns."
+  default_prompt: "Use $propose-improvements to investigate this project, identify high-impact improvements, and propose a major redesign when warranted."
