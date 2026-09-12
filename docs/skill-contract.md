@@ -70,7 +70,7 @@ report → issue → plan → implementation → pull request → review → fix
 | Report | `analyze-*` (`analyze-codebase`, `analyze-project`, `retrospect-work`, `triage-issues`) | Prioritized, evidence-backed findings and recommendations | `create-issue` |
 | Proposal | `propose-improvements` | Project-wide improvement investigation and, when warranted, a bounded redesign proposal with evidence, alternatives, migration, compatibility, rollback, risks, costs, and expected effects | `create-issue` or `plan-issue` |
 | Issue | `create-issue` | Problem statement in a Change or release Issue | `plan-issue` |
-| Plan | `plan-issue` | Investigated cause and chosen approach in a verified implementation plan posted as an Issue comment | `implement-issue` |
+| Plan | `plan-issue` | Investigated cause, requester-confirmed architecture decisions, and chosen approach in a verified implementation plan posted as an Issue comment | `implement-issue` |
 | Implementation | `implement-issue` | In-scope changes committed per task with evidence | `create-pr` |
 | Pull request | `create-pr` | Issue-backed Pull Request | `review-pr` |
 | Review | `review-pr` | Severity-ordered findings | `fix-pr` |
@@ -92,7 +92,7 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `analyze-*` (`analyze-codebase`, `analyze-project`, `retrospect-work`, `triage-issues`) | Prioritized findings report with evidence | `create-issue` | Read-only: recommends, never creates Issues, never edits code |
 | `propose-improvements` | Project-wide improvement inventory and, when warranted, an evidence-backed redesign proposal | `create-issue` or `plan-issue` | Read-only: investigates improvement opportunities and proposes a target and migration boundary, never plans or implements it |
 | `create-issue` | Problem statement in a compliant change or release Issue | `plan-issue` | Only Issue creator; records the problem and boundaries, but does not investigate the cause, choose an approach, or implement |
-| `plan-issue` | Verified implementation plan with investigated cause and resolved approach (Issue comment) | `implement-issue` | Investigates premises and surfaces decisions; plans only and does not implement |
+| `plan-issue` | Verified implementation plan with investigated cause, requester-confirmed architecture decisions, and resolved approach (Issue comment) | `implement-issue` | Investigates premises, surfaces architecture decisions, and waits for explicit requester confirmation; plans only and does not implement |
 | `implement-issue` | In-scope edits committed per task with evidence | `create-pr` | Implements only in-scope files; does not publish a Pull Request |
 | `create-pr` | Issue-backed Pull Request | `review-pr` | Opens and updates the Pull Request; does not merge or release |
 | `review-pr` | Severity-ordered findings | `fix-pr` | Reviews; does not edit the branch or merge |
