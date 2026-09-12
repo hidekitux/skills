@@ -1,0 +1,4 @@
+interface:
+  display_name: "Propose Rearchitecture"
+  short_description: "Propose evidence-backed system redesigns."
+  default_prompt: "Use $propose-rearchitecture to draft a bounded, evidence-backed redesign proposal."
