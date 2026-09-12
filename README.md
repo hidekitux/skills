@@ -80,7 +80,7 @@ Every skill belongs to one of four layers — process, analyze, fix, or govern. 
 
 ## Skill-set map
 
-The repository publishes 19 skills today and tracks 0 planned next-generation skills. Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer` and `status` fields drive the layer and status documentation below and in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
+The repository publishes 20 skills today and tracks 0 planned next-generation skills. Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer` and `status` fields drive the layer and status documentation below and in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
 
 | Skill | Layer | Status |
 | --- | --- | --- |
@@ -95,6 +95,7 @@ The repository publishes 19 skills today and tracks 0 planned next-generation sk
 | deliver-change | process | experimental |
 | analyze-codebase | analyze | experimental |
 | analyze-project | analyze | experimental |
+| propose-rearchitecture | analyze | experimental |
 | retrospect-work | analyze | experimental |
 | triage-issues | analyze | experimental |
 | debug-code | fix | experimental |
