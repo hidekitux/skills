@@ -3,8 +3,8 @@ schema_version: 1
 artifacts:
   - id: analysis-findings
     description: Prioritized findings and recommendations from project analysis.
-  - id: rearchitecture-proposal
-    description: Bounded, evidence-backed proposal for a major redesign or foundational migration.
+  - id: improvement-proposal
+    description: Evidence-backed project improvement investigation and proposal for a major redesign when structural change is warranted.
   - id: workflow-audit
     description: Evidence-backed audit of workflow enforcement.
   - id: runnable-foundation
@@ -72,9 +72,9 @@ conditions:
   - id: no-warranted-follow-up
     description: The retrospective found no supported durable repository follow-up.
   - id: governed-change-issue-exists
-    description: A governing Change Issue already exists for the rearchitecture proposal.
+    description: A governing Change Issue already exists for the improvement proposal.
   - id: no-governed-change-issue
-    description: No governing Change Issue exists for the rearchitecture proposal.
+    description: No governing Change Issue exists for the improvement proposal.
 
 context:
   schema_version: 1
@@ -334,7 +334,7 @@ context:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
-    propose-rearchitecture:
+    propose-improvements:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
@@ -632,12 +632,12 @@ skills:
         artifact: blocked-report
         destination: {terminal_outcome: blocked}
 
-  - id: propose-rearchitecture
-    path: skills/analyze/propose-rearchitecture/SKILL.md
+  - id: propose-improvements
+    path: skills/analyze/propose-improvements/SKILL.md
     layer: analyze
-    capabilities: [inspect-architecture, compare-alternatives, design-migration, assess-reversibility]
+    capabilities: [inspect-project, identify-improvements, compare-alternatives, design-migration, assess-reversibility]
     inputs: [repository-context]
-    outputs: [rearchitecture-proposal, blocked-report]
+    outputs: [improvement-proposal, blocked-report]
     mutability: read_only
     authority: {repository: read, git: read, github: read, external_mutation: none}
     prerequisites: [repository-context]
@@ -646,14 +646,14 @@ skills:
       - id: handoff-existing-change-issue
         outcome: success
         condition: governed-change-issue-exists
-        artifact: rearchitecture-proposal
+        artifact: improvement-proposal
         destination: {skill: plan-issue}
       - id: handoff-new-change-issue
         outcome: success
         condition: no-governed-change-issue
-        artifact: rearchitecture-proposal
+        artifact: improvement-proposal
         destination: {skill: create-issue}
-      - id: stop-with-rearchitecture-blocker
+      - id: stop-with-improvement-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}

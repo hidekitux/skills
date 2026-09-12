@@ -70,7 +70,7 @@ Return:
 - Never run mutating commands or create, close, edit, reprioritize, or link Issues or Pull Requests.
 - Do not fix a finding. Reproduction and fixing belong to `debug-code`, test additions belong to `write-tests`, behavior-preserving cleanup belongs to `refactor-code`, and governed implementation belongs to the `create-issue` flow.
 - Do not duplicate `analyze-project`'s full project investigation, `review-pr`'s Pull Request review, or `audit-workflow-enforcement`'s enforcement audit.
-- Do not design a large-scale redesign. That work belongs to `propose-rearchitecture` when it is available and separately requested.
+- Do not design a large-scale redesign. That work belongs to `propose-improvements` when it is available and separately requested.
 - Stop and report when the objective, scope, or evidence needed for a finding is unavailable.
 
 ## Handoff

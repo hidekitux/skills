@@ -24,7 +24,7 @@ skills:
   - name: analyze-codebase
     path: skills/analyze/analyze-codebase/SKILL.md
     before_tokens: 1136
-    after_tokens: 1176
+    after_tokens: 1177
     before_commit: da88217a667c53b0772e4b0b28b11ac1d76642a3
     after_commit: 2cfc1c0
     sections:
@@ -38,19 +38,19 @@ skills:
       - {heading: Read-only guardrails, classification: invariant}
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
-  - name: propose-rearchitecture
-    path: skills/analyze/propose-rearchitecture/SKILL.md
+  - name: propose-improvements
+    path: skills/analyze/propose-improvements/SKILL.md
     before_tokens: 1242
-    after_tokens: 1242
+    after_tokens: 1665
     before_commit: 919ff0c
     after_commit: 919ff0c
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Workflow, classification: task-procedure}
-      - {heading: "1. Define the decision", classification: task-procedure}
-      - {heading: "2. Build the evidence record", classification: task-procedure}
-      - {heading: "3. Design and compare", classification: task-procedure}
-      - {heading: "4. Make the migration reversible", classification: task-procedure}
+      - {heading: "1. Frame the improvement question", classification: task-procedure}
+      - {heading: "2. Investigate the project", classification: task-procedure}
+      - {heading: "3. Select the proposal scope", classification: task-procedure}
+      - {heading: "4. Describe a reversible direction", classification: task-procedure}
       - {heading: "5. Report and hand off", classification: task-procedure}
       - {heading: Read-only guardrails, classification: invariant}
       - {heading: Handoff, classification: invariant}

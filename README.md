@@ -95,7 +95,7 @@ The repository publishes 20 skills today and tracks 0 planned next-generation sk
 | deliver-change | process | experimental |
 | analyze-codebase | analyze | experimental |
 | analyze-project | analyze | experimental |
-| propose-rearchitecture | analyze | experimental |
+| propose-improvements | analyze | experimental |
 | retrospect-work | analyze | experimental |
 | triage-issues | analyze | experimental |
 | debug-code | fix | experimental |

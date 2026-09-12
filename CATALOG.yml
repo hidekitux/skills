@@ -116,8 +116,8 @@ skills:
     version: 0.1.0
     layer: analyze
     related: [analyze-project, create-issue, debug-code, write-tests, refactor-code]
-  - name: propose-rearchitecture
-    summary: Propose evidence-backed redesigns with alternatives, staged migration, compatibility, rollback, risks, costs, and expected effects.
+  - name: propose-improvements
+    summary: Investigate project-wide improvement opportunities and propose evidence-backed redesigns when major structural change is warranted.
     owner: hidekitux
     status: experimental
     agents: [codex, claude-code]
