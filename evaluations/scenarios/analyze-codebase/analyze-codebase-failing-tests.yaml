@@ -7,8 +7,8 @@ fixture: codebase-failing-tests
 prompt: |
   Assess this repository and report why its test suite is failing. Treat the
   failing assertion as reproduced, identify the missed behavior and the
-  evidence needed for a fix, name the next owner, but do not modify code or
-  tests.
+  evidence needed for a fix, name the repository skill that owns the next
+  debugging phase, but do not modify code or tests.
 expectations:
   handoff: debug-code
   transcript_must:
