@@ -3,6 +3,8 @@ schema_version: 1
 artifacts:
   - id: analysis-findings
     description: Prioritized findings and recommendations from project analysis.
+  - id: rearchitecture-proposal
+    description: Bounded, evidence-backed proposal for a major redesign or foundational migration.
   - id: workflow-audit
     description: Evidence-backed audit of workflow enforcement.
   - id: runnable-foundation
@@ -328,6 +330,10 @@ context:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
+    propose-rearchitecture:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
     triage-issues:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
@@ -618,6 +624,26 @@ skills:
         artifact: analysis-findings
         destination: {skill: create-issue}
       - id: stop-with-codebase-analysis-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: propose-rearchitecture
+    path: skills/analyze/propose-rearchitecture/SKILL.md
+    layer: analyze
+    capabilities: [inspect-architecture, compare-alternatives, design-migration, assess-reversibility]
+    inputs: [repository-context]
+    outputs: [rearchitecture-proposal, blocked-report]
+    mutability: read_only
+    authority: {repository: read, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-governed-change
+        outcome: success
+        artifact: rearchitecture-proposal
+        destination: {skill: create-issue}
+      - id: stop-with-rearchitecture-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}

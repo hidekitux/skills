@@ -23,7 +23,7 @@ skill name identifies the exact workflow.
 | Category | Choose this category when | Published skills | Reserved sibling skills |
 | --- | --- | --- | --- |
 | `process` | You need to move a governed change through Issues, plans, Pull Requests, or reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` | None |
-| `analyze` | You need read-only evidence about a codebase, a project, a completed session, or an Issue backlog. | `analyze-codebase`, `analyze-project`, `retrospect-work`, `triage-issues` | None |
+| `analyze` | You need read-only evidence about a codebase, a project, a completed session, an Issue backlog, or a major redesign. | `analyze-codebase`, `analyze-project`, `propose-rearchitecture`, `retrospect-work`, `triage-issues` | None |
 | `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` | None |
 | `govern` | You need to establish or audit repository rules and their enforcement. | `bootstrap-project`, `audit-workflow-enforcement` | None |
 
@@ -33,6 +33,7 @@ Use these representative requests to navigate without repository history:
 | --- | --- | --- |
 | Understand code structure, tests, dependencies, and technical debt. | `analyze` | `analyze-codebase` |
 | Understand a repository and its technical debt. | `analyze` | `analyze-project` |
+| Decide whether and how to stage a major redesign. | `analyze` | `propose-rearchitecture` |
 | Review a completed session for a recurring workaround. | `analyze` | retrospect-work |
 | Review the backlog and choose the next Issue. | `analyze` | triage-issues |
 | Plan and deliver a governed repository change. | `process` | `deliver-change` |
@@ -70,6 +71,7 @@ Pull Requests; candidates for change are recommendations only.
 
 - Published: `analyze-codebase`, which owns focused codebase assessment,
   `analyze-project`, which owns whole-project investigation,
+  `propose-rearchitecture`, which owns bounded redesign proposals,
   `retrospect-work`, which owns session review, and `triage-issues`, which
   owns Issue backlog comparison and ordering.
 
@@ -107,6 +109,7 @@ missing; they do not implement the audited rules themselves.
 | process | deliver-change | experimental |
 | analyze | analyze-project | experimental |
 | analyze | analyze-codebase | experimental |
+| analyze | propose-rearchitecture | experimental |
 | analyze | retrospect-work | experimental |
 | analyze | triage-issues | experimental |
 | fix | debug-code | experimental |
