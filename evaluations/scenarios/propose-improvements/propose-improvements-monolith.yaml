@@ -1,5 +1,5 @@
-id: propose-rearchitecture-monolith
-skill: propose-rearchitecture
+id: propose-improvements-monolith
+skill: propose-improvements
 kind: positive
 smoke: false
 title: Propose modularization for a monolith

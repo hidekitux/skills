@@ -1,5 +1,5 @@
-id: propose-rearchitecture-platform
-skill: propose-rearchitecture
+id: propose-improvements-platform
+skill: propose-improvements
 kind: positive
 smoke: false
 title: Propose a staged cross-cutting platform change

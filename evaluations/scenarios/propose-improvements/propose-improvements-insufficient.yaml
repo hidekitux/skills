@@ -1,5 +1,5 @@
-id: propose-rearchitecture-insufficient
-skill: propose-rearchitecture
+id: propose-improvements-insufficient
+skill: propose-improvements
 kind: negative
 smoke: false
 title: Stop when redesign evidence is missing
