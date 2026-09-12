@@ -46,15 +46,22 @@ rule, and name the fallback in the handoff.
 
 Run `mise run setup:all` once in each Git worktree. The command sets
 the worktree-local `core.hooksPath` to `.githooks` and registers each
-top-level published skill under the ignored `.agents/skills/` directory for
-Codex and `.claude/skills/` for Claude Code.
+published skill under the ignored `.agents/skills/` directory for Codex and
+`.claude/skills/` for Claude Code.
 
 After that initial setup, the tracked `post-checkout` hook reruns `mise run
 setup:all` whenever Git creates or switches branches. It refreshes local skills,
 Git Hooks, and commitlint without blocking checkout if setup fails. The local
-registration is not committed. Verify it with `readlink
+registration is not committed. The command reconciles repository-owned links
+after a skill path or name change, removes links for skills that are no longer
+published, and keeps both host directories aligned. Verify it with `readlink
 .agents/skills/<skill-name>` and restart Codex if a newly registered skill does
 not appear.
+
+The command preserves external symbolic links and regular files at registration
+paths. It prints the path and the action required when one conflicts with a
+published skill. Remove or rename the conflicting entry, then rerun `mise run
+setup:all`. A second run after a successful setup makes no registration changes.
 
 Worktrees share the pinned commitlint binary through the common Git directory,
 so setting up a new worktree does not rebuild it. The local skill registrations
