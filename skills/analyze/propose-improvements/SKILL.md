@@ -40,9 +40,9 @@ Markdown checklist when no native list is available.
 - Classify each candidate as a local behavior-preserving change, a coordinated cross-boundary change, or a major redesign. Explain the classification and prioritize candidates by impact and confidence.
 - Permit a large or radical redesign when the evidence shows that the current boundaries, data model, deployment model, ownership model, or accumulated change cost blocks the stated objective. Do not propose one from a single local smell or from technology preference alone.
 - If no major redesign is supported, say so and return the highest-value improvement recommendations with the appropriate next-owner skill instead of forcing an architecture proposal.
-- Describe the target architecture: components, responsibilities, boundaries, data and control flows, interfaces, operational model, and invariants.
-- Show the current-to-target gap and name the dependencies that constrain migration order.
-- Compare the current state and at least one viable alternative against explicit criteria such as compatibility, reversibility, delivery risk, operating cost, team ownership, and expected effect. Select a direction only when the evidence supports it; otherwise report that the decision remains open.
+- When a major redesign is supported, describe the target architecture: components, responsibilities, boundaries, data and control flows, interfaces, operational model, and invariants.
+- When a major redesign is supported, show the current-to-target gap and name the dependencies that constrain migration order.
+- When a major redesign is supported, compare the current state and at least one viable alternative against explicit criteria such as compatibility, reversibility, delivery risk, operating cost, team ownership, and expected effect. Select a direction only when the evidence supports it; otherwise report that the decision remains open.
 - Keep technology choices subordinate to the architecture problem. Do not recommend a tool or platform merely because it is familiar or fashionable.
 
 ### 4. Describe a reversible direction
@@ -63,9 +63,10 @@ Return a proposal with:
 - an executive summary, improvement objective, scope, and recommendation status;
 - an inventory of improvement opportunities, including candidates that do not require rearchitecture;
 - an evidence table separating observed facts, inferences, assumptions, and unresolved questions;
-- the current architecture, target architecture, and current-to-target gap;
-- alternatives considered, decision criteria, and the selected direction or an explicit evidence blocker;
-- migration stages in dependency order, with compatibility and rollback boundaries;
+- when a major redesign is supported, the current architecture, target architecture, and current-to-target gap;
+- when a major redesign is supported, alternatives considered, decision criteria, and the selected direction or an explicit evidence blocker;
+- when a major redesign is supported, migration stages in dependency order, with compatibility and rollback boundaries;
+- when a major redesign is not supported, the highest-value recommendations, their priority, evidence, scope, and next-owner skill without a target architecture or migration plan;
 - risks, mitigations, cost assumptions, expected effects, and measurement signals;
 - the next owner and the evidence required for handoff.
 
