@@ -1,0 +1,31 @@
+id: propose-rearchitecture-local-refactor
+skill: propose-rearchitecture
+kind: boundary
+smoke: false
+title: Route an ordinary local refactor
+fixture: rearchitecture-local-refactor
+prompt: |
+  This package only needs a small behavior-preserving cleanup of its one
+  formatter. Assess the request and route it to the repository skill that owns
+  a local refactor. Do not write a redesign proposal or edit files.
+expectations:
+  handoff: refactor-code
+  transcript_must:
+    - "refactor-code"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "formatter.go"
+    - "formatter_test.go"
+  command_run: []
+rubric:
+  trigger_selection: "Recognizes that a local behavior-preserving cleanup does not justify a redesign proposal."
+  task_completion: "Routes the request to refactor-code and explains the scope boundary."
+  evidence_quality: "Uses the single helper and focused test as evidence."
+  scope_control: "Does not invent architecture, migration, or cost work."
+  safety: "Leaves the package unchanged."
+  user_correction_count: "Completes without corrections."
+  handoff_quality: "Names refactor-code as the next owner."
+corrections: []
