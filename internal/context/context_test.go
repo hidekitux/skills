@@ -91,7 +91,7 @@ func TestAllProfilesCompileWithRepresentativeCounter(t *testing.T) {
 	skills := []string{
 		"analyze-codebase", "analyze-project", "audit-workflow-enforcement", "bootstrap-project", "create-issue",
 		"create-pr", "debug-code", "deliver-change", "fix-pr", "implement-issue",
-		"improve-project", "merge-pr", "plan-issue", "propose-rearchitecture", "refactor-code", "resolve-defect",
+		"improve-project", "merge-pr", "plan-issue", "propose-improvements", "refactor-code", "resolve-defect",
 		"review-pr", "write-tests",
 	}
 	for _, skill := range skills {
