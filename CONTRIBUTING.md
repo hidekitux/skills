@@ -17,7 +17,7 @@ docs: explain FSL verification boundary
 ci: validate commit messages
 ```
 
-Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `mise run setup:all` once to enable Go commitlint and local hooks; branch switches use the lightweight refresh path through the pre-launch mise wrapper.
+Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `bash scripts/setup/run-mise.sh run setup:all` once to enable Go commitlint and local hooks; branch switches use the lightweight refresh path through the pre-launch mise wrapper.
 
 Every commit on an Issue branch must be a single sentence and end with the
 Issue number in the header: `type(scope): summary #<number>`. Keep the number

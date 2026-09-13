@@ -225,6 +225,50 @@ func TestRunMiseSetupInstallsOnlyTheSetupToolAndDisablesAutoInstall(t *testing.T
 	}
 }
 
+func TestMiseWorkflowsPrepareEnvironmentBeforeSelectedInstall(t *testing.T) {
+	cases := map[string]int{
+		".github/workflows/validate.yml": 5,
+		".github/workflows/targeted.yml": 2,
+		".github/workflows/publish.yml":  1,
+	}
+	for rel, wantActions := range cases {
+		workflow := readRepoFile(t, rel)
+		if got := strings.Count(workflow, "uses: jdx/mise-action@"); got != wantActions {
+			t.Fatalf("%s must keep %d mise-action jobs, got %d", rel, wantActions, got)
+		}
+		if got := strings.Count(workflow, "install_args:"); got != wantActions {
+			t.Fatalf("%s must select tools once per mise-action job, got %d install_args entries", rel, got)
+		}
+		if strings.Contains(workflow, "install: false") || strings.Contains(workflow, "Install mise tools in the Worktree environment") {
+			t.Fatalf("%s must not leave a second full Worktree install path", rel)
+		}
+
+		searchFrom := 0
+		previousAction := -1
+		for i := 0; i < wantActions; i++ {
+			action := strings.Index(workflow[searchFrom:], "uses: jdx/mise-action@")
+			if action < 0 {
+				t.Fatalf("%s is missing mise-action occurrence %d", rel, i+1)
+			}
+			action += searchFrom
+			prepare := strings.LastIndex(workflow[:action], "- name: Prepare Worktree environment")
+			if prepare < previousAction {
+				t.Fatalf("%s must prepare the environment before every mise-action job", rel)
+			}
+			stepEnd := strings.Index(workflow[action:], "\n      - name:")
+			if stepEnd < 0 {
+				stepEnd = len(workflow) - action
+			}
+			step := workflow[action : action+stepEnd]
+			if !strings.Contains(step, "install: true") || !strings.Contains(step, "install_args:") || !strings.Contains(step, "cache: true") {
+				t.Fatalf("%s mise-action job %d must install its selected tools with the shared cache", rel, i+1)
+			}
+			previousAction = action
+			searchFrom = action + len("uses: jdx/mise-action@")
+		}
+	}
+}
+
 func TestRegisterLocalSkillsDoesNotOwnRevisionState(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/register-local-skills.sh")
 	if strings.Contains(script, "worktree-snapshot") {
@@ -383,7 +427,7 @@ func runSetupRefreshWithSharedRoot(t *testing.T, root, fakeBin string, failBuild
 	if failBuild {
 		fail = "1"
 	}
-		env := []string{
+	env := []string{
 		"SETUP_ROOT=" + root,
 		"SETUP_LOG=" + filepath.Join(root, "go-calls"),
 		"SETUP_FAIL_BUILD=" + fail,

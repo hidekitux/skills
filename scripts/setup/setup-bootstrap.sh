@@ -23,7 +23,7 @@ else
 fi
 
 if ! bash "${root}/scripts/setup/setup-commitlint.sh"; then
-  echo "Bootstrap failed while preparing commitlint. Rerun 'mise run setup:bootstrap' after resolving the reported error." >&2
+  echo "Bootstrap failed while preparing commitlint. Rerun 'bash scripts/setup/run-mise.sh run setup:bootstrap' after resolving the reported error." >&2
   exit 1
 fi
 

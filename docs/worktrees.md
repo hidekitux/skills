@@ -78,8 +78,8 @@ worktree, or run refresh by hand when the hook was skipped or reported a
 failure:
 
 ```bash
-mise run setup:all
-mise run setup:refresh
+bash scripts/setup/run-mise.sh run setup:all
+bash scripts/setup/run-mise.sh run setup:refresh
 ```
 
 Use the wrapper for repository tasks that need Worktree-scoped mise directories:
@@ -88,11 +88,22 @@ Use the wrapper for repository tasks that need Worktree-scoped mise directories:
 bash scripts/setup/run-mise.sh run validate:all
 ```
 
-The wrapper sets `MISE_DATA_DIR`, `MISE_INSTALLS_DIR`, `MISE_CACHE_DIR`, and
-`MISE_STATE_DIR` before mise starts. The ignored `.mise/` directory holds the
-current Worktree's mise state, installations, caches, Go caches, Ruff cache, and
-the checksum-verified FSL verifier. The repository does not maintain a second
-shared tool cache or a custom cache cleanup command.
+The wrapper sets the repository-only `MISE_GLOBAL_CONFIG_ROOT` and the mise,
+Go, Ruff, and FSL paths before mise starts. A Worktree owns its mutable
+`MISE_DATA_DIR`, `MISE_INSTALLS_DIR`, `MISE_STATE_DIR`, shims, Go build cache,
+Go path, and FSL verifier. Compatible immutable installs, mise download
+metadata, Go module cache, and Ruff cache use the shared cache root through
+`MISE_SHARED_INSTALL_DIRS`, `MISE_CACHE_DIR`, `GOMODCACHE`, and
+`RUFF_CACHE_DIR`; a cache key never becomes Worktree state. CI maps these roots
+under its runner environment so `jdx/mise-action` restores and populates the
+same directories used by later tasks.
+
+Setup uses an explicit `go` prerequisite for the setup scripts, disables mise
+auto-install while repository tasks run, and prints the selected tools, reuse
+mode, elapsed time, and recovery command. A per-cache-root lock and atomic
+state marker keep concurrent Worktree setup from publishing partial state;
+failed setup leaves the previous ready marker intact and can be recovered by
+rerunning the same wrapper command.
 
 Local skill registration is revision-dependent. The ignored `.agents/setup-state`
 marker records the checked-out revision and bootstrap inputs only after setup

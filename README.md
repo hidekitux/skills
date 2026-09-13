@@ -17,17 +17,17 @@ The repository and published skills use the [Apache License 2.0](LICENSE). The `
 
 ## Development
 
-Use [mise](https://mise.jdx.dev/) through `scripts/setup/run-mise.sh` for repository commands that need the Worktree environment. Trust the configuration and run `mise run setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. The tracked `post-checkout` hook runs the lighter refresh path through the wrapper on branch switches.
+Use [mise](https://mise.jdx.dev/) through `scripts/setup/run-mise.sh` for repository commands that need the Worktree environment. Trust the configuration and run the wrapper once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. The tracked `post-checkout` hook runs the lighter refresh path through the wrapper on branch switches.
 
 ```bash
 mise trust
-mise run setup:all
+bash scripts/setup/run-mise.sh run setup:all
 mise tasks ls
 ```
 
 | Workflow | Command |
 | --- | --- |
-| Initial setup | `mise run setup:all` |
+| Initial setup | `bash scripts/setup/run-mise.sh run setup:all` |
 | Checkout refresh | `bash scripts/setup/run-mise.sh run setup:refresh` |
 | Bootstrap prerequisites | `bash scripts/setup/run-mise.sh run setup:bootstrap` |
 | Full repository validation | `bash scripts/setup/run-mise.sh run validate:all` |
@@ -40,11 +40,11 @@ mise tasks ls
 | Release-candidate verification | `bash scripts/setup/run-mise.sh run verify:release -- vX.Y.Z` |
 | Publish a verified release | `bash scripts/setup/run-mise.sh run publish:release -- vX.Y.Z` |
 
-`mise run setup:all` enables `.githooks` and writes the ignored `.agents/setup-state` marker only after bootstrap and refresh succeed. Use `bash scripts/setup/run-mise.sh run <task>` when the task needs Worktree-scoped mise directories. `mise run setup:refresh` runs automatically on branch checkout; the wrapper runs local checks before commits and full validation before pushes. A failed refresh prints the stage that needs attention and leaves the previous ready marker unchanged.
+`bash scripts/setup/run-mise.sh run setup:all` enables `.githooks` and writes the ignored `.agents/setup-state` marker only after bootstrap and refresh succeed. The wrapper selects the setup prerequisite, reuses compatible shared downloads and immutable installs, and keeps mutable state in the current Worktree. Use `bash scripts/setup/run-mise.sh run <task>` for repository tasks. The wrapper runs local checks before commits and full validation before pushes. A failed refresh prints the stage that needs attention and leaves the previous ready marker unchanged.
 
 ## Worktrees
 
-Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` performs the full bootstrap and refresh once, while `mise run setup:refresh` registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree through the pre-launch mise wrapper. Mise installations and caches stay under the current Worktree's ignored `.mise/` directory.
+Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. The wrapper performs the full bootstrap and refresh once, while its refresh task registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree through the pre-launch mise wrapper. Mutable mise state stays under the current Worktree's ignored `.mise/` directory; compatible immutable installs and download metadata are reused through the shared cache root.
 
 The repository supports [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the local worktree lifecycle interface. Install it once per machine with `mise use -g worktrunk` and run `wt config shell install`. The environment Provisioner uses the structured `wt` interface when it is selected for local use; continuous integration keeps native Git as its explicit provider.
 
@@ -56,7 +56,7 @@ wt remove issue/<number>            # remove an inspected, inactive worktree
 
 No worktree is removed automatically. Inspect changes with `git status` first, and remove one only after deciding it is no longer active. `wt remove` refuses a worktree with uncommitted changes and keeps an unmerged branch; never reach for `wt remove --force` or `wt remove -D` to work around either. Do not run development commands from a bare repository entry point; use a registered non-bare worktree from `wt list`.
 
-Use `wt list --format=json` when a script or the environment Provisioner needs structured state. A local host opts into the worktrunk provider with `Provisioner.WithLocalWorktree()`; continuous integration leaves the opt-in unset. The output reports each worktree's branch and path, plus detached, prunable, conflict, operation, and path-mismatch states. A controlled Provisioner operation uses `--no-hooks --no-cd`, verifies the returned branch-owned path, and runs `mise run setup:refresh` once before execution.
+Use `wt list --format=json` when a script or the environment Provisioner needs structured state. A local host opts into the worktrunk provider with `Provisioner.WithLocalWorktree()`; continuous integration leaves the opt-in unset. The output reports each worktree's branch and path, plus detached, prunable, conflict, operation, and path-mismatch states. A controlled Provisioner operation uses `--no-hooks --no-cd`, verifies the returned branch-owned path, and runs `bash scripts/setup/run-mise.sh run setup:refresh` once before execution.
 
 Native `git worktree` remains supported when `worktrunk` is unavailable. The local provider selects this fallback, and continuous integration uses it directly. Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
 

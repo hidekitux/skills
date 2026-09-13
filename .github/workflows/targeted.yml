@@ -21,16 +21,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "go"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       # The job always runs so a future required-context promotion cannot leave
       # a pull request pending; the targeted command is a successful no-op when
       # no spec under specs/ or skills/**/specs/ changed. Surviving mutants are
@@ -50,16 +49,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "go go:golang.org/x/vuln/cmd/govulncheck"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       # Tier 2: the job always runs so a future required-context promotion cannot
       # leave a pull request pending; the scan step is a successful no-op when no
       # Go source or module file changed. Reachable findings fail the job;

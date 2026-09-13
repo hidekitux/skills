@@ -89,13 +89,16 @@ reasons:
   caching on, `go.sum` cache key). Checkout runs as a separate named step
   before it, because GitHub loads local actions from the checked-out
   workspace.
-- Task-driven workflows (`validate.yml`, `publish.yml`) use
-  `jdx/mise-action` to install mise itself, then run
-  `scripts/setup/setup-environment.sh` and `scripts/setup/run-mise.sh`. The
-  wrapper installs mise-managed tools under the current Worktree environment
-  before running repository tasks.
-- Go-based workflows persist the same Worktree-scoped Go and FSL paths through
-  `GITHUB_ENV` before later steps run.
+- Task-driven workflows (`validate.yml`, `targeted.yml`, and `publish.yml`) run
+  `scripts/setup/setup-environment.sh` before `jdx/mise-action`. The action
+  installs only the tools named by that job's `install_args` once, with its
+  cache rooted in the same `MISE_DATA_DIR`; later repository tasks use
+  `scripts/setup/run-mise.sh` with the same environment and do not reinstall
+  the full `mise.toml` tool set.
+- Go, FSL, and cache paths are exported through `GITHUB_ENV` before the action
+  and remain consistent for later steps. CI keeps mutable installs and state
+  inside the runner environment while the action reuses its cached metadata and
+  downloads through `MISE_DATA_DIR`.
 - `policy-signatures.yml` keeps its checkout inline with an explicit
   `ref: base.sha` because it runs on `pull_request_target` and must execute
   only trusted base code; moving the checkout into the shared action would
@@ -108,13 +111,13 @@ reasons:
 ## Caching
 
 - `actions/setup-go` caches the Go module and build caches keyed on `go.sum`
-  (plus the Go version); `jdx/mise-action` caches mise-managed tool downloads
-  keyed on the mise configuration hash. Both default to enabled at the pinned
-  SHAs and are set explicitly for clarity. Cache keys invalidate when the
-  corresponding dependency metadata changes.
-- The fslc verifier download inside `verify:fsl` uses the Worktree or runner
-  environment and checksum verification. The repository does not add a second
-  shared tool cache or a custom cache cleanup task.
+  (plus the Go version); `jdx/mise-action` caches the selected mise-managed
+  tool downloads keyed on the mise configuration hash. Both default to enabled
+  at the pinned SHAs and are set explicitly for clarity. Cache keys invalidate
+  when the corresponding dependency metadata changes.
+- The fslc verifier download inside `verify:fsl` uses the runner environment
+  and checksum verification. The repository does not add a second CI install
+  path or a custom cache cleanup task.
 
 ## Concurrency
 
