@@ -392,7 +392,7 @@ func TestTestRepositoryIgnoresAmbientGitContext(t *testing.T) {
 	outer := t.TempDir()
 	runFixtureGit(t, outer, "init", "-q")
 	runFixtureGit(t, outer, "config", "user.name", "Outer User")
-	runFixtureGit(t, outer, "config", "user.email", "outer@example.invalid")
+	runFixtureGit(t, outer, "config", "user.email", "outer-user")
 	t.Setenv("GIT_DIR", filepath.Join(outer, ".git"))
 	t.Setenv("GIT_WORK_TREE", outer)
 	t.Setenv("GIT_INDEX_FILE", filepath.Join(outer, "outer-index"))
@@ -403,6 +403,9 @@ func TestTestRepositoryIgnoresAmbientGitContext(t *testing.T) {
 	}
 	if got := runFixtureGitOutput(t, outer, "config", "--get", "user.name"); got != "Outer User" {
 		t.Fatalf("ambient user.name changed to %q", got)
+	}
+	if got := runFixtureGitOutput(t, outer, "config", "--get", "user.email"); got != "outer-user" {
+		t.Fatalf("ambient user.email changed to %q", got)
 	}
 	if _, err := exec.Command("git", "-C", outer, "rev-parse", "--verify", "HEAD").Output(); err == nil {
 		t.Fatal("fixture commit was created in the ambient repository")
