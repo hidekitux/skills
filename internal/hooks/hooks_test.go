@@ -184,7 +184,16 @@ func runTestCommandWithEnv(t *testing.T, dir string, extraEnv []string, name str
 	t.Helper()
 	cmd := exec.Command(name, args...)
 	cmd.Dir = dir
-	cmd.Env = append(append(os.Environ(), extraEnv...),
+	env := make([]string, 0, len(os.Environ())+len(extraEnv)+2)
+	for _, value := range os.Environ() {
+		name, _, ok := strings.Cut(value, "=")
+		if ok && strings.HasPrefix(name, "GIT_") {
+			continue
+		}
+		env = append(env, value)
+	}
+	env = append(env, extraEnv...)
+	cmd.Env = append(env,
 		"GIT_CONFIG_NOSYSTEM=1",
 		"GIT_CONFIG_GLOBAL="+filepath.Join(t.TempDir(), "gitconfig"),
 	)
