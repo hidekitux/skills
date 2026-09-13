@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 const dependabotAuthor = "dependabot[bot]"
@@ -26,6 +28,9 @@ func ExecRunner() commandRunner { return execRunner{} }
 
 func (execRunner) runValue(input, name string, args ...string) (string, int) {
 	cmd := exec.Command(name, args...)
+	if name == "git" {
+		cmd.Env = support.GitEnv()
+	}
 	var buffer bytes.Buffer
 	cmd.Stdout = &buffer
 	cmd.Stderr = &buffer
