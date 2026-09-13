@@ -56,7 +56,7 @@ wt remove issue/<number>            # remove an inspected, inactive worktree
 
 No worktree is removed automatically. Inspect changes with `git status` first, and remove one only after deciding it is no longer active. `wt remove` refuses a worktree with uncommitted changes and keeps an unmerged branch; never reach for `wt remove --force` or `wt remove -D` to work around either. Do not run development commands from a bare repository entry point; use a registered non-bare worktree from `wt list`.
 
-Use `wt list --format=json` when a script or the environment Provisioner needs structured state. The output reports each worktree's branch and path, plus detached, prunable, conflict, operation, and path-mismatch states. A controlled Provisioner operation uses `--no-hooks --no-cd`, verifies the returned branch-owned path, and runs `setup:refresh` once before execution.
+Use `wt list --format=json` when a script or the environment Provisioner needs structured state. The output reports each worktree's branch and path, plus detached, prunable, conflict, operation, and path-mismatch states. A controlled Provisioner operation uses `--no-hooks --no-cd`, verifies the returned branch-owned path, and runs `mise run setup:refresh` once before execution.
 
 Native `git worktree` remains supported when `worktrunk` is unavailable. The local provider selects this fallback, and continuous integration uses it directly. Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
 
