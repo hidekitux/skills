@@ -62,6 +62,14 @@ type Provisioned struct {
 	Environment   []string
 }
 
+// WithLocalWorktree opts a Provisioner into worktrunk when it is installed,
+// while retaining the native Git fallback for local hosts without worktrunk.
+// A Provisioner without this opt-in remains native-Git-only for CI.
+func (p Provisioner) WithLocalWorktree() Provisioner {
+	p.Worktree = NewLocalWorktreeProvider(p.Runner)
+	return p
+}
+
 func (p Provisioner) Provision(ctx context.Context, request ProvisionRequest) (Provisioned, error) {
 	if p.Root == "" {
 		return Provisioned{}, errors.New("provisioner root is required")
