@@ -26,7 +26,7 @@ type OSCommandRunner struct{}
 func (OSCommandRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
 	command := exec.CommandContext(ctx, name, args...)
 	command.Dir = dir
-	if name == "git" {
+	if name == "git" || filepath.Base(name) == worktrunkCommand {
 		if env == nil {
 			env = os.Environ()
 		}
@@ -44,6 +44,7 @@ type Provisioner struct {
 	Root        string
 	Graph       *graph.Graph
 	Runner      CommandRunner
+	Worktree    WorktreeProvider
 	VerifyIssue IssueVerifier
 }
 
@@ -122,13 +123,18 @@ func (p Provisioner) Provision(ctx context.Context, request ProvisionRequest) (P
 		if err := ensureEmptyDestination(destination); err != nil {
 			return Provisioned{}, err
 		}
-		if _, err := p.runGit(ctx, root, "worktree", "add", "--detach", destination, revision); err != nil {
+		if _, err := p.runGitWithoutHooks(ctx, root, "worktree", "add", "--detach", destination, revision); err != nil {
 			return Provisioned{}, fmt.Errorf("create detached snapshot: %w", err)
 		}
 	} else {
-		if err := p.provisionIssueWorktree(ctx, root, destination, branch, revision); err != nil {
+		worktree, err := p.worktreeProvider().Create(ctx, root, destination, branch, revision)
+		if err != nil {
 			return Provisioned{}, err
 		}
+		if err := validateIssueWorktree(worktree, branch); err != nil {
+			return Provisioned{}, err
+		}
+		destination = worktree.Path
 	}
 	if err := p.runSetup(ctx, destination); err != nil {
 		return Provisioned{}, err
@@ -154,6 +160,19 @@ func (p Provisioner) Provision(ctx context.Context, request ProvisionRequest) (P
 	return Provisioned{Manifest: manifest, WorkspacePath: destination, PolicyDir: policyDir, Environment: environment}, nil
 }
 
+func validateIssueWorktree(worktree WorktreeState, branch string) error {
+	if worktree.Path == "" {
+		return errors.New("worktree provider returned no path")
+	}
+	if worktree.Branch != branch {
+		return fmt.Errorf("worktree provider returned branch %q, want %q", worktree.Branch, branch)
+	}
+	if reason := worktreeRetentionReason(worktree); reason != "" {
+		return fmt.Errorf("worktree %s is not ready: %s", branch, reason)
+	}
+	return nil
+}
+
 func (p Provisioner) resolveRevision(ctx context.Context, root, revision string) (string, error) {
 	if revision == "" {
 		revision = "HEAD"
@@ -169,75 +188,23 @@ func (p Provisioner) resolveRevision(ctx context.Context, root, revision string)
 	return resolved, nil
 }
 
-func (p Provisioner) provisionIssueWorktree(ctx context.Context, root, destination, branch, revision string) error {
-	worktrees, err := p.listWorktrees(ctx, root)
-	if err != nil {
-		return err
-	}
-	for _, worktree := range worktrees {
-		if equivalentPath(worktree.Path, destination) && worktree.Branch == branch {
-			return nil
-		}
-		if worktree.Branch == branch && !equivalentPath(worktree.Path, destination) {
-			return fmt.Errorf("branch %s is already owned by %s", branch, worktree.Path)
-		}
-		if equivalentPath(worktree.Path, destination) && worktree.Branch != branch {
-			return fmt.Errorf("destination is owned by branch %s, not %s", worktree.Branch, branch)
-		}
-	}
-	if err := ensureEmptyDestination(destination); err != nil {
-		return err
-	}
-	if _, err := p.runGit(ctx, root, "show-ref", "--verify", "--quiet", "refs/heads/"+branch); err == nil {
-		if _, err := p.runGit(ctx, root, "worktree", "add", destination, branch); err != nil {
-			return fmt.Errorf("attach Issue worktree: %w", err)
-		}
-		return nil
-	}
-	if _, err := p.runGit(ctx, root, "worktree", "add", "-b", branch, destination, revision); err != nil {
-		return fmt.Errorf("create Issue worktree: %w", err)
-	}
-	return nil
-}
-
-type worktreeRecord struct {
-	Path   string
-	Branch string
-}
-
-func (p Provisioner) listWorktrees(ctx context.Context, root string) ([]worktreeRecord, error) {
-	output, err := p.runGit(ctx, root, "worktree", "list", "--porcelain")
-	if err != nil {
-		return nil, fmt.Errorf("inspect worktree ownership: %w", err)
-	}
-	var records []worktreeRecord
-	var current worktreeRecord
-	flush := func() {
-		if current.Path != "" {
-			records = append(records, current)
-		}
-		current = worktreeRecord{}
-	}
-	for _, line := range strings.Split(output, "\n") {
-		switch {
-		case strings.HasPrefix(line, "worktree "):
-			flush()
-			current.Path = strings.TrimPrefix(line, "worktree ")
-		case strings.HasPrefix(line, "branch refs/heads/"):
-			current.Branch = strings.TrimPrefix(line, "branch refs/heads/")
-		case line == "detached HEAD":
-			current.Branch = ""
-		}
-	}
-	flush()
-	return records, nil
-}
-
 func (p Provisioner) runGit(ctx context.Context, dir string, args ...string) (string, error) {
 	if p.Runner != nil {
 		return p.Runner.Run(ctx, dir, nil, "git", args...)
 	}
 	return (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "git", args...)
+}
+
+func (p Provisioner) runGitWithoutHooks(ctx context.Context, dir string, args ...string) (string, error) {
+	args = append([]string{"-c", "core.hooksPath=" + os.DevNull}, args...)
+	return p.runGit(ctx, dir, args...)
+}
+
+func (p Provisioner) worktreeProvider() WorktreeProvider {
+	if p.Worktree != nil {
+		return p.Worktree
+	}
+	return NativeGitWorktreeProvider{Runner: p.Runner}
 }
 
 func (p Provisioner) runSetup(ctx context.Context, dir string) error {

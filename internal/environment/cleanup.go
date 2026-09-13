@@ -39,16 +39,18 @@ func (p Provisioner) Cleanup(ctx context.Context, request CleanupRequest) (Manif
 	if err != nil {
 		return manifest, fmt.Errorf("resolve cleanup workspace: %w", err)
 	}
-	worktrees, err := p.listWorktrees(ctx, root)
+	worktrees, err := p.worktreeProvider().List(ctx, root)
 	if err != nil {
 		return manifest, err
 	}
 	owned := false
+	var ownedWorktree WorktreeState
 	for _, worktree := range worktrees {
 		if !equivalentPath(worktree.Path, workspace) {
 			continue
 		}
 		owned = true
+		ownedWorktree = worktree
 		if worktree.Branch != manifest.Branch {
 			manifest.Ownership = Ownership{Status: OwnershipConcurrent}
 			manifest.Cleanup = CleanupBlockedActive
@@ -61,6 +63,11 @@ func (p Provisioner) Cleanup(ctx context.Context, request CleanupRequest) (Manif
 		manifest.Cleanup = CleanupBlockedActive
 		return manifest, nil
 	}
+	if reason := worktreeRetentionReason(ownedWorktree); reason != "" {
+		manifest.Ownership.Diagnostic = reason
+		manifest.Cleanup = CleanupBlockedMaterial
+		return manifest, nil
+	}
 	if material, err := p.hasMaterialChanges(ctx, workspace, manifest.RepositoryRevision); err != nil {
 		return manifest, err
 	} else if material {
@@ -71,9 +78,9 @@ func (p Provisioner) Cleanup(ctx context.Context, request CleanupRequest) (Manif
 		manifest.Cleanup = CleanupRetained
 		return manifest, nil
 	}
-	if _, err := p.runGit(ctx, root, "worktree", "remove", workspace); err != nil {
+	if err := p.worktreeProvider().Remove(ctx, root, ownedWorktree); err != nil {
 		manifest.Cleanup = CleanupBlockedMaterial
-		return manifest, fmt.Errorf("remove clean worktree without force: %w", err)
+		return manifest, err
 	}
 	if err := removePolicyDirectory(request.Provisioned.PolicyDir, manifest.EnvironmentID, workspace); err != nil {
 		manifest.Cleanup = CleanupBlockedMaterial
@@ -81,6 +88,25 @@ func (p Provisioner) Cleanup(ctx context.Context, request CleanupRequest) (Manif
 	}
 	manifest.Cleanup = CleanupRemovedReviewed
 	return manifest, nil
+}
+
+func worktreeRetentionReason(worktree WorktreeState) string {
+	switch {
+	case worktree.Prunable:
+		return "worktree-prunable"
+	case worktree.Locked:
+		return "worktree-locked"
+	case worktree.Conflicted:
+		return "worktree-conflicted"
+	case worktree.Operation != "":
+		return "worktree-operation"
+	case worktree.BranchMismatch:
+		return "worktree-branch-mismatch"
+	case worktree.DuplicateBranch:
+		return "worktree-duplicate-branch"
+	default:
+		return ""
+	}
 }
 
 func equivalentPath(first, second string) bool {
