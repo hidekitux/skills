@@ -20,7 +20,7 @@ depends = ["check:all", "check:skills", "check:hosts", "verify:fsl", "lint:all",
 
 [tasks."setup:all"]
 description = "Prepare local skills, Git hooks, and commitlint for development"
-depends = ["setup:local-skills", "setup:commitlint"]
+run = "bash scripts/setup/setup-all.sh"
 
 [tasks."check:all"]
 description = "Run repository metadata, branch policy, whitespace, and task-name checks"
@@ -111,9 +111,17 @@ shellcheck --shell=sh .githooks/pre-push
 description = "Install the project-local commitlint binary"
 run = "bash scripts/setup/setup-commitlint.sh"
 
+[tasks."setup:bootstrap"]
+description = "Prepare Git hooks and shared commitlint prerequisites"
+run = "bash scripts/setup/setup-bootstrap.sh"
+
+[tasks."setup:refresh"]
+description = "Refresh revision-dependent worktree setup"
+run = "bash scripts/setup/setup-refresh.sh"
+
 [tasks."setup:local-skills"]
-description = "Enable local Git hooks and register repository skills for Codex and Claude Code"
-run = "bash scripts/setup/setup-local-skills.sh"
+description = "Refresh local Git hooks and repository skills"
+run = "bash scripts/setup/setup-refresh.sh"
 
 [tasks."check:skills"]
 description = "Validate publishable Agent Skills"
