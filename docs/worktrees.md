@@ -57,17 +57,20 @@ this workflow.
 
 ## Setup
 
-The tracked `post-checkout` hook runs `mise run setup:all` whenever Git creates
-or switches a branch, including `wt switch --create`, so a new worktree is
-normally ready to use. Run it by hand from the worktree when the hook was
-skipped or reported a failure:
+The tracked `post-checkout` hook runs `mise run setup:refresh` whenever Git
+creates or switches a branch, including `wt switch --create`, so a new worktree
+is normally ready to use. Run the full bootstrap path once in a new worktree,
+or run refresh by hand when the hook was skipped or reported a failure:
 
 ```bash
 mise run setup:all
+mise run setup:refresh
 ```
 
-Local skill registration is snapshot-dependent. Verify it with `readlink
-.claude/skills/<skill-name>` or `readlink .agents/skills/<skill-name>`.
+Local skill registration is revision-dependent. The ignored `.agents/setup-state`
+marker records the checked-out revision and bootstrap inputs only after setup
+succeeds. Verify a registration with `readlink .claude/skills/<skill-name>` or
+`readlink .agents/skills/<skill-name>`.
 
 ## Native Git
 

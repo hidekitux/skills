@@ -17,7 +17,7 @@ The repository and published skills use the [Apache License 2.0](LICENSE). The `
 
 ## Development
 
-Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `mise run setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. `mise run setup:all` is safe to rerun, and it does not need to be run again by hand on every branch switch: the tracked `post-checkout` hook reruns it automatically.
+Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `mise run setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. The tracked `post-checkout` hook runs the lighter `mise run setup:refresh` path on branch switches.
 
 ```bash
 mise trust
@@ -28,6 +28,8 @@ mise tasks ls
 | Workflow | Command |
 | --- | --- |
 | Initial setup | `mise run setup:all` |
+| Checkout refresh | `mise run setup:refresh` |
+| Bootstrap prerequisites | `mise run setup:bootstrap` |
 | Full repository validation | `mise run validate:all` |
 | Fast local-change check | `mise run check:local` |
 | Static analysis | `mise run lint:all` |
@@ -38,11 +40,11 @@ mise tasks ls
 | Release-candidate verification | `mise run verify:release -- vX.Y.Z` |
 | Publish a verified release | `mise run publish:release -- vX.Y.Z` |
 
-`mise run setup:all` enables `.githooks`. It reruns automatically on branch checkout; `mise run check:local` runs before commits and `mise run validate:all` runs before pushes. A failed check blocks the corresponding commit or push.
+`mise run setup:all` enables `.githooks` and writes the ignored `.agents/setup-state` marker only after bootstrap and refresh succeed. `mise run setup:refresh` runs automatically on branch checkout; `mise run check:local` runs before commits and `mise run validate:all` runs before pushes. A failed refresh prints the stage that needs attention and leaves the previous ready marker unchanged.
 
 ## Worktrees
 
-Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` registers skills for the checked-out snapshot and reuses the pinned commitlint from the shared Git directory, so worktrees setting up in parallel do not rebuild or conflict with each other; the tracked `post-checkout` hook runs it for every new worktree.
+Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` performs the full bootstrap and refresh once, while `mise run setup:refresh` registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree.
 
 The repository uses [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the worktree tool. Install it once per machine with `mise use -g worktrunk` and run `wt config shell install`; it is a local developer convenience, not a repository or CI dependency. See [docs/worktrees.md](docs/worktrees.md) for the worktree policy and commands.
 

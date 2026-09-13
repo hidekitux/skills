@@ -16,7 +16,7 @@ The graph remains the only authority source. A profile cannot add permission tha
 
 Provisioning resolves the requested repository revision before execution. A read-only profile creates a detached snapshot and applies read-only filesystem permissions without changing the shared Git directory. A profile that can write the repository or Git state requires an existing governed Issue, the matching `issue/<number>` branch, and a registered worktree owned by that branch. The provisioner stops on a detached, wrong, missing, or concurrently owned branch.
 
-The provisioner runs `mise run setup:all` before execution. A missing command or non-zero result stops the selected skill. `worktrunk` remains a local operator convenience. Use `wt list` to inspect ownership when available; native `git worktree list --porcelain` is the machine-readable source.
+The provisioner runs `mise run setup:refresh` synchronously before execution. The refresh path performs bootstrap when the worktree has no current ready state, so execution does not depend on a background checkout hook. A missing command or non-zero result stops the selected skill. `worktrunk` remains a local operator convenience. Use `wt list` to inspect ownership when available; native `git worktree list --porcelain` is the machine-readable source.
 
 ## Command and host boundaries
 
