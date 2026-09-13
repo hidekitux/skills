@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root=$(git rev-parse --show-toplevel)
+root=${SETUP_ROOT:-$(git rev-parse --show-toplevel)}
 source_root="${root}/skills"
-stamp="${root}/.agents/worktree-snapshot"
 
 found=0
 status=0
@@ -11,15 +10,6 @@ tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/register-local-skills.XXXXXX")
 trap 'rm -rf "${tmp_dir}"' EXIT
 desired_names="${tmp_dir}/desired-names"
 touch "${desired_names}"
-
-# Project Git hooks and shared commitlint live in the common directory shared
-# by every worktree, so only the snapshot-dependent registrations below are
-# keyed by the checked-out revision.
-revision=$(git rev-parse HEAD)
-if [[ -f "${stamp}" ]] && [[ "$(cat "${stamp}")" == "${revision}" ]]; then
-  echo "Local skill registration is current for ${revision}"
-  exit 0
-fi
 
 while IFS= read -r manifest; do
   [ -f "${manifest}" ] || continue
@@ -165,11 +155,5 @@ reconcile_host() {
 
 reconcile_host "${root}/.agents/skills"
 reconcile_host "${root}/.claude/skills"
-
-if [ "${status}" -eq 0 ]; then
-  mkdir -p "$(dirname "${stamp}")"
-  printf '%s\n' "${revision}" > "${stamp}"
-  echo "Registered ${revision} local skills"
-fi
 
 exit "${status}"
