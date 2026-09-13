@@ -77,6 +77,21 @@ func hasCall(runner *fakeRunner, fragment string) bool {
 	return false
 }
 
+func TestExecRunnerScrubsGitEnvironment(t *testing.T) {
+	bin := t.TempDir()
+	gitPath := filepath.Join(bin, "git")
+	if err := os.WriteFile(gitPath, []byte("#!/bin/sh\nprintf '%s' \"${GIT_DIR-unset}\"\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin)
+	t.Setenv("GIT_DIR", "/outside/.git")
+
+	output, code := ExecRunner().runValue("", "git")
+	if code != 0 || output != "unset" {
+		t.Fatalf("git environment was not scrubbed: output=%q code=%d", output, code)
+	}
+}
+
 func TestResolveCommitlintUsesEnvironmentOverride(t *testing.T) {
 	t.Setenv("COMMITLINT_BIN", "/custom/bin/commitlint")
 	got, code := resolveCommitlint("repo-root", defaultFake())
