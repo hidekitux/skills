@@ -17,11 +17,11 @@ policy for creating, using, and removing them.
 
 ## Tooling
 
-[`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) is the worktree
-tool. It is dual-licensed `MIT OR Apache-2.0`, and the repository relies on the
-Apache-2.0 option. Install it once per machine; it is a local developer
-convenience, not a repository or CI dependency, and it is not bundled into any
-published skill.
+[`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) is the supported
+local worktree lifecycle interface. It is dual-licensed `MIT OR Apache-2.0`,
+and the repository relies on the Apache-2.0 option. Install it once per machine;
+it is not a repository or continuous-integration dependency, and it is not
+bundled into any published skill.
 
 ```bash
 mise use -g worktrunk
@@ -48,6 +48,12 @@ path is derived from the branch name, so `issue/232` becomes a
 `wt list` reports which worktree owns a branch. Do not run development commands
 from a bare repository entry point; use a registered non-bare worktree.
 
+Use `wt list --format=json` for automation. The structured output reports the
+branch, path, detached state, prunable state, conflict state, operation in
+progress, and path or duplicate-branch mismatch. The environment Provisioner
+accepts schema 2 and the supported legacy array form, and it stops when the
+output lacks a verifiable worktree identity.
+
 `wt remove` fails when the worktree has uncommitted changes, and it removes the
 branch only when the branch is merged. Do not reach for `wt remove --force`
 (`-f`), which discards staged, modified, and untracked files, or
@@ -55,12 +61,21 @@ branch only when the branch is merged. Do not reach for `wt remove --force`
 push, or stash the work instead. `--reap` is experimental; it is not part of
 this workflow.
 
+The environment Provisioner performs its own active, dirty, divergence, and
+review checks before removal. Its worktrunk path uses `--foreground` and
+`--no-delete-branch`, so a retained dirty, active, prunable, conflicted, or
+unmerged worktree remains available and the manifest records the retained
+reason.
+
 ## Setup
 
 The tracked `post-checkout` hook runs `scripts/setup/run-mise.sh run setup:refresh` whenever Git
-creates or switches a branch, including `wt switch --create`, so a new worktree
-is normally ready to use. Run the full bootstrap path once in a new worktree,
-or run refresh by hand when the hook was skipped or reported a failure:
+creates or switches a branch, including a manual `wt switch --create`, so a new
+worktree is normally ready to use. A controlled environment Provisioner
+operation passes `--no-hooks --no-cd` to worktrunk, then runs the refresh path
+once synchronously before execution. Run the full bootstrap path once in a new
+worktree, or run refresh by hand when the hook was skipped or reported a
+failure:
 
 ```bash
 mise run setup:all
@@ -86,9 +101,9 @@ succeeds. Verify a registration with `readlink .claude/skills/<skill-name>` or
 
 ## Native Git
 
-Native `git worktree` remains supported. Use a detached worktree for a
-read-only `main` snapshot, and create an Issue branch rather than checking out
-`main` again:
+Native `git worktree` remains the machine-readable fallback and the
+continuous-integration path. Use a detached worktree for a read-only `main`
+snapshot, and create an Issue branch rather than checking out `main` again:
 
 ```bash
 git worktree add --detach <path> origin/main
