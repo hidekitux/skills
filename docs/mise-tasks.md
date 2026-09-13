@@ -21,7 +21,7 @@ Repository tasks use the form `verb:task-name`.
 | lint | `lint:all`, `lint:actions`, `lint:go`, `lint:python`, `lint:shell` |
 | mutate | `mutate:fsl`, `mutate:fsl-changed` |
 | publish | `publish:release` |
-| setup | `setup:all`, `setup:commitlint`, `setup:local-skills` |
+| setup | `setup:all`, `setup:bootstrap`, `setup:commitlint`, `setup:local-skills`, `setup:refresh` |
 | test | `test:all`, `test:go`, `test:json` |
 | validate | `validate:all`, `validate:skill-creator` |
 | verify | `verify:fsl`, `verify:release` |
