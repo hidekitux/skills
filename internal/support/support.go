@@ -61,13 +61,21 @@ func asExitError(err error, target **exec.ExitError) bool {
 // valid when invoked from inside a hook (for example the pre-push hook that
 // runs `mise run validate:all`).
 func GitEnv() []string {
-	env := []string{}
-	for _, kv := range os.Environ() {
-		if !strings.HasPrefix(kv, "GIT_") {
-			env = append(env, kv)
+	return WithoutGitEnvironment(os.Environ())
+}
+
+// WithoutGitEnvironment removes every GIT_* variable from environment so a
+// child git process discovers its repository from its working directory.
+func WithoutGitEnvironment(environment []string) []string {
+	clean := make([]string, 0, len(environment))
+	for _, kv := range environment {
+		name, _, ok := strings.Cut(kv, "=")
+		if ok && strings.HasPrefix(name, "GIT_") {
+			continue
 		}
+		clean = append(clean, kv)
 	}
-	return env
+	return clean
 }
 
 // GitOutputIn runs git in dir with GIT_* environment variables removed.

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/hidekitux/skills/internal/graph"
+	"github.com/hidekitux/skills/internal/support"
 )
 
 type provisioningRunner struct {
@@ -74,6 +75,27 @@ func TestProvisionReadOnlySnapshotRunsSetupAndDeniesMutation(t *testing.T) {
 	remoteOutput, remoteErr := remote.CombinedOutput()
 	if remoteErr == nil || !strings.Contains(string(remoteOutput), "skill-environment") {
 		t.Fatalf("read-only GitHub mutation was not denied: err=%v output=%q", remoteErr, remoteOutput)
+	}
+}
+
+func TestOSCommandRunnerScrubsExplicitGitEnvironment(t *testing.T) {
+	root, _ := testRepository(t)
+	other, _ := testRepository(t)
+	env := append(support.GitEnv(),
+		"GIT_DIR="+filepath.Join(other, ".git"),
+		"GIT_WORK_TREE="+other,
+	)
+
+	output, err := (OSCommandRunner{}).Run(context.Background(), root, env, "git", "rev-parse", "--show-toplevel")
+	if err != nil {
+		t.Fatalf("git command failed: %v", err)
+	}
+	resolvedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.TrimSpace(output) != resolvedRoot {
+		t.Fatalf("git command used ambient repository: got %q, want %q", strings.TrimSpace(output), resolvedRoot)
 	}
 }
 
@@ -366,6 +388,27 @@ func testRepository(t *testing.T) (string, string) {
 	return root, run("rev-parse", "HEAD")
 }
 
+func TestTestRepositoryIgnoresAmbientGitContext(t *testing.T) {
+	outer := t.TempDir()
+	runFixtureGit(t, outer, "init", "-q")
+	runFixtureGit(t, outer, "config", "user.name", "Outer User")
+	runFixtureGit(t, outer, "config", "user.email", "outer@example.invalid")
+	t.Setenv("GIT_DIR", filepath.Join(outer, ".git"))
+	t.Setenv("GIT_WORK_TREE", outer)
+	t.Setenv("GIT_INDEX_FILE", filepath.Join(outer, "outer-index"))
+
+	root, _ := testRepository(t)
+	if root == outer {
+		t.Fatal("test repository reused the ambient work tree")
+	}
+	if got := runFixtureGitOutput(t, outer, "config", "--get", "user.name"); got != "Outer User" {
+		t.Fatalf("ambient user.name changed to %q", got)
+	}
+	if _, err := exec.Command("git", "-C", outer, "rev-parse", "--verify", "HEAD").Output(); err == nil {
+		t.Fatal("fixture commit was created in the ambient repository")
+	}
+}
+
 func addWorktree(t *testing.T, root, destination string, branchArgs ...string) {
 	t.Helper()
 	args := append([]string{"worktree", "add"}, append(branchArgs[:len(branchArgs)-1], destination, branchArgs[len(branchArgs)-1])...)
@@ -379,16 +422,23 @@ func addWorktree(t *testing.T, root, destination string, branchArgs ...string) {
 
 func runFixtureGit(t *testing.T, dir string, args ...string) {
 	t.Helper()
+	_ = runFixtureGitOutput(t, dir, args...)
+}
+
+func runFixtureGitOutput(t *testing.T, dir string, args ...string) string {
+	t.Helper()
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 	cmd.Env = fixtureGitEnvironment()
-	if output, err := cmd.CombinedOutput(); err != nil {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
 		t.Fatalf("git %v: %v\n%s", args, err, output)
 	}
+	return strings.TrimSpace(string(output))
 }
 
 func fixtureGitEnvironment() []string {
-	return append(withoutGitContext(os.Environ()), "GIT_CONFIG_GLOBAL=/dev/null")
+	return append(support.GitEnv(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
 }
 
 func fileMode(t *testing.T, path string) os.FileMode {
