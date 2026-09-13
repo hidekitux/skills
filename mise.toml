@@ -16,15 +16,33 @@ actionlint = "1.7.12"
 
 [tasks."validate:all"]
 description = "Run supported-platform repository validations"
-depends = ["check:all", "check:skills", "check:hosts", "verify:fsl", "lint:all", "test:all", "check:diff", "check:branch-policy"]
+depends = [
+  "check:all",
+  "check:skills",
+  "check:hosts",
+  "verify:fsl",
+  "lint:all",
+  "test:all",
+  "check:diff",
+  "check:branch-policy",
+]
 
 [tasks."setup:all"]
 description = "Prepare local skills, Git hooks, and commitlint for development"
 run = "bash scripts/setup/setup-all.sh"
 
+[tasks."setup:environment"]
+description = "Prepare Worktree environment variables for the next mise invocation"
+run = "bash scripts/setup/setup-environment.sh"
+
 [tasks."check:all"]
 description = "Run repository metadata, branch policy, whitespace, and task-name checks"
-depends = ["check:repository", "check:branch-policy", "check:diff", "check:tasks"]
+depends = [
+  "check:repository",
+  "check:branch-policy",
+  "check:diff",
+  "check:tasks",
+]
 
 [tasks."check:local"]
 description = "Check repository metadata, branch policy, and whitespace"
@@ -68,7 +86,7 @@ run = "actionlint"
 [tasks."lint:go"]
 description = "Format-check and vet Go sources"
 run = '''
-unformatted="$(gofmt -l .)"
+unformatted="$(git ls-files -z -- '*.go' | xargs -0 gofmt -l)"
 if [ -n "${unformatted}" ]; then
   echo "Go files are not gofmt-formatted:" >&2
   echo "${unformatted}" >&2
@@ -83,7 +101,7 @@ run = "go run ./cmd/scan-go-vuln \"$@\""
 
 [tasks."lint:python"]
 description = "Lint and format-check Python template sources under skills/"
-run = "RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff check skills && RUFF_CACHE_DIR=\"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-ruff-cache\" ruff format --check skills"
+run = "ruff check skills && ruff format --check skills"
 
 [tasks."test:go"]
 description = "Run the Go repository test suite"
@@ -112,7 +130,7 @@ description = "Install the project-local commitlint binary"
 run = "bash scripts/setup/setup-commitlint.sh"
 
 [tasks."setup:bootstrap"]
-description = "Prepare Git hooks and shared commitlint prerequisites"
+description = "Prepare Git hooks and local commitlint prerequisites"
 run = "bash scripts/setup/setup-bootstrap.sh"
 
 [tasks."setup:refresh"]

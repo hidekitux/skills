@@ -17,14 +17,14 @@ docs: explain FSL verification boundary
 ci: validate commit messages
 ```
 
-Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `mise run setup:all` once to enable mise-managed Go commitlint and local hooks; branch switches use the lightweight `mise run setup:refresh` path.
+Mark breaking changes with `!` or `BREAKING CHANGE:` in the body or footer. For initial setup, run `mise run setup:all` once to enable Go commitlint and local hooks; branch switches use the lightweight refresh path through the pre-launch mise wrapper.
 
 Every commit on an Issue branch must be a single sentence and end with the
 Issue number in the header: `type(scope): summary #<number>`. Keep the number
 as the governing Issue for that commit; one Pull Request may handle multiple
 Issues, so the commit number need not match the branch name or the Pull
 Request's first Issue. `cmd/validate-commit-message` enforces the
-shape and commitlint validates the header. Run `mise run validate:all` or a local
+shape and commitlint validates the header. Run `bash scripts/setup/run-mise.sh run validate:all` or a local
 commit to confirm the message before pushing.
 
 One Pull Request is not required to be one commit. Split Pull Request commits
@@ -34,7 +34,7 @@ worktree development; resolve any validation failure in the intended commits
 before the final commit is pushed, so the pushed history contains only the
 implementation commits that belong in the Pull Request.
 
-GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run `mise run check:local` before commits and `mise run validate:all` before pushes. Fix a failed check before retrying.
+GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run the pre-launch mise wrapper for `check:local` before commits and `validate:all` before pushes. Fix a failed check before retrying.
 
 ## Commit identity and signatures
 

@@ -25,8 +25,12 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: true
+          install: false
           cache: true
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
+      - name: Install mise tools in the Worktree environment
+        run: bash scripts/setup/run-mise.sh install
       # The job always runs so a future required-context promotion cannot leave
       # a pull request pending; the targeted command is a successful no-op when
       # no spec under specs/ or skills/**/specs/ changed. Surviving mutants are
@@ -35,7 +39,7 @@ jobs:
       - name: Mutate changed FSL specifications
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: mise run mutate:fsl-changed -- "$BASE_SHA"
+        run: bash scripts/setup/run-mise.sh run mutate:fsl-changed -- "$BASE_SHA"
   go-dependency-security:
     name: Audit Go dependency security
     runs-on: ubuntu-latest
@@ -50,8 +54,12 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: true
+          install: false
           cache: true
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
+      - name: Install mise tools in the Worktree environment
+        run: bash scripts/setup/run-mise.sh install
       # Tier 2: the job always runs so a future required-context promotion cannot
       # leave a pull request pending; the scan step is a successful no-op when no
       # Go source or module file changed. Reachable findings fail the job;
@@ -69,7 +77,7 @@ jobs:
           fi
       - name: Audit Go dependencies for known vulnerabilities
         if: steps.changed.outputs.go-changed == 'true'
-        run: mise run check:go-vuln
+        run: bash scripts/setup/run-mise.sh run check:go-vuln
       - name: Report no Go changes
         if: steps.changed.outputs.go-changed == 'false'
         run: echo "No Go source or module files changed; skipping Go dependency scan."

@@ -20,7 +20,7 @@ type provisioningRunner struct {
 }
 
 func (r *provisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
-	if name == "mise" {
+	if name == "bash" {
 		r.setupCalls++
 		r.setupArgs = append(r.setupArgs, append([]string(nil), args...))
 		return "", r.setupErr
@@ -30,7 +30,7 @@ func (r *provisioningRunner) Run(ctx context.Context, dir string, env []string, 
 
 func assertRefreshSetup(t *testing.T, runner *provisioningRunner) {
 	t.Helper()
-	if len(runner.setupArgs) == 0 || strings.Join(runner.setupArgs[0], " ") != "run setup:refresh" {
+	if len(runner.setupArgs) == 0 || !strings.HasSuffix(runner.setupArgs[0][0], "scripts/setup/run-mise.sh") || strings.Join(runner.setupArgs[0][1:], " ") != "run setup:refresh" {
 		t.Fatalf("setup command = %#v, want [run setup:refresh]", runner.setupArgs)
 	}
 }

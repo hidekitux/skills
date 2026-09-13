@@ -8,7 +8,7 @@ policy for creating, using, and removing them.
 - The primary worktree owns `main`. Git refuses to check out `main` in a second
   worktree; never use `--force` to work around that.
 - Changes go on an `issue/<number>` branch created from an existing Issue.
-- `mise` is the entry point for every repository command.
+- `scripts/setup/run-mise.sh` is the entry point for repository commands that need the Worktree environment.
 - No worktree is removed without inspecting it first. Never force-remove a
   worktree that holds uncommitted work, and never delete an unmerged branch to
   make a removal succeed.
@@ -57,7 +57,7 @@ this workflow.
 
 ## Setup
 
-The tracked `post-checkout` hook runs `mise run setup:refresh` whenever Git
+The tracked `post-checkout` hook runs `scripts/setup/run-mise.sh run setup:refresh` whenever Git
 creates or switches a branch, including `wt switch --create`, so a new worktree
 is normally ready to use. Run the full bootstrap path once in a new worktree,
 or run refresh by hand when the hook was skipped or reported a failure:
@@ -66,6 +66,18 @@ or run refresh by hand when the hook was skipped or reported a failure:
 mise run setup:all
 mise run setup:refresh
 ```
+
+Use the wrapper for repository tasks that need Worktree-scoped mise directories:
+
+```bash
+bash scripts/setup/run-mise.sh run validate:all
+```
+
+The wrapper sets `MISE_DATA_DIR`, `MISE_INSTALLS_DIR`, `MISE_CACHE_DIR`, and
+`MISE_STATE_DIR` before mise starts. The ignored `.mise/` directory holds the
+current Worktree's mise state, installations, caches, Go caches, Ruff cache, and
+the checksum-verified FSL verifier. The repository does not maintain a second
+shared tool cache or a custom cache cleanup command.
 
 Local skill registration is revision-dependent. The ignored `.agents/setup-state`
 marker records the checked-out revision and bootstrap inputs only after setup

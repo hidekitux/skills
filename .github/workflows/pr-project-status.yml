@@ -55,6 +55,8 @@ jobs:
           go-version: '1.26.6'
           cache: true
           cache-dependency-path: go.sum
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Sync Project Status from Pull Request event
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
@@ -115,6 +117,8 @@ jobs:
           go-version: '1.26.6'
           cache: true
           cache-dependency-path: go.sum
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Set Project Status from authoritative plan comment
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}

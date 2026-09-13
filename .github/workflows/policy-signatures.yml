@@ -39,6 +39,8 @@ jobs:
           go-version: '1.26.6'
           cache: true
           cache-dependency-path: go.sum
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Verify GitHub commit signatures
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -53,11 +53,14 @@
 
 [scripts]
 "scripts/fsl/install-fslc.sh" = "./internal/fsl"
+"scripts/setup/environment-state.sh" = "./internal/hooks"
 "scripts/setup/register-local-skills.sh" = "./internal/hooks"
 "scripts/setup/setup-commitlint.sh" = "./internal/hooks"
 "scripts/setup/setup-local-skills.sh" = "./internal/hooks"
 "scripts/setup/setup-all.sh" = "./internal/hooks"
 "scripts/setup/setup-bootstrap.sh" = "./internal/hooks"
+"scripts/setup/setup-environment.sh" = "./internal/hooks"
 "scripts/setup/setup-refresh.sh" = "./internal/hooks"
 "scripts/setup/setup-state.sh" = "./internal/hooks"
 "scripts/setup/setup-validator.sh" = "./internal/hooks"
+"scripts/setup/run-mise.sh" = "./internal/hooks"

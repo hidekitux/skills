@@ -27,6 +27,8 @@ jobs:
           persist-credentials: false
       - name: Set up Go toolchain
         uses: ./.github/actions/setup-go
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Validate pull-request direction and issue linkage
         env:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
@@ -45,6 +47,8 @@ jobs:
           persist-credentials: false
       - name: Set up Go toolchain
         uses: ./.github/actions/setup-go
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Validate work item title
         env:
           WORK_ITEM_TITLE: ${{ github.event.pull_request.title }}
@@ -63,6 +67,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Go toolchain
         uses: ./.github/actions/setup-go
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Install Go commitlint
         run: GOBIN="$RUNNER_TEMP/bin" go install github.com/conventionalcommit/commitlint@v0.12.0
       - name: Lint commits and pull request title

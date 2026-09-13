@@ -7,4 +7,5 @@ if ! command -v mise >/dev/null 2>&1; then
   exit 2
 fi
 
-exec mise run check:local
+root=$(git rev-parse --show-toplevel)
+exec bash "${root}/scripts/setup/run-mise.sh" run check:local

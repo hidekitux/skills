@@ -89,9 +89,13 @@ reasons:
   caching on, `go.sum` cache key). Checkout runs as a separate named step
   before it, because GitHub loads local actions from the checked-out
   workspace.
-- Task-driven workflows (`validate.yml`, `publish.yml`) run through
-  `jdx/mise-action` (`install: true`, `cache: true`); the cache key includes
-  the mise configuration file hash (`mise.toml`).
+- Task-driven workflows (`validate.yml`, `publish.yml`) use
+  `jdx/mise-action` to install mise itself, then run
+  `scripts/setup/setup-environment.sh` and `scripts/setup/run-mise.sh`. The
+  wrapper installs mise-managed tools under the current Worktree environment
+  before running repository tasks.
+- Go-based workflows persist the same Worktree-scoped Go and FSL paths through
+  `GITHUB_ENV` before later steps run.
 - `policy-signatures.yml` keeps its checkout inline with an explicit
   `ref: base.sha` because it runs on `pull_request_target` and must execute
   only trusted base code; moving the checkout into the shared action would
@@ -108,8 +112,9 @@ reasons:
   keyed on the mise configuration hash. Both default to enabled at the pinned
   SHAs and are set explicitly for clarity. Cache keys invalidate when the
   corresponding dependency metadata changes.
-- The fslc verifier download inside `mise run verify:fsl` is intentionally not
-  cached; optimizing `mise.toml` task internals is tracked separately.
+- The fslc verifier download inside `verify:fsl` uses the Worktree or runner
+  environment and checksum verification. The repository does not add a second
+  shared tool cache or a custom cache cleanup task.
 
 ## Concurrency
 
