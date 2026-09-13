@@ -19,6 +19,36 @@ type provisioningRunner struct {
 	setupArgs  [][]string
 }
 
+type orderedProvisioningRunner struct {
+	events *[]string
+}
+
+func (r *orderedProvisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
+	if name == "bash" {
+		*r.events = append(*r.events, "setup")
+		return "", nil
+	}
+	return (OSCommandRunner{}).Run(ctx, dir, env, name, args...)
+}
+
+type orderedWorktreeProvider struct {
+	events *[]string
+	state  WorktreeState
+}
+
+func (p *orderedWorktreeProvider) Create(context.Context, string, string, string, string) (WorktreeState, error) {
+	*p.events = append(*p.events, "create")
+	return p.state, nil
+}
+
+func (p *orderedWorktreeProvider) List(context.Context, string) ([]WorktreeState, error) {
+	return nil, nil
+}
+
+func (p *orderedWorktreeProvider) Remove(context.Context, string, WorktreeState) error {
+	return nil
+}
+
 func (r *provisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
 	if name == "bash" {
 		r.setupCalls++
@@ -198,6 +228,45 @@ func TestProvisionWriteProfileRequiresAndOwnsIssueBranch(t *testing.T) {
 		result.Manifest.Branch != "issue/199" ||
 		result.Manifest.IssueNumber != 199 {
 		t.Fatalf("unexpected issue manifest: %#v", result.Manifest)
+	}
+}
+
+func TestProvisionUsesProviderPathAndCompletesSetupBeforeReturn(t *testing.T) {
+	root, revision := testRepository(t)
+	requested := filepath.Join(t.TempDir(), "requested")
+	actual := filepath.Join(filepath.Dir(requested), "worktrunk-managed")
+	events := []string{}
+	provisioner := Provisioner{
+		Root: root,
+		Graph: &graph.Graph{
+			SchemaVersion: 1,
+			Skills: []graph.Skill{{
+				ID:        "implement-issue",
+				Authority: graph.Authority{Repository: "write", Git: "write", GitHub: "read", ExternalMutation: "none"},
+			}},
+		},
+		Runner: &orderedProvisioningRunner{events: &events},
+		Worktree: &orderedWorktreeProvider{
+			events: &events,
+			state:  WorktreeState{Path: actual, Branch: "issue/199"},
+		},
+		VerifyIssue: func(context.Context, int) error { return nil },
+	}
+
+	result, err := provisioner.Provision(context.Background(), ProvisionRequest{
+		SkillID: "implement-issue", Destination: requested, Revision: revision, IssueNumber: 199,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.WorkspacePath != actual {
+		t.Fatalf("workspace path = %q, want provider path %q", result.WorkspacePath, actual)
+	}
+	if strings.Join(events, ",") != "create,setup" {
+		t.Fatalf("lifecycle events = %v, want create,setup", events)
+	}
+	if result.Manifest.Setup.Status != SetupSucceeded {
+		t.Fatalf("setup status = %q, want %q", result.Manifest.Setup.Status, SetupSucceeded)
 	}
 }
 
