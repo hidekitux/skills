@@ -27,8 +27,11 @@ approval, or remote-write permission.
 
 When the permission mode is unavailable, keep the generated command policy,
 stop before execution, and ask for host direction. Verify the boundary with
-`git worktree list --porcelain`, the manifest's `ownership.status`, and the
-read-only mutation fixture in `go test ./internal/environment`. Never pass a
+`wt list --format=json` when worktrunk is installed, the native
+`git worktree list --porcelain` fallback, the manifest's `ownership.status`,
+and the read-only mutation fixture in `go test ./internal/environment`. The
+Provisioner suppresses worktrunk lifecycle hooks for controlled operations and
+runs `setup:refresh` synchronously once before execution. Never pass a
 bypass-approval option to make a denied operation run.
 
 ## Model selection
@@ -73,9 +76,11 @@ changes.
 Each Worktree stores the pinned commitlint binary under its ignored `.mise/bin`
 directory, so setup does not write to the common Git directory. The local skill registrations
 are revision-dependent: the `post-checkout` hook refreshes them when the branch
-changes, and `wt list` reports which worktree owns a branch. Confirm the
-registration for a worktree with the `readlink` check above. See
-`docs/worktrees.md` for the `worktrunk` workflow and its safe-removal rules.
+changes, and `wt list --format=json` reports which worktree owns a branch and
+whether it is detached, prunable, conflicted, or in an operation. Confirm the
+registration for a worktree with the `readlink` check above. If `wt` is absent,
+use native `git worktree list --porcelain`; the Provisioner uses that fallback.
+See `docs/worktrees.md` for the `worktrunk` workflow and its safe-removal rules.
 
 The enabled hooks run the pre-launch mise wrapper for `check:local` before
 commits and `validate:all` before pushes. Fix a reported failure before retrying

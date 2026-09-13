@@ -16,7 +16,7 @@ The graph remains the only authority source. A profile cannot add permission tha
 
 Provisioning resolves the requested repository revision before execution. A read-only profile creates a detached snapshot and applies read-only filesystem permissions without changing the shared Git directory. A profile that can write the repository or Git state requires an existing governed Issue, the matching `issue/<number>` branch, and a registered worktree owned by that branch. The provisioner stops on a detached, wrong, missing, or concurrently owned branch.
 
-The provisioner runs `scripts/setup/run-mise.sh run setup:refresh` synchronously before execution. The wrapper sets mise startup directories before it invokes mise. The refresh path performs bootstrap when the worktree has no current ready state, so execution does not depend on a background checkout hook. A missing command or non-zero result stops the selected skill. `worktrunk` remains a local operator convenience. Use `wt list` to inspect ownership when available; native `git worktree list --porcelain` is the machine-readable source.
+The Provisioner runs `scripts/setup/run-mise.sh run setup:refresh` synchronously before execution. For local worktree operations, the selected worktrunk provider uses `wt switch` with structured output and suppressed lifecycle hooks, then adopts the verified branch-owned path. The refresh path runs once after creation or reuse, so execution does not depend on a background checkout hook. A missing `wt` command selects the native-Git provider. Continuous integration uses native Git directly. A missing command, malformed structured result, or non-zero setup result stops the selected skill. Use `wt list --format=json` for local inspection when available; native `git worktree list --porcelain` remains the machine-readable fallback.
 
 ## Command and host boundaries
 
@@ -32,4 +32,4 @@ The manifest is an optional `environment` object in trace schema version 3. Trac
 
 ## Cleanup
 
-Cleanup inspects active worktree ownership, uncommitted changes, and upstream divergence before removal. It retains active or material worktrees and refuses force removal. A clean inactive environment is removed only after explicit review confirmation. Every path records one of `not_requested`, `retained`, `removed_after_review`, `blocked_material`, or `blocked_active`.
+Cleanup inspects active worktree ownership, structured detached, prunable, conflicted, and in-progress states, uncommitted changes, and upstream divergence before removal. It retains active or unsafe worktrees and refuses force removal. A clean inactive environment is removed only after explicit review confirmation. Every path records one of `not_requested`, `retained`, `removed_after_review`, `blocked_material`, or `blocked_active`, and unsafe structured states set an actionable ownership diagnostic.

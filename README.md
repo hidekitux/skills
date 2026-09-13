@@ -46,7 +46,7 @@ mise tasks ls
 
 Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` performs the full bootstrap and refresh once, while `mise run setup:refresh` registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree through the pre-launch mise wrapper. Mise installations and caches stay under the current Worktree's ignored `.mise/` directory.
 
-The repository uses [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the worktree tool. Install it once per machine with `mise use -g worktrunk` and run `wt config shell install`; it is a local developer convenience, not a repository or CI dependency. See [docs/worktrees.md](docs/worktrees.md) for the worktree policy and commands.
+The repository supports [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the local worktree lifecycle interface. Install it once per machine with `mise use -g worktrunk` and run `wt config shell install`. The environment Provisioner uses the structured `wt` interface when it is selected for local use; continuous integration keeps native Git as its explicit provider.
 
 ```bash
 wt switch --create issue/<number>   # create the Issue branch and its worktree
@@ -56,7 +56,9 @@ wt remove issue/<number>            # remove an inspected, inactive worktree
 
 No worktree is removed automatically. Inspect changes with `git status` first, and remove one only after deciding it is no longer active. `wt remove` refuses a worktree with uncommitted changes and keeps an unmerged branch; never reach for `wt remove --force` or `wt remove -D` to work around either. Do not run development commands from a bare repository entry point; use a registered non-bare worktree from `wt list`.
 
-Native `git worktree` remains supported when `worktrunk` is unavailable. Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
+Use `wt list --format=json` when a script or the environment Provisioner needs structured state. The output reports each worktree's branch and path, plus detached, prunable, conflict, operation, and path-mismatch states. A controlled Provisioner operation uses `--no-hooks --no-cd`, verifies the returned branch-owned path, and runs `setup:refresh` once before execution.
+
+Native `git worktree` remains supported when `worktrunk` is unavailable. The local provider selects this fallback, and continuous integration uses it directly. Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
 
 ```bash
 git worktree add --detach <path> origin/main
