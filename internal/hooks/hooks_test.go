@@ -76,25 +76,70 @@ func TestPostCheckoutOnlyRefreshesSetupOnBranchCheckouts(t *testing.T) {
 	if !strings.Contains(hook, `[ "$3" = "1" ]`) {
 		t.Fatalf("post-checkout must guard on the branch-checkout flag: %q", hook)
 	}
-	if !strings.Contains(hook, "mise run setup:all") {
-		t.Fatalf("post-checkout must run setup: %q", hook)
+	if !strings.Contains(hook, "mise run setup:refresh") {
+		t.Fatalf("post-checkout must run setup refresh: %q", hook)
 	}
 }
 
-func TestSetupCommitlintBuildsAndLinksMessageValidator(t *testing.T) {
+func TestSetupCommitlintPreparesOnlyTheSharedCommitlint(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/setup-commitlint.sh")
-	if !strings.Contains(script, "./cmd/validate-commit-message") {
-		t.Fatal("setup-commitlint must build the repository-local message validator")
+	if !strings.Contains(script, "github.com/conventionalcommit/commitlint@v0.12.0") {
+		t.Fatal("setup-commitlint must install the pinned shared commitlint")
 	}
-	if !strings.Contains(script, "validate-commit-message") && !strings.Contains(script, "commitlint") {
-		t.Fatal("setup-commitlint must wire the validator beside commitlint")
+	if strings.Contains(script, "validate-commit-message") {
+		t.Fatal("setup-commitlint must leave revision-dependent validator preparation to refresh")
 	}
 }
 
-func TestRegisterLocalSkillsIsRevisionKeyed(t *testing.T) {
+func TestSetupRefreshOwnsTheRevisionState(t *testing.T) {
+	script := readRepoFile(t, "scripts/setup/setup-refresh.sh")
+	if !strings.Contains(script, "setup-state") || !strings.Contains(script, "bootstrap_inputs") || !strings.Contains(script, "validator_inputs") {
+		t.Fatal("setup-refresh must compare the setup state and both input fingerprints")
+	}
+	if !strings.Contains(script, "write_state \"ready\"") {
+		t.Fatal("setup-refresh must write ready state only after its stages succeed")
+	}
+}
+
+func TestSetupBootstrapUsesTheSharedState(t *testing.T) {
+	script := readRepoFile(t, "scripts/setup/setup-bootstrap.sh")
+	if !strings.Contains(script, "write_state \"bootstrap-ready\"") {
+		t.Fatal("setup-bootstrap must record an intermediate non-ready state")
+	}
+	if !strings.Contains(script, "core.hooksPath") {
+		t.Fatal("setup-bootstrap must prepare the repository Git hook configuration")
+	}
+}
+
+func TestSetupAllRunsBootstrapBeforeRefresh(t *testing.T) {
+	script := readRepoFile(t, "scripts/setup/setup-all.sh")
+	bootstrap := strings.Index(script, "setup-bootstrap.sh")
+	refresh := strings.Index(script, "setup-refresh.sh")
+	if bootstrap < 0 || refresh < 0 || bootstrap > refresh {
+		t.Fatalf("setup-all must run bootstrap before refresh: %q", script)
+	}
+}
+
+func TestSetupStateProvidesAtomicStateHelpers(t *testing.T) {
+	script := readRepoFile(t, "scripts/setup/setup-state.sh")
+	for _, marker := range []string{"bootstrap_inputs", "validator_inputs", "mktemp", "mv \"${temporary}\" \"${setup_state_file}\""} {
+		if !strings.Contains(script, marker) {
+			t.Fatalf("setup-state must contain %q: %q", marker, script)
+		}
+	}
+}
+
+func TestSetupValidatorBuildsAndLinksTheRevisionValidator(t *testing.T) {
+	script := readRepoFile(t, "scripts/setup/setup-validator.sh")
+	if !strings.Contains(script, "./cmd/validate-commit-message") || !strings.Contains(script, "validate-commit-message") {
+		t.Fatal("setup-validator must build and link the repository-local message validator")
+	}
+}
+
+func TestRegisterLocalSkillsDoesNotOwnRevisionState(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/register-local-skills.sh")
-	if !strings.Contains(script, "worktree-snapshot") {
-		t.Fatal("register-local-skills must stay keyed by the worktree snapshot")
+	if strings.Contains(script, "worktree-snapshot") {
+		t.Fatal("register-local-skills must leave revision state to setup-refresh")
 	}
 	for _, hostRoot := range []string{".agents/skills", ".claude/skills"} {
 		if !strings.Contains(script, hostRoot) {
@@ -115,8 +160,8 @@ func TestRegisterLocalSkillsDiscoversNestedSkillsRecursively(t *testing.T) {
 
 func TestSetupLocalSkillsEnablesHooks(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/setup-local-skills.sh")
-	if !strings.Contains(script, "core.hooksPath") {
-		t.Fatalf("setup-local-skills must enable .githooks via core.hooksPath: %q", script)
+	if !strings.Contains(script, "setup-refresh.sh") {
+		t.Fatalf("setup-local-skills must route compatibility setup through refresh: %q", script)
 	}
 }
 
@@ -132,9 +177,23 @@ func writeTestFile(t *testing.T, path, content string) {
 
 func runTestCommand(t *testing.T, dir, name string, args ...string) (string, string, int) {
 	t.Helper()
+	return runTestCommandWithEnv(t, dir, nil, name, args...)
+}
+
+func runTestCommandWithEnv(t *testing.T, dir string, extraEnv []string, name string, args ...string) (string, string, int) {
+	t.Helper()
 	cmd := exec.Command(name, args...)
 	cmd.Dir = dir
-	cmd.Env = append(os.Environ(),
+	env := make([]string, 0, len(os.Environ())+len(extraEnv)+2)
+	for _, value := range os.Environ() {
+		name, _, ok := strings.Cut(value, "=")
+		if ok && strings.HasPrefix(name, "GIT_") {
+			continue
+		}
+		env = append(env, value)
+	}
+	env = append(env, extraEnv...)
+	cmd.Env = append(env,
 		"GIT_CONFIG_NOSYSTEM=1",
 		"GIT_CONFIG_GLOBAL="+filepath.Join(t.TempDir(), "gitconfig"),
 	)
@@ -150,6 +209,194 @@ func runTestCommand(t *testing.T, dir, name string, args ...string) (string, str
 	}
 	t.Fatalf("run %s %v: %v", name, args, err)
 	return "", "", -1
+}
+
+func copyRepositoryFile(t *testing.T, sourceRoot, destinationRoot, rel string) {
+	t.Helper()
+	source := filepath.Join(sourceRoot, rel)
+	destination := filepath.Join(destinationRoot, rel)
+	content, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatalf("read fixture %s: %v", rel, err)
+	}
+	info, err := os.Stat(source)
+	if err != nil {
+		t.Fatalf("stat fixture %s: %v", rel, err)
+	}
+	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(destination, content, info.Mode().Perm()); err != nil {
+		t.Fatalf("write fixture %s: %v", rel, err)
+	}
+}
+
+func newSetupRepository(t *testing.T) (string, string) {
+	t.Helper()
+	root := t.TempDir()
+	sourceRoot := repoRoot()
+	for _, rel := range []string{
+		"mise.toml",
+		"go.mod",
+		"go.sum",
+		"cmd/validate-commit-message/main.go",
+		"internal/commitlint/message.go",
+		".githooks/commit-msg",
+		"scripts/setup/register-local-skills.sh",
+		"scripts/setup/setup-all.sh",
+		"scripts/setup/setup-bootstrap.sh",
+		"scripts/setup/setup-commitlint.sh",
+		"scripts/setup/setup-local-skills.sh",
+		"scripts/setup/setup-refresh.sh",
+		"scripts/setup/setup-state.sh",
+		"scripts/setup/setup-validator.sh",
+	} {
+		copyRepositoryFile(t, sourceRoot, root, rel)
+	}
+	writeTestFile(t, filepath.Join(root, ".gitignore"), ".agents/\n.claude/\n.mise/\n")
+	writeTestFile(t, filepath.Join(root, "skills", "process", "current", "SKILL.md"), "---\nname: current\n---\n")
+	if _, _, code := runTestCommand(t, root, "git", "init", "--quiet"); code != 0 {
+		t.Fatal("fixture git init failed")
+	}
+	if _, _, code := runTestCommand(t, root, "git", "config", "user.name", "Issue 316 test"); code != 0 {
+		t.Fatal("fixture git config user.name failed")
+	}
+	if _, _, code := runTestCommand(t, root, "git", "config", "user.email", "issue-316-test-email"); code != 0 {
+		t.Fatal("fixture git config user.email failed")
+	}
+	if _, _, code := runTestCommand(t, root, "git", "add", "."); code != 0 {
+		t.Fatal("fixture git add failed")
+	}
+	if _, _, code := runTestCommand(t, root, "git", "commit", "--quiet", "-m", "test: create setup fixture"); code != 0 {
+		t.Fatal("fixture git commit failed")
+	}
+
+	sharedBin := filepath.Join(root, ".git", ".mise", "bin")
+	writeTestFile(t, filepath.Join(sharedBin, "commitlint"), "#!/bin/sh\nexit 0\n")
+	if err := os.Chmod(filepath.Join(sharedBin, "commitlint"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	fakeBin := filepath.Join(root, "fake-bin")
+	fakeGo := "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$SETUP_LOG\"\nif [ \"$SETUP_FAIL_BUILD\" = 1 ] && [ \"$1\" = build ]; then exit 42; fi\noutput=\"\"\nwhile [ \"$#\" -gt 0 ]; do\n  if [ \"$1\" = -o ]; then shift; output=\"$1\"; fi\n  shift\ndone\nif [ -n \"$output\" ]; then printf '#!/bin/sh\\nexit 0\\n' > \"$output\"; chmod 755 \"$output\"; fi\n"
+	writeTestFile(t, filepath.Join(fakeBin, "go"), fakeGo)
+	if err := os.Chmod(filepath.Join(fakeBin, "go"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	return root, fakeBin
+}
+
+func runSetupRefresh(t *testing.T, root, fakeBin string, failBuild bool) (string, string, int) {
+	t.Helper()
+	fail := "0"
+	if failBuild {
+		fail = "1"
+	}
+	env := []string{
+		"SETUP_ROOT=" + root,
+		"SETUP_LOG=" + filepath.Join(root, "go-calls"),
+		"SETUP_FAIL_BUILD=" + fail,
+		"PATH=" + fakeBin + string(os.PathListSeparator) + os.Getenv("PATH"),
+	}
+	return runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/setup-refresh.sh"))
+}
+
+func TestSetupRefreshBootstrapsIdempotentlyAndTracksRevision(t *testing.T) {
+	root, fakeBin := newSetupRepository(t)
+	stdout, stderr, code := runSetupRefresh(t, root, fakeBin, false)
+	if code != 0 {
+		t.Fatalf("first refresh failed: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	statePath := filepath.Join(root, ".agents", "setup-state")
+	state, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(state), "status=ready") || !strings.Contains(string(state), "revision=") {
+		t.Fatalf("first refresh did not write ready revision state: %q", state)
+	}
+	link := filepath.Join(root, ".agents", "skills", "current")
+	linkInfo, err := os.Lstat(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls, err := os.ReadFile(filepath.Join(root, "go-calls"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lines := strings.Count(strings.TrimSpace(string(calls)), "\n") + 1; lines != 1 {
+		t.Fatalf("first refresh go calls = %d, want 1: %q", lines, calls)
+	}
+
+	stdout, stderr, code = runSetupRefresh(t, root, fakeBin, false)
+	if code != 0 || stderr != "" || !strings.Contains(stdout, "Worktree setup is current") {
+		t.Fatalf("repeated refresh was not a no-op: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	repeatedState, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repeatedLink, err := os.Lstat(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(repeatedState) != string(state) || !repeatedLink.ModTime().Equal(linkInfo.ModTime()) {
+		t.Fatal("repeated refresh rewrote setup state or an unchanged link")
+	}
+
+	writeTestFile(t, filepath.Join(root, "skills", "process", "new", "SKILL.md"), "---\nname: new\n---\n")
+	if _, _, code := runTestCommand(t, root, "git", "add", "skills/process/new/SKILL.md"); code != 0 {
+		t.Fatal("revision fixture git add failed")
+	}
+	if _, _, code := runTestCommand(t, root, "git", "commit", "--quiet", "-m", "test: change setup revision"); code != 0 {
+		t.Fatal("revision fixture git commit failed")
+	}
+	stdout, stderr, code = runSetupRefresh(t, root, fakeBin, false)
+	if code != 0 || stderr != "" {
+		t.Fatalf("revision refresh failed: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	updatedState, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(updatedState) == string(state) || !strings.Contains(stdout, "Worktree refresh complete") {
+		t.Fatalf("revision refresh did not publish new ready state: stdout=%q state=%q", stdout, updatedState)
+	}
+	updatedCalls, err := os.ReadFile(filepath.Join(root, "go-calls"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lines := strings.Count(strings.TrimSpace(string(updatedCalls)), "\n") + 1; lines != 1 {
+		t.Fatalf("revision refresh rebuilt validator unnecessarily: %q", updatedCalls)
+	}
+}
+
+func TestSetupRefreshFailureLeavesPreviousStateAndReportsStage(t *testing.T) {
+	root, fakeBin := newSetupRepository(t)
+	if _, stderr, code := runSetupRefresh(t, root, fakeBin, false); code != 0 || stderr != "" {
+		t.Fatalf("initial refresh failed: code=%d stderr=%q", code, stderr)
+	}
+	statePath := filepath.Join(root, ".agents", "setup-state")
+	before, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module fixture\n\ngo 1.26\n\n// changed\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, stderr, code := runSetupRefresh(t, root, fakeBin, true)
+	if code == 0 || !strings.Contains(stderr, "commit-message validator") {
+		t.Fatalf("failed validator stage lacked actionable diagnostic: code=%d stderr=%q", code, stderr)
+	}
+	after, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(after) != string(before) {
+		t.Fatalf("failed refresh published false-ready state: before=%q after=%q", before, after)
+	}
+	if _, stderr, code = runSetupRefresh(t, root, fakeBin, false); code != 0 || stderr != "" {
+		t.Fatalf("refresh did not recover after failed stage: code=%d stderr=%q", code, stderr)
+	}
 }
 
 func newRegistrationRepository(t *testing.T, skills map[string]string) string {
@@ -250,21 +497,20 @@ func TestRegisterLocalSkillsReconcilesMigrationAndIsIdempotent(t *testing.T) {
 	if _, err := os.Lstat(filepath.Join(root, ".claude", "skills", "removed-skill")); !os.IsNotExist(err) {
 		t.Fatalf("stale Claude Code registration still exists: %v", err)
 	}
-	revision, _, revisionCode := runTestCommand(t, root, "git", "rev-parse", "HEAD")
-	if revisionCode != 0 {
-		t.Fatal("git rev-parse failed")
-	}
-	stamp, err := os.ReadFile(filepath.Join(root, ".agents", "worktree-snapshot"))
+	currentLink, err := os.Lstat(filepath.Join(root, ".agents", "skills", "current"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.TrimSpace(string(stamp)) != strings.TrimSpace(revision) {
-		t.Fatalf("snapshot = %q, want %q", strings.TrimSpace(string(stamp)), strings.TrimSpace(revision))
-	}
-
 	stdout, stderr, code = runRegistration(t, root)
-	if code != 0 || stderr != "" || !strings.Contains(stdout, "Local skill registration is current") {
+	if code != 0 || stderr != "" || stdout != "" {
 		t.Fatalf("repeated registration was not idempotent: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	repeatedLink, err := os.Lstat(filepath.Join(root, ".agents", "skills", "current"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !repeatedLink.ModTime().Equal(currentLink.ModTime()) {
+		t.Fatal("repeated registration rewrote an unchanged link")
 	}
 }
 

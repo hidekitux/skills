@@ -6,9 +6,9 @@ set -eu
 # changed.
 [ "$3" = "1" ] || exit 0
 
-if ! mise run setup:all; then
-  echo "Warning: Local setup did not complete." >&2
+if ! mise run setup:refresh; then
+  echo "Warning: Local setup refresh did not complete. Rerun 'mise run setup:refresh' after resolving the reported error." >&2
   exit 0
 fi
 
-echo "Local setup complete for $(git rev-parse --short HEAD)."
+echo "Local setup refresh complete for $(git rev-parse --short HEAD)."

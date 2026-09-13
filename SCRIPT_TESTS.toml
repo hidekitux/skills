@@ -56,3 +56,8 @@
 "scripts/setup/register-local-skills.sh" = "./internal/hooks"
 "scripts/setup/setup-commitlint.sh" = "./internal/hooks"
 "scripts/setup/setup-local-skills.sh" = "./internal/hooks"
+"scripts/setup/setup-all.sh" = "./internal/hooks"
+"scripts/setup/setup-bootstrap.sh" = "./internal/hooks"
+"scripts/setup/setup-refresh.sh" = "./internal/hooks"
+"scripts/setup/setup-state.sh" = "./internal/hooks"
+"scripts/setup/setup-validator.sh" = "./internal/hooks"

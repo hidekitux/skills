@@ -244,12 +244,12 @@ func (p Provisioner) runSetup(ctx context.Context, dir string) error {
 	var output string
 	var err error
 	if p.Runner != nil {
-		output, err = p.Runner.Run(ctx, dir, nil, "mise", "run", "setup:all")
+		output, err = p.Runner.Run(ctx, dir, nil, "mise", "run", "setup:refresh")
 	} else {
-		output, err = (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "mise", "run", "setup:all")
+		output, err = (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "mise", "run", "setup:refresh")
 	}
 	if err != nil {
-		return fmt.Errorf("run setup:all before execution: %w", err)
+		return fmt.Errorf("run setup:refresh before execution: %w", err)
 	}
 	_ = output
 	return nil
