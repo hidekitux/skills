@@ -23,16 +23,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "go aqua:cli/cli"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       - name: Validate repository checks
         env:
           CHECK_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -49,16 +48,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "go actionlint aqua:astral-sh/ruff aqua:koalaman/shellcheck"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       - name: Lint workflows, Python, shell, and Go sources
         run: bash scripts/setup/run-mise.sh run lint:all
   test:
@@ -71,16 +69,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "go"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       - name: Run repository tests
         run: bash scripts/setup/run-mise.sh run test:all
   verify-fsl:
@@ -93,16 +90,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "go"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       - name: Verify FSL specifications
         run: bash scripts/setup/run-mise.sh run verify:fsl
   skill-checks:
@@ -115,15 +111,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: false
+          install: true
+          install_args: "aqua:cli/cli"
           cache: true
-      - name: Prepare Worktree environment
-        run: bash scripts/setup/setup-environment.sh
-      - name: Install mise tools in the Worktree environment
-        run: bash scripts/setup/run-mise.sh install
       - name: Validate repository skills
         run: bash scripts/setup/run-mise.sh run check:skills

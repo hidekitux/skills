@@ -25,7 +25,7 @@ if [[ "${state_status}" != "ready" &&
   "${state_status}" != "bootstrap-ready" ||
   "${state_bootstrap}" != "${bootstrap_fingerprint}" ]]; then
   if ! bash "${root}/scripts/setup/setup-bootstrap.sh"; then
-    echo "Refresh failed during bootstrap. Rerun 'mise run setup:refresh' after resolving the reported error." >&2
+    echo "Refresh failed during bootstrap. Rerun 'bash scripts/setup/run-mise.sh run setup:refresh' after resolving the reported error." >&2
     exit 1
   fi
 fi
@@ -33,13 +33,13 @@ fi
 if [[ "${state_validator}" != "${validator_fingerprint}" ||
   "${state_status}" != "ready" ]]; then
   if ! bash "${root}/scripts/setup/setup-validator.sh"; then
-    echo "Refresh failed while preparing the commit-message validator. Rerun 'mise run setup:refresh' after resolving the reported error." >&2
+    echo "Refresh failed while preparing the commit-message validator. Rerun 'bash scripts/setup/run-mise.sh run setup:refresh' after resolving the reported error." >&2
     exit 1
   fi
 fi
 
 if ! bash "${root}/scripts/setup/register-local-skills.sh"; then
-  echo "Refresh failed while registering local skills. Rerun 'mise run setup:refresh' after resolving the reported error." >&2
+  echo "Refresh failed while registering local skills. Rerun 'bash scripts/setup/run-mise.sh run setup:refresh' after resolving the reported error." >&2
   exit 1
 fi
 

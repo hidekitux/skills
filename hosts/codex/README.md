@@ -28,7 +28,7 @@ stop before execution, and ask for host direction. Verify the boundary with
 `git worktree list --porcelain` fallback, the manifest's `ownership.status`,
 and the read-only mutation fixture in `go test ./internal/environment`. The
 Provisioner suppresses worktrunk lifecycle hooks for controlled operations and
-runs `mise run setup:refresh` synchronously once before execution. Never pass a
+runs `bash scripts/setup/run-mise.sh run setup:refresh` synchronously once before execution. Never pass a
 bypass-approval option to make a denied operation run.
 
 ## Model selection
@@ -47,7 +47,7 @@ rule, and name the fallback in the handoff.
 
 ## Local skill registration
 
-Run `mise run setup:all` once in each Git worktree. The command bootstraps the
+Run `bash scripts/setup/run-mise.sh run setup:all` once in each Git worktree. The command bootstraps the
 worktree-local `core.hooksPath`, commitlint, and validator, then
 registers each published skill under the ignored `.agents/skills/` directory
 for Codex and `.claude/skills/` for Claude Code. The ignored
