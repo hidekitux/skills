@@ -2,26 +2,17 @@
 set -euo pipefail
 
 root=${SETUP_ROOT:-$(git rev-parse --show-toplevel)}
-source "${root}/scripts/setup/setup-state.sh"
-common_dir="$(git rev-parse --git-common-dir)"
-case "${common_dir}" in
-  /*) shared_dir="${common_dir}/.mise/bin" ;;
-  *) shared_dir="${root}/${common_dir}/.mise/bin" ;;
-esac
+source "${root}/scripts/setup/environment-state.sh"
+setup_environment_export
+
 bin_dir="${root}/.mise/bin"
-
 mkdir -p "${bin_dir}"
-if [[ -x "${shared_dir}/commitlint" ]]; then
-  echo "Using shared commitlint at ${shared_dir}/commitlint"
-elif [[ -x "${bin_dir}/commitlint" ]]; then
-  echo "Using worktree commitlint at ${bin_dir}/commitlint"
-else
-  if [[ ! -d "${shared_dir}" ]]; then
-    mkdir -p "${shared_dir}"
-  fi
-  GOBIN="${shared_dir}" go install github.com/conventionalcommit/commitlint@v0.12.0
-  echo "Go commitlint installed at ${shared_dir}/commitlint"
-fi
+temporary=$(mktemp -d "${root}/.mise/.commitlint.XXXXXX")
+cleanup() {
+  rm -rf "${temporary}"
+}
+trap cleanup EXIT
 
-ensure_link "${shared_dir}/commitlint" "${bin_dir}/commitlint"
-echo "commitlint available at ${bin_dir}/commitlint"
+GOBIN="${temporary}" go install github.com/conventionalcommit/commitlint@v0.12.0
+mv "${temporary}/commitlint" "${bin_dir}/commitlint"
+echo "commitlint available in the current Worktree"

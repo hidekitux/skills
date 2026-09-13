@@ -17,7 +17,7 @@ The repository and published skills use the [Apache License 2.0](LICENSE). The `
 
 ## Development
 
-Use [mise](https://mise.jdx.dev/) as the standard command entry point. Trust the configuration and run `mise run setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. The tracked `post-checkout` hook runs the lighter `mise run setup:refresh` path on branch switches.
+Use [mise](https://mise.jdx.dev/) through `scripts/setup/run-mise.sh` for repository commands that need the Worktree environment. Trust the configuration and run `mise run setup:all` once to prepare local skills for Codex and Claude Code, Git hooks, and project-local commitlint. The tracked `post-checkout` hook runs the lighter refresh path through the wrapper on branch switches.
 
 ```bash
 mise trust
@@ -28,23 +28,23 @@ mise tasks ls
 | Workflow | Command |
 | --- | --- |
 | Initial setup | `mise run setup:all` |
-| Checkout refresh | `mise run setup:refresh` |
-| Bootstrap prerequisites | `mise run setup:bootstrap` |
-| Full repository validation | `mise run validate:all` |
-| Fast local-change check | `mise run check:local` |
-| Static analysis | `mise run lint:all` |
-| FSL verification | `mise run verify:fsl` |
-| FSL mutation check | `mise run mutate:fsl` |
-| Behavioral evaluation smoke set | `mise run evaluate:smoke` |
-| Behavioral evaluation suite | `mise run evaluate:all` |
-| Release-candidate verification | `mise run verify:release -- vX.Y.Z` |
-| Publish a verified release | `mise run publish:release -- vX.Y.Z` |
+| Checkout refresh | `bash scripts/setup/run-mise.sh run setup:refresh` |
+| Bootstrap prerequisites | `bash scripts/setup/run-mise.sh run setup:bootstrap` |
+| Full repository validation | `bash scripts/setup/run-mise.sh run validate:all` |
+| Fast local-change check | `bash scripts/setup/run-mise.sh run check:local` |
+| Static analysis | `bash scripts/setup/run-mise.sh run lint:all` |
+| FSL verification | `bash scripts/setup/run-mise.sh run verify:fsl` |
+| FSL mutation check | `bash scripts/setup/run-mise.sh run mutate:fsl` |
+| Behavioral evaluation smoke set | `bash scripts/setup/run-mise.sh run evaluate:smoke` |
+| Behavioral evaluation suite | `bash scripts/setup/run-mise.sh run evaluate:all` |
+| Release-candidate verification | `bash scripts/setup/run-mise.sh run verify:release -- vX.Y.Z` |
+| Publish a verified release | `bash scripts/setup/run-mise.sh run publish:release -- vX.Y.Z` |
 
-`mise run setup:all` enables `.githooks` and writes the ignored `.agents/setup-state` marker only after bootstrap and refresh succeed. `mise run setup:refresh` runs automatically on branch checkout; `mise run check:local` runs before commits and `mise run validate:all` runs before pushes. A failed refresh prints the stage that needs attention and leaves the previous ready marker unchanged.
+`mise run setup:all` enables `.githooks` and writes the ignored `.agents/setup-state` marker only after bootstrap and refresh succeed. Use `bash scripts/setup/run-mise.sh run <task>` when the task needs Worktree-scoped mise directories. `mise run setup:refresh` runs automatically on branch checkout; the wrapper runs local checks before commits and full validation before pushes. A failed refresh prints the stage that needs attention and leaves the previous ready marker unchanged.
 
 ## Worktrees
 
-Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` performs the full bootstrap and refresh once, while `mise run setup:refresh` registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree.
+Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. `mise run setup:all` performs the full bootstrap and refresh once, while `mise run setup:refresh` registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree through the pre-launch mise wrapper. Mise installations and caches stay under the current Worktree's ignored `.mise/` directory.
 
 The repository uses [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the worktree tool. Install it once per machine with `mise use -g worktrunk` and run `wt config shell install`; it is a local developer convenience, not a repository or CI dependency. See [docs/worktrees.md](docs/worktrees.md) for the worktree policy and commands.
 
@@ -154,8 +154,8 @@ Pinned installation is documented from retained release evidence only. No verifi
 
 1. Add `skills/<category>/<skill-name>/SKILL.md`.
 2. Record its purpose, owner, and supported agents in `CATALOG.yml`.
-3. Run `mise run validate:all` before publishing.
-4. Run `mise run validate:skill-creator` when it is available in Codex.
+3. Run `bash scripts/setup/run-mise.sh run validate:all` before publishing.
+4. Run `bash scripts/setup/run-mise.sh run validate:skill-creator` when it is available in Codex.
 5. Follow the [release procedure](docs/releasing.md) after review.
 
 `mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, the script-to-test mapping, catalog-versus-documentation drift, writing thresholds, and canonical task commands. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
@@ -185,8 +185,8 @@ Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` con
 FSL verifies state transitions and publication conditions, not `SKILL.md` prose. Place a skill-owned source in `skills/<category>/<skill-name>/specs/*.fsl` and expose it with a relative symbolic link at `specs/<category>/<skill-name>/`; place repository-owned or cross-cutting sources directly in `specs/`. Confirm a formalization memo before adding or changing a specification, then run:
 
 ```bash
-mise run verify:fsl
-mise run mutate:fsl
+bash scripts/setup/run-mise.sh run verify:fsl
+bash scripts/setup/run-mise.sh run mutate:fsl
 ```
 
 The FSL and test badges at the top of this README are published to the `badge-data` branch by the [Publish workflow](.github/workflows/publish.yml); they auto-refresh after spec or test changes reach `main`. Do not hand-edit them.

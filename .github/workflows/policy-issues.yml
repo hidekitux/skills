@@ -20,6 +20,8 @@ jobs:
           persist-credentials: false
       - name: Set up Go toolchain
         uses: ./.github/actions/setup-go
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
       - name: Validate issue title
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}

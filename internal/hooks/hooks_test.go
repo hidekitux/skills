@@ -59,14 +59,14 @@ func TestCommitMsgHookUsesPrebuiltValidator(t *testing.T) {
 
 func TestPreCommitRunsLocalChecks(t *testing.T) {
 	hook := readRepoFile(t, ".githooks/pre-commit")
-	if !strings.Contains(hook, "mise run check:local") {
+	if !strings.Contains(hook, "run-mise.sh") || !strings.Contains(hook, "run check:local") {
 		t.Fatalf("pre-commit must run check:local: %q", hook)
 	}
 }
 
 func TestPrePushRunsFullValidation(t *testing.T) {
 	hook := readRepoFile(t, ".githooks/pre-push")
-	if !strings.Contains(hook, "mise run validate:all") {
+	if !strings.Contains(hook, "run-mise.sh") || !strings.Contains(hook, "run validate:all") {
 		t.Fatalf("pre-push must run validate: %q", hook)
 	}
 }
@@ -76,15 +76,15 @@ func TestPostCheckoutOnlyRefreshesSetupOnBranchCheckouts(t *testing.T) {
 	if !strings.Contains(hook, `[ "$3" = "1" ]`) {
 		t.Fatalf("post-checkout must guard on the branch-checkout flag: %q", hook)
 	}
-	if !strings.Contains(hook, "mise run setup:refresh") {
+	if !strings.Contains(hook, "run-mise.sh") || !strings.Contains(hook, "run setup:refresh") {
 		t.Fatalf("post-checkout must run setup refresh: %q", hook)
 	}
 }
 
-func TestSetupCommitlintPreparesOnlyTheSharedCommitlint(t *testing.T) {
+func TestSetupCommitlintPreparesOnlyTheLocalCommitlint(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/setup-commitlint.sh")
 	if !strings.Contains(script, "github.com/conventionalcommit/commitlint@v0.12.0") {
-		t.Fatal("setup-commitlint must install the pinned shared commitlint")
+		t.Fatal("setup-commitlint must install the pinned commitlint")
 	}
 	if strings.Contains(script, "validate-commit-message") {
 		t.Fatal("setup-commitlint must leave revision-dependent validator preparation to refresh")
@@ -131,8 +131,59 @@ func TestSetupStateProvidesAtomicStateHelpers(t *testing.T) {
 
 func TestSetupValidatorBuildsAndLinksTheRevisionValidator(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/setup-validator.sh")
-	if !strings.Contains(script, "./cmd/validate-commit-message") || !strings.Contains(script, "validate-commit-message") {
-		t.Fatal("setup-validator must build and link the repository-local message validator")
+	if !strings.Contains(script, "./cmd/validate-commit-message") || !strings.Contains(script, "${root}/.mise/bin") {
+		t.Fatal("setup-validator must build the repository-local message validator in the Worktree")
+	}
+}
+
+func TestRunMiseUsesWorktreeStartupDirectories(t *testing.T) {
+	root, fakeBin := newSetupRepository(t)
+	writeTestFile(t, filepath.Join(fakeBin, "mise"), "#!/bin/sh\nprintf '%s\\n' \"$MISE_DATA_DIR\" \"$MISE_INSTALLS_DIR\" \"$MISE_CACHE_DIR\" \"$MISE_STATE_DIR\" > \"$SETUP_LOG\"\n")
+	if err := os.Chmod(filepath.Join(fakeBin, "mise"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	env := []string{
+		"SETUP_ROOT=" + root,
+		"SETUP_LOG=" + filepath.Join(root, "mise-env"),
+		"PATH=" + fakeBin + string(os.PathListSeparator) + os.Getenv("PATH"),
+	}
+	stdout, stderr, code := runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/run-mise.sh"), "version")
+	if code != 0 || stderr != "" || stdout != "" {
+		t.Fatalf("mise wrapper failed: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	values, err := os.ReadFile(filepath.Join(root, "mise-env"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, suffix := range []string{"data", "installs", "cache", "state"} {
+		if !strings.Contains(string(values), filepath.Join(root, ".mise", suffix)) {
+			t.Fatalf("mise wrapper did not set Worktree directory %s: %q", suffix, values)
+		}
+	}
+}
+
+func TestSetupEnvironmentExportsCIPathsWithoutGeneratingMiseConfig(t *testing.T) {
+	root, _ := newSetupRepository(t)
+	envFile := filepath.Join(root, "github-env")
+	env := []string{
+		"SETUP_ROOT=" + root,
+		"GITHUB_ENV=" + envFile,
+	}
+	stdout, stderr, code := runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/setup-environment.sh"))
+	if code != 0 || stderr != "" || !strings.Contains(stdout, "before the next mise invocation") {
+		t.Fatalf("environment setup failed: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	values, err := os.ReadFile(envFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"MISE_DATA_DIR", "MISE_INSTALLS_DIR", "MISE_CACHE_DIR", "MISE_STATE_DIR", "GOCACHE", "GOMODCACHE", "RUFF_CACHE_DIR", "FSLC_BIN_DIR"} {
+		if !strings.Contains(string(values), name+"=") {
+			t.Fatalf("GITHUB_ENV lacks %s: %q", name, values)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(root, ".mise.local.toml")); !os.IsNotExist(err) {
+		t.Fatalf("environment setup generated mise config: %v", err)
 	}
 }
 
@@ -246,10 +297,13 @@ func newSetupRepository(t *testing.T) (string, string) {
 		"scripts/setup/setup-all.sh",
 		"scripts/setup/setup-bootstrap.sh",
 		"scripts/setup/setup-commitlint.sh",
+		"scripts/setup/setup-environment.sh",
 		"scripts/setup/setup-local-skills.sh",
 		"scripts/setup/setup-refresh.sh",
 		"scripts/setup/setup-state.sh",
 		"scripts/setup/setup-validator.sh",
+		"scripts/setup/environment-state.sh",
+		"scripts/setup/run-mise.sh",
 	} {
 		copyRepositoryFile(t, sourceRoot, root, rel)
 	}
@@ -271,13 +325,8 @@ func newSetupRepository(t *testing.T) (string, string) {
 		t.Fatal("fixture git commit failed")
 	}
 
-	sharedBin := filepath.Join(root, ".git", ".mise", "bin")
-	writeTestFile(t, filepath.Join(sharedBin, "commitlint"), "#!/bin/sh\nexit 0\n")
-	if err := os.Chmod(filepath.Join(sharedBin, "commitlint"), 0o755); err != nil {
-		t.Fatal(err)
-	}
 	fakeBin := filepath.Join(root, "fake-bin")
-	fakeGo := "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$SETUP_LOG\"\nif [ \"$SETUP_FAIL_BUILD\" = 1 ] && [ \"$1\" = build ]; then exit 42; fi\noutput=\"\"\nwhile [ \"$#\" -gt 0 ]; do\n  if [ \"$1\" = -o ]; then shift; output=\"$1\"; fi\n  shift\ndone\nif [ -n \"$output\" ]; then printf '#!/bin/sh\\nexit 0\\n' > \"$output\"; chmod 755 \"$output\"; fi\n"
+	fakeGo := "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$SETUP_LOG\"\nif [ \"$1\" = install ]; then mkdir -p \"$GOBIN\"; printf '#!/bin/sh\\nexit 0\\n' > \"$GOBIN/commitlint\"; chmod 755 \"$GOBIN/commitlint\"; exit 0; fi\nif [ \"$SETUP_FAIL_BUILD\" = 1 ] && [ \"$1\" = build ]; then exit 42; fi\noutput=\"\"\nwhile [ \"$#\" -gt 0 ]; do\n  if [ \"$1\" = -o ]; then shift; output=\"$1\"; fi\n  shift\ndone\nif [ -n \"$output\" ]; then printf '#!/bin/sh\\nexit 0\\n' > \"$output\"; chmod 755 \"$output\"; fi\n"
 	writeTestFile(t, filepath.Join(fakeBin, "go"), fakeGo)
 	if err := os.Chmod(filepath.Join(fakeBin, "go"), 0o755); err != nil {
 		t.Fatal(err)
@@ -323,7 +372,7 @@ func TestSetupRefreshBootstrapsIdempotentlyAndTracksRevision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if lines := strings.Count(strings.TrimSpace(string(calls)), "\n") + 1; lines != 1 {
+	if lines := strings.Count(strings.TrimSpace(string(calls)), "\n") + 1; lines != 2 {
 		t.Fatalf("first refresh go calls = %d, want 1: %q", lines, calls)
 	}
 
@@ -365,7 +414,7 @@ func TestSetupRefreshBootstrapsIdempotentlyAndTracksRevision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if lines := strings.Count(strings.TrimSpace(string(updatedCalls)), "\n") + 1; lines != 1 {
+	if lines := strings.Count(strings.TrimSpace(string(updatedCalls)), "\n") + 1; lines != 2 {
 		t.Fatalf("revision refresh rebuilt validator unnecessarily: %q", updatedCalls)
 	}
 }
@@ -396,6 +445,58 @@ func TestSetupRefreshFailureLeavesPreviousStateAndReportsStage(t *testing.T) {
 	}
 	if _, stderr, code = runSetupRefresh(t, root, fakeBin, false); code != 0 || stderr != "" {
 		t.Fatalf("refresh did not recover after failed stage: code=%d stderr=%q", code, stderr)
+	}
+}
+
+func TestConcurrentWorktreeRefreshesPublishCompleteLocalTools(t *testing.T) {
+	firstRoot, firstFakeBin := newSetupRepository(t)
+	secondRoot, secondFakeBin := newSetupRepository(t)
+	type result struct {
+		root   string
+		stdout string
+		stderr string
+		code   int
+	}
+	results := make(chan result, 2)
+	for _, setup := range []struct {
+		root    string
+		fakeBin string
+	}{
+		{root: firstRoot, fakeBin: firstFakeBin},
+		{root: secondRoot, fakeBin: secondFakeBin},
+	} {
+		go func(root, fakeBin string) {
+			stdout, stderr, code := runSetupRefresh(t, root, fakeBin, false)
+			results <- result{root: root, stdout: stdout, stderr: stderr, code: code}
+		}(setup.root, setup.fakeBin)
+	}
+
+	for range 2 {
+		got := <-results
+		if got.code != 0 || got.stderr != "" {
+			t.Errorf("concurrent refresh failed for %s: code=%d stdout=%q stderr=%q", got.root, got.code, got.stdout, got.stderr)
+			continue
+		}
+		for _, name := range []string{"commitlint", "validate-commit-message"} {
+			path := filepath.Join(got.root, ".mise", "bin", name)
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Errorf("concurrent refresh did not publish %s: %v", name, err)
+				continue
+			}
+			if info.Mode().Perm()&0o111 == 0 {
+				t.Errorf("concurrent refresh published non-executable %s: mode=%o", name, info.Mode().Perm())
+			}
+		}
+		for _, pattern := range []string{".commitlint.*", ".validator.*"} {
+			matches, err := filepath.Glob(filepath.Join(got.root, ".mise", pattern))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(matches) != 0 {
+				t.Errorf("concurrent refresh left temporary paths for %s: %v", pattern, matches)
+			}
+		}
 	}
 }
 

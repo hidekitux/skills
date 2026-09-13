@@ -30,16 +30,20 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c
         with:
-          install: true
+          install: false
           cache: true
+      - name: Prepare Worktree environment
+        run: bash scripts/setup/setup-environment.sh
+      - name: Install mise tools in the Worktree environment
+        run: bash scripts/setup/run-mise.sh install
       - name: Capture FSL mutation results
         run: |
           set -euo pipefail
-          mise run mutate:fsl -- --report "${RUNNER_TEMP}/fsl-mutation-report.json" 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
+          bash scripts/setup/run-mise.sh run mutate:fsl -- --report "${RUNNER_TEMP}/fsl-mutation-report.json" 2>&1 | tee "${RUNNER_TEMP}/mutate.log"
       - name: Capture test results
         run: |
           set -euo pipefail
-          mise run test:json 2>&1 | tee "${RUNNER_TEMP}/test.log" || true
+          bash scripts/setup/run-mise.sh run test:json 2>&1 | tee "${RUNNER_TEMP}/test.log" || true
       - name: Collect badge payloads
         run: |
           set -euo pipefail

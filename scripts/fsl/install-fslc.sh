@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+root=${SETUP_ROOT:-$(git rev-parse --show-toplevel)}
+source "${root}/scripts/setup/environment-state.sh"
+setup_environment_export
+
 fsl_version="4.2.0"
 download_base="https://github.com/ymm-oss/fsl/releases/download/v${fsl_version}"
-cache_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/skills-fslc"
-bin_dir="${FSLC_BIN_DIR:-${cache_root}/bin}"
+bin_dir="${FSLC_BIN_DIR}"
 bin_path="${bin_dir}/fslc"
 
 case "$(uname -s):$(uname -m)" in
@@ -28,8 +31,12 @@ if [[ -x "${bin_path}" ]] && [[ "$(shasum -a 256 "${bin_path}" | awk '{print $1}
 fi
 
 mkdir -p "${bin_dir}"
-temp_path="$(mktemp "${TMPDIR:-/tmp}/fslc.XXXXXX")"
-trap 'rm -f "${temp_path}"' EXIT
+temporary="$(mktemp -d "${bin_dir}.tmp.XXXXXX")"
+temp_path="${temporary}/fslc"
+cleanup() {
+  rm -rf "${temporary}"
+}
+trap cleanup EXIT
 
 curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
   "${download_base}/${asset}" --output "${temp_path}"
@@ -42,5 +49,7 @@ if [[ "${actual_sha256}" != "${expected_sha256}" ]]; then
   exit 1
 fi
 
-install -m 0755 "${temp_path}" "${bin_path}"
+chmod 0755 "${temp_path}"
+mv "${temp_path}" "${bin_path}"
+temporary=""
 echo "Installed fslc ${fsl_version} at ${bin_path}"

@@ -47,7 +47,7 @@ name the fallback in the handoff.
 ## Local skill registration
 
 Run `mise run setup:all` once in each Git worktree. The command bootstraps the
-worktree-local `core.hooksPath`, shared commitlint, and validator, then
+worktree-local `core.hooksPath`, commitlint, and validator, then
 registers each published skill under the ignored `.claude/skills/` directory
 for Claude Code and `.agents/skills/` for Codex. The ignored
 `.agents/setup-state` marker records the revision and bootstrap inputs after
@@ -70,13 +70,13 @@ published skill. Remove or rename the conflicting entry, then rerun `mise run
 setup:refresh`. A second run after a successful refresh makes no registration
 changes.
 
-Worktrees share the pinned commitlint binary through the common Git directory,
-so setting up a new worktree does not rebuild it. The local skill registrations
+Each Worktree stores the pinned commitlint binary under its ignored `.mise/bin`
+directory, so setup does not write to the common Git directory. The local skill registrations
 are revision-dependent: the `post-checkout` hook refreshes them when the branch
 changes, and `wt list` reports which worktree owns a branch. Confirm the
 registration for a worktree with the `readlink` check above. See
 `docs/worktrees.md` for the `worktrunk` workflow and its safe-removal rules.
 
-The enabled hooks run `mise run check:local` before commits and `mise run
-validate:all` before pushes. Fix a reported failure before retrying the commit or
-push.
+The enabled hooks run the pre-launch mise wrapper for `check:local` before
+commits and `validate:all` before pushes. Fix a reported failure before retrying
+the commit or push.

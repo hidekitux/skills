@@ -241,12 +241,13 @@ func (p Provisioner) runGit(ctx context.Context, dir string, args ...string) (st
 }
 
 func (p Provisioner) runSetup(ctx context.Context, dir string) error {
+	setupScript := filepath.Join(dir, "scripts", "setup", "run-mise.sh")
 	var output string
 	var err error
 	if p.Runner != nil {
-		output, err = p.Runner.Run(ctx, dir, nil, "mise", "run", "setup:refresh")
+		output, err = p.Runner.Run(ctx, dir, nil, "bash", setupScript, "run", "setup:refresh")
 	} else {
-		output, err = (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "mise", "run", "setup:refresh")
+		output, err = (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "bash", setupScript, "run", "setup:refresh")
 	}
 	if err != nil {
 		return fmt.Errorf("run setup:refresh before execution: %w", err)
