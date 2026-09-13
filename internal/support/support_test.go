@@ -63,6 +63,22 @@ func TestResolveRoot(t *testing.T) {
 	})
 }
 
+func TestWithoutGitEnvironmentRemovesEveryGitVariable(t *testing.T) {
+	input := []string{
+		"PATH=/bin",
+		"GIT_DIR=/outside/.git",
+		"GIT_WORK_TREE=/outside",
+		"GIT_CONFIG_LOCAL=/outside/config",
+		"GIT_CONFIG_COUNT=1",
+		"OTHER=value",
+	}
+	want := []string{"PATH=/bin", "OTHER=value"}
+	got := WithoutGitEnvironment(input)
+	if strings.Join(got, "\x00") != strings.Join(want, "\x00") {
+		t.Fatalf("WithoutGitEnvironment(%q) = %q, want %q", input, got, want)
+	}
+}
+
 func TestResolveRootPreservesTrailingSpace(t *testing.T) {
 	parent := t.TempDir()
 	root := filepath.Join(parent, "repo-with-trailing-space ")

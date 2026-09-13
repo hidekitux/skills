@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 func writeWritingFile(t *testing.T, root, name, content string) {
@@ -23,13 +25,7 @@ func writeWritingFile(t *testing.T, root, name, content string) {
 
 func isolatedWritingGit(root string, args ...string) *exec.Cmd {
 	command := exec.Command("git", append([]string{"-C", root}, args...)...)
-	env := make([]string, 0, len(os.Environ()))
-	for _, variable := range os.Environ() {
-		if !strings.HasPrefix(variable, "GIT_") {
-			env = append(env, variable)
-		}
-	}
-	command.Env = env
+	command.Env = support.GitEnv()
 	return command
 }
 
