@@ -16,14 +16,23 @@ import (
 type provisioningRunner struct {
 	setupCalls int
 	setupErr   error
+	setupArgs  [][]string
 }
 
 func (r *provisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
 	if name == "mise" {
 		r.setupCalls++
+		r.setupArgs = append(r.setupArgs, append([]string(nil), args...))
 		return "", r.setupErr
 	}
 	return (OSCommandRunner{}).Run(ctx, dir, env, name, args...)
+}
+
+func assertRefreshSetup(t *testing.T, runner *provisioningRunner) {
+	t.Helper()
+	if len(runner.setupArgs) == 0 || strings.Join(runner.setupArgs[0], " ") != "run setup:refresh" {
+		t.Fatalf("setup command = %#v, want [run setup:refresh]", runner.setupArgs)
+	}
 }
 
 func TestProvisionReadOnlySnapshotRunsSetupAndDeniesMutation(t *testing.T) {
@@ -52,6 +61,7 @@ func TestProvisionReadOnlySnapshotRunsSetupAndDeniesMutation(t *testing.T) {
 	if runner.setupCalls != 1 {
 		t.Fatalf("setup calls = %d, want 1", runner.setupCalls)
 	}
+	assertRefreshSetup(t, runner)
 	if result.Manifest.Profile != ProfileReadOnly || result.Manifest.WorkspaceKind != WorkspaceDetachedSnapshot {
 		t.Fatalf("unexpected manifest: %#v", result.Manifest)
 	}
@@ -182,6 +192,7 @@ func TestProvisionWriteProfileRequiresAndOwnsIssueBranch(t *testing.T) {
 	if verified != 1 || runner.setupCalls != 1 {
 		t.Fatalf("issue verification/setup calls = %d/%d, want 1/1", verified, runner.setupCalls)
 	}
+	assertRefreshSetup(t, runner)
 	if result.Manifest.Profile != ProfileRepositoryWrite ||
 		result.Manifest.WorkspaceKind != WorkspaceIssueWorktree ||
 		result.Manifest.Branch != "issue/199" ||
@@ -268,12 +279,13 @@ func TestProvisionStopsBeforeExecutionWhenSetupFails(t *testing.T) {
 	_, err := provisioner.Provision(context.Background(), ProvisionRequest{
 		SkillID: "plan-issue", Destination: filepath.Join(t.TempDir(), "snapshot"), Revision: revision,
 	})
-	if err == nil || !strings.Contains(err.Error(), "setup:all") {
+	if err == nil || !strings.Contains(err.Error(), "setup:refresh") {
 		t.Fatalf("setup failure was not fatal: %v", err)
 	}
 	if runner.setupCalls != 1 {
 		t.Fatalf("setup calls = %d, want 1", runner.setupCalls)
 	}
+	assertRefreshSetup(t, runner)
 }
 
 func TestCleanupRetainsActiveOrMaterialWorktree(t *testing.T) {
