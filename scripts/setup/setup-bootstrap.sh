@@ -3,6 +3,7 @@ set -euo pipefail
 
 root=${SETUP_ROOT:-$(git rev-parse --show-toplevel)}
 source "${root}/scripts/setup/setup-state.sh"
+setup_lock_acquire
 
 bootstrap_fingerprint=$(bootstrap_inputs)
 state_status=$(state_value status || true)

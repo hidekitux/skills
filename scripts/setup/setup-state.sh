@@ -3,6 +3,37 @@ set -euo pipefail
 
 setup_root=${SETUP_ROOT:-$(git rev-parse --show-toplevel)}
 setup_state_file="${setup_root}/.agents/setup-state"
+source "${setup_root}/scripts/setup/environment-state.sh"
+setup_environment_export
+
+setup_lock_acquire() {
+  local lock_root=${SETUP_LOCK_ROOT:-${setup_root}/.agents/locks}
+  local lock_dir="${lock_root}/setup"
+  local started_at
+
+  [[ "${SETUP_LOCK_HELD:-0}" == "1" ]] && return 0
+  mkdir -p "${lock_root}"
+  started_at=$(date +%s)
+  while ! mkdir "${lock_dir}" 2>/dev/null; do
+    if (( $(date +%s) - started_at >= 120 )); then
+      echo "setup lock timeout; confirm that no setup process remains, then retry" >&2
+      return 1
+    fi
+    sleep 0.1
+  done
+  printf '%s\n' "$$" > "${lock_dir}/owner"
+  export SETUP_LOCK_HELD=1
+  setup_lock_dir=${lock_dir}
+  setup_lock_owned=1
+  trap setup_lock_release EXIT
+}
+
+setup_lock_release() {
+  [[ "${setup_lock_owned:-0}" == "1" ]] || return 0
+  rm -f "${setup_lock_dir}/owner"
+  rmdir "${setup_lock_dir}" 2>/dev/null || true
+  setup_lock_owned=0
+}
 
 state_value() {
   local key="$1"

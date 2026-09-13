@@ -9,13 +9,16 @@ mkdir -p \
   "${MISE_DATA_DIR}" \
   "${MISE_INSTALLS_DIR}" \
   "${MISE_CACHE_DIR}" \
+  "${MISE_SHARED_INSTALL_DIRS}" \
   "${MISE_STATE_DIR}" \
   "${MISE_SHIMS_DIR}" \
   "${GOCACHE}" \
   "${GOMODCACHE}" \
   "${GOPATH}" \
   "${RUFF_CACHE_DIR}" \
-  "${FSLC_BIN_DIR}"
+  "${FSLC_BIN_DIR}" \
+  "${MISE_GLOBAL_CONFIG_ROOT}" \
+  "${SETUP_LOCK_ROOT}"
 
 if [[ -n "${GITHUB_ENV:-}" ]]; then
   setup_environment_export_lines >> "${GITHUB_ENV}"

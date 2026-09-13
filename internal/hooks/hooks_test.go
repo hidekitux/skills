@@ -122,7 +122,7 @@ func TestSetupAllRunsBootstrapBeforeRefresh(t *testing.T) {
 
 func TestSetupStateProvidesAtomicStateHelpers(t *testing.T) {
 	script := readRepoFile(t, "scripts/setup/setup-state.sh")
-	for _, marker := range []string{"bootstrap_inputs", "validator_inputs", "mktemp", "mv \"${temporary}\" \"${setup_state_file}\""} {
+	for _, marker := range []string{"bootstrap_inputs", "validator_inputs", "setup_lock_acquire", "mkdir \"${lock_dir}\"", "mktemp", "mv \"${temporary}\" \"${setup_state_file}\""} {
 		if !strings.Contains(script, marker) {
 			t.Fatalf("setup-state must contain %q: %q", marker, script)
 		}
@@ -138,7 +138,7 @@ func TestSetupValidatorBuildsAndLinksTheRevisionValidator(t *testing.T) {
 
 func TestRunMiseUsesWorktreeStartupDirectories(t *testing.T) {
 	root, fakeBin := newSetupRepository(t)
-	writeTestFile(t, filepath.Join(fakeBin, "mise"), "#!/bin/sh\nprintf '%s\\n' \"$MISE_DATA_DIR\" \"$MISE_INSTALLS_DIR\" \"$MISE_CACHE_DIR\" \"$MISE_STATE_DIR\" > \"$SETUP_LOG\"\n")
+	writeTestFile(t, filepath.Join(fakeBin, "mise"), "#!/bin/sh\nprintf '%s\\n' \"$MISE_DATA_DIR\" \"$MISE_INSTALLS_DIR\" \"$MISE_CACHE_DIR\" \"$MISE_STATE_DIR\" \"$MISE_SHARED_INSTALL_DIRS\" > \"$SETUP_LOG\"\n")
 	if err := os.Chmod(filepath.Join(fakeBin, "mise"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -156,9 +156,16 @@ func TestRunMiseUsesWorktreeStartupDirectories(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, suffix := range []string{"data", "installs", "cache", "state"} {
-		if !strings.Contains(string(values), filepath.Join(root, ".mise", suffix)) {
+		want := filepath.Join(root, ".mise", suffix)
+		if suffix == "cache" {
+			want = filepath.Join(root, ".shared-cache", "mise-cache")
+		}
+		if !strings.Contains(string(values), want) {
 			t.Fatalf("mise wrapper did not set Worktree directory %s: %q", suffix, values)
 		}
+	}
+	if !strings.Contains(string(values), filepath.Join(root, ".shared-cache", "mise-installs")) {
+		t.Fatalf("mise wrapper did not set shared installation directory: %q", values)
 	}
 }
 
@@ -177,13 +184,44 @@ func TestSetupEnvironmentExportsCIPathsWithoutGeneratingMiseConfig(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"MISE_DATA_DIR", "MISE_INSTALLS_DIR", "MISE_CACHE_DIR", "MISE_STATE_DIR", "GOCACHE", "GOMODCACHE", "RUFF_CACHE_DIR", "FSLC_BIN_DIR"} {
+	for _, name := range []string{"MISE_DATA_DIR", "MISE_INSTALLS_DIR", "MISE_CACHE_DIR", "MISE_SHARED_INSTALL_DIRS", "MISE_STATE_DIR", "GOCACHE", "GOMODCACHE", "RUFF_CACHE_DIR", "FSLC_BIN_DIR", "MISE_GLOBAL_CONFIG_ROOT", "SETUP_LOCK_ROOT"} {
 		if !strings.Contains(string(values), name+"=") {
 			t.Fatalf("GITHUB_ENV lacks %s: %q", name, values)
 		}
 	}
 	if _, err := os.Stat(filepath.Join(root, ".mise.local.toml")); !os.IsNotExist(err) {
 		t.Fatalf("environment setup generated mise config: %v", err)
+	}
+}
+
+func TestRunMiseSetupInstallsOnlyTheSetupToolAndDisablesAutoInstall(t *testing.T) {
+	root, fakeBin := newSetupRepository(t)
+	writeTestFile(t, filepath.Join(fakeBin, "mise"), "#!/bin/sh\nprintf '%s|%s|%s|%s\n' \"$*\" \"$MISE_GLOBAL_CONFIG_ROOT\" \"$MISE_SHARED_INSTALL_DIRS\" \"${MISE_AUTO_INSTALL:-unset}\" >> \"$SETUP_LOG\"\n")
+	if err := os.Chmod(filepath.Join(fakeBin, "mise"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	env := []string{
+		"SETUP_ROOT=" + root,
+		"SETUP_LOG=" + filepath.Join(root, "mise-calls"),
+		"PATH=" + fakeBin + string(os.PathListSeparator) + os.Getenv("PATH"),
+	}
+	stdout, stderr, code := runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/run-mise.sh"), "run", "setup:refresh")
+	if code != 0 || stdout != "" || !strings.Contains(stderr, "tools=go") {
+		t.Fatalf("setup wrapper failed: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	calls, err := os.ReadFile(filepath.Join(root, "mise-calls"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(calls)), "\n")
+	if len(lines) != 2 || !strings.HasPrefix(lines[0], "install go|") || !strings.HasPrefix(lines[1], "run setup:refresh|") {
+		t.Fatalf("setup wrapper selected unexpected commands: %q", calls)
+	}
+	if !strings.HasSuffix(lines[1], "|0") {
+		t.Fatalf("setup wrapper did not disable automatic installation: %q", lines[1])
+	}
+	if !strings.Contains(lines[1], filepath.Join(root, ".mise", "global-config")) || !strings.Contains(lines[1], filepath.Join(root, ".shared-cache", "mise-installs")) {
+		t.Fatalf("setup wrapper did not pass isolated configuration and shared installation paths: %q", lines[1])
 	}
 }
 
@@ -243,6 +281,7 @@ func runTestCommandWithEnv(t *testing.T, dir string, extraEnv []string, name str
 		}
 		env = append(env, value)
 	}
+	env = append(env, "SKILLS_SHARED_CACHE_ROOT="+filepath.Join(dir, ".shared-cache"))
 	env = append(env, extraEnv...)
 	cmd.Env = append(env,
 		"GIT_CONFIG_NOSYSTEM=1",
@@ -326,7 +365,7 @@ func newSetupRepository(t *testing.T) (string, string) {
 	}
 
 	fakeBin := filepath.Join(root, "fake-bin")
-	fakeGo := "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$SETUP_LOG\"\nif [ \"$1\" = install ]; then mkdir -p \"$GOBIN\"; printf '#!/bin/sh\\nexit 0\\n' > \"$GOBIN/commitlint\"; chmod 755 \"$GOBIN/commitlint\"; exit 0; fi\nif [ \"$SETUP_FAIL_BUILD\" = 1 ] && [ \"$1\" = build ]; then exit 42; fi\noutput=\"\"\nwhile [ \"$#\" -gt 0 ]; do\n  if [ \"$1\" = -o ]; then shift; output=\"$1\"; fi\n  shift\ndone\nif [ -n \"$output\" ]; then printf '#!/bin/sh\\nexit 0\\n' > \"$output\"; chmod 755 \"$output\"; fi\n"
+	fakeGo := "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$SETUP_LOG\"\nif [ -n \"${SETUP_SHARED_LOG:-}\" ]; then printf 'start:%s\\n' \"$*\" >> \"$SETUP_SHARED_LOG\"; sleep \"${SETUP_SLEEP:-0}\"; fi\nif [ \"$1\" = install ]; then mkdir -p \"$GOBIN\"; printf '#!/bin/sh\\nexit 0\\n' > \"$GOBIN/commitlint\"; chmod 755 \"$GOBIN/commitlint\"; if [ -n \"${SETUP_SHARED_LOG:-}\" ]; then printf 'end:%s\\n' \"$*\" >> \"$SETUP_SHARED_LOG\"; fi; exit 0; fi\nif [ \"$SETUP_FAIL_BUILD\" = 1 ] && [ \"$1\" = build ]; then exit 42; fi\noutput=\"\"\nwhile [ \"$#\" -gt 0 ]; do\n  if [ \"$1\" = -o ]; then shift; output=\"$1\"; fi\n  shift\ndone\nif [ -n \"$output\" ]; then printf '#!/bin/sh\\nexit 0\\n' > \"$output\"; chmod 755 \"$output\"; fi\nif [ -n \"${SETUP_SHARED_LOG:-}\" ]; then printf 'end:%s\\n' \"$*\" >> \"$SETUP_SHARED_LOG\"; fi\n"
 	writeTestFile(t, filepath.Join(fakeBin, "go"), fakeGo)
 	if err := os.Chmod(filepath.Join(fakeBin, "go"), 0o755); err != nil {
 		t.Fatal(err)
@@ -335,16 +374,25 @@ func newSetupRepository(t *testing.T) (string, string) {
 }
 
 func runSetupRefresh(t *testing.T, root, fakeBin string, failBuild bool) (string, string, int) {
+	return runSetupRefreshWithSharedRoot(t, root, fakeBin, failBuild, filepath.Join(root, ".shared-cache"), "")
+}
+
+func runSetupRefreshWithSharedRoot(t *testing.T, root, fakeBin string, failBuild bool, sharedRoot, sharedLog string) (string, string, int) {
 	t.Helper()
 	fail := "0"
 	if failBuild {
 		fail = "1"
 	}
-	env := []string{
+		env := []string{
 		"SETUP_ROOT=" + root,
 		"SETUP_LOG=" + filepath.Join(root, "go-calls"),
 		"SETUP_FAIL_BUILD=" + fail,
+		"SKILLS_SHARED_CACHE_ROOT=" + sharedRoot,
+		"SETUP_LOCK_ROOT=" + filepath.Join(sharedRoot, "locks"),
 		"PATH=" + fakeBin + string(os.PathListSeparator) + os.Getenv("PATH"),
+	}
+	if sharedLog != "" {
+		env = append(env, "SETUP_SHARED_LOG="+sharedLog, "SETUP_SLEEP=1")
 	}
 	return runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/setup-refresh.sh"))
 }
@@ -451,6 +499,8 @@ func TestSetupRefreshFailureLeavesPreviousStateAndReportsStage(t *testing.T) {
 func TestConcurrentWorktreeRefreshesPublishCompleteLocalTools(t *testing.T) {
 	firstRoot, firstFakeBin := newSetupRepository(t)
 	secondRoot, secondFakeBin := newSetupRepository(t)
+	sharedRoot := t.TempDir()
+	sharedLog := filepath.Join(sharedRoot, "setup-order")
 	type result struct {
 		root   string
 		stdout string
@@ -466,7 +516,7 @@ func TestConcurrentWorktreeRefreshesPublishCompleteLocalTools(t *testing.T) {
 		{root: secondRoot, fakeBin: secondFakeBin},
 	} {
 		go func(root, fakeBin string) {
-			stdout, stderr, code := runSetupRefresh(t, root, fakeBin, false)
+			stdout, stderr, code := runSetupRefreshWithSharedRoot(t, root, fakeBin, false, sharedRoot, sharedLog)
 			results <- result{root: root, stdout: stdout, stderr: stderr, code: code}
 		}(setup.root, setup.fakeBin)
 	}
@@ -497,6 +547,28 @@ func TestConcurrentWorktreeRefreshesPublishCompleteLocalTools(t *testing.T) {
 				t.Errorf("concurrent refresh left temporary paths for %s: %v", pattern, matches)
 			}
 		}
+	}
+	order, err := os.ReadFile(sharedLog)
+	if err != nil {
+		t.Fatal(err)
+	}
+	active := false
+	for _, line := range strings.Split(strings.TrimSpace(string(order)), "\n") {
+		switch {
+		case strings.HasPrefix(line, "start:"):
+			if active {
+				t.Fatalf("shared setup operations overlapped: %q", order)
+			}
+			active = true
+		case strings.HasPrefix(line, "end:"):
+			if !active {
+				t.Fatalf("shared setup operation ended without a start: %q", order)
+			}
+			active = false
+		}
+	}
+	if active {
+		t.Fatalf("shared setup operation remained open: %q", order)
 	}
 }
 
