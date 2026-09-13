@@ -329,7 +329,9 @@ func TestPrSignaturesAcceptsOnlyVerifiedCommits(t *testing.T) {
 		{"sha": "missing", "commit": map[string]any{}},
 	}
 	invalid := invalidCommits(commits)
-	if len(invalid) != 2 || invalid[0] != "unsigned: unsigned" || invalid[1] != "missing: missing verification" {
+	if len(invalid) != 2 ||
+		invalid[0] != "unsigned: unsigned (enable commit signing and recreate the commit)" ||
+		invalid[1] != "missing: missing verification (check the GitHub commit response and recreate the commit after fixing signature configuration)" {
 		t.Fatalf("unexpected invalid list %v", invalid)
 	}
 }

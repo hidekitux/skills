@@ -31,10 +31,31 @@ func invalidCommits(commits []map[string]any) []string {
 			if reasonValue, ok := verification["reason"].(string); ok {
 				reason = reasonValue
 			}
-			invalid = append(invalid, fmt.Sprintf("%s: %s", sha, reason))
+			invalid = append(invalid, fmt.Sprintf("%s: %s", sha, verificationFailure(reason)))
 		}
 	}
 	return invalid
+}
+
+func verificationFailure(reason string) string {
+	guidance := map[string]string{
+		"bad_email":                "use the same verified GitHub email for Git and the signing key, then recreate the commit",
+		"malformed_signature":      "check the local signing configuration and recreate the commit",
+		"no_user":                  "no GitHub account matches the committer email; use a verified email or GitHub noreply address and recreate the commit",
+		"signer_identity_mismatch": "the signing identity does not match the committer identity; use the matching signing key and Git identity, then recreate the commit",
+		"unknown_key":              "add the public signing key to GitHub and recreate the commit",
+		"unsigned":                 "enable commit signing and recreate the commit",
+		"unverified_email":         "verify the email on GitHub or use a verified GitHub noreply address and recreate the commit",
+		"gpgverify_error":          "check the GitHub signature details and recreate the commit after fixing the signing configuration",
+		"gpgverify_unavailable":    "retry after GitHub signature verification is available",
+		"unknown_signature_type":   "use a GitHub-supported signing format and recreate the commit",
+		"invalid":                  "check the GitHub signature details and recreate the commit",
+		"missing verification":     "check the GitHub commit response and recreate the commit after fixing signature configuration",
+	}
+	if advice, ok := guidance[reason]; ok {
+		return reason + " (" + advice + ")"
+	}
+	return reason + " (check the GitHub commit verification details and recreate the commit)"
 }
 
 // loadCommitsFixture decodes a local API response fixture into a commit list.

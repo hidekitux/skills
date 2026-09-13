@@ -1,0 +1,35 @@
+[
+  {
+    "sha": "unattributed-1",
+    "author": null,
+    "committer": null,
+    "commit": {
+      "verification": {
+        "verified": false,
+        "reason": "no_user"
+      }
+    }
+  },
+  {
+    "sha": "mismatched-1",
+    "author": {"login": "contributor"},
+    "committer": {"login": "contributor"},
+    "commit": {
+      "verification": {
+        "verified": false,
+        "reason": "signer_identity_mismatch"
+      }
+    }
+  },
+  {
+    "sha": "bad-email-1",
+    "author": {"login": "contributor"},
+    "committer": {"login": "contributor"},
+    "commit": {
+      "verification": {
+        "verified": false,
+        "reason": "bad_email"
+      }
+    }
+  }
+]
