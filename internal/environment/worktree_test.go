@@ -189,6 +189,18 @@ func TestNewLocalWorktreeProviderFallsBackWhenWorktrunkIsUnavailable(t *testing.
 	}
 }
 
+func TestProvisionerWithLocalWorktreeSelectsInstalledWorktrunk(t *testing.T) {
+	path := t.TempDir()
+	if err := os.WriteFile(filepath.Join(path, worktrunkCommand), []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", path)
+	provisioner := (Provisioner{}).WithLocalWorktree()
+	if _, ok := provisioner.Worktree.(WorktrunkProvider); !ok {
+		t.Fatalf("provider = %T, want WorktrunkProvider", provisioner.Worktree)
+	}
+}
+
 func TestNativeGitProviderUsesHooklessLifecycleCommands(t *testing.T) {
 	root := t.TempDir()
 	destination := filepath.Join(t.TempDir(), "issue-317")
