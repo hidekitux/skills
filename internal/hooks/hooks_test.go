@@ -175,6 +175,8 @@ func TestSetupEnvironmentExportsCIPathsWithoutGeneratingMiseConfig(t *testing.T)
 	env := []string{
 		"SETUP_ROOT=" + root,
 		"GITHUB_ENV=" + envFile,
+		"CI=true",
+		"RUNNER_TEMP=" + filepath.Join(root, "runner-temp"),
 	}
 	stdout, stderr, code := runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/setup-environment.sh"))
 	if code != 0 || stderr != "" || !strings.Contains(stdout, "before the next mise invocation") {
@@ -321,6 +323,9 @@ func runTestCommandWithEnv(t *testing.T, dir string, extraEnv []string, name str
 	for _, value := range os.Environ() {
 		name, _, ok := strings.Cut(value, "=")
 		if ok && strings.HasPrefix(name, "GIT_") {
+			continue
+		}
+		if name == "CI" {
 			continue
 		}
 		env = append(env, value)
