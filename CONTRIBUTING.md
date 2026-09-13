@@ -36,6 +36,34 @@ implementation commits that belong in the Pull Request.
 
 GitHub Actions validates commit messages and Pull Request titles. Locally, Git hooks run `mise run check:local` before commits and `mise run validate:all` before pushes. Fix a failed check before retrying.
 
+## Commit identity and signatures
+
+Git records the author and committer from `user.name` and `user.email` when you create a commit. Set both values to an identity that GitHub recognizes through a verified email address or a GitHub noreply address. A valid cryptographic signature does not attribute a commit to a GitHub account when the committer email has no matching user.
+
+Use the following commands before you create a commit:
+
+```sh
+git config --show-origin --show-scope --get-regexp '^user\\.(name|email)$'
+git var GIT_AUTHOR_IDENT
+git var GIT_COMMITTER_IDENT
+git config --get commit.gpgsign
+git config --get gpg.format
+git config --get user.signingkey
+```
+
+Set `commit.gpgsign=true` and configure a GitHub-supported signing key. Add the matching public signing key to GitHub and verify the email used by the commit. Follow the [GitHub signing guide](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) for the signing-key setup. Never store a private key or token in this repository.
+
+After you push a Pull Request, inspect the GitHub verification record for every Pull Request commit:
+
+```sh
+gh api repos/OWNER/REPO/pulls/NUMBER/commits --paginate \\
+  --jq '.[] | {sha, author: (.author.login // null), committer: (.committer.login // null), verified: .commit.verification.verified, reason: .commit.verification.reason}'
+```
+
+The required `Validate commit signatures` check rejects a commit whose verification record is not valid. The `reason` value separates an unsigned or invalid signature from an attribution failure such as `no_user` or `signer_identity_mismatch`.
+
+Do not rewrite public history until the repository owner explicitly authorizes it. After authorization, create a backup reference, recreate only the affected commits with the corrected author, committer, email, and signing-key configuration, and push the rewritten Issue branch with `--force-with-lease`. Re-run the Pull Request checks and inspect every corrected commit through the GitHub API before integration. GitHub rebase merge can create replacement commits on `main`; verify those replacement commits separately from the Pull Request commits.
+
 ## Issue and Pull Request titles
 
 Use `[Type]: Summary` in sentence case for both Issues and Pull Requests. Type is `Feature`, `Bug`, `Improvement`, `Documentation`, `Security`, `Maintenance`, or `Release`. Begin Summary with a capitalized imperative verb and capitalize later words only when ordinary English requires it. Releases use the exception `[Release]: vX.Y.Z`; build identifiers use `[Release]: vX.Y.Z+N`. A Pull Request may close more than one Issue, so its title need not match an Issue title exactly.
