@@ -2,6 +2,8 @@
 set -euo pipefail
 
 root=${SETUP_ROOT:-$(git rev-parse --show-toplevel)}
+source "${root}/scripts/setup/setup-state.sh"
+setup_lock_acquire
 
 if ! bash "${root}/scripts/setup/setup-bootstrap.sh"; then
   echo "Full setup stopped during bootstrap." >&2
