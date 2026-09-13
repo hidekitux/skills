@@ -27,6 +27,25 @@ func TestCheckPrCommitSignaturesAcceptsFullyVerifiedFixture(t *testing.T) {
 	}
 }
 
+func TestCheckPrCommitSignaturesReportsAttributionFailures(t *testing.T) {
+	code, out, errOut := runPrSignatureCheck(t, "commits-attribution-failures.json")
+	if code != 1 {
+		t.Fatalf("expected rejection, got exit %d, output=%q", code, errOut)
+	}
+	if out != "" {
+		t.Fatalf("unexpected output %q", out)
+	}
+	for _, want := range []string{
+		"- unattributed-1: no_user (no GitHub account matches the committer email",
+		"- mismatched-1: signer_identity_mismatch (the signing identity does not match the committer identity",
+		"- bad-email-1: bad_email (use the same verified GitHub email for Git and the signing key",
+	} {
+		if !strings.Contains(errOut, want) {
+			t.Errorf("error output %q does not contain %q", errOut, want)
+		}
+	}
+}
+
 func TestCheckPrCommitSignaturesRejectsUnsignedFixture(t *testing.T) {
 	code, out, errOut := runPrSignatureCheck(t, "commits-unsigned.json")
 	if code != 1 {
