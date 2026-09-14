@@ -66,299 +66,239 @@
       ]
     },
     {
-      "spec": "specs/create-issue/issue-creation.fsl",
+      "spec": "specs/cross-skill-workflow.fsl",
       "status": "mutated",
       "total": 200,
-      "killed": 200,
-      "survived": 0,
-      "invalid": 0
-    },
-    {
-      "spec": "specs/create-pr/pull-request-creation.fsl",
-      "status": "mutated",
-      "total": 200,
-      "killed": 164,
-      "survived": 36,
+      "killed": 162,
+      "survived": 38,
       "invalid": 0,
       "survivors": [
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 42,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 43,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 44,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 46,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 47,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 48,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 49,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "resolve_context requires #1 Start-\u003eBlocked",
           "line": 55,
           "column": 5
         },
         {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003eContextResolved",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003eNoExistingPullRequest",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003eScopeReviewed",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003eReadyToPush",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003eDraftToPush",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003ePushedReady",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003ePushedDraft",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context requires #1 Start-\u003eBlocked",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "block_missing_context assignment",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003eStart",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003eNoExistingPullRequest",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003eScopeReviewed",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003eReadyToPush",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003eDraftToPush",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003ePushedReady",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "block_missing_context assignment Blocked-\u003ePushedDraft",
-          "line": 63,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003eNoExistingPullRequest",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003eScopeReviewed",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003eReadyToPush",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003eDraftToPush",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePushedReady",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePushedDraft",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePullRequest",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "review_scope requires #1 NoExistingPullRequest-\u003eBlocked",
-          "line": 81,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "validate_ready requires #1 ScopeReviewed-\u003eDraftToPush",
-          "line": 87,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "validate_ready requires #1 ScopeReviewed-\u003ePushedDraft",
-          "line": 87,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "prepare_draft requires #1 ScopeReviewed-\u003eReadyToPush",
-          "line": 96,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "prepare_draft requires #1 ScopeReviewed-\u003ePushedReady",
-          "line": 96,
-          "column": 5
-        }
-      ]
-    },
-    {
-      "spec": "specs/debug-code/debug-loop.fsl",
-      "status": "mutated",
-      "total": 123,
-      "killed": 114,
-      "survived": 9,
-      "invalid": 0,
-      "survivors": [
-        {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 44,
+          "line": 58,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 45,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 46,
-          "column": 5
-        },
-        {
-          "op": "assignment_remove",
-          "target": "init assignment",
-          "line": 48,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "isolate requires #2",
           "line": 60,
           "column": 5
         },
         {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 62,
+          "column": 5
+        },
+        {
           "op": "requires_remove",
-          "target": "hypothesize requires #2",
+          "target": "create_issue requires #1",
           "line": 67,
           "column": 5
         },
         {
           "op": "requires_remove",
-          "target": "apply_fix requires #2",
+          "target": "post_plan requires #1",
+          "line": 73,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "post_plan requires #2",
+          "line": 74,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "record_implementation requires #1",
           "line": 80,
           "column": 5
         },
         {
           "op": "requires_remove",
-          "target": "verify requires #1",
-          "line": 86,
+          "target": "record_implementation requires #2",
+          "line": 81,
           "column": 5
         },
         {
           "op": "requires_remove",
-          "target": "verify requires #2",
-          "line": 87,
+          "target": "pass_validation requires #1",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pass_validation requires #2",
+          "line": 89,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "pass_validation requires #3",
+          "line": 90,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "open_pull_request requires #1",
+          "line": 96,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "open_pull_request requires #2",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "open_pull_request assignment PullRequestReady-\u003ePullRequestReadySecond",
+          "line": 99,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "open_pull_request assignment PullRequestReady-\u003ePullRequestReadyThird",
+          "line": 99,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "complete_review requires #1",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "requires_negate",
+          "target": "complete_review requires #1",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "complete_review requires #1",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eStart",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eIssueReady",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003ePlanReady",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eImplementationReady",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eValidated",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003ePullRequestReadySecond",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003ePullRequestReadyThird",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eCompleted",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eBlocked",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eIncomplete",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eInterrupted",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReady-\u003eRetryExhausted",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "equality_operator_flip",
+          "target": "complete_review requires #1",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReadySecond-\u003eStart",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReadySecond-\u003eIssueReady",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReadySecond-\u003ePlanReady",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReadySecond-\u003eImplementationReady",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReadySecond-\u003eValidated",
+          "line": 105,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "complete_review requires #1 PullRequestReadySecond-\u003ePullRequestReady",
+          "line": 105,
           "column": 5
         }
       ]
@@ -465,6 +405,70 @@
           "op": "enum_constant_swap",
           "target": "deprecate requires #1 Stable-\u003eDeprecated",
           "line": 55,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "spec": "specs/fix/debug-code/debug-loop.fsl",
+      "status": "mutated",
+      "total": 123,
+      "killed": 114,
+      "survived": 9,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 44,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 45,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 48,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "isolate requires #2",
+          "line": 60,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "hypothesize requires #2",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "apply_fix requires #2",
+          "line": 80,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify requires #1",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "verify requires #2",
+          "line": 87,
           "column": 5
         }
       ]
@@ -906,6 +910,240 @@
       ]
     },
     {
+      "spec": "specs/process/create-issue/issue-creation.fsl",
+      "status": "mutated",
+      "total": 200,
+      "killed": 200,
+      "survived": 0,
+      "invalid": 0
+    },
+    {
+      "spec": "specs/process/create-pr/pull-request-creation.fsl",
+      "status": "mutated",
+      "total": 200,
+      "killed": 164,
+      "survived": 36,
+      "invalid": 0,
+      "survivors": [
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 44,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 46,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 47,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 48,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "resolve_context requires #1 Start-\u003eBlocked",
+          "line": 55,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eContextResolved",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eNoExistingPullRequest",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eScopeReviewed",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eReadyToPush",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eDraftToPush",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003ePushedReady",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003ePushedDraft",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context requires #1 Start-\u003eBlocked",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "block_missing_context assignment",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eStart",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eNoExistingPullRequest",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eScopeReviewed",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eReadyToPush",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003eDraftToPush",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003ePushedReady",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "block_missing_context assignment Blocked-\u003ePushedDraft",
+          "line": 63,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eNoExistingPullRequest",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eScopeReviewed",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eReadyToPush",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003eDraftToPush",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePushedReady",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePushedDraft",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "detect_existing_pr requires #1 ContextResolved-\u003ePullRequest",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "review_scope requires #1 NoExistingPullRequest-\u003eBlocked",
+          "line": 81,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "validate_ready requires #1 ScopeReviewed-\u003eDraftToPush",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "validate_ready requires #1 ScopeReviewed-\u003ePushedDraft",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "prepare_draft requires #1 ScopeReviewed-\u003eReadyToPush",
+          "line": 96,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "prepare_draft requires #1 ScopeReviewed-\u003ePushedReady",
+          "line": 96,
+          "column": 5
+        }
+      ]
+    },
+    {
       "spec": "specs/release-gate.fsl",
       "status": "mutated",
       "total": 127,
@@ -1281,9 +1519,9 @@
     }
   ],
   "totals": {
-    "specs": 8,
-    "killed": 904,
-    "survived": 200,
+    "specs": 9,
+    "killed": 1066,
+    "survived": 238,
     "invalid": 0,
     "infrastructure_errors": 0
   }
