@@ -1,0 +1,76 @@
+schema_version: 1
+
+# Internal module ownership and dependency direction for the Go implementation.
+# docs/architecture.md records the reasoning; this file is the machine-readable
+# source the check-module-boundaries repository check enforces.
+#
+# Every package under internal/ belongs to exactly one module. An import inside
+# one module is always allowed. An import from one module to another is allowed
+# only when the target module appears in the source module's may_import list.
+# Every other module edge is a forbidden reverse dependency.
+
+modules:
+  - id: foundation
+    owns: Shared primitives and skill discovery used by every other module.
+    packages:
+      - discover
+      - hooks
+      - support
+    may_import: []
+
+  - id: domain
+    owns: Skill domain data read from the repository tree.
+    packages:
+      - graph
+      - instructions
+    may_import:
+      - foundation
+
+  - id: policy
+    owns: Policy decisions about deliberation, environment, and execution strategy.
+    packages:
+      - context
+      - deliberation
+      - environment
+      - strategy
+    may_import:
+      - foundation
+      - domain
+
+  - id: evidence
+    owns: Evidence and reporting artifacts such as traces, diagnostics, replays, and badges.
+    packages:
+      - badges
+      - diagnostic
+      - publicstatus
+      - replay
+      - trace
+    may_import:
+      - foundation
+      - domain
+      - policy
+
+  - id: execution
+    owns: Workflow execution and release assembly.
+    packages:
+      - eval
+      - release
+    may_import:
+      - foundation
+      - domain
+      - policy
+      - evidence
+
+  - id: governance
+    owns: Repository checks and validation of committed artifacts.
+    packages:
+      - check
+      - commitlint
+      - fsl
+      - govuln
+      - project
+      - validate
+    may_import:
+      - foundation
+      - domain
+      - evidence
