@@ -11,8 +11,10 @@ each one changes.
 
 `workflow/module-ownership.yml` is the machine-readable form of the model below.
 The `check-module-boundaries` repository check reads that file, resolves the
-imports of every package under `internal/`, and fails on any module edge the
-file does not allow. `cmd/check-repository` runs the check, so
+imports of every package below `internal/` including a nested one, and fails on
+any module edge the file does not allow. The ownership file lists only top-level
+directories; a nested package such as `support/util` belongs to the module that
+owns its top-level directory. `cmd/check-repository` runs the check, so
 `mise run check:repository` and `mise run validate:all` enforce the direction.
 
 ## Measured baseline
@@ -77,7 +79,9 @@ is a forbidden reverse dependency. The rule covers these cases in particular:
 - `governance` never imports `execution` or `policy`, so a repository check
   validates a committed artifact rather than re-running an execution decision.
 - No module imports `composition`. `cmd/**` assembles the program and is
-  imported by nothing.
+  imported by nothing. The check reports an import of
+  `github.com/hidekitux/skills/cmd/` from any internal package as a forbidden
+  reverse dependency.
 
 `check-module-boundaries` reads imports with `go/parser` rather than building the
 packages. An import in a file the parser skips for a build tag is therefore not
