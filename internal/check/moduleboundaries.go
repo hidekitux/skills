@@ -149,7 +149,8 @@ func sortedKeys(set map[string]bool) []string {
 // internalPackages returns every directory below internal/ that contains at
 // least one Go file, as a slash-separated path relative to internal/. A nested
 // package such as support/util is included, so a forbidden import cannot hide
-// below a top-level directory. A test-only package is included so the
+// below a top-level directory. A directory the Go build ignores is skipped
+// with its whole subtree. A test-only package is included so the
 // ownership file must still name its top-level directory, and its test imports
 // stay outside the module-edge rule.
 func internalPackages(root string) ([]string, error) {
@@ -159,7 +160,13 @@ func internalPackages(root string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		if !entry.IsDir() || path == base {
+		if !entry.IsDir() {
+			return nil
+		}
+		if path != base && !buildableDirectory(entry.Name()) {
+			return fs.SkipDir
+		}
+		if path == base {
 			return nil
 		}
 		files, err := os.ReadDir(path)
@@ -183,6 +190,14 @@ func internalPackages(root string) ([]string, error) {
 	}
 	sort.Strings(packages)
 	return packages, nil
+}
+
+// buildableDirectory reports whether the Go build considers a directory with
+// this name. The build ignores testdata and any name beginning with an
+// underscore or a dot, so a Go file below one of them is test data rather than
+// a package and carries no module edge.
+func buildableDirectory(name string) bool {
+	return name != "testdata" && !strings.HasPrefix(name, "_") && !strings.HasPrefix(name, ".")
 }
 
 // owningModule returns the module that owns pkg. A nested package belongs to
