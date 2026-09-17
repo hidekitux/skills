@@ -116,6 +116,13 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			wantText:  "forbidden reverse dependency: internal/strategy (policy) imports cmd/check-repository (composition); no module may import composition",
 		},
 		{
+			name:      "a Go file below testdata carries no module edge",
+			ownership: fixtureOwnership,
+			imports:   map[string][]string{"support": nil, "support/testdata": {"strategy"}, "strategy": nil},
+			wantCode:  0,
+			wantText:  "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges.",
+		},
+		{
 			name:      "unowned package fails",
 			ownership: fixtureOwnership,
 			imports:   map[string][]string{"support": nil, "strategy": nil, "trace": nil},
