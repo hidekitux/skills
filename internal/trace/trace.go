@@ -1,4 +1,7 @@
 // Package trace validates and persists redacted skill execution traces.
+//
+// This package belongs to the evidence module. It may import the foundation, domain, and policy modules only. See
+// docs/architecture.md and workflow/module-ownership.yml.
 package trace
 
 import (
