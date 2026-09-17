@@ -5,6 +5,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -16,6 +17,10 @@ import (
 
 // internalImportPrefix is the import-path prefix every internal package shares.
 const internalImportPrefix = "github.com/hidekitux/skills/internal/"
+
+// commandImportPrefix is the import-path prefix of the composition root. No
+// internal package may import it.
+const commandImportPrefix = "github.com/hidekitux/skills/cmd/"
 
 // ownershipModule is one module entry of workflow/module-ownership.yml.
 type ownershipModule struct {
@@ -93,16 +98,19 @@ func readOwnershipModel(path string) (*ownershipModel, error) {
 	return model, nil
 }
 
-// packageImports returns the internal packages imported by the Go files
-// directly under dir. It reads imports with go/parser and ignores test files,
-// so a package that only a test imports is not treated as a module edge.
-func packageImports(dir string) ([]string, error) {
+// packageImports returns the repository packages imported by the Go files
+// directly under dir, split into the internal packages and the cmd packages it
+// imports. Both lists carry the path below their prefix. It reads imports with
+// go/parser and ignores test files, so a package that only a test imports is
+// not treated as a module edge.
+func packageImports(dir string) (internal, command []string, err error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	fileSet := token.NewFileSet()
-	seen := map[string]bool{}
+	seenInternal := map[string]bool{}
+	seenCommand := map[string]bool{}
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
@@ -110,63 +118,106 @@ func packageImports(dir string) ([]string, error) {
 		}
 		file, err := parser.ParseFile(fileSet, filepath.Join(dir, name), nil, parser.ImportsOnly)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		for _, spec := range file.Imports {
 			path, err := strconv.Unquote(spec.Path.Value)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			if strings.HasPrefix(path, internalImportPrefix) {
-				seen[strings.TrimPrefix(path, internalImportPrefix)] = true
+			switch {
+			case strings.HasPrefix(path, internalImportPrefix):
+				seenInternal[strings.TrimPrefix(path, internalImportPrefix)] = true
+			case strings.HasPrefix(path, commandImportPrefix):
+				seenCommand[strings.TrimPrefix(path, commandImportPrefix)] = true
 			}
 		}
 	}
-	imports := make([]string, 0, len(seen))
-	for path := range seen {
-		imports = append(imports, path)
-	}
-	sort.Strings(imports)
-	return imports, nil
+	return sortedKeys(seenInternal), sortedKeys(seenCommand), nil
 }
 
-// internalPackages returns the directory names directly below internal/ that
-// contain at least one Go file. A test-only package is included so the
-// ownership file must still name it, and its test imports stay outside the
-// module-edge rule.
+// sortedKeys returns the keys of set in a stable order.
+func sortedKeys(set map[string]bool) []string {
+	keys := make([]string, 0, len(set))
+	for key := range set {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// internalPackages returns every directory below internal/ that contains at
+// least one Go file, as a slash-separated path relative to internal/. A nested
+// package such as support/util is included, so a forbidden import cannot hide
+// below a top-level directory. A test-only package is included so the
+// ownership file must still name its top-level directory, and its test imports
+// stay outside the module-edge rule.
 func internalPackages(root string) ([]string, error) {
 	base := filepath.Join(root, "internal")
-	entries, err := os.ReadDir(base)
-	if err != nil {
-		return nil, err
-	}
 	packages := []string{}
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		files, err := os.ReadDir(filepath.Join(base, entry.Name()))
+	err := filepath.WalkDir(base, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			return nil, err
+			return err
+		}
+		if !entry.IsDir() || path == base {
+			return nil
+		}
+		files, err := os.ReadDir(path)
+		if err != nil {
+			return err
 		}
 		for _, file := range files {
-			name := file.Name()
-			if !file.IsDir() && strings.HasSuffix(name, ".go") {
-				packages = append(packages, entry.Name())
+			if !file.IsDir() && strings.HasSuffix(file.Name(), ".go") {
+				relative, err := filepath.Rel(base, path)
+				if err != nil {
+					return err
+				}
+				packages = append(packages, filepath.ToSlash(relative))
 				break
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	sort.Strings(packages)
 	return packages, nil
 }
 
+// owningModule returns the module that owns pkg. A nested package belongs to
+// the module that owns its top-level directory, so the ownership file lists
+// only top-level directories.
+func owningModule(model *ownershipModel, pkg string) (string, bool) {
+	top := pkg
+	if index := strings.Index(pkg, "/"); index >= 0 {
+		top = pkg[:index]
+	}
+	module, ok := model.moduleOf[top]
+	return module, ok
+}
+
+// topLevelPackages returns the top-level directory of every package in
+// packages, without repetition.
+func topLevelPackages(packages []string) []string {
+	seen := map[string]bool{}
+	for _, pkg := range packages {
+		top := pkg
+		if index := strings.Index(pkg, "/"); index >= 0 {
+			top = pkg[:index]
+		}
+		seen[top] = true
+	}
+	return sortedKeys(seen)
+}
+
 // CheckModuleBoundaries enforces the internal module ownership recorded in
 // workflow/module-ownership.yml and documented in docs/architecture.md. It
 // fails when an internal package belongs to no module, when the ownership file
-// names a package that no longer exists, or when a package imports a package
-// whose module the importing module may not import. It returns 0 on success
-// and 1 on any violation.
+// names a package that no longer exists, when a package imports a package
+// whose module the importing module may not import, and when any internal
+// package imports the composition root under cmd/. It returns 0 on success and
+// 1 on any violation.
 //
 // The check reads imports with go/parser rather than building the packages, so
 // an import behind a build tag the parser skips is not observed.
@@ -183,7 +234,7 @@ func CheckModuleBoundaries(root string, out, errOut io.Writer) int {
 	}
 	findings := []string{}
 	present := map[string]bool{}
-	for _, pkg := range packages {
+	for _, pkg := range topLevelPackages(packages) {
 		present[pkg] = true
 		if _, ok := model.moduleOf[pkg]; !ok {
 			findings = append(findings, fmt.Sprintf("package internal/%s belongs to no module in workflow/module-ownership.yml", pkg))
@@ -201,17 +252,22 @@ func CheckModuleBoundaries(root string, out, errOut io.Writer) int {
 	}
 	edges := 0
 	for _, pkg := range packages {
-		source, ok := model.moduleOf[pkg]
+		source, ok := owningModule(model, pkg)
 		if !ok {
 			continue
 		}
-		imports, err := packageImports(filepath.Join(root, "internal", pkg))
+		imports, commands, err := packageImports(filepath.Join(root, "internal", filepath.FromSlash(pkg)))
 		if err != nil {
 			fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
 			return 1
 		}
+		for _, command := range commands {
+			findings = append(findings, fmt.Sprintf(
+				"forbidden reverse dependency: internal/%s (%s) imports cmd/%s (composition); no module may import composition",
+				pkg, source, command))
+		}
 		for _, imported := range imports {
-			target, ok := model.moduleOf[imported]
+			target, ok := owningModule(model, imported)
 			if !ok {
 				findings = append(findings, fmt.Sprintf("internal/%s imports internal/%s, which belongs to no module", pkg, imported))
 				continue
