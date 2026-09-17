@@ -5,9 +5,10 @@
 This document is the architecture record that Issue #326 requires. It states
 which internal module owns each responsibility of the Go implementation, which
 module may import which, and where a focused test replaces a module's input.
-Issue #328 establishes the ownership model and the dependency direction. Issues
-#329 through #333 extend this document; the handoff section names the section
-each one changes.
+Issue #328 establishes the ownership model and the dependency direction. Issue
+#329 adds the evidence data path and the typed domain result. Issues #330
+through #333 extend this document; the handoff section names the section each
+one changes.
 
 `workflow/module-ownership.yml` is the machine-readable form of the model below.
 The `check-module-boundaries` repository check reads that file, resolves the
@@ -45,7 +46,7 @@ broken import graph.
 | `foundation` | Shared primitives and skill discovery. | `discover`, `hooks`, `support` |
 | `domain` | Skill domain data read from the repository tree. | `graph`, `instructions` |
 | `policy` | Policy decisions about deliberation, environment, and execution strategy. | `context`, `deliberation`, `environment`, `strategy` |
-| `evidence` | Evidence and reporting artifacts. | `badges`, `diagnostic`, `publicstatus`, `replay`, `trace` |
+| `evidence` | Evidence and reporting artifacts. | `badges`, `diagnostic`, `evidence`, `publicstatus`, `replay`, `trace` |
 | `execution` | Workflow execution and release assembly. | `eval`, `release` |
 | `governance` | Repository checks and validation of committed artifacts. | `check`, `commitlint`, `fsl`, `govuln`, `project`, `validate` |
 | `composition` | Command-line assembly. | `cmd/**` |
@@ -55,6 +56,45 @@ owns workflow execution, `policy` owns policy decisions, `evidence` owns
 evidence and reporting, `governance` owns the tests that validate committed
 artifacts, and the substitution-point table below owns the test seams. No module
 owns providers yet; Issue #330 introduces them.
+
+`internal/evidence` holds the primitives more than one evidence producer needs:
+`DiagnosticRef`, `IsPrivateAddress`, and the credential, URL, and commit
+identifier patterns. It imports no other internal package, so `internal/trace`
+and `internal/diagnostic` read one definition of each rule rather than keeping
+their own. A type whose field set differs between producers stays with its
+producer: `Evidence`, `RedactionSummary`, and `ValidationReport` are declared
+separately in `internal/trace` and `internal/diagnostic`, because merging them
+would widen a persisted contract.
+
+`internal/strategy`, `internal/environment`, and `internal/eval` still declare
+their own copies of the credential or commit identifier pattern.
+`internal/strategy` and `internal/environment` belong to `policy`, which may not
+import `evidence`, so removing those copies needs a separate decision about
+where the patterns belong.
+
+## Evidence data path
+
+One producer owns each persisted artifact, and one path reaches it.
+
+| Artifact | Producer | Input | Consumers |
+| --- | --- | --- | --- |
+| Structured trace | `internal/trace` | `trace.RunResult` from `internal/eval` | `cmd/validate-skill-trace`, `cmd/read-skill-trace`, `internal/replay`, `internal/eval` metrics |
+| Validator diagnostic | `internal/diagnostic` | `diagnostic.Diagnostic` from `internal/validate` and `internal/fsl` | `cmd/validate-diagnostic`, `cmd/check-repository` |
+| Replay report | `internal/replay` | An ordered `replay.TraceSet` read from persisted traces | `cmd/replay-skill-trace`, `cmd/check-repository` |
+| Evaluation record | `internal/eval` | `eval.Record` from a host run | `cmd/evaluate`, `cmd/check-evaluation` |
+
+`trace.RunResult` is the typed domain result. It carries what an execution
+module observes: the run identity, the timestamps, the typed `trace.RunOutcome`,
+the correction attempts, and the observed handoff destination. `internal/trace`
+decides the schema version, the event order, the terminal classification, and
+the redaction summary in `trace.FromEvaluationRun`. `internal/eval` therefore
+records what a run did without writing any persisted field itself.
+
+`internal/trace/testdata/evaluation-run-traces.json` pins the trace that
+conversion produces for every outcome. The file was captured from the assembly
+`internal/eval` owned before Issue #329, so
+`TestFromEvaluationRunReproducesTheRecordedTrace` fails on any change to a
+persisted field, event, or order.
 
 ## Dependency direction
 
@@ -100,7 +140,7 @@ test that uses it.
 | `foundation` | Repository-root parameter replaced by `t.TempDir()`. | `TestResolveRoot` in `internal/support/support_test.go` |
 | `domain` | Repository-root parameter pointed at a written fixture tree. | `TestValidateRejectsDanglingSkillDestination` in `internal/graph/graph_test.go` |
 | `policy` | Policy file read from a temporary root. | `TestSelectsDeterministicallyForRepresentativeSignals` in `internal/strategy/strategy_test.go` |
-| `evidence` | Fixture file under `workflow/trace-fixtures/`. | `TestSensitiveFixtureValuesNeverReachPersistedJSON` in `internal/trace/fixture_test.go` |
+| `evidence` | Fixture file under `workflow/trace-fixtures/`, or a `trace.RunResult` value passed to the conversion. | `TestSensitiveFixtureValuesNeverReachPersistedJSON` in `internal/trace/fixture_test.go`; `TestFromEvaluationRunReproducesTheRecordedTrace` in `internal/trace/run_result_test.go` |
 | `execution` | Sandbox directory replaced by `t.TempDir()`. | `TestEvaluateAssertions` in `internal/eval/assert_test.go` |
 | `governance` | Repository-root parameter plus the `out` and `errOut` writers. | `TestSensitiveContentRejectsATokenAndPrivateURL` in `internal/check/check_test.go` |
 | `composition` | The `repoCheck` table passed to `run`. | `TestRunFailsAggregateAndNamesFailingCheck` in `cmd/check-repository/main_test.go` |
@@ -114,7 +154,7 @@ stays where it is and is substituted through the same root or fixture seam.
 
 | Issue | Extends |
 | --- | --- |
-| #329 | Adds the typed evidence boundary to `Module ownership` and `Test substitution points` for the `evidence` module. |
+| #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. |
 | #330 | Adds a `provider` module to `Module ownership` and `Dependency direction`, and replaces the provider note in `Test substitution points`. |
 | #331 | Adds the approved contract decision table as a new section. |
 | #332 | Adds the cutover runbook and recovery procedure as a new section. |
