@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -17,6 +16,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/hidekitux/skills/internal/evidence"
 )
 
 const SchemaVersion = 1
@@ -82,10 +83,7 @@ type Diagnostic struct {
 }
 
 // DiagnosticRef is the only diagnostic data stored in a structured trace.
-type DiagnosticRef struct {
-	Producer string `json:"producer"`
-	Code     string `json:"code"`
-}
+type DiagnosticRef = evidence.DiagnosticRef
 
 type ValidationReport struct {
 	Valid           bool     `json:"valid"`
@@ -107,8 +105,8 @@ type Filter struct {
 var (
 	identifierRE = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:+-]*$`)
 	textRE       = regexp.MustCompile(`^[^\r\n]+$`)
-	credentialRE = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
-	urlRE        = regexp.MustCompile(`https?://[^\s"']+`)
+	credentialRE = evidence.CredentialPattern()
+	urlRE        = evidence.URLPattern()
 )
 
 // New sanitizes and validates a diagnostic before a caller persists or
@@ -509,7 +507,7 @@ func validEvidenceRef(kind, value string) bool {
 	case "command", "validation", "trace":
 		return validIdentifier(value)
 	case "commit":
-		return regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(value)
+		return evidence.CommitSHAPattern().MatchString(value)
 	case "issue", "pull_request":
 		parsed, err := url.Parse(value)
 		if err != nil || parsed.Scheme != "https" || parsed.Host != "github.com" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
@@ -594,15 +592,6 @@ func containsRemediation(values []Remediation, want Remediation) bool {
 		}
 	}
 	return false
-}
-
-// IsPrivateHost is exported for adapters that receive URLs from external
-// tools and must reject local or private addresses before creating evidence.
-func IsPrivateHost(host string) bool {
-	if ip := net.ParseIP(host); ip != nil {
-		return ip.IsPrivate() || ip.IsLoopback()
-	}
-	return host == "localhost" || strings.HasSuffix(host, ".local")
 }
 
 // CheckFixtures validates committed diagnostic JSONL fixtures without
