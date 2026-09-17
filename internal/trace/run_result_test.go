@@ -8,8 +8,10 @@ import (
 
 // TestFromEvaluationRunReproducesTheRecordedTrace pins the persisted shape this
 // conversion produces. The golden file was captured from the assembly that
-// internal/eval owned before Issue #329 moved it here, so a difference in any
-// field, event, or order is a change to a persisted contract.
+// internal/eval owned before Issue #329 moved it here, so an added, removed, or
+// differently valued field, and a different event order, is a change to a
+// persisted contract. equalJSON sorts the keys of a JSON object, so the order of
+// the fields inside one object is not compared.
 func TestFromEvaluationRunReproducesTheRecordedTrace(t *testing.T) {
 	data, err := os.ReadFile("testdata/evaluation-run-traces.json")
 	if err != nil {
