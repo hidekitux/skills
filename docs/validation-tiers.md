@@ -5,9 +5,10 @@ actionable gates; expensive analyses run at the boundary that pays for them;
 and release evidence stays comprehensive. Every CI validation command belongs
 to exactly one tier. This document is the authority for the tier assignments;
 keep it in sync when a command, workflow, or trigger changes. The
+`Changed: the repository check list` section of the
 [architecture record](architecture.md) holds the contract decision behind the
-repository check total below, so a change to that total updates both
-documents.
+`check:repository` total this document records, so a change to that total
+updates both documents.
 
 ## Tier definitions
 

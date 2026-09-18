@@ -4,8 +4,9 @@
 capabilities, artifacts, prerequisites, authority boundaries, outcomes, and
 handoffs. The graph describes contracts only. It does not execute skills,
 select models, or enforce host permissions. The `domain` module owns the
-packages that read this graph; the [architecture record](architecture.md)
-states that ownership and the dependency direction it allows.
+packages that read this graph. The `Module ownership` and `Dependency
+direction` sections of the [architecture record](architecture.md) state that
+ownership and the imports it allows.
 
 ## Read the graph
 
