@@ -41,10 +41,7 @@ func CommitSHAPattern() *regexp.Regexp { return commitSHAPattern }
 // without its enclosing brackets.
 func IsPrivateHost(host string) bool {
 	if parsed := net.ParseIP(host); parsed != nil {
-		return parsed.IsLoopback() ||
-			parsed.IsPrivate() ||
-			parsed.IsLinkLocalUnicast() ||
-			parsed.IsLinkLocalMulticast()
+		return parsed.IsLoopback() || parsed.IsPrivate() || parsed.IsLinkLocalUnicast()
 	}
 	lowered := strings.ToLower(host)
 	return lowered == "localhost" || strings.HasSuffix(lowered, ".local")
