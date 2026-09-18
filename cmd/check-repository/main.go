@@ -53,6 +53,7 @@ var repoChecks = []repoCheck{
 	{name: "check-dependabot-config", fn: check.CheckDependabotConfig},
 	{name: "check-module-boundaries", fn: check.CheckModuleBoundaries},
 	{name: "check-contract-decisions", fn: check.CheckContractDecisions},
+	{name: "check-cutover-record", fn: check.CheckCutoverRecord},
 	{name: "check-public-status", fn: publicstatus.Check},
 	{name: "validate-diagnostic", fn: diagnostic.CheckFixtures},
 	{name: "check-evaluation", fn: eval.CheckCorpus},
