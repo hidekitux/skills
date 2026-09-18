@@ -24,6 +24,7 @@ import (
 	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/evidence"
 	"github.com/hidekitux/skills/internal/graph"
+	"github.com/hidekitux/skills/internal/redact"
 	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"gopkg.in/yaml.v3"
 )
@@ -243,9 +244,9 @@ var (
 	runIDPattern      = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:-]*$`)
 	metadataPattern   = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:@+-]*$`)
 	versionPattern    = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
-	shaPattern        = evidence.CommitSHAPattern()
-	credentialPattern = evidence.CredentialPattern()
-	urlPattern        = evidence.URLPattern()
+	shaPattern        = redact.CommitSHAPattern()
+	credentialPattern = redact.CredentialPattern()
+	urlPattern        = redact.URLPattern()
 )
 
 // Validate checks a trace against the semantic contract.
