@@ -1,6 +1,6 @@
 # Skill contract
 
-Every skill states where its result goes and which skill owns the next phase. This document defines the shared handoff contract: the artifact flow from report to review, the debug and review closed loops, and the analyze-to-change boundary.
+Every skill states where its result goes and which skill owns the next phase. This document defines the shared handoff contract: the artifact flow from report to review, the debug and review closed loops, and the analyze-to-change boundary. The [architecture record](architecture.md) names the internal module that owns each artifact in this flow, and `workflow/module-ownership.yml` is its machine-readable form.
 
 ## Machine-readable graph
 

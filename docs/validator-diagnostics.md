@@ -6,6 +6,10 @@ of facts needed to route a failure: its producer, stable code, category, source
 command, location, rule or invariant, expected and observed state, evidence,
 retryability, and remediation category.
 
+The `evidence` module owns diagnostics. The
+[architecture record](architecture.md) states which module may produce one and
+which provider failure each category comes from.
+
 ## Categories and codes
 
 Each diagnostic has exactly one category:
