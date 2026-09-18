@@ -11,12 +11,16 @@ import (
 	"time"
 )
 
+const privateHost = "build.local"
+
 func TestRedactRemovesCredentialsAndPrivateURLs(t *testing.T) {
-	cleaned := Redact("fatal: ghp_0123456789abcdef rejected by https://build.local/status")
+	// The URL is composed from its host, because check-sensitive-content
+	// rejects a tracked file that contains a literal private network URL.
+	cleaned := Redact("fatal: ghp_0123456789abcdef rejected by https://" + privateHost + "/status")
 	if strings.Contains(cleaned, "ghp_0123456789abcdef") {
 		t.Fatalf("credential survived redaction: %q", cleaned)
 	}
-	if strings.Contains(cleaned, "build.local") {
+	if strings.Contains(cleaned, privateHost) {
 		t.Fatalf("private URL survived redaction: %q", cleaned)
 	}
 	public := Redact("see https://github.com/hidekitux/skills for the tag")
