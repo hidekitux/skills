@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/trace"
 )
 
@@ -116,7 +117,7 @@ func TestRunOptInWritesTraceAndMetrics(t *testing.T) {
 	var out, errOut bytes.Buffer
 	opts := &Options{
 		Root: root, Hosts: []string{"codex"}, ScenarioID: "plan-issue-success", TraceOutputDir: output,
-		RunnerFor: func(name string) HostRunner {
+		RunnerFor: func(name string) provider.HostCLI {
 			return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
 		},
 	}

@@ -1,13 +1,12 @@
-package eval
+package provider
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/hidekitux/skills/internal/support"
 )
 
 func TestDriverConfigsCoverEveryHost(t *testing.T) {
@@ -36,7 +35,7 @@ func TestAntigravityPrepareRuntimeWritesSettingsWhenKeyModeOptIn(t *testing.T) {
 	t.Setenv("GEMINI_API_KEY", "test-key-value")
 	t.Setenv("EVAL_ANTIGRAVITY_KEY_MODE", "1")
 	sandbox := t.TempDir()
-	host := newCliHost(HostAntigravity)
+	host := newCliHost(HostAntigravity, OSRunner{})
 	if err := host.prepareRuntime(sandbox); err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +59,7 @@ func TestAntigravityPrepareRuntimeDefaultsToAccountLogin(t *testing.T) {
 	t.Setenv("GEMINI_API_KEY", "test-key-value")
 	t.Setenv("EVAL_ANTIGRAVITY_KEY_MODE", "")
 	sandbox := t.TempDir()
-	host := newCliHost(HostAntigravity)
+	host := newCliHost(HostAntigravity, OSRunner{})
 	if err := host.prepareRuntime(sandbox); err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +76,7 @@ func TestAntigravityPrepareRuntimeDefaultsToAccountLogin(t *testing.T) {
 
 func TestAntigravityRunEnvIsolatesHomeOnlyWithKeyMode(t *testing.T) {
 	sandbox := t.TempDir()
-	host := newCliHost(HostAntigravity)
+	host := newCliHost(HostAntigravity, OSRunner{})
 
 	t.Setenv("GEMINI_API_KEY", "test-key-value")
 	t.Setenv("EVAL_ANTIGRAVITY_KEY_MODE", "1")
@@ -106,7 +105,7 @@ func containsPrefix(kvs []string, prefix string) bool {
 
 func TestRunEnvFiltersCredentialVariables(t *testing.T) {
 	sandbox := t.TempDir()
-	host := newCliHost(HostCodex)
+	host := newCliHost(HostCodex, OSRunner{})
 	t.Setenv("GEMINI_API_KEY", "gl-test-credential")
 	t.Setenv("GH_TOKEN", "ghp_test-credential")
 	t.Setenv("AWS_SECRET_ACCESS_KEY", "aws-test-credential")
@@ -126,14 +125,14 @@ func TestRunEnvKeyModeExposesGeminiKeyToAntigravityOnly(t *testing.T) {
 	sandbox := t.TempDir()
 	t.Setenv("GEMINI_API_KEY", "gl-test-credential")
 	t.Setenv("EVAL_ANTIGRAVITY_KEY_MODE", "1")
-	env := newCliHost(HostAntigravity).runEnv(sandbox)
+	env := newCliHost(HostAntigravity, OSRunner{}).runEnv(sandbox)
 	if !containsPrefix(env, "GEMINI_API_KEY=gl-test-credential") {
 		t.Fatalf("antigravity key mode must receive GEMINI_API_KEY, env = %v", env)
 	}
 	if !containsPrefix(env, "HOME="+sandbox) {
 		t.Fatalf("antigravity key mode must isolate HOME, env = %v", env)
 	}
-	env = newCliHost(HostCodex).runEnv(sandbox)
+	env = newCliHost(HostCodex, OSRunner{}).runEnv(sandbox)
 	for _, kv := range env {
 		if strings.HasPrefix(kv, "GEMINI_API_KEY=") {
 			t.Fatalf("non-antigravity driver inherited GEMINI_API_KEY: %s", kv)
@@ -142,21 +141,24 @@ func TestRunEnvKeyModeExposesGeminiKeyToAntigravityOnly(t *testing.T) {
 }
 
 func TestWireGithubRepoRegistersConfiguredOrigin(t *testing.T) {
+	ctx := context.Background()
 	sandbox := t.TempDir()
-	if _, err := support.GitOutputIn(sandbox, "init", "--quiet"); err != nil {
+	git := NewGit(OSRunner{})
+	if _, err := git.Output(ctx, sandbox, "init", "--quiet"); err != nil {
 		t.Fatal(err)
 	}
+	host := newCliHost(HostCodex, OSRunner{})
 	t.Setenv("EVAL_GITHUB_REPO", "")
-	if err := wireGithubRepo(sandbox); err != nil {
+	if err := host.wireGithubRepo(ctx, sandbox); err != nil {
 		t.Fatalf("unconfigured repo must not fail: %v", err)
 	}
 	t.Setenv("EVAL_GITHUB_REPO", "hidekitux/sandbox")
-	if err := wireGithubRepo(sandbox); err != nil {
+	if err := host.wireGithubRepo(ctx, sandbox); err != nil {
 		t.Fatal(err)
 	}
-	out, err := support.GitOutputIn(sandbox, "remote", "get-url", "origin")
-	if err != nil || strings.TrimSpace(out) != "https://github.com/hidekitux/sandbox.git" {
-		t.Fatalf("origin = %q, err = %v", out, err)
+	out, err := git.Output(ctx, sandbox, "remote", "get-url", "origin")
+	if err != nil || strings.TrimSpace(out.Stdout) != "https://github.com/hidekitux/sandbox.git" {
+		t.Fatalf("origin = %q, err = %v", out.Stdout, err)
 	}
 }
 
@@ -198,33 +200,33 @@ func TestModelFlagHonorsEnvOverride(t *testing.T) {
 
 func TestEffectiveModelMatchesInvocation(t *testing.T) {
 	// Non-antigravity drivers follow evaluation-level tier resolution.
-	if got := effectiveModel(HostOpenCode, "opencode-go/deepseek-v4-flash"); got != "opencode-go/deepseek-v4-flash" {
+	if got := EffectiveModel(HostOpenCode, "opencode-go/deepseek-v4-flash"); got != "opencode-go/deepseek-v4-flash" {
 		t.Fatalf("effectiveModel = %s", got)
 	}
 	// Codex keeps its own OpenAI default instead of the tier model.
-	if got := effectiveModel(HostCodex, "opencode-go/deepseek-v4-flash"); got != defaultCodexModel {
+	if got := EffectiveModel(HostCodex, "opencode-go/deepseek-v4-flash"); got != defaultCodexModel {
 		t.Fatalf("codex effectiveModel = %s, want %s", got, defaultCodexModel)
 	}
-	if got := effectiveModel(HostOpenCode, "unset"); got != defaultTierModel {
-		t.Fatalf("effectiveModel(unset) = %s", got)
+	if got := EffectiveModel(HostOpenCode, "unset"); got != defaultTierModel {
+		t.Fatalf("EffectiveModel(unset) = %s", got)
 	}
 	// Antigravity and claude-code pin their own defaults and ignore the tier.
-	if got := effectiveModel(HostAntigravity, "opencode-go/deepseek-v4-flash"); got != defaultGeminiModel {
+	if got := EffectiveModel(HostAntigravity, "opencode-go/deepseek-v4-flash"); got != defaultGeminiModel {
 		t.Fatalf("antigravity effectiveModel = %s, want %s", got, defaultGeminiModel)
 	}
-	if got := effectiveModel(HostClaudeCode, "opencode-go/deepseek-v4-flash"); got != defaultClaudeModel {
+	if got := EffectiveModel(HostClaudeCode, "opencode-go/deepseek-v4-flash"); got != defaultClaudeModel {
 		t.Fatalf("claude effectiveModel = %s, want %s", got, defaultClaudeModel)
 	}
 	t.Setenv("EVAL_ANTIGRAVITY_MODEL", "gemini-3-pro-image-preview")
-	if got := effectiveModel(HostAntigravity, "opencode-go/deepseek-v4-flash"); got != "gemini-3-pro-image-preview" {
+	if got := EffectiveModel(HostAntigravity, "opencode-go/deepseek-v4-flash"); got != "gemini-3-pro-image-preview" {
 		t.Fatalf("antigravity override = %s", got)
 	}
 }
 
-// TestRunnerForReturnsRealDrivers guards the public runner factory used by
-// cmd/evaluate.
-func TestRunnerForReturnsRealDrivers(t *testing.T) {
-	host := runnerFor(HostAntigravity)
+// TestNewHostCLIReturnsRealDrivers guards the adapter factory used by
+// internal/eval and cmd/evaluate.
+func TestNewHostCLIReturnsRealDrivers(t *testing.T) {
+	host := NewHostCLI(HostAntigravity, OSRunner{})
 	if host.Name() != HostAntigravity {
 		t.Fatalf("runner name = %s", host.Name())
 	}
