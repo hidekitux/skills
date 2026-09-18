@@ -6,17 +6,20 @@ This document is the architecture record that Issue #326 requires. It states
 which internal module owns each responsibility of the Go implementation, which
 module may import which, and where a focused test replaces a module's input.
 Issue #328 establishes the ownership model and the dependency direction. Issue
-#329 adds the evidence data path and the typed domain result. Issues #330
-through #333 extend this document; the handoff section names the section each
-one changes.
+#329 adds the evidence data path and the typed domain result. Issue #330 adds
+the provider module and the provider ownership section. Issues #331 through
+#333 extend this document; the handoff section names the section each one
+changes.
 
 `workflow/module-ownership.yml` is the machine-readable form of the model below.
 The `check-module-boundaries` repository check reads that file, resolves the
 imports of every package below `internal/` including a nested one, and fails on
-any module edge the file does not allow. The ownership file lists only top-level
-directories; a nested package such as `support/util` belongs to the module that
-owns its top-level directory. `cmd/check-repository` runs the check, so
-`mise run check:repository` and `mise run validate:all` enforce the direction.
+any module edge the file does not allow. The check also fails when a package
+outside the `provider` module imports `os/exec` or `net/http`. The ownership
+file lists only top-level directories; a nested package such as `support/util`
+belongs to the module that owns its top-level directory.
+`cmd/check-repository` runs the check, so `mise run check:repository` and
+`mise run validate:all` enforce the direction.
 
 ## Measured baseline
 
@@ -44,6 +47,7 @@ broken import graph.
 | Module | Owns | Packages |
 | --- | --- | --- |
 | `foundation` | Shared primitives and skill discovery. | `discover`, `hooks`, `support` |
+| `provider` | Ports and adapters for every external process and network request. | `provider` |
 | `domain` | Skill domain data read from the repository tree. | `graph`, `instructions` |
 | `policy` | Policy decisions about deliberation, environment, and execution strategy. | `context`, `deliberation`, `environment`, `strategy` |
 | `evidence` | Evidence and reporting artifacts. | `badges`, `diagnostic`, `evidence`, `publicstatus`, `replay`, `trace` |
@@ -52,10 +56,10 @@ broken import graph.
 | `composition` | Command-line assembly. | `cmd/**` |
 
 One module owns each of the five responsibilities Issue #326 names: `execution`
-owns workflow execution, `policy` owns policy decisions, `evidence` owns
-evidence and reporting, `governance` owns the tests that validate committed
-artifacts, and the substitution-point table below owns the test seams. No module
-owns providers yet; Issue #330 introduces them.
+owns workflow execution, `policy` owns policy decisions, `provider` owns
+external providers, `evidence` owns evidence and reporting, and `governance`
+owns the tests that validate committed artifacts. The substitution-point table
+below owns the test seams.
 
 `internal/evidence` holds the primitives more than one evidence producer needs:
 `DiagnosticRef`, `IsPrivateAddress`, and the credential, URL, and commit
@@ -66,11 +70,13 @@ producer: `Evidence`, `RedactionSummary`, and `ValidationReport` are declared
 separately in `internal/trace` and `internal/diagnostic`, because merging them
 would widen a persisted contract.
 
-`internal/strategy`, `internal/environment`, and `internal/eval` still declare
+`internal/strategy`, `internal/environment`, and `internal/provider` declare
 their own copies of the credential or commit identifier pattern.
 `internal/strategy` and `internal/environment` belong to `policy`, which may not
-import `evidence`, so removing those copies needs a separate decision about
-where the patterns belong.
+import `evidence`. `internal/provider` cannot import `evidence` either: the
+`evidence` module may import `policy`, and `policy` imports `provider`, so the
+edge would make the module graph cyclic. Removing those copies needs a separate
+decision about where the patterns belong.
 
 ## Evidence data path
 
@@ -106,16 +112,92 @@ comparison decodes and re-encodes both sides, which sorts the keys of a JSON
 object, so it does not detect a different order of the fields inside one
 object.
 
+## Provider ownership
+
+An external operation is a process the repository starts or a request it sends
+over the network. `internal/provider` owns every one of them. A caller states
+what it needs through a port, and one adapter performs it. `provider.Runner` is
+the process port: `provider.OSRunner` starts a real process and `provider.Stub`
+answers from recorded values without starting one. Every capability port below
+is built from a Runner, so substituting the Runner substitutes every
+process-backed provider at once.
+
+| Port | Adapter | Operations | Authority required |
+| --- | --- | --- | --- |
+| `provider.Runner` | `OSRunner` | Any process | Whatever the command itself needs |
+| `provider.Git` | `NewGit` | `git` reads and writes in a working tree | The local repository; git resolves its own remote credentials |
+| `provider.GitHub` | `NewGitHub` | `gh`, including `gh skill install` and `gh skill publish` | The `gh` authentication already in the environment |
+| `provider.GitHubAPI` | `NewGitHubAPI` | The pull-request commits endpoint | A token the caller passes per request |
+| `provider.HostCLI` | `NewHostCLI` | One headless evaluation stage for `codex`, `claude-code`, `opencode`, or `antigravity` | The account or key the host CLI resolves |
+| `provider.Mise` | `NewMise` | A `mise` task | None beyond the local toolchain |
+| `provider.FSL` | `NewFSL` | The pinned `fslc` binary at an explicit path | None |
+| `provider.Tool` | `NewTool` | `commitlint`, `govulncheck`, `uv`, `wt` | None beyond the local toolchain |
+| `provider.Shell` | `NewShell` | One bounded `sh -c` command from a scenario file | The environment the caller passes |
+
+The filesystem is not a port. Its adapter is the operating system, and a test
+substitutes it by pointing the caller at a temporary root, the seam the
+substitution table below records for every module. A Go interface would reach
+about 150 call sites in 20 packages without changing what a test can already
+do.
+
+### Failure classification
+
+Every adapter returns `*provider.Error` on failure. It carries the port, the
+operation, the classification, the exit code, and a bounded detail with
+credentials and private addresses removed. A nil error is the success
+classification, and a product validation failure stays an ordinary error or a
+report value, so `provider.KindOf` separates the two.
+
+| Classification | Meaning | Source |
+| --- | --- | --- |
+| `failure` | The operation ran and returned a non-zero result | A process exit status, or an HTTP status of 400 or more |
+| `timeout` | The operation exceeded the deadline the caller set | `Command.Timeout` expired |
+| `interrupted` | The operation was cancelled or signalled before producing a result | A cancelled context, or a negative exit code |
+| `unavailable` | The capability is absent, so the operation never started | An unresolved binary, or a process that returned no status |
+| `retry_exhausted` | A caller that bounds its own attempts used the last one | `provider.RetryExhausted` |
+
+No adapter retries. A retry stays with the caller that owns the attempt bound,
+which is the behavior Issue #330 preserves rather than changes.
+
+### Provider call map
+
+Every external operation moved from its caller to a port. The `git` call in
+`internal/support/support.go` is the one exception: repository-root resolution
+needs it, and `foundation` cannot import `provider`, which imports `foundation`.
+`check-module-boundaries` exempts that package by name and reports every other
+process or request call outside `internal/provider`.
+
+| Operation | Before | After |
+| --- | --- | --- |
+| `git` output for repository-root resolution | `support.GitOutputIn` | Unchanged, now unexported as `support.gitOutput` |
+| `git` reads for whitespace, writing, and sensitive-content checks | `support.GitOutputIn` and `exec.Command` in `internal/check` | `check.gitPort` on `provider.Git` |
+| `git` reads for changed FSL specifications | `exec.Command` in `internal/fsl/changed.go` | `fsl.gitPort` on `provider.Git` |
+| `git` reads and `commitlint` for commit linting | `commitlint.commandRunner` | `provider.Git` and `provider.Tool` |
+| `git` reads and `git ls-remote` for release verification | `release.commandRunner` | `release.releasePorts` on `provider.Git` |
+| `git` provenance for an evaluation run | `support.GitOutputIn` in `internal/eval/run.go` | `eval.gitPort` on `provider.Git` |
+| `git`, `wt`, and `bash` for worktree provisioning | `environment.CommandRunner` | `provider.Runner` through `environment.runCombined` |
+| `gh` for Project reads and mutations | `exec.Command` in `internal/project/client.go` | `provider.GitHub` |
+| `gh skill install` for host validation | `exec.Command` in `internal/validate/hosts.go` | `validate.githubPort` on `provider.GitHub` |
+| `gh skill install` for an evaluation sandbox | `exec.CommandContext` in `internal/eval/host.go` | `provider.HostCLI` using `provider.GitHub` |
+| `mise` tasks and `gh skill publish` for a release | `release.commandRunner` | `provider.Mise` and `provider.GitHub` |
+| `fslc` check and verify | `exec.Command` in `internal/fsl/run.go` | `fsl.fslPort` on `provider.FSL` |
+| `govulncheck` scan | `govuln.runner` | `provider.Tool` |
+| `uv` for the skill-creator validator | `exec.Command` in `internal/validate/skillcreator.go` | `validate.toolPort` on `provider.Tool` |
+| One headless host CLI stage | `eval.HostRunner` | `provider.HostCLI` |
+| `sh -c` for an assertion command and a rubric reviewer | `exec.CommandContext` in `internal/eval` | `eval.shellPort` on `provider.Shell` |
+| The pull-request commits endpoint | `net/http` in `internal/validate/prsignatures.go` | `validate.apiPort` on `provider.GitHubAPI` |
+
 ## Dependency direction
 
 | Module | May import |
 | --- | --- |
 | `foundation` | Nothing. |
+| `provider` | `foundation` |
 | `domain` | `foundation` |
-| `policy` | `foundation`, `domain` |
+| `policy` | `foundation`, `provider`, `domain` |
 | `evidence` | `foundation`, `domain`, `policy` |
-| `execution` | `foundation`, `domain`, `policy`, `evidence` |
-| `governance` | `foundation`, `domain`, `evidence` |
+| `execution` | `foundation`, `provider`, `domain`, `policy`, `evidence` |
+| `governance` | `foundation`, `provider`, `domain`, `evidence` |
 | `composition` | Every module. |
 
 An import inside one module is always allowed. Every module edge the table omits
@@ -128,6 +210,9 @@ is a forbidden reverse dependency. The rule covers these cases in particular:
   downward.
 - `governance` never imports `execution` or `policy`, so a repository check
   validates a committed artifact rather than re-running an execution decision.
+- `provider` imports only `foundation`, so an adapter cannot reach for a policy,
+  a domain type, or an evidence type. `domain` and `evidence` do not import
+  `provider`, because neither reads an external system.
 - No module imports `composition`. `cmd/**` assembles the program and is
   imported by nothing. The check reports an import of
   `github.com/hidekitux/skills/cmd/` from any internal package as a forbidden
@@ -148,6 +233,7 @@ test that uses it.
 | Module | Substitution point | Test that uses it |
 | --- | --- | --- |
 | `foundation` | Repository-root parameter replaced by `t.TempDir()`. | `TestResolveRoot` in `internal/support/support_test.go` |
+| `provider` | `provider.Runner` replaced by `provider.Stub`. | `TestStubSubstitutesEveryProcessBackedPort` in `internal/provider/provider_test.go` |
 | `domain` | Repository-root parameter pointed at a written fixture tree. | `TestValidateRejectsDanglingSkillDestination` in `internal/graph/graph_test.go` |
 | `policy` | Policy file read from a temporary root. | `TestSelectsDeterministicallyForRepresentativeSignals` in `internal/strategy/strategy_test.go` |
 | `evidence` | Fixture file under `workflow/trace-fixtures/`, or a `trace.RunResult` value passed to the conversion. | `TestSensitiveFixtureValuesNeverReachPersistedJSON` in `internal/trace/fixture_test.go`; `TestFromEvaluationRunReproducesTheRecordedTrace` in `internal/trace/run_result_test.go` |
@@ -156,16 +242,20 @@ test that uses it.
 | `composition` | The `repoCheck` table passed to `run`. | `TestRunFailsAggregateAndNamesFailingCheck` in `cmd/check-repository/main_test.go` |
 
 A module dependency is substituted by pointing the dependent at a different
-repository root or fixture path, not by replacing a Go interface. Issue #330
-introduces interfaces for external providers; until it lands, a provider call
-stays where it is and is substituted through the same root or fixture seam.
+repository root or fixture path. An external provider is substituted by
+replacing a Go interface instead: a test assigns a port built on
+`provider.Stub`, and no process starts, no credential is read, and no ambient
+repository state is touched. `TestOSRunnerClassifiesEveryFailureKind` covers
+failure, timeout, interruption, and unavailable capability against the real
+adapter, and `TestErrorMessageNeverCarriesACredential` checks that a diagnostic
+carries no credential.
 
 ## Handoff to the dependent Sub-issues
 
 | Issue | Extends |
 | --- | --- |
 | #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. |
-| #330 | Adds a `provider` module to `Module ownership` and `Dependency direction`, and replaces the provider note in `Test substitution points`. |
+| #330 | Landed. Added the `provider` module to `Module ownership` and `Dependency direction`, added `Provider ownership`, and replaced the provider note in `Test substitution points`. |
 | #331 | Adds the approved contract decision table as a new section. |
 | #332 | Adds the cutover runbook and recovery procedure as a new section. |
 | #333 | Records the final validation results and reconciles every section with the shipped tree. |
