@@ -3,9 +3,9 @@
 `workflow/skill-graph.yml` is the authoritative source for reusable skill
 capabilities, artifacts, prerequisites, authority boundaries, outcomes, and
 handoffs. The graph describes contracts only. It does not execute skills,
-select models, or enforce host permissions. The `domain` module owns the packages that
-read this graph; the [architecture record](architecture.md) states that
-ownership and the dependency direction it allows.
+select models, or enforce host permissions. The `domain` module owns the
+packages that read this graph; the [architecture record](architecture.md)
+states that ownership and the dependency direction it allows.
 
 ## Read the graph
 
