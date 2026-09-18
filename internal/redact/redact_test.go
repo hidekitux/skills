@@ -1,16 +1,36 @@
-package evidence
+package redact
 
 import "testing"
 
-func TestIsPrivateAddressRejectsLocalAndPrivateHosts(t *testing.T) {
-	for _, host := range []string{"127.0.0.1", "10.0.0.1", "192.168.1.5", "::1", "localhost", "build.local"} {
-		if !IsPrivateAddress(host) {
-			t.Fatalf("expected %q to be a private address", host)
+func TestIsPrivateHostAnswersEveryAddressClass(t *testing.T) {
+	private := map[string]string{
+		"127.0.0.1":   "IPv4 loopback",
+		"::1":         "IPv6 loopback",
+		"10.0.0.1":    "IPv4 private range",
+		"192.168.1.5": "IPv4 private range",
+		"172.16.0.1":  "IPv4 private range",
+		"fd00::1":     "unique local IPv6 address",
+		"fc00::abcd":  "unique local IPv6 address",
+		"169.254.1.1": "IPv4 link local address",
+		"fe80::1":     "IPv6 link local address",
+		"localhost":   "local name",
+		"build.local": "local name suffix",
+		"BUILD.LOCAL": "local name suffix in upper case",
+	}
+	for host, class := range private {
+		if !IsPrivateHost(host) {
+			t.Fatalf("expected %q (%s) to be private", host, class)
 		}
 	}
-	for _, host := range []string{"github.com", "8.8.8.8", "example.com"} {
-		if IsPrivateAddress(host) {
-			t.Fatalf("expected %q to be a public address", host)
+	public := map[string]string{
+		"github.com":  "public name",
+		"8.8.8.8":     "public IPv4 address",
+		"2001:db8::1": "documentation IPv6 address",
+		"example.com": "public name",
+	}
+	for host, class := range public {
+		if IsPrivateHost(host) {
+			t.Fatalf("expected %q (%s) to be public", host, class)
 		}
 	}
 }
@@ -42,6 +62,14 @@ func TestURLPatternFindsEveryAbsoluteURL(t *testing.T) {
 	}
 	if found[0] != "https://github.com/a" || found[1] != "http://example.org/b" {
 		t.Fatalf("unexpected URLs: %v", found)
+	}
+}
+
+func TestURLPatternIgnoresTheCaseOfTheScheme(t *testing.T) {
+	for _, value := range []string{"HTTPS://github.com/a", "Http://example.org/b"} {
+		if URLPattern().FindString(value) != value {
+			t.Fatalf("expected %q to match whatever the case of its scheme", value)
+		}
 	}
 }
 

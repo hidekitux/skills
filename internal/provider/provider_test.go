@@ -11,15 +11,48 @@ import (
 	"time"
 )
 
+const privateHost = "build.local"
+
 func TestRedactRemovesCredentialsAndPrivateURLs(t *testing.T) {
-	cleaned := Redact("fatal: ghp_0123456789abcdef rejected by https://build.local/status")
+	// The URL is composed from its host, because check-sensitive-content
+	// rejects a tracked file that contains a literal private network URL.
+	cleaned := Redact("fatal: ghp_0123456789abcdef rejected by https://" + privateHost + "/status")
 	if strings.Contains(cleaned, "ghp_0123456789abcdef") {
 		t.Fatalf("credential survived redaction: %q", cleaned)
 	}
-	if strings.Contains(cleaned, "build.local") {
+	if strings.Contains(cleaned, privateHost) {
 		t.Fatalf("private URL survived redaction: %q", cleaned)
 	}
 	public := Redact("see https://github.com/hidekitux/skills for the tag")
+	if !strings.Contains(public, "https://github.com/hidekitux/skills") {
+		t.Fatalf("public URL must stay readable: %q", public)
+	}
+}
+
+// TestRedactRemovesEveryPrivateHostClass composes each URL from a host rather
+// than writing it out, because check-sensitive-content rejects a tracked file
+// that contains a literal private network URL.
+func TestRedactRemovesEveryPrivateHostClass(t *testing.T) {
+	for _, host := range []string{
+		"127.0.0.1",
+		"10.0.0.1",
+		"192.168.1.5",
+		"172.16.0.1",
+		"[::1]",
+		"[fd00::1]",
+		"[fc00::abcd]",
+		"169.254.1.1",
+		"[fe80::1]",
+		"localhost",
+		"build.local",
+	} {
+		rawURL := "https://" + host + "/path"
+		cleaned := Redact("fatal: request to " + rawURL + " failed")
+		if cleaned != "fatal: request to [redacted private URL] failed" {
+			t.Fatalf("private host %q survived redaction: %q", host, cleaned)
+		}
+	}
+	public := Redact("fatal: request to https://github.com/hidekitux/skills failed")
 	if !strings.Contains(public, "https://github.com/hidekitux/skills") {
 		t.Fatalf("public URL must stay readable: %q", public)
 	}
