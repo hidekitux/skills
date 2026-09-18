@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/hidekitux/skills/internal/evidence"
+	"github.com/hidekitux/skills/internal/redact"
 )
 
 const SchemaVersion = 1
@@ -105,8 +106,8 @@ type Filter struct {
 var (
 	identifierRE = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:+-]*$`)
 	textRE       = regexp.MustCompile(`^[^\r\n]+$`)
-	credentialRE = evidence.CredentialPattern()
-	urlRE        = evidence.URLPattern()
+	credentialRE = redact.CredentialPattern()
+	urlRE        = redact.URLPattern()
 )
 
 // New sanitizes and validates a diagnostic before a caller persists or
@@ -507,7 +508,7 @@ func validEvidenceRef(kind, value string) bool {
 	case "command", "validation", "trace":
 		return validIdentifier(value)
 	case "commit":
-		return evidence.CommitSHAPattern().MatchString(value)
+		return redact.CommitSHAPattern().MatchString(value)
 	case "issue", "pull_request":
 		parsed, err := url.Parse(value)
 		if err != nil || parsed.Scheme != "https" || parsed.Host != "github.com" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
