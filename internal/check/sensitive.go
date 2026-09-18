@@ -14,8 +14,6 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/hidekitux/skills/internal/support"
 )
 
 type sensitivePattern struct {
@@ -56,7 +54,7 @@ var sensitivePatterns = []sensitivePattern{
 // candidateFiles returns the tracked and untracked non-ignored files under
 // root, falling back to a plain recursive walk when Git is unavailable.
 func candidateFiles(root string) []string {
-	out, err := support.GitOutputIn(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
+	out, err := gitOutput(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
 	if err == nil {
 		var files []string
 		for _, item := range strings.Split(out, "\x00") {

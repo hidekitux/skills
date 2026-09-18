@@ -6,10 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
-	"github.com/hidekitux/skills/internal/support"
+	"github.com/hidekitux/skills/internal/provider"
 )
 
 const worktrunkCommand = "wt"
@@ -43,8 +42,8 @@ type WorktreeProvider interface {
 // back to native Git when the local convenience tool is unavailable. CI and
 // other non-local callers should leave Provisioner.Worktree nil, which keeps
 // the native provider as the deterministic default.
-func NewLocalWorktreeProvider(runner CommandRunner) WorktreeProvider {
-	if command, err := exec.LookPath(worktrunkCommand); err == nil {
+func NewLocalWorktreeProvider(runner provider.Runner) WorktreeProvider {
+	if command, err := provider.LookPath(worktrunkCommand); err == nil {
 		return WorktrunkProvider{Runner: runner, Command: command}
 	}
 	return NativeGitWorktreeProvider{Runner: runner}
@@ -52,7 +51,7 @@ func NewLocalWorktreeProvider(runner CommandRunner) WorktreeProvider {
 
 // NativeGitWorktreeProvider uses Git's machine-readable worktree porcelain.
 type NativeGitWorktreeProvider struct {
-	Runner CommandRunner
+	Runner provider.Runner
 }
 
 func (p NativeGitWorktreeProvider) Create(ctx context.Context, root, destination, branch, revision string) (WorktreeState, error) {
@@ -116,17 +115,14 @@ func (p NativeGitWorktreeProvider) Remove(ctx context.Context, root string, work
 }
 
 func (p NativeGitWorktreeProvider) runGit(ctx context.Context, dir string, args ...string) (string, error) {
-	if p.Runner != nil {
-		return p.Runner.Run(ctx, dir, nil, "git", args...)
-	}
-	return (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "git", args...)
+	return runCombined(ctx, p.Runner, dir, "git", args...)
 }
 
 // WorktrunkProvider invokes worktrunk's structured automation interface. It
 // never asks worktrunk to change the caller's directory or run hooks during a
 // controlled Provisioner operation.
 type WorktrunkProvider struct {
-	Runner  CommandRunner
+	Runner  provider.Runner
 	Command string
 }
 
@@ -199,17 +195,11 @@ func (p WorktrunkProvider) Remove(ctx context.Context, root string, worktree Wor
 }
 
 func (p WorktrunkProvider) run(ctx context.Context, dir string, args ...string) (string, error) {
-	if p.Runner != nil {
-		return p.Runner.Run(ctx, dir, nil, p.command(), args...)
-	}
-	return (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), p.command(), args...)
+	return runCombined(ctx, p.Runner, dir, p.command(), args...)
 }
 
 func (p WorktrunkProvider) runGit(ctx context.Context, dir string, args ...string) (string, error) {
-	if p.Runner != nil {
-		return p.Runner.Run(ctx, dir, nil, "git", args...)
-	}
-	return (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "git", args...)
+	return runCombined(ctx, p.Runner, dir, "git", args...)
 }
 
 func resolveWorktree(worktrees []WorktreeState, destination, branch string, adoptBranchPath bool) (WorktreeState, bool, error) {
