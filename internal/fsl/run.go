@@ -153,9 +153,11 @@ func runFslcResult(out, errOut io.Writer, args ...string) fslcResult {
 	if err == nil {
 		return fslcResult{started: true}
 	}
-	// An unavailable verifier never started, so the caller reports a verifier
-	// infrastructure error rather than an invalid specification.
-	if provider.IsUnavailable(err) {
+	// Only a verifier that ran and returned a status reports on the
+	// specification. An absent binary, an expired deadline, and an interrupted
+	// run all leave the specification unjudged, so the caller reports a
+	// verifier infrastructure error instead of an invalid specification.
+	if kind, ok := provider.KindOf(err); !ok || kind != provider.KindFailure {
 		return fslcResult{exitCode: 1}
 	}
 	return fslcResult{exitCode: result.ExitCode, started: true}
