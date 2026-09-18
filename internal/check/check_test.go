@@ -38,6 +38,30 @@ func TestSensitiveContentRejectsATokenAndPrivateURL(t *testing.T) {
 	}
 }
 
+func TestSensitiveContentRejectsEveryPrivateHostClass(t *testing.T) {
+	for _, host := range []string{"[fd00::1]", "[fc00::abcd]", "169.254.1.1", "[fe80::1]", "build.local", "10.0.0.1"} {
+		root := t.TempDir()
+		content := "https://" + host + "/private\n"
+		if err := os.WriteFile(filepath.Join(root, "notes.md"), []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if code := runCheck(t, CheckSensitiveContent, root); code != 1 {
+			t.Fatalf("expected host %q to fail the check, got exit %d", host, code)
+		}
+	}
+}
+
+func TestSensitiveContentAcceptsAHostThatOnlyLooksPrivate(t *testing.T) {
+	root := t.TempDir()
+	content := "https://" + "192.168.1.5.example.com/docs\n"
+	if err := os.WriteFile(filepath.Join(root, "notes.md"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if code := runCheck(t, CheckSensitiveContent, root); code != 0 {
+		t.Fatalf("expected a public host with a private-looking prefix to pass, got exit %d", code)
+	}
+}
+
 const endpointBadges = `![FSL mutants killed](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-killed.json)
 ![FSL kill rate](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-kill-rate.json)
 ![FSL surviving mutants](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhidekitux%2Fskills%2Fbadge-data%2Ffsl-survived.json)
