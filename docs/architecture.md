@@ -53,7 +53,7 @@ broken import graph.
 
 | Module | Owns | Packages |
 | --- | --- | --- |
-| `foundation` | Shared primitives and skill discovery. | `discover`, `hooks`, `support` |
+| `foundation` | Shared primitives and skill discovery. | `discover`, `hooks`, `redact`, `support` |
 | `provider` | Ports and adapters for every external process and network request. | `provider` |
 | `domain` | Skill domain data read from the repository tree. | `graph`, `instructions` |
 | `policy` | Policy decisions about deliberation, environment, and execution strategy. | `context`, `deliberation`, `environment`, `strategy` |
