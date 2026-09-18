@@ -36,7 +36,7 @@ The measurements below come from commit `4cce0641bbc9bc28c9bba47522a6071b0acded6
 - The 22 packages under `internal/` produce 29 module edges. Every one of them
   is allowed by the model below, so recording the direction removed no edge and
   retained all 29.
-- `cmd/check-repository` aggregates 22 repository checks and imports 12 internal
+- `cmd/check-repository` aggregates 21 repository checks and imports 12 internal
   packages, the widest import set in the repository.
 
 The problem the model solves is an unrecorded and unenforced direction, not a
@@ -250,13 +250,110 @@ failure, timeout, interruption, and unavailable capability against the real
 adapter, and `TestErrorMessageNeverCarriesACredential` checks that a diagnostic
 carries no credential.
 
+## Contract decisions
+
+Issue #326 requires every contract to be classified as preserved or changed
+before the coordinated cutover. Issue #331 records that classification here.
+A contract is a surface an outside consumer can depend on without reading the
+Go implementation: a command name and its flags, a `mise` task name, a
+persisted JSONL shape, an FSL specification, the skill graph and replay data, a
+committed fixture, the skill layout, a diagnostic code, or a redaction rule for
+privacy-sensitive evidence.
+
+`workflow/contract-decisions.yml` is the machine-readable form of the table
+below. The `check-contract-decisions` repository check reads that file and
+fails on a missing field, an incomplete change record, an evidence path absent
+from the tree, an entry this document does not describe, and a version
+identifier Issue #326 has not separately approved. `cmd/check-repository` runs
+the check, so `mise run check:repository` and `mise run validate:all` enforce
+the record.
+
+`preserved` means the surface behaves at the branch head as it did at the
+measured baseline `4cce0641bbc9bc28c9bba47522a6071b0acded69` and its existing
+check still passes. `changed` means an observable difference exists and the
+entry records the old behavior, the new behavior, the reason, the requester
+confirmation, the migration condition, the compatibility impact, and the
+validation observation.
+
+| Contract | Surface | Decision |
+| --- | --- | --- |
+| `cli-command-names` | Command names and flags under `cmd/`. | preserved |
+| `repository-check-list` | The checks `cmd/check-repository` prints and its total. | changed |
+| `mise-task-names` | Task names in `mise.toml`. | preserved |
+| `skill-trace-jsonl` | The persisted skill-trace JSONL shape. | preserved |
+| `validator-diagnostic-jsonl` | The validator-diagnostic JSONL shape and its codes. | preserved |
+| `failure-record-jsonl` | The failure-record JSONL shape. | preserved |
+| `skill-environment-json` | The skill-environment report shape. | preserved |
+| `fsl-specifications` | The specification sources under `specs/`. | preserved |
+| `fsl-verifier-failure-classification` | How a caller learns the verifier could not judge a specification. | changed |
+| `skill-graph` | The skill graph data and its schema version. | preserved |
+| `replay-fixtures` | The replay fixtures and the outcome each asserts. | preserved |
+| `evidence-fixtures` | The committed trace, diagnostic, context, and failure-record fixtures. | preserved |
+| `skill-layout` | The `skills/<category>/<skill-name>/SKILL.md` layout and its catalog entry. | preserved |
+| `evaluation-corpus` | The evaluation scenarios and their assertions. | preserved |
+| `execution-policy-files` | The deliberation and execution-strategy policies. | preserved |
+| `evidence-redaction` | The rules that keep a credential, a private URL, and a user path out of evidence. | preserved |
+
+Fourteen of the sixteen contracts are preserved. The redesign moved Go package
+boundaries and routed external calls through provider ports; it renamed no
+command, no task, no schema field, and no skill path. `git diff --stat
+4cce0641..HEAD -- mise.toml specs/ workflow/ CATALOG.yml skills/ .github/ cmd/`
+shows changes only in the three Project command call sites, one added line in
+`cmd/check-repository/main.go`, this document, and the two machine-readable
+files this redesign adds.
+
+### Changed: the repository check list
+
+`cmd/check-repository` ran 21 checks at the baseline and printed
+`check:repository: all 21 repository checks passed.` on its final line. It now
+runs 23 and prints the matching total. Issue #328 added
+`check-module-boundaries` so the recorded dependency direction is enforced, and
+Issue #331 added `check-contract-decisions` so this table is enforced the same
+way. An unenforced record drifts, which `docs/validation-tiers.md` demonstrated
+by carrying a stale check total until this Issue reconciled it.
+
+The requester confirmed the change while planning Issue #331. A consumer that
+reads the printed list by name keeps working, because the list grows and no
+existing name was removed or renamed; a consumer that asserts an exact total
+updates that total once. The exit status contract is unchanged: zero when every
+check passes and one when any check fails. `go run ./cmd/check-repository`
+prints the 23 named checks and the matching total, and
+`cmd/check-repository/main_test.go` covers the aggregate result.
+
+### Changed: the FSL verifier failure classification
+
+At the baseline, an absent `fslc` binary, an expired deadline, and an
+interrupted run surfaced through the same path as a verifier that ran and
+rejected the specification, so an environment fault read as an invalid
+specification. `internal/fsl/run.go` now reports on the specification only when
+the verifier ran and returned a status, and reports every other outcome as a
+verifier infrastructure error.
+
+Issue #330 gave every external call a failure kind, and a specification that
+was never judged must not be reported as one that failed, because the two need
+different responses from the reader. The requester confirmed the change while
+planning Issue #331. A caller that treated any non-zero verifier result as an
+invalid specification now separates the two; no committed specification
+changes, and a passing run is byte-identical. `internal/fsl/run_test.go`
+exercises the absent, timed-out, and interrupted verifier against a provider
+stub, and `mise run verify:fsl` passes on the committed specifications.
+
+### No version identifier
+
+No entry in the table assigns `v1`, `v2`, or any other version identifier.
+Issue #326 allows one only after a separate recorded decision that names the
+identifier, its compatibility meaning, and its migration conditions, and the
+`check-contract-decisions` check fails on an entry that names one without a
+`version_decision` field. The `schema_version` field inside an existing schema
+is not a new identifier; this Issue changes no such value.
+
 ## Handoff to the dependent Sub-issues
 
 | Issue | Extends |
 | --- | --- |
 | #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. |
 | #330 | Landed. Added the `provider` module to `Module ownership` and `Dependency direction`, added `Provider ownership`, and replaced the provider note in `Test substitution points`. |
-| #331 | Adds the approved contract decision table as a new section. |
+| #331 | Landed. Added `Contract decisions`, `workflow/contract-decisions.yml`, and the `check-contract-decisions` repository check. |
 | #332 | Adds the cutover runbook and recovery procedure as a new section. |
 | #333 | Records the final validation results and reconciles every section with the shipped tree. |
 
