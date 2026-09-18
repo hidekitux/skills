@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/trace"
 )
 
@@ -13,7 +14,7 @@ import (
 // scenario executed once. Candidate scenarios remove the deliberation block
 // before execution, which keeps candidate prompts, sandboxes, and context
 // independent.
-func runOneDeliberation(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) Record {
+func runOneDeliberation(ctx context.Context, sc *Scenario, host provider.HostCLI, opts *Options, out, errOut io.Writer) Record {
 	started := time.Now()
 	baselineScenario := *sc
 	baselineScenario.Deliberation = nil

@@ -18,6 +18,13 @@ modules:
       - support
     may_import: []
 
+  - id: provider
+    owns: Ports and adapters for every external process and network request.
+    packages:
+      - provider
+    may_import:
+      - foundation
+
   - id: domain
     owns: Skill domain data read from the repository tree.
     packages:
@@ -35,6 +42,7 @@ modules:
       - strategy
     may_import:
       - foundation
+      - provider
       - domain
 
   - id: evidence
@@ -58,6 +66,7 @@ modules:
       - release
     may_import:
       - foundation
+      - provider
       - domain
       - policy
       - evidence
@@ -73,5 +82,6 @@ modules:
       - validate
     may_import:
       - foundation
+      - provider
       - domain
       - evidence
