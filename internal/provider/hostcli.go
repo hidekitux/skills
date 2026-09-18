@@ -136,10 +136,6 @@ var modelEnvVars = map[string]string{
 // name is not a driver.
 func ModelEnvVar(name string) string { return modelEnvVars[name] }
 
-// DefaultTierModel returns the contracted OpenCode Go low tier model, the
-// provenance value a caller records when opencode.json cannot be read.
-func DefaultTierModel() string { return defaultTierModel }
-
 // cliHost implements HostCLI for one local host CLI driver over a Runner.
 type cliHost struct {
 	name   string
@@ -304,11 +300,11 @@ func (h *cliHost) prepareRuntime(sandboxDir string) error {
 // added explicitly below.
 var credentialEnvPattern = regexp.MustCompile(`(?i)(key|token|secret|password|credential)`)
 
-// FilterCredentialEnv removes credential-like variables from a child
+// filterCredentialEnv removes credential-like variables from a child
 // environment. Harness-side commands (skill installation, assertion commands)
 // keep the full GitEnv; this filter applies only to the evaluated model's
 // processes.
-func FilterCredentialEnv(env []string) []string {
+func filterCredentialEnv(env []string) []string {
 	filtered := make([]string, 0, len(env))
 	for _, kv := range env {
 		name, _, ok := strings.Cut(kv, "=")
@@ -328,7 +324,7 @@ func FilterCredentialEnv(env []string) []string {
 // the user's real configuration. Without the opt-in the driver keeps the
 // real HOME and uses the logged-in Google account.
 func (h *cliHost) runEnv(sandboxDir string) []string {
-	env := FilterCredentialEnv(support.GitEnv())
+	env := filterCredentialEnv(support.GitEnv())
 	if repo := os.Getenv(githubRepoEnv); repo != "" {
 		env = append(env, "GH_REPO="+repo)
 	}

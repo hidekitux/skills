@@ -59,7 +59,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(2)
 	}
-	run := project.GH{}
+	run := project.NewGH()
 
 	switch *mode {
 	case "dry-run":
