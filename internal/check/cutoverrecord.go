@@ -411,6 +411,18 @@ func CheckCutoverRecord(root string, out, errOut io.Writer) int {
 				"contract %s appears in no participant, so the matrix does not cover every contract of the cutover", decision.ID))
 		}
 	}
+	// A module with no row would be a component of the cutover the matrix does
+	// not carry, which is the omission Issue #332 rejects.
+	owned := map[string]bool{}
+	for _, row := range record.Participants {
+		owned[row.Owner] = true
+	}
+	for _, module := range model.order {
+		if !owned[module] {
+			findings = append(findings, fmt.Sprintf(
+				"module %s owns no participant, so the matrix does not cover every module of the cutover", module))
+		}
+	}
 	findings = append(findings, checkCutoverRecovery(record.Recovery)...)
 	findings = append(findings, checkPostCutover(record.PostCutover)...)
 

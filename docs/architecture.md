@@ -386,7 +386,9 @@ Every component, consumer, schema, fixture, workflow, and document the cutover
 touches is one row. Each row names the module that owns it, the readiness
 condition, the command that observes the condition, and what recovery does to
 it. The sixteen contracts of `workflow/contract-decisions.yml` are each covered
-by at least one row, and `check-cutover-record` fails when one is not.
+by at least one row, and every module in `workflow/module-ownership.yml` owns
+at least one row. `check-cutover-record` fails when either is not covered, so a
+later module or contract cannot land without a matrix row.
 
 | Participant | Kind | Owner | Readiness observed by |
 | --- | --- | --- | --- |
