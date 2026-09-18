@@ -42,5 +42,5 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(2)
 	}
-	os.Exit(project.CheckIssueProject(project.GH{}, cfg, *repo, *issue, os.Stdout, os.Stderr))
+	os.Exit(project.CheckIssueProject(project.NewGH(), cfg, *repo, *issue, os.Stdout, os.Stderr))
 }

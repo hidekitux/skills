@@ -26,11 +26,7 @@ func NewGH() GH { return GH{github: provider.NewGitHub(provider.OSRunner{})} }
 // Run executes gh with the given arguments, keeping the process output in
 // the error so scope and API failures stay actionable and classifiable.
 func (g GH) Run(args ...string) (string, error) {
-	github := g.github
-	if github == nil {
-		github = provider.NewGitHub(provider.OSRunner{})
-	}
-	result, err := github.Combined(context.Background(), "", args...)
+	result, err := g.github.Combined(context.Background(), "", args...)
 	if err != nil {
 		output := strings.TrimSpace(result.Combined)
 		if output != "" {
