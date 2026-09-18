@@ -1,6 +1,7 @@
 package check
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -61,9 +62,10 @@ func (d contractDecision) changeFieldValues() map[string]string {
 // textValues returns every prose value of one entry, so a scan reads the whole
 // recorded decision rather than one field.
 func (d contractDecision) textValues() []string {
+	changes := d.changeFieldValues()
 	values := []string{d.Surface, d.Owner, d.Reason, d.Check}
 	for _, field := range changeFields {
-		values = append(values, d.changeFieldValues()[field])
+		values = append(values, changes[field])
 	}
 	return values
 }
@@ -93,7 +95,11 @@ func readContractDecisions(path string) ([]contractDecision, error) {
 		SchemaVersion int                `yaml:"schema_version"`
 		Contracts     []contractDecision `yaml:"contracts"`
 	}
-	if err := yaml.Unmarshal(content, &doc); err != nil {
+	// A misspelled key would otherwise be dropped in silence, and an entry that
+	// records nothing would read as one that records everything.
+	decoder := yaml.NewDecoder(bytes.NewReader(content))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(&doc); err != nil {
 		return nil, fmt.Errorf("cannot parse contract-decisions.yml: %w", err)
 	}
 	if doc.SchemaVersion != 1 {

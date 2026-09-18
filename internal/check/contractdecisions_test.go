@@ -183,3 +183,16 @@ func TestContractDecisionsValidatesTheCommittedFile(t *testing.T) {
 		t.Fatalf("output does not report a valid result: %s", out.String())
 	}
 }
+
+func TestContractDecisionsRejectsAMisspelledField(t *testing.T) {
+	decisions := strings.Replace(fixturePreserved,
+		"    check: check:tasks validates the names and references.\n",
+		"    chek: check:tasks validates the names and references.\n", 1)
+	status, output := runDecisions(t, decisions, "| mise-task-names | preserved |\n")
+	if status != 1 {
+		t.Fatalf("status = %d, want 1: %s", status, output)
+	}
+	if !strings.Contains(output, "cannot parse contract-decisions.yml") {
+		t.Fatalf("output does not reject the unknown field: %s", output)
+	}
+}
