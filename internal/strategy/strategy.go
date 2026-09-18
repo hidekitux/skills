@@ -20,6 +20,7 @@ import (
 	"github.com/hidekitux/skills/internal/deliberation"
 	"github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/graph"
+	"github.com/hidekitux/skills/internal/redact"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,9 +30,12 @@ const (
 )
 
 var identifierPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/:-]*$`)
-var decisionURLPattern = regexp.MustCompile(`https?://[^\s"']+`)
-var decisionCredentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
-var decisionCommitPattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
+
+// The decision patterns come from internal/redact so one definition serves
+// every package that screens a value before persisting it.
+var decisionURLPattern = redact.URLPattern()
+var decisionCredentialPattern = redact.CredentialPattern()
+var decisionCommitPattern = redact.CommitSHAPattern()
 
 type Level string
 
