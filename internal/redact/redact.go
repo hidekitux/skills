@@ -17,7 +17,7 @@ import (
 
 var (
 	credentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
-	urlPattern        = regexp.MustCompile(`https?://[^\s"']+`)
+	urlPattern        = regexp.MustCompile(`(?i)https?://[^\s"']+`)
 	commitSHAPattern  = regexp.MustCompile(`^[0-9a-f]{40}$`)
 )
 
@@ -26,8 +26,9 @@ var (
 // with a redaction placeholder.
 func CredentialPattern() *regexp.Regexp { return credentialPattern }
 
-// URLPattern matches an absolute HTTP or HTTPS URL. A caller uses it to find
-// every URL in a value so it can check the host with IsPrivateHost.
+// URLPattern matches an absolute HTTP or HTTPS URL, whatever the case of its
+// scheme. A caller uses it to find every URL in a value so it can check the
+// host with IsPrivateHost.
 func URLPattern() *regexp.Regexp { return urlPattern }
 
 // CommitSHAPattern matches a full 40-character Git commit identifier.
