@@ -17,9 +17,10 @@ section each Sub-issue changes.
 The `check-module-boundaries` repository check reads that file, resolves the
 imports of every package below `internal/` including a nested one, and fails on
 any module edge the file does not allow. The check also reads the
-`Module ownership` table below and fails when the file declares a module or a
-package that the table does not record, or when the table records a module the
-file does not declare. It also fails when a package outside the `provider`
+`Module ownership` table below and compares it with the file in both
+directions: it fails when the file declares a module or a package the table
+does not record, and when the table records a module or a package the file
+does not declare. It also fails when a package outside the `provider`
 module imports `os/exec` or `net/http`; that rule covers every package below
 `internal/` and every package below `cmd/`. The ownership
 file lists only top-level directories; a nested package such as `support/util`
