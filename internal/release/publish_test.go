@@ -52,7 +52,7 @@ func TestPublishReleaseStopsBeforePublicationWhenVerificationFails(t *testing.T)
 	t.Setenv("SKILL_CREATOR_ROOT", writeSkillCreatorFixture(t))
 
 	var out, errOut bytes.Buffer
-	if code := publishRelease([]string{"v1.2.3"}, &out, &errOut, runner); code != 7 {
+	if code := publishRelease([]string{"v1.2.3"}, &out, &errOut, runner.ports()); code != 7 {
 		t.Fatalf("expected verification exit code 7, got %d", code)
 	}
 	want := []fakeCommandCall{
@@ -74,7 +74,7 @@ func TestPublishReleaseRunsCommandsInOrderOnSuccess(t *testing.T) {
 	t.Setenv("SKILL_CREATOR_ROOT", writeSkillCreatorFixture(t))
 
 	var out, errOut bytes.Buffer
-	if code := publishRelease([]string{"v1.2.3"}, &out, &errOut, runner); code != 0 {
+	if code := publishRelease([]string{"v1.2.3"}, &out, &errOut, runner.ports()); code != 0 {
 		t.Fatalf("expected publication sequence to pass, got %d: %s", code, errOut.String())
 	}
 	want := []fakeCommandCall{
@@ -96,7 +96,7 @@ func TestPublishReleaseSkipsUnavailableSkillCreator(t *testing.T) {
 	t.Setenv("SKILL_CREATOR_ROOT", filepath.Join(t.TempDir(), "missing"))
 
 	var out, errOut bytes.Buffer
-	if code := publishRelease([]string{"v1.2.3"}, &out, &errOut, runner); code != 0 {
+	if code := publishRelease([]string{"v1.2.3"}, &out, &errOut, runner.ports()); code != 0 {
 		t.Fatalf("expected unavailable skill-creator path to pass, got %d: %s", code, errOut.String())
 	}
 	if strings.Contains(errOut.String(), "gh skill publish") {

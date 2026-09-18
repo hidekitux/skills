@@ -1,15 +1,15 @@
 package validate
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 
-	"github.com/hidekitux/skills/internal/support"
+	"github.com/hidekitux/skills/internal/provider"
 )
 
 // skillDirsUnder returns the sorted publishable skill directories under
@@ -67,12 +67,15 @@ func ValidateSkillCreator(root string, out, errOut io.Writer) int {
 
 	cacheDir := uvCacheDir()
 	for _, skillDir := range skillDirsUnder(root) {
-		cmd := exec.Command("uv", "run", "--with", "pyyaml==6.0.3", "python", quickValidate, skillDir)
-		cmd.Stdout = out
-		cmd.Stderr = errOut
-		cmd.Env = append(os.Environ(), "UV_CACHE_DIR="+cacheDir)
-		if code := support.ExitError(cmd.Run()); code != 0 {
-			return code
+		result, _ := toolPort.Invoke(context.Background(), provider.Command{
+			Name:   "uv",
+			Args:   []string{"run", "--with", "pyyaml==6.0.3", "python", quickValidate, skillDir},
+			Env:    append(os.Environ(), "UV_CACHE_DIR="+cacheDir),
+			Stdout: out,
+			Stderr: errOut,
+		})
+		if result.ExitCode != 0 {
+			return result.ExitCode
 		}
 	}
 	return 0

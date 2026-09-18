@@ -3,49 +3,68 @@
 package release
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/hidekitux/skills/internal/discover"
 	"github.com/hidekitux/skills/internal/eval"
-	"github.com/hidekitux/skills/internal/support"
+	"github.com/hidekitux/skills/internal/provider"
 	"gopkg.in/yaml.v3"
 )
 
 var tagPattern = regexp.MustCompile(`^v(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$`)
 
-type releaseCommandRunner interface {
-	gitOutput(root string, args ...string) (string, error)
-	execIn(root, name string, args ...string) int
-	stream(name string, out, errOut io.Writer, args ...string) int
+// releasePorts holds the external systems a release touches. Building them
+// from one Runner lets a test substitute every release command at once.
+type releasePorts struct {
+	git    provider.Git
+	github provider.GitHub
+	mise   provider.Mise
+	tool   provider.Tool
 }
 
-type osReleaseCommandRunner struct{}
-
-func (osReleaseCommandRunner) gitOutput(root string, args ...string) (string, error) {
-	stdout, err := support.GitOutputIn(root, args...)
-	return strings.TrimSpace(stdout), err
-}
-
-func (osReleaseCommandRunner) execIn(root, name string, args ...string) int {
-	cmd := exec.Command(name, args...)
-	cmd.Dir = root
-	if name == "git" {
-		cmd.Env = support.GitEnv()
+func newReleasePorts(runner provider.Runner) releasePorts {
+	return releasePorts{
+		git:    provider.NewGit(runner),
+		github: provider.NewGitHub(runner),
+		mise:   provider.NewMise(runner),
+		tool:   provider.NewTool(runner),
 	}
-	return support.ExitError(cmd.Run())
 }
 
-func (osReleaseCommandRunner) stream(name string, out, errOut io.Writer, args ...string) int {
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = out
-	cmd.Stderr = errOut
-	return support.ExitError(cmd.Run())
+func osReleasePorts() releasePorts { return newReleasePorts(provider.OSRunner{}) }
+
+// gitOutput returns the trimmed standard output of a git command in root.
+func (p releasePorts) gitOutput(root string, args ...string) (string, error) {
+	result, err := p.git.Output(context.Background(), root, args...)
+	return strings.TrimSpace(result.Stdout), err
+}
+
+// execIn runs a command in root and returns its exit code.
+func (p releasePorts) execIn(root, name string, args ...string) int {
+	result, _ := p.tool.Invoke(context.Background(), provider.Command{Name: name, Args: args, Dir: root})
+	return result.ExitCode
+}
+
+// stream runs a release command and writes both streams to out and errOut.
+func (p releasePorts) stream(name string, out, errOut io.Writer, args ...string) int {
+	ctx := context.Background()
+	switch name {
+	case "mise":
+		result, _ := p.mise.Task(ctx, "", out, errOut, args...)
+		return result.ExitCode
+	case "gh":
+		result, _ := p.github.Stream(ctx, "", out, errOut, args...)
+		return result.ExitCode
+	default:
+		result, _ := p.tool.Invoke(ctx, provider.Command{Name: name, Args: args, Stdout: out, Stderr: errOut})
+		return result.ExitCode
+	}
 }
 
 // findSkillDirectories maps every discovered publishable skill name to its
@@ -109,10 +128,10 @@ func sortStrings(values []string) {
 // VerifyRelease checks that a release tag matches the skills catalog and the
 // committed Git state, returning the process exit code.
 func VerifyRelease(tag, root string, out, errOut io.Writer) int {
-	return verifyRelease(tag, root, out, errOut, osReleaseCommandRunner{})
+	return verifyRelease(tag, root, out, errOut, osReleasePorts())
 }
 
-func verifyRelease(tag, root string, out, errOut io.Writer, runner releaseCommandRunner) int {
+func verifyRelease(tag, root string, out, errOut io.Writer, runner releasePorts) int {
 	errors := []string{}
 	match := tagPattern.FindStringSubmatch(tag)
 	version := ""

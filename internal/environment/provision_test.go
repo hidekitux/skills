@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/hidekitux/skills/internal/graph"
+	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/support"
 )
 
@@ -23,12 +24,16 @@ type orderedProvisioningRunner struct {
 	events *[]string
 }
 
-func (r *orderedProvisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
-	if name == "bash" {
+func (r *orderedProvisioningRunner) Available(name string) bool {
+	return provider.OSRunner{}.Available(name)
+}
+
+func (r *orderedProvisioningRunner) Run(ctx context.Context, command provider.Command) (provider.Result, error) {
+	if command.Name == "bash" {
 		*r.events = append(*r.events, "setup")
-		return "", nil
+		return provider.Result{}, nil
 	}
-	return (OSCommandRunner{}).Run(ctx, dir, env, name, args...)
+	return provider.OSRunner{}.Run(ctx, command)
 }
 
 type orderedWorktreeProvider struct {
@@ -49,13 +54,15 @@ func (p *orderedWorktreeProvider) Remove(context.Context, string, WorktreeState)
 	return nil
 }
 
-func (r *provisioningRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
-	if name == "bash" {
+func (r *provisioningRunner) Available(name string) bool { return provider.OSRunner{}.Available(name) }
+
+func (r *provisioningRunner) Run(ctx context.Context, command provider.Command) (provider.Result, error) {
+	if command.Name == "bash" {
 		r.setupCalls++
-		r.setupArgs = append(r.setupArgs, append([]string(nil), args...))
-		return "", r.setupErr
+		r.setupArgs = append(r.setupArgs, append([]string(nil), command.Args...))
+		return provider.Result{}, r.setupErr
 	}
-	return (OSCommandRunner{}).Run(ctx, dir, env, name, args...)
+	return provider.OSRunner{}.Run(ctx, command)
 }
 
 func assertRefreshSetup(t *testing.T, runner *provisioningRunner) {
@@ -118,15 +125,13 @@ func TestProvisionReadOnlySnapshotRunsSetupAndDeniesMutation(t *testing.T) {
 	}
 }
 
-func TestOSCommandRunnerScrubsExplicitGitEnvironment(t *testing.T) {
+func TestProvisioningGitIgnoresAnAmbientRepository(t *testing.T) {
 	root, _ := testRepository(t)
 	other, _ := testRepository(t)
-	env := append(support.GitEnv(),
-		"GIT_DIR="+filepath.Join(other, ".git"),
-		"GIT_WORK_TREE="+other,
-	)
+	t.Setenv("GIT_DIR", filepath.Join(other, ".git"))
+	t.Setenv("GIT_WORK_TREE", other)
 
-	output, err := (OSCommandRunner{}).Run(context.Background(), root, env, "git", "rev-parse", "--show-toplevel")
+	output, err := runCombined(context.Background(), nil, root, "git", "rev-parse", "--show-toplevel")
 	if err != nil {
 		t.Fatalf("git command failed: %v", err)
 	}

@@ -160,8 +160,6 @@ func classify(ctx context.Context, timedOut bool, err error) Kind {
 		return KindTimeout
 	case errors.Is(ctx.Err(), context.Canceled):
 		return KindInterrupted
-	case errors.Is(err, exec.ErrNotFound):
-		return KindUnavailable
 	}
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
@@ -172,5 +170,7 @@ func classify(ctx context.Context, timedOut bool, err error) Kind {
 		}
 		return KindFailure
 	}
-	return KindFailure
+	// The process returned no status, so it never started: the binary is
+	// missing, is not executable, or the working directory does not exist.
+	return KindUnavailable
 }

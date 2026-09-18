@@ -7,10 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/provider"
 )
 
-// fakeRunner returns canned stdout, stderr, and error, and records the
-// invocation so tests can assert the govulncheck arguments.
+// fakeRunner answers one govulncheck invocation with canned output and
+// records the command, so tests assert the arguments without a real scanner.
 type fakeRunner struct {
 	stdout string
 	stderr string
@@ -20,9 +22,12 @@ type fakeRunner struct {
 	args   []string
 }
 
-func (f *fakeRunner) run(dir, name string, args ...string) ([]byte, []byte, error) {
-	f.dir, f.name, f.args = dir, name, args
-	return []byte(f.stdout), []byte(f.stderr), f.err
+// tool returns the Tool port backed by this fake.
+func (f *fakeRunner) tool() provider.Tool {
+	return provider.NewTool(&provider.Stub{Handler: func(command provider.Command) (provider.Result, error) {
+		f.dir, f.name, f.args = command.Dir, command.Name, command.Args
+		return provider.Result{Stdout: f.stdout, Stderr: f.stderr}, f.err
+	}})
 }
 
 const cleanStream = `{"config":{"protocol_version":"v1.0.0","scanner_name":"govulncheck","scanner_version":"v1.7.0","db":"https://vuln.go.dev","db_last_modified":"2026-08-26T12:00:00Z","go_version":"go1.26.6","scan_level":"symbol","scan_mode":"source"}}
@@ -38,7 +43,7 @@ func runWith(t *testing.T, stdout string, code int) string {
 	t.Helper()
 	fake := &fakeRunner{stdout: stdout}
 	var out, errOut bytes.Buffer
-	if got := Scan(fake, &out, &errOut, ".", "", nil); got != code {
+	if got := Scan(fake.tool(), &out, &errOut, ".", "", nil); got != code {
 		t.Fatalf("Scan() = %d, want %d\nstdout: %s\nstderr: %s", got, code, out.String(), errOut.String())
 	}
 	return out.String()
@@ -47,7 +52,7 @@ func runWith(t *testing.T, stdout string, code int) string {
 func TestScanDefaultPatternsInvokesPinnedJSONMode(t *testing.T) {
 	fake := &fakeRunner{stdout: cleanStream}
 	var out, errOut bytes.Buffer
-	if got := Scan(fake, &out, &errOut, ".", "", nil); got != codePass {
+	if got := Scan(fake.tool(), &out, &errOut, ".", "", nil); got != codePass {
 		t.Fatalf("Scan() = %d, want %d", got, codePass)
 	}
 	if fake.name != "govulncheck" {
@@ -70,7 +75,7 @@ func TestScanDefaultPatternsInvokesPinnedJSONMode(t *testing.T) {
 func TestScanCustomPatterns(t *testing.T) {
 	fake := &fakeRunner{stdout: cleanStream}
 	var out, errOut bytes.Buffer
-	if got := Scan(fake, &out, &errOut, ".", "", []string{"./cmd/..."}); got != codePass {
+	if got := Scan(fake.tool(), &out, &errOut, ".", "", []string{"./cmd/..."}); got != codePass {
 		t.Fatalf("Scan() = %d, want %d", got, codePass)
 	}
 	if fake.args[len(fake.args)-1] != "./cmd/..." {
@@ -120,7 +125,7 @@ func TestScanReclassifiesNonReachableToReachable(t *testing.T) {
 func TestScanInfrastructureErrorFails(t *testing.T) {
 	fake := &fakeRunner{stderr: "get \"https://vuln.go.dev\": dial tcp: i/o timeout\n", err: errors.New("exit status 1")}
 	var out, errOut bytes.Buffer
-	if got := Scan(fake, &out, &errOut, ".", "", nil); got != codeErr {
+	if got := Scan(fake.tool(), &out, &errOut, ".", "", nil); got != codeErr {
 		t.Fatalf("Scan() = %d, want %d", got, codeErr)
 	}
 	if !strings.Contains(errOut.String(), "govulncheck failed") || !strings.Contains(errOut.String(), "dial tcp") {
@@ -131,7 +136,7 @@ func TestScanInfrastructureErrorFails(t *testing.T) {
 func TestScanMalformedJSONFails(t *testing.T) {
 	fake := &fakeRunner{stdout: "this is not json", err: nil}
 	var out, errOut bytes.Buffer
-	if got := Scan(fake, &out, &errOut, ".", "", nil); got != codeErr {
+	if got := Scan(fake.tool(), &out, &errOut, ".", "", nil); got != codeErr {
 		t.Fatalf("Scan() = %d, want %d", got, codeErr)
 	}
 	if !strings.Contains(errOut.String(), "failed to parse govulncheck output") {
@@ -144,7 +149,7 @@ func TestScanMissingConfigFails(t *testing.T) {
 `
 	var out, errOut bytes.Buffer
 	fake := &fakeRunner{stdout: stream}
-	if got := Scan(fake, &out, &errOut, ".", "", nil); got != codeErr {
+	if got := Scan(fake.tool(), &out, &errOut, ".", "", nil); got != codeErr {
 		t.Fatalf("Scan() = %d, want %d", got, codeErr)
 	}
 	if !strings.Contains(errOut.String(), "missing config message") {
@@ -157,7 +162,7 @@ func TestScanRetainsRawOutput(t *testing.T) {
 	path := filepath.Join(dir, "scan.json")
 	fake := &fakeRunner{stdout: cleanStream + symbolLevelFinding}
 	var out, errOut bytes.Buffer
-	if got := Scan(fake, &out, &errOut, ".", path, nil); got != codeFail {
+	if got := Scan(fake.tool(), &out, &errOut, ".", path, nil); got != codeFail {
 		t.Fatalf("Scan() = %d, want %d", got, codeFail)
 	}
 	retained, rerr := os.ReadFile(path)

@@ -13,6 +13,15 @@ import (
 // forwards to it and keeps cmd/evaluate reading one evaluation entry point.
 func ResolveHosts(hostFlag string) ([]string, error) { return provider.ResolveHosts(hostFlag) }
 
+// gitPort is the Git port the evaluation reads repository provenance
+// through. A test substitutes it by assigning a Git built on a provider.Stub
+// runner.
+var gitPort = provider.NewGit(provider.OSRunner{})
+
+// shellPort runs the bounded sh commands an evaluation scenario declares: an
+// assertion command and an external rubric reviewer.
+var shellPort = provider.NewShell(provider.OSRunner{})
+
 // runnerFor returns the production host command line adapter for a driver.
 func runnerFor(name string) provider.HostCLI {
 	return provider.NewHostCLI(name, provider.OSRunner{})

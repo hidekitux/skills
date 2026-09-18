@@ -10,10 +10,10 @@ import (
 // PublishRelease runs the repository's complete release gates, then publishes
 // a verified release tag. It is the Go port of publish-release.sh.
 func PublishRelease(args []string, out, errOut io.Writer) int {
-	return publishRelease(args, out, errOut, osReleaseCommandRunner{})
+	return publishRelease(args, out, errOut, osReleasePorts())
 }
 
-func publishRelease(args []string, out, errOut io.Writer, runner releaseCommandRunner) int {
+func publishRelease(args []string, out, errOut io.Writer, runner releasePorts) int {
 	if len(args) != 1 {
 		fmt.Fprintln(errOut, "Usage: mise run publish:release -- vX.Y.Z")
 		return 2

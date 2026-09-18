@@ -1,14 +1,13 @@
 package commitlint
 
 import (
-	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 
-	"github.com/hidekitux/skills/internal/support"
+	"github.com/hidekitux/skills/internal/provider"
 )
 
 const dependabotAuthor = "dependabot[bot]"
@@ -20,50 +19,28 @@ type commandRunner interface {
 	runValue(input string, name string, args ...string) (string, int)
 }
 
-type execRunner struct{}
+// providerRunner runs the linter's commands through the provider ports: git
+// through the Git port and the pinned commitlint binary through the Tool port.
+type providerRunner struct {
+	git  provider.Git
+	tool provider.Tool
+}
 
 // ExecRunner returns the real subprocess-backed command runner used in
 // production command entrypoints.
-func ExecRunner() commandRunner { return execRunner{} }
-
-func (execRunner) runValue(input, name string, args ...string) (string, int) {
-	cmd := exec.Command(name, args...)
-	if name == "git" {
-		cmd.Env = support.GitEnv()
-	}
-	var buffer bytes.Buffer
-	cmd.Stdout = &buffer
-	cmd.Stderr = &buffer
-	if input != "" {
-		cmd.Stdin = strings.NewReader(input)
-	}
-	err := cmd.Run()
-	code := 0
-	if err != nil {
-		var exitErr *exec.ExitError
-		if ok := asExitError(err, &exitErr); ok {
-			code = exitErr.ExitCode()
-		} else {
-			code = 1
-		}
-	}
-	return buffer.String(), code
+func ExecRunner() commandRunner {
+	runner := provider.OSRunner{}
+	return providerRunner{git: provider.NewGit(runner), tool: provider.NewTool(runner)}
 }
 
-func asExitError(err error, target **exec.ExitError) bool {
-	for err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			*target = exitErr
-			return true
-		}
-		type unwrapper interface{ Unwrap() error }
-		if u, ok := err.(unwrapper); ok {
-			err = u.Unwrap()
-			continue
-		}
-		return false
+func (r providerRunner) runValue(input, name string, args ...string) (string, int) {
+	ctx := context.Background()
+	if name == "git" && input == "" {
+		result, _ := r.git.Output(ctx, "", args...)
+		return result.Combined, result.ExitCode
 	}
-	return false
+	result, _ := r.tool.Invoke(ctx, provider.Command{Name: name, Args: args, Stdin: input})
+	return result.Combined, result.ExitCode
 }
 
 func isDependabotPullRequest() bool {
