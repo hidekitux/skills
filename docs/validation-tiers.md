@@ -4,7 +4,10 @@ CI validation is tiered by change risk so pull requests receive fast,
 actionable gates; expensive analyses run at the boundary that pays for them;
 and release evidence stays comprehensive. Every CI validation command belongs
 to exactly one tier. This document is the authority for the tier assignments;
-keep it in sync when a command, workflow, or trigger changes.
+keep it in sync when a command, workflow, or trigger changes. The
+[architecture record](architecture.md) holds the contract decision behind the
+repository check total below, so a change to that total updates both
+documents.
 
 ## Tier definitions
 
