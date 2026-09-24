@@ -323,13 +323,12 @@ validation observation.
 | `skill-graph` | The skill graph data and its schema version. | preserved |
 | `replay-fixtures` | The replay fixtures and the outcome each asserts. | preserved |
 | `evidence-fixtures` | The committed trace, diagnostic, context, and failure-record fixtures. | preserved |
-| `skill-layout` | The `skills/<category>/<skill-name>/SKILL.md` layout, its catalog entry, and where a per-skill asset lives. | changed |
+| `skill-layout` | The `skills/<category>/<skill-name>/SKILL.md` layout and its catalog entry. | preserved |
 | `evaluation-corpus` | The evaluation scenarios and their assertions. | preserved |
 | `execution-policy-files` | The deliberation and execution-strategy policies. | preserved |
 | `evidence-redaction` | The rules that keep a credential, a private URL, and a user path out of evidence. | preserved |
 
-Thirteen of the sixteen contracts are preserved. Issue #346 changed
-`skill-layout` after the redesign, as its section below records. The redesign moved Go package
+Fourteen of the sixteen contracts are preserved. The redesign moved Go package
 boundaries and routed external calls through provider ports; it renamed no
 command, no task, no schema field, and no skill path. `git diff --stat
 4cce0641..HEAD -- mise.toml specs/ workflow/ CATALOG.yml skills/ .github/ cmd/`
@@ -374,29 +373,6 @@ invalid specification now separates the two; no committed specification
 changes, and a passing run is byte-identical. `internal/fsl/run_test.go`
 exercises the absent, timed-out, and interrupted verifier against a provider
 stub, and `mise run verify:fsl` passes on the committed specifications.
-
-### Changed: the skill layout
-
-At the baseline the repository stated no rule for where a per-skill asset, a
-file that belongs to exactly one skill, lives. Evaluation scenarios sat in
-`evaluations/scenarios/<skill-name>/` with no checked link to `skills/`, so a
-scenario directory named after a retired skill, a scenario filed under another
-skill's directory, or a catalog entry without a skill directory passed
-`check-evaluation`. `AGENTS.md` and `evaluations/README.md` now state that every
-per-skill asset lives below its skill root and name evaluation scenarios as the
-one exception. `check-evaluation` enforces the link the exception leaves: every
-scenario directory except `e2e` names a cataloged skill, every scenario's
-`skill` field equals its directory name, and every cataloged skill resolves to
-`skills/<category>/<skill-name>/SKILL.md`.
-
-The scenarios stay central because `gh skill install` copies the whole skill
-directory into the evaluation sandbox (`internal/eval/run.go`), where a
-scenario would show its expectations to the agent under evaluation. The
-requester confirmed the exception, the three relationships, and this
-classification while planning Issue #346. No file moves and installation output
-is unchanged; only `check-evaluation` rejects trees it previously accepted.
-`check-evaluation` still reports 77 scenarios for 20 cataloged skills, and
-`internal/eval/corpus_test.go` fails each broken relationship.
 
 ### No version identifier
 
