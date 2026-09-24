@@ -31,12 +31,15 @@ The record was collected with these commands:
 gh api --paginate "repos/hidekitux/skills/actions/workflows/<file>/runs?per_page=100&status=failure"
 gh api "repos/hidekitux/skills/actions/runs/<run-id>/jobs?filter=all&per_page=100"
 gh run view <run-id> --log-failed
+gh api --paginate "repos/hidekitux/skills/issues/events?per_page=100"
+gh api graphql -f query='{repository(owner:"hidekitux",name:"skills"){issue(number:368){timelineItems(first:10,itemTypes:[ADDED_TO_PROJECT_V2_EVENT,PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]){nodes{__typename ... on AddedToProjectV2Event{createdAt} ... on ProjectV2ItemStatusChangedEvent{createdAt status}}}}}}'
 git log origin/main -i --grep=<command-name>
 ```
 
-Each failed run is attributed to one command from its failed step and its
-first `error:` or `--- FAIL` line. Each attributed failure has one of three
-kinds:
+Each failed run is attributed to every command that its failed steps and
+their first `error:` or `--- FAIL` lines name, once per command. Run
+`32850226663` names two commands, so the 363 failed runs give 364
+attributions. Each attributed failure has one of three kinds:
 
 - A rule rejection: the command rejected input that broke its rule.
 - A tool defect: the command failed because of a bug in the command or its
@@ -66,9 +69,9 @@ Three groups of commands fall outside that definition:
 | `validate-issue-project` | `policy-issues.yml` | 62 | 0 | 5 | Keep |
 | `validate-plan-comment` | `pr-project-status.yml` | 25 | 0 | 0 | Keep |
 | `validate-pr-commit-signatures` | `policy-signatures.yml` | 13 | 0 | 0 | Keep |
-| `validate-work-item-title` | `policy.yml`, `policy-issues.yml` | 7 | 0 | 0 | Keep |
+| `validate-work-item-title` | `policy.yml`, `policy-issues.yml` | 6 | 1 | 0 | Keep |
 | `lint-commits` | `policy.yml` | 7 | 0 | 0 | Keep |
-| `validate-branch-policy` | `policy.yml`, `check:branch-policy` | 2 | 0 | 0 | Keep |
+| `validate-branch-policy` | `policy.yml`, `check:branch-policy` | 2 | 1 | 0 | Keep |
 | `validate-issue-body` | `policy-issues.yml` | 1 | 0 | 0 | Keep |
 | `verify-fsl` | `verify:fsl` | 0 | 2 | 0 | Keep |
 | `check-whitespace` | `check:diff` | 0 | 1 | 0 | Keep |
@@ -79,7 +82,8 @@ Three groups of commands fall outside that definition:
 | `scan-go-vuln` | `targeted.yml` | 0 | 0 | 0 | Keep |
 
 The 24 checks in `check-repository` are the entries of `repoChecks` in
-`cmd/check-repository/main.go`: `validate-repository`, `check-tool-licenses`, `validate-script-tests`, `check-sensitive-content`,
+`cmd/check-repository/main.go`: `validate-repository`,
+`check-tool-licenses`, `validate-script-tests`, `check-sensitive-content`,
 `check-writing-quality`, `check-mutation-badges`, `check-mutation-triage`,
 `check-analyze-readonly`, `check-guided-paths`,
 `check-instruction-inventory`, `check-catalog-docs`,
@@ -91,32 +95,38 @@ The 24 checks in `check-repository` are the entries of `repoChecks` in
 
 The Git-history search found no commit that names one of these commands as the
 failure it fixed. Commit messages in this repository describe the change, not
-the check that flagged it, so the search cannot count local catches. The only
-related commits fix the commands themselves: `3ee5c95` (`verify-fsl`) and
-`1ef692a` (a `lint-commits` test).
+the check that flagged it, so the search cannot count local catches. The
+matching commits change the commands or their workflows instead, for example
+`3ee5c95` and `1afb081` (`verify-fsl`), `9b825f2` (`check-sensitive-content`),
+`1ef692a` (a `lint-commits` test), and `042f6ba` (the `policy.yml` jobs).
 
 ## Evidence behind each recommendation
 
 - `validate-issue-project`: 25 rejections report that the Issue has no Project
-  item, 34 that its Status is empty, and 3 that its Scope or Priority is empty.
-  At least some of these rejections come from ordering. Issue #368 was created
-  at 2026-09-24T08:25:28Z. The check failed in run `35975157261` two seconds
-  later. The Status became `Backlog` at 08:26:33Z. No later event re-ran the
-  check. No other workflow step runs `validate-issue-project` on Issue events,
-  so the recommendation is to keep the check and fix its timing in a
-  follow-up Issue.
+  item, 34 that its Status is empty, and 3 that its Scope or Priority is
+  empty. At least some of these rejections come from ordering. Issue #368 was
+  created at 2026-09-24T08:25:28Z. Run `35975157261` started at 08:25:30Z, and
+  the check reported the empty Status at 08:26:10Z. The Status became
+  `Backlog` at 08:26:33Z. No later event re-ran the check. No other workflow
+  step runs `validate-issue-project` on Issue events, so the recommendation is
+  to keep the check and fix its timing in a follow-up Issue.
 - `validate-plan-comment`: 25 rejections of comments that carried the plan
   marker, across 21 Issues. Issues #232, #234, #283, and #286 each have two
   rejections, which shows authors posting the plan again after a rejection.
-- `validate-pr-commit-signatures`: 13 Pull Requests carried unverified
-  commits. No other check reads commit signatures.
-- `validate-work-item-title` and `lint-commits`: 14 rejections of Pull Request
+- `validate-pr-commit-signatures`: 13 runs on 12 Pull Requests found
+  unverified commits. Branch `issue/318` failed twice. No other check reads
+  commit signatures.
+- `validate-work-item-title` and `lint-commits`: 13 rejections of Pull Request
   titles and commit messages. The local `commit-msg` hook runs
   `validate-commit-message`, not `lint-commits`, so CI is the only point that
   checks a pushed commit series.
 - `validate-branch-policy`: 2 rejections, both on branch
   `claude/issue-332-96af6f`, whose Pull Request did not begin with the
-  required Issue section.
+  required Issue section. The tool defect is shared with
+  `validate-work-item-title`: run `32850226663`, a push to `main`, ran both
+  Pull Request-only steps. The title was empty, and `validate-branch-policy`
+  printed `error: --base and --head are required`. `042f6ba` then skipped
+  those jobs on push events.
 - `validate-issue-body`: 1 rejection, in run `33495989699`, of an Issue whose
   level-two headings were out of order.
 - `verify-fsl` and `check-whitespace`: every CI failure was a tool defect.
@@ -130,8 +140,10 @@ related commits fix the commands themselves: `3ee5c95` (`verify-fsl`) and
   or `check:hosts` therefore stops the push on the author's machine and never
   reaches CI. A zero count shows that the local gate works. It does not show
   that the command catches nothing. The recommendation is keep until a record
-  of local failures exists. `mutate-fsl` and `scan-go-vuln` run only when their
-  paths change, and neither failed in 199 `targeted.yml` runs.
+  of local failures exists. In `targeted.yml`, `mutate-fsl` and `scan-go-vuln`
+  run only when their paths change, and neither failed in 199 runs.
+  `publish.yml` runs the full `mutate-fsl` weekly regardless of paths, and
+  none of its 17 runs failed.
 
 No command in scope has a merge or retire recommendation, so no enforcement
 rule loses coverage.
@@ -179,11 +191,13 @@ state rather than validating it, so it is not a validation command.
   `33094404170`, `34261348183`, `34574974917`, `34603619795`, `34608155187`,
   `34620168515`, `34737520261`, `34768090126`, `34769594706`, `35941145787`,
   `35964153500`.
-- `validate-work-item-title`: `32850226663`, `32868033264`, `32868145040`,
+- `validate-work-item-title` rule rejections: `32868033264`, `32868145040`,
   `32868170643`, `32870787365`, `32870962711`, `32872563765`.
+- `validate-work-item-title` and `validate-branch-policy` tool defect:
+  `32850226663`.
 - `lint-commits`: `34617833291`, `34617970171`, `34618124543`, `34618459456`,
   `34618587004`, `34769595809`, `34769670210`.
-- `validate-branch-policy`: `35306007222`, `35306226131`.
+- `validate-branch-policy` rule rejections: `35306007222`, `35306226131`.
 - `validate-issue-body`: `33495989699`.
 - `verify-fsl`: `32811688191`, `32812690604`.
 - `gh skill publish --dry-run`: `31878114506`, `31889492541`.
