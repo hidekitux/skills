@@ -635,9 +635,36 @@ tiers, so no run blocks a pull request.
 | `20260918T045712Z` | After the `antigravity` sign-in, four scenarios passed, two were `skipped` with `sandbox_repo_not_configured`, and `triage-issues-success` failed on the one driver that ran: the transcript did not name the expected handoff `create-issue`. The `opencode` driver still returned `infrastructure_error` for every scenario it attempted. | product for the five scenarios that reached a verdict, unavailable environment for the two `skipped` scenarios, infrastructure for the `opencode` driver |
 | `20260924T033735Z` | Both drivers ran all seven scenarios: 6 records passed, 4 failed, 4 returned `infrastructure_error`, and none was `skipped`. No `opencode` record carries `UnknownError`. The four `infrastructure_error` records are the 5-minute stage timeout on `audit-workflow-enforcement-boundary` and `plan-issue-success`, on both drivers. | product for the ten records that reached a verdict, infrastructure for the four timeouts |
 
-The `triage-issues-success` failure in run `20260918T045712Z` is a behavioral
-result at the model that run used, `gemini-3.7-flash-low`. It is not a consequence of this Issue, whose
-change is confined to `docs/`. It is listed under `Remaining risks`.
+The `triage-issues-success` failure was a skill defect, not a model limit.
+Issue #351 reproduced it with `mise run evaluate:all -- --scenario
+triage-issues-success` on the drivers each row names and read each transcript.
+The harness keeps no transcript, so each run set `EVAL_CLAUDE_CMD` and
+`EVAL_ANTIGRAVITY_CMD` to a wrapper that copied the driver output to a local
+file outside the repository.
+
+| Run | Commit | `claude-code`, `claude-sonnet-5` | `antigravity`, `gemini-3.7-flash-low` |
+| --- | --- | --- | --- |
+| `20260924T023443Z` | `8b5249f` | `infrastructure_error`, not signed in | `fail`: sends the ready Issue #44 to `plan-issue` and never names `create-issue` |
+| `20260924T023541Z` | `8b5249f` | `infrastructure_error`, not signed in | `pass`: names `create-issue` as the owner of merging #41 into the existing #42 |
+| `20260924T023925Z` | `8b5249f` | `pass`: names `create-issue` for a correction that "may" need a new or corrected Issue | not run |
+| `20260924T024155Z` | `8b5249f` | `pass`: names `create-issue` as one of two owners for the #41 and #42 merge | not run |
+| `20260924T024729Z` | `2d3f9ee` | `pass` | `pass` |
+| `20260924T025013Z` | `2d3f9ee` | `pass` | `pass` |
+
+Every transcript at `8b5249f` handed the ready Issues to `plan-issue`. The
+failing transcript followed `skills/analyze/triage-issues/SKILL.md`, which sent
+ready governed work to the existing change flow. The three passing transcripts
+named `create-issue` only as a conditional or shared owner of a tracker
+correction, which `create-issue` does not perform because it only creates
+Issues. `workflow/skill-graph.yml` gives `triage-issues` one success
+transition, `handoff-change-issue` to `create-issue`, so `SKILL.md` offered a
+route the contract lacks and named no owner for a tracker correction.
+
+Commit `2d3f9ee` states in `SKILL.md` that every report goes to `create-issue`,
+that the report says so when no finding calls for new work, and that a ready
+Issue goes to `plan-issue` and a tracker correction to the Issue's maintainer.
+All four runs at `2d3f9ee` passed, and each transcript states that the report
+goes to `create-issue` and that no new Issue is needed.
 
 Run `20260924T033735Z` retired two conditions of the first two runs and
 recorded the third as an environment limit:
@@ -715,11 +742,7 @@ baseline 21 and the current 24.
 Each entry names the Issue that owns it. An entry leaves this list only with
 the evidence that retired it.
 
-- `triage-issues-success` failed in run `20260918T045712Z`: the transcript did
-  not name the expected handoff `create-issue`. The run used
-  `gemini-3.7-flash-low`, and one run does not separate a model limit from a
-  skill defect. Live behavioral evaluation is local-only and blocks no pull
-  request. Issue #351 owns the reproduction and the classification.
+No entry remains.
 
 ## Handoff to the dependent Sub-issues
 
