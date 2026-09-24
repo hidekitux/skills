@@ -226,16 +226,52 @@ contracts:
   - id: skill-layout
     surface: >-
       The skills/<category>/<skill-name>/SKILL.md layout, the bare skill name
-      used for installation, and the catalog entry that publishes it.
-    classification: preserved
+      used for installation, the catalog entry that publishes it, and the rule
+      that every per-skill asset lives below its skill root except evaluation
+      scenarios.
+    classification: changed
     owner: domain
     evidence:
       - skills
       - CATALOG.yml
+      - AGENTS.md
+      - evaluations/README.md
+    old: >-
+      The repository stated no rule for where a per-skill asset lives.
+      Evaluation scenarios sat in evaluations/scenarios/<skill-name>/ with no
+      checked link to skills/, so a scenario directory named after a retired
+      skill, a scenario filed under another skill's directory, or a catalog
+      entry without a skill directory passed check-evaluation.
+    new: >-
+      AGENTS.md and evaluations/README.md state that every per-skill asset
+      lives below its skill root and name evaluation scenarios as the one
+      exception. check-evaluation requires every scenario directory except e2e
+      to name a cataloged skill, every scenario's skill field to equal its
+      directory name, and every cataloged skill to resolve to
+      skills/<category>/<skill-name>/SKILL.md.
     reason: >-
+      Issue #346 found the scenarios to be the one per-skill asset with no
+      link back to its skill. gh skill install copies the whole skill
+      directory into the evaluation sandbox, so moving scenarios below the
+      skill root would show their expectations to the agent under evaluation;
+      the checked directory name is the link instead.
+    confirmation: >-
+      The requester selected keeping the scenarios central as a named
+      exception, enforcing all three relationships, and recording skill-layout
+      as changed while planning Issue #346.
+    migration: >-
+      No file moves. A contributor who adds or renames a skill keeps its
+      scenario directory name, each scenario's skill field, and its catalog
+      entry equal to the skill directory name, which the committed corpus
+      already does.
+    compatibility: >-
       No skill moved, was renamed, or changed category, and the catalog still
-      carries one entry per published skill.
-    check: validate-repository reports 20 skills and 20 catalog entries.
+      carries one entry per published skill. Installation output is unchanged.
+      Only check-evaluation rejects trees it previously accepted.
+    validation: >-
+      validate-repository reports 20 skills and 20 catalog entries,
+      check-evaluation still reports 77 scenarios for 20 cataloged skills, and
+      internal/eval/corpus_test.go fails each broken relationship.
 
   - id: evaluation-corpus
     surface: The evaluation scenario files and the assertions they declare.
@@ -248,7 +284,10 @@ contracts:
       Issue #329 moved evaluation trace assembly into the evidence module
       behind an unchanged scenario format, so every committed scenario still
       parses and asserts as before.
-    check: check-evaluation reports 77 scenarios for 20 cataloged skills.
+    check: >-
+      check-evaluation reports 77 scenarios for 20 cataloged skills and checks
+      that every scenario directory, skill field, and cataloged skill resolves
+      to a skill under skills/.
 
   - id: execution-policy-files
     surface: >-
