@@ -1,7 +1,4 @@
 // Package graph loads and validates the repository-owned skill graph.
-//
-// This package belongs to the domain module. It may import the foundation module only. See
-// docs/architecture.md and workflow/module-ownership.yml.
 package graph
 
 import (

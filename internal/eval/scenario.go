@@ -6,9 +6,6 @@
 // `gh skill publish --dry-run`: it measures whether a skill selects the right
 // workflow and produces a correct, safe, useful result for a realistic
 // request (Issue 173).
-//
-// This package belongs to the execution module. It may import the foundation, domain, policy, and evidence modules only. See
-// docs/architecture.md and workflow/module-ownership.yml.
 package eval
 
 import (

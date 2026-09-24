@@ -1,8 +1,5 @@
 // Package check implements deterministic repository policy checks ported from
 // the former Python scripts under scripts/check/.
-//
-// This package belongs to the governance module. It may import the foundation, domain, and evidence modules only. See
-// docs/architecture.md and workflow/module-ownership.yml.
 package check
 
 import (

@@ -1,8 +1,5 @@
 // Package strategy selects a bounded execution strategy from observable task
 // signals and existing repository capability contracts.
-//
-// This package belongs to the policy module. It may import the foundation and domain modules only. See
-// docs/architecture.md and workflow/module-ownership.yml.
 package strategy
 
 import (

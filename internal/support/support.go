@@ -1,8 +1,5 @@
 // Package support provides shared helpers for the repository Go commands:
 // repository-root resolution, subprocess execution, and environment access.
-//
-// This package belongs to the foundation module. It imports no other internal module. See
-// docs/architecture.md and workflow/module-ownership.yml.
 package support
 
 import (
