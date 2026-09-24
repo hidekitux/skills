@@ -507,10 +507,10 @@ status.
 | `go run ./cmd/verify-fsl` with `FSLC_BIN_DIR` set | `Verified 9 FSL spec(s).` | product |
 | `mise run verify:fsl` without `FSLC_BIN_DIR` | Exit status 1 after `Checking specs/branch-flow.fsl`. | unavailable environment |
 | `go run ./cmd/verify-fsl -diagnostic-format json` without `FSLC_BIN_DIR` | `{"code":"fsl.verify.infrastructure","category":"infrastructure_error",...,"retryable":true,"remediation":"retry_operation"}` | unavailable environment |
-| The `check-cutover-record` check, run by `go run ./cmd/check-repository` | `cutover record valid: 19 participant(s), 6 recovery step(s), 12 post-cutover check(s).` | product |
-| The `check-contract-decisions` check, run by `go run ./cmd/check-repository` | `contract decisions valid: 16 contract(s), 14 preserved, 2 changed.` | product |
-| The `check-module-boundaries` check, run by `go run ./cmd/check-repository` | `module boundaries valid: 24 packages in 7 modules, 35 allowed module edges.` | product |
-| `go run ./cmd/check-sensitive-content` | `Sensitive-content check passed.` | product |
+| `go run ./cmd/check-cutover-record` inside `check-repository` | `cutover record valid: 19 participant(s), 6 recovery step(s), 12 post-cutover check(s).` | product |
+| `go run ./cmd/check-contract-decisions` inside `check-repository` | `contract decisions valid: 16 contract(s), 14 preserved, 2 changed.` | product |
+| `go run ./cmd/check-module-boundaries` inside `check-repository` | `module boundaries valid: 24 packages in 7 modules, 35 allowed module edges.` | product |
+| `go run ./cmd/check-sensitive-content` inside `check-repository` | `Sensitive-content check passed.` | product |
 
 The text form of `verify-fsl` prints `exit status 1` and names no
 classification. The JSON form carries it. A reader who needs to separate an

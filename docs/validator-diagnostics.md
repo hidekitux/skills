@@ -6,10 +6,9 @@ of facts needed to route a failure: its producer, stable code, category, source
 command, location, rule or invariant, expected and observed state, evidence,
 retryability, and remediation category.
 
-`internal/diagnostic` in the `evidence` module produces a diagnostic, and
-`internal/validate` and `internal/fsl` supply it. The
-[architecture record](architecture.md) holds that data path, and its provider
-failure classification names what an `infrastructure_error` comes from.
+The `evidence` module owns diagnostics. The
+[architecture record](architecture.md) states which module may produce one and
+which provider failure each category comes from.
 
 ## Categories and codes
 
