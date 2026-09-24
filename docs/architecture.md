@@ -625,28 +625,25 @@ baseline 21 and the current 24.
 
 ## Remaining risks
 
-Each entry names the Issue that owns it. An entry leaves this list only with
-the evidence that retired it.
-
 - `triage-issues-success` failed in run `20260918T045712Z`: the transcript did
   not name the expected handoff `create-issue`. The run used
   `gemini-3.7-flash-low`, and one run does not separate a model limit from a
   skill defect. Live behavioral evaluation is local-only and blocks no pull
-  request. Issue #351 owns the reproduction and the classification.
+  request, so this stays open for a behavioral Issue rather than for the
+  redesign.
 - The `opencode` driver returned `UnknownError` `err_34aa405f` for every
   scenario it attempted in both runs. The fault is in the host service, not in
   a repository artifact, and it leaves the corpus measured on one driver.
-  Issue #352 owns it.
 - The host skill listing printed `(could not read directory)` for every
   installed skill during both evaluation runs in this worktree. The
   registration links resolve outside the worktree; the condition is local
-  installation state, not a committed artifact. Issue #352 owns it.
+  installation state, not a committed artifact.
 - Two scenarios stay `skipped` with `sandbox_repo_not_configured`. The
   scenarios that drive a governed Issue and Pull Request need a sandbox
-  repository that this environment does not provide. Issue #352 owns it.
+  repository that this environment does not provide.
 - The recovery rehearsal in `Cutover and recovery` reverted the tree and
   rebuilt it. It did not exercise the review path a real recovery Pull Request
-  would take. Issue #353 owns it.
+  would take.
 
 ## Handoff to the dependent Sub-issues
 
