@@ -94,9 +94,12 @@ Return these sections:
   confidence, unique requirements, and proposed action.
 - **Dependency and order:** Separate explicit dependencies from suggested
   sequencing and explain the recommended order.
-- **Handoff:** Name the next-owner skill or role for each action. Hand new work
-  candidates to `create-issue`; hand ready governed work to the existing change
-  flow. State that the triage run made no external changes.
+- **Handoff:** State that the report goes to `create-issue`, which records the
+  new work the findings call for, and say so when no finding calls for new
+  work. Then name the next owner of each action: `create-issue` for a new work
+  candidate, `plan-issue` for a ready existing Issue, and the Issue's
+  maintainer for a tracker correction such as closing a duplicate or narrowing
+  a scope. State that the triage run made no external changes.
 
 Use severity only when it explains impact. Use confidence separately to show
 how strongly the evidence supports the conclusion. Keep recommendations
@@ -117,10 +120,11 @@ blocking dependency.
 
 ## Handoff
 
-The report is a read-only analysis artifact. Each recommendation names its
-next owner, and each claim points to its evidence. Change candidates go to
-`create-issue`; an existing governed change continues through its plan and
-implementation owners. The handoff ends the triage run.
+The report is a read-only analysis artifact, and it goes to `create-issue`.
+Each recommendation names its next owner, and each claim points to its
+evidence. A ready existing Issue continues through `plan-issue`. A tracker
+correction goes to the Issue's maintainer, because `create-issue` only creates
+Issues. The handoff ends the triage run.
 
 ## Writing quality
 
