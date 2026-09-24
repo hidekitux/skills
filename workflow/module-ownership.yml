@@ -42,7 +42,6 @@ modules:
     packages:
       - badges
       - diagnostic
-      - evidence
       - publicstatus
       - replay
       - trace
