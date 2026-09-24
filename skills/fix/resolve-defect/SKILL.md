@@ -57,3 +57,6 @@ Run the steps in order. A step is complete only when its primitive's artifact ex
 
 Use plain, active, evidence-backed prose in the final handoff. Keep headings in
 sentence case and name the file, command, or output behind each repository claim.
+
+Choose the plain word over an inflated or Latinate one: write `use` rather
+than `utilize` and `is` rather than `serves as`.
