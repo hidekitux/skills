@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hidekitux/skills/internal/diagnostic"
 	"github.com/hidekitux/skills/internal/provider"
@@ -21,33 +22,38 @@ import (
 // FSL built on a provider.Stub runner.
 var fslPort = provider.NewFSL(provider.OSRunner{})
 
-// environmentRoot applies the rule of scripts/setup/environment-state.sh, so a
-// verifier process that did not inherit FSLC_BIN_DIR still finds the binary
-// that scripts/fsl/install-fslc.sh installed. Outside a Git checkout the
-// setup root is the working directory, so the path keeps a separator and is
-// never resolved through PATH.
-func environmentRoot() string {
-	if r := os.Getenv("SKILLS_ENVIRONMENT_ROOT"); r != "" {
-		return r
-	}
-	setupRoot := os.Getenv("SETUP_ROOT")
-	if setupRoot == "" {
-		setupRoot = "."
-		if resolved, err := support.ResolveRoot(""); err == nil {
-			setupRoot = resolved
-		}
-	}
-	if os.Getenv("CI") == "true" {
-		return support.EnvOr("RUNNER_TEMP", setupRoot+"/.mise") + "/skills-worktree"
-	}
-	return setupRoot + "/.mise"
-}
+// shellPort asks scripts/setup/environment-state.sh for the verifier
+// directory. A test substitutes it by assigning a Shell built on a
+// provider.Stub runner.
+var shellPort = provider.NewShell(provider.OSRunner{})
 
-func binPath() string {
+// binDirScript prints the FSLC_BIN_DIR that scripts/fsl/install-fslc.sh
+// installs into. The script owns the rule, so the verifier never keeps a
+// second copy of it.
+const binDirScript = `bash -c '. scripts/setup/environment-state.sh && setup_environment_export && printf "%s" "$FSLC_BIN_DIR"'`
+
+// binPath returns the directory that holds the pinned fslc binary. An exported
+// FSLC_BIN_DIR wins; otherwise the directory comes from
+// scripts/setup/environment-state.sh, so a verifier process that did not
+// inherit the variable still finds the binary the installer wrote.
+func binPath() (string, error) {
 	if b := os.Getenv("FSLC_BIN_DIR"); b != "" {
-		return b
+		return b, nil
 	}
-	return environmentRoot() + "/fslc"
+	root, err := support.ResolveRoot("")
+	if err != nil {
+		return "", err
+	}
+	// A nil environment is the runner's Git-free environment, so an inherited
+	// GIT_WORK_TREE cannot move the setup root the script resolves.
+	result, err := shellPort.Script(context.Background(), root, binDirScript, "", nil, time.Minute)
+	if err != nil {
+		return "", fmt.Errorf("scripts/setup/environment-state.sh: %w", err)
+	}
+	if result.Stdout == "" {
+		return "", fmt.Errorf("scripts/setup/environment-state.sh printed no FSLC_BIN_DIR")
+	}
+	return result.Stdout, nil
 }
 
 func depth() string {
@@ -161,7 +167,12 @@ type fslcResult struct {
 }
 
 func runFslcResult(out, errOut io.Writer, args ...string) fslcResult {
-	result, err := fslPort.Verify(context.Background(), filepath.Join(binPath(), "fslc"), out, errOut, args...)
+	dir, err := binPath()
+	if err != nil {
+		fmt.Fprintf(errOut, "error: locate fslc: %v\n", err)
+		return fslcResult{exitCode: 1}
+	}
+	result, err := fslPort.Verify(context.Background(), filepath.Join(dir, "fslc"), out, errOut, args...)
 	if err == nil {
 		return fslcResult{started: true}
 	}
