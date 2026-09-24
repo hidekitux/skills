@@ -487,13 +487,14 @@ Issue branch of a recovery Issue. Recovery never rewrites published history, so
 it needs no force-push and no GitHub Ruleset change, both of which Issue #326
 excludes.
 
-The range starts at the `main` head rather than at the cutover point. A branch
-from the cutover point that reverts only the redesign conflicts with `main` in
-18 files once `main` is 48 commits past the cutover point, and GitHub runs no
-`pull_request` check on a Pull Request with a merge conflict. Reverting a
-linear history newest first cannot conflict. The cost is that the work that
-landed after the cutover point is reverted too, and it must land again after
-recovery.
+The range starts at the `main` head rather than at the cutover point. The
+planning step of Issue #353 checked out the cutover point, reverted
+`4cce0641..9f04db4`, and ran `git merge origin/main` with `main` at
+`f049bf8`, 48 commits past the cutover point. The merge left 18 files in
+conflict, and GitHub runs no `pull_request` check on a Pull Request with a
+merge conflict. Reverting a linear history newest first cannot conflict. The
+cost is that the work that landed after the cutover point is reverted too, and
+it must land again after recovery.
 
 Three conditions start recovery: a readiness condition that fails at the
 cutover point, a post-cutover check that fails after it, and a contract drift
