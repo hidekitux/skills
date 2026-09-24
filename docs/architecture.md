@@ -663,8 +663,12 @@ route the contract lacks and named no owner for a tracker correction.
 Commit `2d3f9ee` states in `SKILL.md` that every report goes to `create-issue`,
 that the report says so when no finding calls for new work, and that a ready
 Issue goes to `plan-issue` and a tracker correction to the Issue's maintainer.
-All four runs at `2d3f9ee` passed, and each transcript states that the report
-goes to `create-issue` and that no new Issue is needed.
+All four runs at `2d3f9ee` passed. Each transcript names `create-issue` in its
+handoff and states that no finding calls for a new Issue. Only the
+`antigravity` transcript of run `20260924T024729Z` also states that the report
+goes to `create-issue`. The other three name `create-issue` as the owner of new
+work, and the `claude-code` transcript of run `20260924T025013Z` adds that a
+new investigation task, if one is needed, would go to `create-issue`.
 
 Run `20260924T033735Z` retired two conditions of the first two runs and
 recorded the third as an environment limit:
