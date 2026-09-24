@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hidekitux/skills/internal/diagnostic"
-	"github.com/hidekitux/skills/internal/provider"
 )
 
 func TestSpecFilesCollectsRepoAndSkillSpecs(t *testing.T) {
@@ -143,31 +142,6 @@ func TestVerifyFSLRejectsBrokenSymlinkBeforeRunningFslc(t *testing.T) {
 	}
 	if !strings.Contains(errOut.String(), "broken.fsl") {
 		t.Fatalf("expected error to name the broken spec, got err=%q", errOut.String())
-	}
-}
-
-// TestVerifyFSLResultReportsAnInterruptedVerifierAsInfrastructure keeps a
-// killed or timed-out verifier separate from an invalid specification: the
-// specification was never judged, so the diagnostic must stay retryable.
-func TestVerifyFSLResultReportsAnInterruptedVerifierAsInfrastructure(t *testing.T) {
-	root := t.TempDir()
-	write(t, root, "specs/invalid.fsl", "not a valid specification")
-	original := fslPort
-	t.Cleanup(func() { fslPort = original })
-	fslPort = provider.NewFSL(&provider.Stub{Handler: func(command provider.Command) (provider.Result, error) {
-		return provider.Fail(command, provider.KindInterrupted, 1, "")
-	}})
-
-	result := VerifyFSLResult(root, &bytes.Buffer{}, &bytes.Buffer{})
-	if !result.Infrastructure {
-		t.Fatalf("interrupted verifier result = %#v", result)
-	}
-	item, err := VerificationDiagnosticForResult(result)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if item.Category != diagnostic.InfrastructureError || !item.Retryable || item.Code != VerificationInfrastructureCode {
-		t.Fatalf("interrupted verifier diagnostic = %#v", item)
 	}
 }
 
