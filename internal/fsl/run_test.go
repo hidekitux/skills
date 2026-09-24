@@ -208,6 +208,49 @@ func TestVerifyFSLResultDistinguishesInvalidSpecFromUnavailableTool(t *testing.T
 	}
 }
 
+// TestVerifyFSLNamesTheFailureClassInTextOutput keeps the classification in
+// the default text format that mise run verify:fsl prints, not only in the
+// JSON diagnostic format.
+func TestVerifyFSLNamesTheFailureClassInTextOutput(t *testing.T) {
+	root := t.TempDir()
+	write(t, root, "specs/invalid.fsl", "not a valid specification")
+	infrastructure := "diagnostic: [fsl/fsl.verify.infrastructure] infrastructure_error: FSL verification tool could not run"
+	validation := "diagnostic: [fsl/fsl.verify.validation] validation_failure: FSL specification failed verification"
+	stub := func(kind provider.Kind) provider.FSL {
+		return provider.NewFSL(&provider.Stub{Handler: func(command provider.Command) (provider.Result, error) {
+			return provider.Fail(command, kind, 1, "")
+		}})
+	}
+	original := fslPort
+	t.Cleanup(func() { fslPort = original })
+	cases := []struct {
+		name string
+		port provider.FSL
+		want string
+	}{
+		{"absent verifier", original, infrastructure},
+		{"timed out verifier", stub(provider.KindTimeout), infrastructure},
+		{"interrupted verifier", stub(provider.KindInterrupted), infrastructure},
+		{"rejected specification", stub(provider.KindFailure), validation},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("FSLC_BIN_DIR", t.TempDir())
+			fslPort = tc.port
+			var out, errOut bytes.Buffer
+			if code := VerifyFSL(root, &out, &errOut); code != 1 {
+				t.Fatalf("VerifyFSL() = %d, want 1: out=%q err=%q", code, out.String(), errOut.String())
+			}
+			if !strings.Contains(errOut.String(), tc.want) {
+				t.Fatalf("expected %q in err=%q", tc.want, errOut.String())
+			}
+			if !strings.Contains(errOut.String(), "evidence=path:specs/invalid.fsl") {
+				t.Fatalf("expected the failing spec in err=%q", errOut.String())
+			}
+		})
+	}
+}
+
 func TestMutateFSLResultRetainsReportWhenMutationOutputIsInvalid(t *testing.T) {
 	root := t.TempDir()
 	write(t, root, "specs/invalid.fsl", "not a valid specification")

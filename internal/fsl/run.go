@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hidekitux/skills/internal/diagnostic"
 	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/support"
 )
@@ -175,8 +176,20 @@ func runFslcResult(out, errOut io.Writer, args ...string) fslcResult {
 }
 
 // VerifyFSL checks and verifies every FSL spec with the pinned fslc binary.
+// A failure ends with one diagnostic line on errOut that states whether the
+// verifier ran, so the text output tells an absent, timed-out, or interrupted
+// verifier apart from a rejected specification.
 func VerifyFSL(root string, out, errOut io.Writer) int {
-	return VerifyFSLResult(root, out, errOut).ExitCode
+	result := VerifyFSLResult(root, out, errOut)
+	if result.ExitCode != 0 {
+		item, err := VerificationDiagnosticForResult(result)
+		if err != nil {
+			fmt.Fprintf(errOut, "error: %v\n", err)
+		} else {
+			fmt.Fprintf(errOut, "diagnostic: %s\n", diagnostic.RenderText(item))
+		}
+	}
+	return result.ExitCode
 }
 
 // VerificationResult records the phase and process-start state of a failed
