@@ -160,20 +160,23 @@ all of the following hold, verified against a retained evaluation run:
    the mean is at least 4.0. Rubric scores are opinion, so the reviewer owns
    producing them while the release checker enforces their shape and bounds.
 3. **Regression-free.** The same required scenario set passes on the two most
-   recent runs at the current repository revision. A newer required-scenario
-   failure cannot be hidden by an older passing record.
+   recent runs with the skill's current input digest. A newer
+   required-scenario failure cannot be hidden by an older passing record.
 4. **Bounded variance.** The two runs keep the same scenario/host keys and
    prompt SHA-256 values. Re-running an unchanged scenario keeps deterministic
    verdicts identical and keeps every rubric dimension within ±1.
 5. **Retained evidence.** Each record identifies `skill`, `run_id`,
-   `repo_commit`, `skill_source_commit`, `scenario`, `host`, and
-   `finished_at`. `repo_commit` and `skill_source_commit` must match the
-   current committed revision. `check-evaluation` (part of
+   `repo_commit`, `skill_source_commit`, `input_digest`, `scenario`, `host`,
+   and `finished_at`. `input_digest` must match the skill's input digest at
+   the current committed revision (see
+   [Evidence freshness](#evidence-freshness)). `repo_commit` and
+   `skill_source_commit` are provenance and may name an older commit.
+   `check-evaluation` (part of
    `check:repository`) checks that a `stable` catalog entry has a same-record
    pass with a completed seven-dimension review. The release flow's
    `verify:release` step applies the same promotion check as `mise run
-   check:promotion` to enforce the two-run, revision, rubric, regression, and
-   variance conditions.
+   check:promotion` to enforce the two-run, freshness, rubric, regression,
+   and variance conditions.
 
 Skills also contract to **name the next owner**: when a scenario's `handoff`
 is a cataloged skill name (per `docs/skill-contract.md`), the transcript
@@ -183,9 +186,33 @@ asserted through `transcript_must` / `transcript_must_any`.
 
 Changing a skill's actual `status` is release-flow work (and later Sub-issues
 of Issue 165). This document defines the evidence threshold that the release
-flow must satisfy. `specs/evaluation-gate.fsl` models status consistency and
-the existence of promotion evidence; `check:promotion` verifies the actual
-retained reports.
+flow must satisfy. `specs/evaluation-gate.fsl` models status consistency,
+the existence of promotion evidence, and its freshness; `check:promotion`
+verifies the actual retained reports.
+
+## Evidence freshness
+
+A retained record stays valid for promotion across commits that cannot
+change the evaluated skill's behavior. The input set of a skill is every
+file that reaches its evaluation sandbox or scores the result:
+
+- every file under `skills/`, because `gh skill install --all` installs every
+  skill into the sandbox;
+- the skill's scenarios under `evaluations/scenarios/<skill>/` and each
+  fixture they stage from `evaluations/fixtures/<key>/`;
+- `evaluations/rubric.md`, which the rubric reviewer scores against;
+- the evaluation harness: `cmd/`, `internal/`, `go.mod`, `go.sum`, and
+  `mise.toml`.
+
+`input_digest` is the SHA-256 over the input set's files in sorted path
+order, each written as its path, a null byte, its content, and a null byte.
+`internal/eval/inputs.go` lists tracked and untracked files that Git does not
+ignore, and reads `skills/` from the evaluated skill root. `evaluate` records
+the digest in each record, and `check:promotion` recomputes it at the
+checked-out revision. A commit to `docs/`, `specs/`, `.github/`, `hosts/`, or
+another skill's scenarios keeps the record fresh. A commit to any file in the
+input set makes the record stale, so the skill needs two new runs before
+promotion.
 
 ## Regressions block promotion
 
