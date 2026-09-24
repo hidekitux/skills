@@ -3,6 +3,7 @@ package fsl
 import (
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -297,15 +298,16 @@ func TestRunFslcInvokesBinaryAtBinDir(t *testing.T) {
 func TestBinPathPrefersFSLCBinDir(t *testing.T) {
 	t.Setenv("FSLC_BIN_DIR", "/custom/fslc")
 	t.Setenv("SKILLS_ENVIRONMENT_ROOT", "/environment")
-	if got, err := binPath(); err != nil || got != "/custom/fslc" {
-		t.Fatalf("binPath() = %q, %v", got, err)
+	if got := binPath(); got != "/custom/fslc" {
+		t.Fatalf("unexpected bin path %q", got)
 	}
 }
 
-// TestBinPathReadsEnvironmentState keeps the verifier reading where
-// scripts/fsl/install-fslc.sh writes: binPath asks
-// scripts/setup/environment-state.sh instead of keeping its own rule.
-func TestBinPathReadsEnvironmentState(t *testing.T) {
+// TestBinPathMatchesEnvironmentState keeps the Go rule and the rule in
+// scripts/setup/environment-state.sh in agreement, because the installer
+// writes where the shell rule points and the verifier reads where binPath
+// points.
+func TestBinPathMatchesEnvironmentState(t *testing.T) {
 	repository, err := support.ResolveRoot("")
 	if err != nil {
 		t.Fatal(err)
@@ -327,49 +329,22 @@ func TestBinPathReadsEnvironmentState(t *testing.T) {
 			for _, name := range []string{"FSLC_BIN_DIR", "SETUP_ROOT", "SKILLS_ENVIRONMENT_ROOT", "CI", "RUNNER_TEMP"} {
 				t.Setenv(name, tc.env[name])
 			}
-			if got, err := binPath(); err != nil || got != tc.want {
-				t.Fatalf("binPath() = %q, %v; want %q", got, err, tc.want)
+			if got := binPath(); got != tc.want {
+				t.Fatalf("binPath() = %q, want %q", got, tc.want)
+			}
+			script := `source "$1/scripts/setup/environment-state.sh" && setup_environment_export && printf '%s' "$FSLC_BIN_DIR"`
+			// support.ResolveRoot drops GIT_* variables, so the shell must too, or
+			// a Git hook's GIT_DIR makes git rev-parse answer the working directory.
+			command := exec.Command("bash", "-c", script, "bash", repository)
+			command.Env = support.GitEnv()
+			shell, err := command.Output()
+			if err != nil {
+				t.Fatalf("environment-state.sh: %v", err)
+			}
+			if string(shell) != tc.want {
+				t.Fatalf("environment-state.sh FSLC_BIN_DIR = %q, want %q", shell, tc.want)
 			}
 		})
-	}
-}
-
-// TestBinPathIgnoresTheGitEnvironment keeps an inherited GIT_DIR and
-// GIT_WORK_TREE from moving the setup root that environment-state.sh resolves.
-func TestBinPathIgnoresTheGitEnvironment(t *testing.T) {
-	repository, err := support.ResolveRoot("")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range []string{"FSLC_BIN_DIR", "SETUP_ROOT", "SKILLS_ENVIRONMENT_ROOT", "CI"} {
-		t.Setenv(name, "")
-	}
-	t.Setenv("GIT_DIR", filepath.Join(repository, ".git"))
-	t.Setenv("GIT_WORK_TREE", t.TempDir())
-	if got, err := binPath(); err != nil || got != repository+"/.mise/fslc" {
-		t.Fatalf("binPath() = %q, %v", got, err)
-	}
-}
-
-// TestVerifyFSLResultReportsAnUnlocatedVerifierAsInfrastructure keeps a
-// failure to ask environment-state.sh from reading as a rejected
-// specification.
-func TestVerifyFSLResultReportsAnUnlocatedVerifierAsInfrastructure(t *testing.T) {
-	root := t.TempDir()
-	write(t, root, "specs/a.fsl", "x")
-	t.Setenv("FSLC_BIN_DIR", "")
-	original := shellPort
-	t.Cleanup(func() { shellPort = original })
-	shellPort = provider.NewShell(&provider.Stub{Handler: func(command provider.Command) (provider.Result, error) {
-		return provider.Fail(command, provider.KindFailure, 1, "")
-	}})
-	var errOut bytes.Buffer
-	result := VerifyFSLResult(root, &bytes.Buffer{}, &errOut)
-	if result.ExitCode != 1 || !result.Infrastructure {
-		t.Fatalf("unlocated verifier result = %#v", result)
-	}
-	if !strings.Contains(errOut.String(), "error: locate fslc:") {
-		t.Fatalf("expected the lookup failure in err=%q", errOut.String())
 	}
 }
 
