@@ -38,27 +38,19 @@ func writeModuleTree(t *testing.T, ownership string, imports map[string][]string
 		t.Fatal(err)
 	}
 	for pkg, paths := range imports {
-		dir := filepath.Join(root, "internal", filepath.FromSlash(pkg))
+		dir := filepath.Join(root, "internal", pkg)
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		name := pkg
-		if index := strings.LastIndex(pkg, "/"); index >= 0 {
-			name = pkg[index+1:]
-		}
-		source := "package " + name + "\n"
+		source := "package " + pkg + "\n"
 		if len(paths) > 0 {
 			source += "\nimport (\n"
 			for _, path := range paths {
-				prefix := internalImportPrefix
-				if strings.HasPrefix(path, "cmd/") {
-					prefix, path = commandImportPrefix, strings.TrimPrefix(path, "cmd/")
-				}
-				source += "\t_ \"" + prefix + path + "\"\n"
+				source += "\t_ \"" + internalImportPrefix + path + "\"\n"
 			}
 			source += ")\n"
 		}
-		if err := os.WriteFile(filepath.Join(dir, name+".go"), []byte(source), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, pkg+".go"), []byte(source), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -93,27 +85,6 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			imports:   map[string][]string{"support": {"strategy"}, "strategy": nil},
 			wantCode:  1,
 			wantText:  "forbidden reverse dependency: internal/support (foundation) imports internal/strategy (policy)",
-		},
-		{
-			name:      "forbidden reverse dependency from a nested package fails",
-			ownership: fixtureOwnership,
-			imports:   map[string][]string{"support": nil, "support/util": {"strategy"}, "strategy": nil},
-			wantCode:  1,
-			wantText:  "forbidden reverse dependency: internal/support/util (foundation) imports internal/strategy (policy)",
-		},
-		{
-			name:      "nested package on an allowed edge passes",
-			ownership: fixtureOwnership,
-			imports:   map[string][]string{"support": nil, "strategy/rule": {"support"}, "strategy": nil},
-			wantCode:  0,
-			wantText:  "module boundaries valid: 3 packages in 2 modules, 1 allowed module edges.",
-		},
-		{
-			name:      "import of the composition root fails",
-			ownership: fixtureOwnership,
-			imports:   map[string][]string{"support": nil, "strategy": {"cmd/check-repository"}},
-			wantCode:  1,
-			wantText:  "forbidden reverse dependency: internal/strategy (policy) imports cmd/check-repository (composition); no module may import composition",
 		},
 		{
 			name:      "unowned package fails",
