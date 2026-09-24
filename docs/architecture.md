@@ -75,38 +75,22 @@ external providers, `evidence` owns evidence and reporting, and `governance`
 owns the tests that validate committed artifacts. The substitution-point table
 below owns the test seams.
 
-`internal/evidence` holds one primitive: `DiagnosticRef`. `internal/trace` and
-`internal/diagnostic` both alias it, which is why it sits in a shared package
-rather than with either producer. A type whose field set differs between
-producers stays with its producer: `Evidence`, `RedactionSummary`, and
-`ValidationReport` are declared separately in `internal/trace` and
-`internal/diagnostic`, because merging them would widen a persisted contract.
+`internal/evidence` holds the primitives more than one evidence producer needs:
+`DiagnosticRef`, `IsPrivateAddress`, and the credential, URL, and commit
+identifier patterns. It imports no other internal package, so `internal/trace`
+and `internal/diagnostic` read one definition of each rule rather than keeping
+their own. A type whose field set differs between producers stays with its
+producer: `Evidence`, `RedactionSummary`, and `ValidationReport` are declared
+separately in `internal/trace` and `internal/diagnostic`, because merging them
+would widen a persisted contract.
 
-`internal/redact` holds the rules a package applies before it persists or
-reports a value: `CredentialPattern`, `URLPattern`, `CommitSHAPattern`, and
-`IsPrivateHost`. `internal/trace`, `internal/diagnostic`, `internal/strategy`,
-and `internal/provider` call them, so one definition decides every answer.
-
-The rules live in `foundation` rather than in `evidence` because two of those
-callers cannot import the `evidence` module. `internal/strategy` belongs to
-`policy`, which may not import `evidence`. `internal/provider` cannot import
-`evidence` either: the `evidence` module may import `policy`, and `policy`
-imports `provider`, so the edge would make the module graph cyclic. Every
-module may import `foundation`, so placing the rules there removed the copies
-without changing a single `may_import` list.
-
-`IsPrivateHost` decides one question for every caller. It reports a loopback
-address, an IPv4 private range, a unique local IPv6 address, a link local
-address, the name `localhost`, and any name ending in `.local` as private.
-Before Issue #343 the same question had two answers: `internal/provider`
-matched a regular expression that covered no unique local IPv6 address, so a
-URL whose host was `fd00::1` reached a diagnostic while a URL whose host was
-the IPv4 loopback address did not.
-
-`internal/environment` still declares its own copy of the commit identifier
-pattern at `internal/environment/environment.go:98`. That copy screens a branch
-and revision value rather than evidence a producer persists, and Issue #343 did
-not include it.
+`internal/strategy`, `internal/environment`, and `internal/provider` declare
+their own copies of the credential or commit identifier pattern.
+`internal/strategy` and `internal/environment` belong to `policy`, which may not
+import `evidence`. `internal/provider` cannot import `evidence` either: the
+`evidence` module may import `policy`, and `policy` imports `provider`, so the
+edge would make the module graph cyclic. Removing those copies needs a separate
+decision about where the patterns belong.
 
 ## Evidence data path
 
@@ -128,7 +112,7 @@ records what a run did without writing any persisted field itself.
 
 The `evidence` module owns both the typed result and the conversion, but they
 sit in `internal/trace` rather than in `internal/evidence`. `internal/trace`
-imports `internal/evidence` for `DiagnosticRef`, and `RunResult` holds a
+imports `internal/evidence` for the shared primitives, and `RunResult` holds a
 `*trace.Deliberation`, so a conversion declared in `internal/evidence` would
 close an import cycle. Moving either one there needs `Deliberation` and every
 type it reaches to move first.
