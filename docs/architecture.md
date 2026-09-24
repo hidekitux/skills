@@ -383,19 +383,17 @@ file that belongs to exactly one skill, lives. Evaluation scenarios sat in
 scenario directory named after a retired skill, a scenario filed under another
 skill's directory, or a catalog entry without a skill directory passed
 `check-evaluation`. `AGENTS.md` and `evaluations/README.md` now state that every
-per-skill asset lives below its skill root and name the evaluation inputs,
-scenarios and fixtures, as the one exception. `check-evaluation` enforces the link the exception leaves: every
+per-skill asset lives below its skill root and name evaluation scenarios as the
+one exception. `check-evaluation` enforces the link the exception leaves: every
 scenario directory except `e2e` names a cataloged skill, every scenario's
 `skill` field equals its directory name, and every cataloged skill resolves to
 `skills/<category>/<skill-name>/SKILL.md`.
 
-The evaluation inputs stay central because `gh skill install` copies the
-whole skill directory to every user and into the evaluation sandbox
-(`internal/eval/run.go`), where a scenario would show its expectations to the
-agent under evaluation. A fixture is staged only for the scenario that names
-it. The requester confirmed the exception, the three relationships, and this
-classification while planning Issue #346 and extended the exception to the
-fixtures during review of Pull Request #355. No file moves and installation output
+The scenarios stay central because `gh skill install` copies the whole skill
+directory into the evaluation sandbox (`internal/eval/run.go`), where a
+scenario would show its expectations to the agent under evaluation. The
+requester confirmed the exception, the three relationships, and this
+classification while planning Issue #346. No file moves and installation output
 is unchanged; only `check-evaluation` rejects trees it previously accepted.
 `check-evaluation` still reports 77 scenarios for 20 cataloged skills, and
 `internal/eval/corpus_test.go` fails each broken relationship.

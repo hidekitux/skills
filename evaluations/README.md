@@ -27,13 +27,10 @@ evaluations/
   reports/<run>/                     machine- and human-readable run output
 ```
 
-- Scenarios and fixtures, the evaluation inputs, are the one exception to
-  keeping a per-skill asset below `skills/<category>/<skill-name>/`.
-  `gh skill install` copies the whole skill directory to every user and into
-  the evaluation sandbox, where a scenario would show its expectations to the
-  agent under evaluation. A fixture reaches the sandbox only when a scenario
-  names it, and several skills share one fixture key, such as
-  `governed-change`. The scenario directory name is the link to the skill:
+- Scenarios are the one per-skill asset kept outside `skills/<category>/<skill-name>/`.
+  `gh skill install` copies the whole skill directory into the evaluation
+  sandbox, so a scenario there would show its expectations to the agent under
+  evaluation. The scenario directory name is the link to the skill instead:
   `check-evaluation` requires every directory except `e2e` to name a cataloged
   skill, every scenario's `skill` field to equal its directory name, and every
   cataloged skill to resolve to `skills/<category>/<skill-name>/SKILL.md`.
