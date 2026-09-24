@@ -696,6 +696,16 @@ on a third model. Its skill, scenario, and fixture match `8b5249f`, and
 because the transcript did not name `create-issue`. `opencode` with
 `opencode-go/deepseek-v4-flash` passed. The run kept no transcript.
 
+The fix holds on `gemini-3.8-flash-low`. At `6e010b0`, which carries the fix
+rebased onto `main`, runs `20260924T052935Z` and `20260924T053613Z` of `mise
+run evaluate:all -- --scenario triage-issues-success --host antigravity` used
+that model through the same wrapper. Both transcripts name `create-issue` in
+the handoff and state that no finding calls for a new Issue, and both runs
+observed the handoff. Run `20260924T053613Z` passed. Run `20260924T052935Z`
+failed only because its transcript contains `Commences`. `Commenc` is one of
+the prose markers that `evaluations/README.md` requires every positive
+scenario to forbid, so the failure is about prose, not the handoff.
+
 ### Outcome coverage
 
 The second acceptance criterion of Issue #333 names six outcomes. Each one has
