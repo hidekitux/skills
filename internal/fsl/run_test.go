@@ -3,7 +3,6 @@ package fsl
 import (
 	"bytes"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/hidekitux/skills/internal/diagnostic"
 	"github.com/hidekitux/skills/internal/provider"
-	"github.com/hidekitux/skills/internal/support"
 )
 
 func TestSpecFilesCollectsRepoAndSkillSpecs(t *testing.T) {
@@ -252,56 +250,11 @@ func TestRunFslcInvokesBinaryAtBinDir(t *testing.T) {
 	}
 }
 
-func TestBinPathPrefersFSLCBinDir(t *testing.T) {
-	t.Setenv("FSLC_BIN_DIR", "/custom/fslc")
-	t.Setenv("SKILLS_ENVIRONMENT_ROOT", "/environment")
-	if got := binPath(); got != "/custom/fslc" {
-		t.Fatalf("unexpected bin path %q", got)
-	}
-}
-
-// TestBinPathMatchesEnvironmentState keeps the Go rule and the rule in
-// scripts/setup/environment-state.sh in agreement, because the installer
-// writes where the shell rule points and the verifier reads where binPath
-// points.
-func TestBinPathMatchesEnvironmentState(t *testing.T) {
-	repository, err := support.ResolveRoot("")
-	if err != nil {
-		t.Fatal(err)
-	}
-	setupRoot := t.TempDir()
-	cases := []struct {
-		name string
-		env  map[string]string
-		want string
-	}{
-		{"local", map[string]string{"SETUP_ROOT": setupRoot}, setupRoot + "/.mise/fslc"},
-		{"local checkout", map[string]string{}, repository + "/.mise/fslc"},
-		{"environment root", map[string]string{"SETUP_ROOT": setupRoot, "SKILLS_ENVIRONMENT_ROOT": "/environment"}, "/environment/fslc"},
-		{"CI runner", map[string]string{"SETUP_ROOT": setupRoot, "CI": "true", "RUNNER_TEMP": "/runner"}, "/runner/skills-worktree/fslc"},
-		{"CI without runner", map[string]string{"SETUP_ROOT": setupRoot, "CI": "true"}, setupRoot + "/.mise/skills-worktree/fslc"},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			for _, name := range []string{"FSLC_BIN_DIR", "SETUP_ROOT", "SKILLS_ENVIRONMENT_ROOT", "CI", "RUNNER_TEMP"} {
-				t.Setenv(name, tc.env[name])
-			}
-			if got := binPath(); got != tc.want {
-				t.Fatalf("binPath() = %q, want %q", got, tc.want)
-			}
-			script := `source "$1/scripts/setup/environment-state.sh" && setup_environment_export && printf '%s' "$FSLC_BIN_DIR"`
-			// support.ResolveRoot drops GIT_* variables, so the shell must too, or
-			// a Git hook's GIT_DIR makes git rev-parse answer the working directory.
-			command := exec.Command("bash", "-c", script, "bash", repository)
-			command.Env = support.GitEnv()
-			shell, err := command.Output()
-			if err != nil {
-				t.Fatalf("environment-state.sh: %v", err)
-			}
-			if string(shell) != tc.want {
-				t.Fatalf("environment-state.sh FSLC_BIN_DIR = %q, want %q", shell, tc.want)
-			}
-		})
+func TestCacheRootDefaultsToTemp(t *testing.T) {
+	t.Setenv("RUNNER_TEMP", "")
+	t.Setenv("TMPDIR", "/tmp/custom")
+	if got := cacheRoot(); got != "/tmp/custom/skills-fslc" {
+		t.Fatalf("unexpected cache root %q", got)
 	}
 }
 

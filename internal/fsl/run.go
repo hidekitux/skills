@@ -20,33 +20,22 @@ import (
 // FSL built on a provider.Stub runner.
 var fslPort = provider.NewFSL(provider.OSRunner{})
 
-// environmentRoot applies the rule of scripts/setup/environment-state.sh, so a
-// verifier process that did not inherit FSLC_BIN_DIR still finds the binary
-// that scripts/fsl/install-fslc.sh installed. Outside a Git checkout the
-// setup root is the working directory, so the path keeps a separator and is
-// never resolved through PATH.
-func environmentRoot() string {
-	if r := os.Getenv("SKILLS_ENVIRONMENT_ROOT"); r != "" {
-		return r
+// cacheRoot returns the shared fslc cache directory outside the repository.
+func cacheRoot() string {
+	if t := os.Getenv("RUNNER_TEMP"); t != "" {
+		return t + "/skills-fslc"
 	}
-	setupRoot := os.Getenv("SETUP_ROOT")
-	if setupRoot == "" {
-		setupRoot = "."
-		if resolved, err := support.ResolveRoot(""); err == nil {
-			setupRoot = resolved
-		}
+	if t := os.Getenv("TMPDIR"); t != "" {
+		return t + "/skills-fslc"
 	}
-	if os.Getenv("CI") == "true" {
-		return support.EnvOr("RUNNER_TEMP", setupRoot+"/.mise") + "/skills-worktree"
-	}
-	return setupRoot + "/.mise"
+	return "/tmp/skills-fslc"
 }
 
 func binPath() string {
 	if b := os.Getenv("FSLC_BIN_DIR"); b != "" {
 		return b
 	}
-	return environmentRoot() + "/fslc"
+	return cacheRoot() + "/bin"
 }
 
 func depth() string {
