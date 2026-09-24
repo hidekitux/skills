@@ -6,6 +6,7 @@
 - Keep `LICENSE` as the unmodified Apache-2.0 legal text and keep the repository copyright attribution in `NOTICE`.
 - Set the `NOTICE` copyright owner from the repository owner's confirmed identity. Update the year only when new copyrightable material is added or materially updated; do not create annual-only copyright commits.
 - Keep `SKILL.md` concise. Put optional scripts, detailed references, and output assets in `scripts/`, `references/`, and `assets/` below the skill root.
+- Keep every per-skill asset, a file that belongs to exactly one skill, below its skill root. Evaluation scenarios are the one exception: they live in `evaluations/scenarios/<skill-name>/`, because installation copies the whole skill directory and would place each scenario's expectations where the agent under evaluation can read them. `check-evaluation` fails when a scenario directory, a scenario's `skill` field, or a cataloged skill loses that link.
 - Do not put credentials, tokens, private URLs, or user data in the repository.
 - Use mise as the project command entry point. Run supported-platform repository checks with `mise run validate:all`; do not document or automate a direct replacement command when a mise task exists.
 - Keep the repository's required tools and their pinned versions in `mise.toml`. Do not add a tool, a version, or a task unless this repository actually needs it.
