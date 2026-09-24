@@ -7,11 +7,9 @@ which internal module owns each responsibility of the Go implementation, which
 module may import which, and where a focused test replaces a module's input.
 Issue #328 establishes the ownership model and the dependency direction. Issue
 #329 adds the evidence data path and the typed domain result. Issue #330 adds
-the provider module and the provider ownership section. Issue #331 adds the
-contract decisions and Issue #332 adds the cutover and recovery procedure.
-Issue #333 adds `Final validation` and the remaining risks, and it reconciles
-every section above with the shipped tree. The handoff section names the
-section each Sub-issue changes.
+the provider module and the provider ownership section. Issues #331 through
+#333 extend this document; the handoff section names the section each one
+changes.
 
 `workflow/module-ownership.yml` is the machine-readable form of the model below.
 The `check-module-boundaries` repository check reads that file, resolves the
@@ -478,155 +476,18 @@ because the task does not export `FSLC_BIN_DIR`, which
 that variable set the same task verifies every committed specification and
 `mise run validate:all` exits zero. The first failure is an unavailable
 environment, which `internal/fsl/run.go` has classified separately since Issue
-#330; it is neither a product failure nor a contract change. `Final validation`
-records the same outcome at the branch head.
-
-## Final validation
-
-Issue #333 closes the redesign with one validation record. Every command below
-ran in the worktree for this Issue, on the tree that carries only this
-document's change. The record keeps four outcomes apart: a **product outcome**
-comes from the repository's own code and committed artifacts, an
-**infrastructure outcome** is a fault in the tool or its dependency rather than
-in the artifact under check, an **unavailable-environment outcome** is a check
-that cannot start because a host capability or a provisioned variable is
-absent, and an **interrupted outcome** is a run stopped before its terminal
-status.
-
-### Repository validation
-
-| Command | Outcome | Classification |
-| --- | --- | --- |
-| `mise run validate:all` with `FSLC_BIN_DIR` set | Exit status 0. It ran `check:repository`, `check:branch-policy`, `check:diff`, `check:tasks`, `check:skills`, `check:hosts`, `lint:actions`, `lint:go`, `lint:python`, `lint:shell`, `install:fsl`, `verify:fsl`, and `test:go`. | product |
-| `go run ./cmd/check-repository` | `check:repository: all 24 repository checks passed.` | product |
-| `go test ./...` inside `test:go` | 32 packages reported `ok`; no package failed. | product |
-| `go list ./...` | 70 packages, no import cycle. `go list ./internal/...` returns 24. | product |
-| `go run ./cmd/validate-skill-graph` | `skill graph valid: 20 skills, schema version 1`. | product |
-| `go run ./cmd/check-evaluation` | `Evaluation corpus check passed: 77 scenario(s) for 20 cataloged skill(s).` | product |
-| `go run ./cmd/validate-script-tests` | `Script-test mapping check passed: 43 command(s) and 12 script(s) mapped.` | product |
-| `go run ./cmd/verify-fsl` with `FSLC_BIN_DIR` set | `Verified 9 FSL spec(s).` | product |
-| `mise run verify:fsl` without `FSLC_BIN_DIR` | Exit status 1 after `Checking specs/branch-flow.fsl`. | unavailable environment |
-| `go run ./cmd/verify-fsl -diagnostic-format json` without `FSLC_BIN_DIR` | `{"code":"fsl.verify.infrastructure","category":"infrastructure_error",...,"retryable":true,"remediation":"retry_operation"}` | unavailable environment |
-| `go run ./cmd/check-cutover-record` inside `check-repository` | `cutover record valid: 19 participant(s), 6 recovery step(s), 12 post-cutover check(s).` | product |
-| `go run ./cmd/check-contract-decisions` inside `check-repository` | `contract decisions valid: 16 contract(s), 14 preserved, 2 changed.` | product |
-| `go run ./cmd/check-module-boundaries` inside `check-repository` | `module boundaries valid: 24 packages in 7 modules, 35 allowed module edges.` | product |
-| `go run ./cmd/check-sensitive-content` inside `check-repository` | `Sensitive-content check passed.` | product |
-
-The text form of `verify-fsl` prints `exit status 1` and names no
-classification. The JSON form carries it. A reader who needs to separate an
-absent verifier from an invalid specification must pass
-`-diagnostic-format json`; the row above records both forms so the distinction
-is not inferred from the exit status alone.
-
-No command in this record was interrupted. The interrupted outcome has no
-committed command that produces it on demand, so it is covered by the fixture
-and the package tests named in the coverage table below rather than by a run
-recorded here.
-
-### Behavioral evaluation
-
-`mise run evaluate:smoke` ran twice. Both runs are on repository commit
-`facf9e641f8020e35c10e0dab515e3352f81d40e`, and
-`docs/validation-tiers.md` places live behavioral evaluation outside the CI
-tiers, so neither run blocks a pull request.
-
-| Run | Outcome | Classification |
-| --- | --- | --- |
-| `20260918T044954Z` | Every driver returned `infrastructure_error` or `skipped`; no scenario produced a behavioral verdict. The `antigravity` driver was not signed in and the `opencode` driver returned `UnknownError` `err_34aa405f` from its server. | infrastructure, unavailable environment |
-| `20260918T045712Z` | After the `antigravity` sign-in, four scenarios passed, two were `skipped` with `sandbox_repo_not_configured`, and `triage-issues-success` failed on the one driver that ran: the transcript did not name the expected handoff `create-issue`. The `opencode` driver still returned `infrastructure_error` for every scenario it attempted. | product for the five scenarios that reached a verdict, unavailable environment for the two `skipped` scenarios, infrastructure for the `opencode` driver |
-
-The `triage-issues-success` failure is a behavioral result at the model this
-run used, `gemini-3.7-flash-low`. It is not a consequence of this Issue, whose
-change is confined to `docs/`. It is listed under `Remaining risks`.
-
-### Outcome coverage
-
-The second acceptance criterion of Issue #333 names six outcomes. Each one has
-a committed asset that observes it.
-
-| Outcome | Asset | Observation |
-| --- | --- | --- |
-| success | `workflow/replay-fixtures/valid.jsonl`, `workflow/replay-fixtures/valid-merge.jsonl`; 41 `positive` evaluation scenarios | `validate-replay-fixtures` reports `valid` for both files. |
-| failure | `workflow/replay-fixtures/invalid-order.jsonl`, `read-only-mutation.jsonl`, `wrong-branch-owner.jsonl` (`violation`), `review-loop-beyond-bound.jsonl` (`retry_exhausted`), `missing-evidence.jsonl`, `missing-validation.jsonl`, `partial.jsonl` (`incomplete_evidence`); 10 `negative` and 22 `boundary` evaluation scenarios | Each fixture asserts its own non-success outcome, and the check reports the recorded outcome rather than a pass. |
-| interruption | `workflow/replay-fixtures/interrupted.jsonl` under invariant `InterruptedIsNotSuccess`; `internal/trace` and `internal/provider` package tests | The fixture asserts `interrupted`, and the tests keep `interrupted` apart from `failed` and `infrastructure_error`. |
-| unavailable environment | `mise run verify:fsl` without `FSLC_BIN_DIR`; `evaluations/fixtures/retrospect-unavailable` and `evaluations/fixtures/triage-unavailable`; `internal/eval/strategy.go` | The command reports `fsl.verify.infrastructure`, and the fixtures drive a skill that must state the limit instead of inventing a finding. |
-| privacy | `go run ./cmd/check-sensitive-content`; `evaluations/scenarios/analyze-project/analyze-project-safety.yaml`; the `evidence-redaction` contract | The check passes, and the scenario asserts that a private context log stays out of a public report. |
-| deterministic replay | The 10 files under `workflow/replay-fixtures/`; `cmd/replay-skill-trace` | `validate-replay-fixtures` returns the recorded outcome for all 10 files on every run. |
-
-No approved contract change required a new observation. The two changed
-contracts in `workflow/contract-decisions.yml` are `repository-check-list` and
-`fsl-verifier-failure-classification`. The first changes a printed total inside
-`cmd/check-repository`, and the second changes how `internal/fsl/run.go`
-classifies a verifier that never judged a specification. Neither changes a
-skill behavior an evaluation scenario observes, so the evaluation corpus stays
-at 77 scenarios and no fixture changes.
-
-### Consumer agreement
-
-The consumers below each read the same artifact and authority contracts. They
-agree at the branch head.
-
-| Consumer | Command | Result |
-| --- | --- | --- |
-| FSL specifications | `mise run verify:fsl` with `FSLC_BIN_DIR` set | Verified 9 specifications. |
-| graph validation | `go run ./cmd/validate-skill-graph` | 20 skills, schema version 1. |
-| replay validation | `validate-replay-fixtures` inside `check-repository` | 10 fixtures, each returning its recorded outcome. |
-| trace validation | `validate-skill-trace` and `validate-diagnostic` inside `check-repository` | The committed trace and diagnostic fixtures match their schemas. |
-| evaluation report | `go run ./cmd/check-evaluation` | 77 scenarios for 20 cataloged skills. |
-| module boundaries | `check-module-boundaries` inside `check-repository` | 24 packages in 7 modules, 35 allowed edges. |
-
-### Documentation alignment
-
-Each document that states an ownership, failure, or contract claim now points
-at this record instead of restating it: `docs/skill-contract.md`,
-`docs/fsl.md`, `docs/evaluation.md`, `docs/skill-graph.md`,
-`docs/skill-trace.md`, `docs/validator-diagnostics.md`,
-`docs/validation-tiers.md`, and `CONTRIBUTING.md`. One record holds the
-boundary; a second copy would drift.
-
-The three `21 repository checks` figures in this document are baseline figures
-and stay as they are. The `Measured baseline` section and the revert rehearsal
-describe commit `4cce0641bbc9bc28c9bba47522a6071b0acded69`, where the total was
-21, and the `Changed: the repository check list` section states both the
-baseline 21 and the current 24.
-
-## Remaining risks
-
-- `mise run verify:fsl` reports an unavailable environment when `FSLC_BIN_DIR`
-  is unset, because the task does not export the variable that
-  `scripts/setup/environment-state.sh` sets. Its text output names no
-  classification, so a reader who checks only the exit status cannot tell an
-  absent verifier from an invalid specification.
-- `triage-issues-success` failed in run `20260918T045712Z`: the transcript did
-  not name the expected handoff `create-issue`. The run used
-  `gemini-3.7-flash-low`, and one run does not separate a model limit from a
-  skill defect. Live behavioral evaluation is local-only and blocks no pull
-  request, so this stays open for a behavioral Issue rather than for the
-  redesign.
-- The `opencode` driver returned `UnknownError` `err_34aa405f` for every
-  scenario it attempted in both runs. The fault is in the host service, not in
-  a repository artifact, and it leaves the corpus measured on one driver.
-- The host skill listing printed `(could not read directory)` for every
-  installed skill during both evaluation runs in this worktree. The
-  registration links resolve outside the worktree; the condition is local
-  installation state, not a committed artifact.
-- Two scenarios stay `skipped` with `sandbox_repo_not_configured`. The
-  scenarios that drive a governed Issue and Pull Request need a sandbox
-  repository that this environment does not provide.
-- The recovery rehearsal in `Cutover and recovery` reverted the tree and
-  rebuilt it. It did not exercise the review path a real recovery Pull Request
-  would take.
+#330; it is neither a product failure nor a contract change. Issue #333 owns
+the final validation record.
 
 ## Handoff to the dependent Sub-issues
 
-| Issue | Extends | Completed evidence |
-| --- | --- | --- |
-| #328 | Landed. Added `Module ownership`, `Dependency direction`, and `Test substitution points`. | `workflow/module-ownership.yml`; `check-module-boundaries` reports 24 packages in 7 modules and 35 allowed edges. |
-| #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. | `internal/evidence`; `go test ./internal/evidence/` and `go test ./internal/trace/` pass inside `test:go`. |
-| #330 | Landed. Added the `provider` module to `Module ownership` and `Dependency direction`, added `Provider ownership`, and replaced the provider note in `Test substitution points`. | `internal/provider`; `check-module-boundaries` fails a use of `os/exec` or `net/http` outside the module, and `go test ./internal/provider/` keeps every failure kind apart. |
-| #331 | Landed. Added `Contract decisions`, `workflow/contract-decisions.yml`, and the `check-contract-decisions` repository check. | `check-contract-decisions` reports 16 contracts, 14 preserved and 2 changed. |
-| #332 | Landed. Added `Cutover and recovery`, `workflow/cutover-record.yml`, and the `check-cutover-record` repository check. | `check-cutover-record` reports 19 participants, 6 recovery steps, and 12 post-cutover checks. |
-| #333 | Landed. Added `Final validation` and `Remaining risks`, and reconciled every section above with the shipped tree. | `mise run validate:all` exits 0 with `FSLC_BIN_DIR` set; `Final validation` holds every command, its outcome, and its classification. |
+| Issue | Extends |
+| --- | --- |
+| #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. |
+| #330 | Landed. Added the `provider` module to `Module ownership` and `Dependency direction`, added `Provider ownership`, and replaced the provider note in `Test substitution points`. |
+| #331 | Landed. Added `Contract decisions`, `workflow/contract-decisions.yml`, and the `check-contract-decisions` repository check. |
+| #332 | Landed. Added `Cutover and recovery`, `workflow/cutover-record.yml`, and the `check-cutover-record` repository check. |
+| #333 | Records the final validation results and reconciles every section with the shipped tree. |
 
 Each Sub-issue changes `workflow/module-ownership.yml` and this document
 together. A module split that only one of the two records is a drift the
