@@ -1,11 +1,13 @@
-package provider
+package eval
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -25,9 +27,9 @@ const (
 	HostAntigravity = "antigravity"
 )
 
-// StageTimeout bounds one host stage run so a stuck agent cannot stall the
+// stageTimeout bounds one host stage run so a stuck agent cannot stall the
 // whole evaluation run.
-const StageTimeout = 5 * time.Minute
+const stageTimeout = 5 * time.Minute
 
 // defaultTierModel is the fallback model provenance and explicit -m value
 // for the opencode driver when the repository's opencode.json role tiers
@@ -51,12 +53,9 @@ const defaultGeminiModel = "gemini-3.7-flash-low"
 // does not consume OpenCode Go tier models (override with EVAL_CLAUDE_MODEL).
 const defaultClaudeModel = "claude-sonnet-5"
 
-// HostCLI is the host command-line port. It executes one headless stage in a
-// sandbox for a driver. Authority: whatever account or key the host CLI itself
-// resolves. The adapter passes GEMINI_API_KEY only in the opt-in key mode
-// described by prepareRuntime and filters every other credential-like
-// variable out of the child environment.
-type HostCLI interface {
+// HostRunner executes one headless stage in a sandbox for a driver. The
+// runner is an interface so deterministic tests can substitute a fake host.
+type HostRunner interface {
 	// Name returns the driver identifier (codex, claude-code, opencode,
 	// or antigravity).
 	Name() string
@@ -132,35 +131,20 @@ var modelEnvVars = map[string]string{
 	HostAntigravity: "EVAL_ANTIGRAVITY_MODEL",
 }
 
-// ModelEnvVar returns the model override variable for a driver, or "" when the
-// name is not a driver.
-func ModelEnvVar(name string) string { return modelEnvVars[name] }
+// driverConfigFor returns the descriptor for a driver name.
+func driverConfigFor(name string) (driverConfig, bool) {
+	config, ok := driverConfigs[name]
+	return config, ok
+}
 
-// DefaultTierModel returns the contracted OpenCode Go low tier model, the
-// provenance value a caller records when opencode.json cannot be read.
-func DefaultTierModel() string { return defaultTierModel }
-
-// cliHost implements HostCLI for one local host CLI driver over a Runner.
+// cliHost implements HostRunner for one local host CLI driver.
 type cliHost struct {
 	name   string
 	config driverConfig
-	runner Runner
-	git    Git
-	github GitHub
 }
 
-// NewHostCLI returns the adapter for one driver. Passing a Stub runner
-// substitutes every process the driver would start.
-func NewHostCLI(name string, runner Runner) HostCLI { return newCliHost(name, runner) }
-
-func newCliHost(name string, runner Runner) *cliHost {
-	return &cliHost{
-		name:   name,
-		config: driverConfigs[name],
-		runner: runner,
-		git:    NewGit(runner),
-		github: NewGitHub(runner),
-	}
+func newCliHost(name string) *cliHost {
+	return &cliHost{name: name, config: driverConfigs[name]}
 }
 
 func (h *cliHost) Name() string { return h.name }
@@ -179,15 +163,16 @@ func (h *cliHost) commandLine() (string, []string) {
 
 func (h *cliHost) BinaryAvailable() bool {
 	binary, _ := h.commandLine()
-	return h.runner.Available(binary)
+	_, err := exec.LookPath(binary)
+	return err == nil
 }
 
 // modelFlag returns the explicit model flag and value for the driver. Every
 // driver pins a model (Issue 173 decision record): the per-driver override
 // environment variable wins, otherwise the driver default — the contracted
 // tier model for codex/claude-code/opencode and the fixed Gemini model for
-// antigravity. Run evaluation-level model resolution through EffectiveModel
-// so the recorded provenance matches the invoked model.
+// antigravity. Run evaluation-level model resolution through
+// effectiveModel so the recorded provenance matches the invoked model.
 func modelFlag(name string) []string {
 	model := os.Getenv(modelEnvVars[name])
 	if model == "" {
@@ -208,10 +193,10 @@ func modelFlag(name string) []string {
 	return []string{"--model", model}
 }
 
-// EffectiveModel resolves the model a driver will actually invoke, matching
+// effectiveModel resolves the model a driver will actually invoke, matching
 // modelFlag: environment override, the per-driver default, or the
 // evaluation-level resolved tier model for the tier-driven drivers.
-func EffectiveModel(name, tier string) string {
+func effectiveModel(name, tier string) string {
 	if model := os.Getenv(modelEnvVars[name]); model != "" {
 		return model
 	}
@@ -233,15 +218,19 @@ func EffectiveModel(name, tier string) string {
 // published repository skills the same way check:hosts validates
 // installation, and prepares driver-specific runtime configuration.
 func (h *cliHost) InstallSkills(ctx context.Context, root, sandboxDir string, out, errOut io.Writer) error {
-	if _, err := h.git.Output(ctx, sandboxDir, "init", "--quiet"); err != nil {
+	if _, err := support.GitOutputIn(sandboxDir, "init", "--quiet"); err != nil {
 		return fmt.Errorf("cannot initialize sandbox repository: %w", err)
 	}
-	if err := h.wireGithubRepo(ctx, sandboxDir); err != nil {
+	if err := wireGithubRepo(sandboxDir); err != nil {
 		return err
 	}
-	if _, err := h.github.Stream(ctx, sandboxDir, out, errOut,
-		"skill", "install", root, "--from-local", "--all",
-		"--agent", clampedAgent(h.name), "--scope", "project"); err != nil {
+	cmd := exec.CommandContext(ctx, "gh", "skill", "install", root, "--from-local", "--all",
+		"--agent", clampedAgent(h.name), "--scope", "project")
+	cmd.Dir = sandboxDir
+	cmd.Env = support.GitEnv()
+	cmd.Stdout = out
+	cmd.Stderr = errOut
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	return h.prepareRuntime(sandboxDir)
@@ -261,13 +250,13 @@ const githubRepoEnv = "EVAL_GITHUB_REPO"
 // wireGithubRepo registers the configured evaluation repository as the
 // sandbox Git origin so GitHub-dependent skills resolve a real target.
 // Without EVAL_GITHUB_REPO the sandbox stays a local-only repository and
-// GitHub-dependent scenarios are skipped upstream by the caller.
-func (h *cliHost) wireGithubRepo(ctx context.Context, sandboxDir string) error {
+// GitHub-dependent scenarios are skipped upstream by shouldSkip.
+func wireGithubRepo(sandboxDir string) error {
 	repo := os.Getenv(githubRepoEnv)
 	if repo == "" {
 		return nil
 	}
-	if _, err := h.git.Output(ctx, sandboxDir, "remote", "add", "origin", "https://github.com/"+repo+".git"); err != nil {
+	if _, err := support.GitOutputIn(sandboxDir, "remote", "add", "origin", "https://github.com/"+repo+".git"); err != nil {
 		return fmt.Errorf("cannot configure sandbox repository: %w", err)
 	}
 	return nil
@@ -304,11 +293,11 @@ func (h *cliHost) prepareRuntime(sandboxDir string) error {
 // added explicitly below.
 var credentialEnvPattern = regexp.MustCompile(`(?i)(key|token|secret|password|credential)`)
 
-// FilterCredentialEnv removes credential-like variables from a child
+// filterCredentialEnv removes credential-like variables from a child
 // environment. Harness-side commands (skill installation, assertion commands)
 // keep the full GitEnv; this filter applies only to the evaluated model's
 // processes.
-func FilterCredentialEnv(env []string) []string {
+func filterCredentialEnv(env []string) []string {
 	filtered := make([]string, 0, len(env))
 	for _, kv := range env {
 		name, _, ok := strings.Cut(kv, "=")
@@ -328,7 +317,7 @@ func FilterCredentialEnv(env []string) []string {
 // the user's real configuration. Without the opt-in the driver keeps the
 // real HOME and uses the logged-in Google account.
 func (h *cliHost) runEnv(sandboxDir string) []string {
-	env := FilterCredentialEnv(support.GitEnv())
+	env := filterCredentialEnv(support.GitEnv())
 	if repo := os.Getenv(githubRepoEnv); repo != "" {
 		env = append(env, "GH_REPO="+repo)
 	}
@@ -345,9 +334,8 @@ func (h *cliHost) runEnv(sandboxDir string) []string {
 // arguments come from the resolved command line. The invocation is
 // deliberately simple and documented so a first live run against the pinned
 // CLI can confirm or refine it via the EVAL_*_CMD environment variables.
-// The stage output is streamed to out; on failure the error carries a
-// redacted snippet of the CLI output so infrastructure errors stay
-// attributable.
+// The stage output is streamed to out; on failure the error carries a snippet
+// of the CLI output so infrastructure errors stay attributable.
 func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Writer) error {
 	binary, args := h.commandLine()
 	if h.config.dirArg != "" {
@@ -361,18 +349,24 @@ func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Wri
 	} else {
 		args = append(args, prompt)
 	}
-	_, err := h.runner.Run(ctx, Command{
-		Port:      PortHost,
-		Operation: h.name,
-		Name:      binary,
-		Args:      args,
-		Dir:       sandboxDir,
-		Env:       h.runEnv(sandboxDir),
-		Stdout:    out,
-		Stderr:    out,
-		Timeout:   StageTimeout,
-	})
-	return err
+	runCtx, cancel := context.WithTimeout(ctx, stageTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(runCtx, binary, args...)
+	cmd.Dir = sandboxDir
+	cmd.Env = h.runEnv(sandboxDir)
+	var captured bytes.Buffer
+	cmd.Stdout = io.MultiWriter(out, &captured)
+	cmd.Stderr = io.MultiWriter(out, &captured)
+	if err := cmd.Run(); err != nil {
+		if message := strings.TrimSpace(captured.String()); message != "" {
+			if len(message) > 300 {
+				message = "..." + message[len(message)-300:]
+			}
+			return fmt.Errorf("exit %d: %s", support.ExitError(err), message)
+		}
+		return err
+	}
+	return nil
 }
 
 // ResolveHosts resolves the --host flag value into a deterministic driver
@@ -397,4 +391,29 @@ func ResolveHosts(hostFlag string) ([]string, error) {
 		return nil, fmt.Errorf("host must name at least one driver")
 	}
 	return hosts, nil
+}
+
+// runnerFor returns the host runner for a driver identifier.
+func runnerFor(name string) HostRunner {
+	return newCliHost(name)
+}
+
+// resolveModel returns the model provenance default from opencode.json
+// (agent.low.model), or "unset" when the file is absent.
+func resolveModel(root string) string {
+	content, err := os.ReadFile(filepath.Join(root, "opencode.json"))
+	if err != nil {
+		return "unset"
+	}
+	var config struct {
+		Agent struct {
+			Low struct {
+				Model string `json:"model"`
+			} `json:"low"`
+		} `json:"agent"`
+	}
+	if err := json.Unmarshal(content, &config); err != nil || config.Agent.Low.Model == "" {
+		return "unset"
+	}
+	return config.Agent.Low.Model
 }

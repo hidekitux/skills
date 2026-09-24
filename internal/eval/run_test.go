@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
-	"github.com/hidekitux/skills/internal/provider"
 )
 
 // fakeHost is a deterministic HostRunner for tests: it emits a fixed
@@ -61,7 +60,7 @@ func passingFake(name string) *fakeHost {
 	}
 }
 
-func runOneForTest(t *testing.T, sc *Scenario, host provider.HostCLI, opts *Options) Record {
+func runOneForTest(t *testing.T, sc *Scenario, host HostRunner, opts *Options) Record {
 	t.Helper()
 	record := runOne(context.Background(), sc, host, opts, io.Discard, io.Discard)
 	return record
@@ -246,7 +245,7 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 
 	t.Run("pass", func(t *testing.T) {
 		opts := &Options{Root: root, Hosts: []string{"codex"},
-			RunnerFor: func(name string) provider.HostCLI {
+			RunnerFor: func(name string) HostRunner {
 				return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
 			}}
 		var out, errOut bytes.Buffer
@@ -257,7 +256,7 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 
 	t.Run("assertion failure", func(t *testing.T) {
 		opts := &Options{Root: root, Hosts: []string{"codex"},
-			RunnerFor: func(name string) provider.HostCLI { return &fakeHost{name: name, available: true, line: "done"} }}
+			RunnerFor: func(name string) HostRunner { return &fakeHost{name: name, available: true, line: "done"} }}
 		var out, errOut bytes.Buffer
 		if code := Run(context.Background(), opts, &out, &errOut); code != ExitAssertion {
 			t.Fatalf("exit = %d, want 1", code)
@@ -278,7 +277,7 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 	t.Run("reports written on request", func(t *testing.T) {
 		outputDir := t.TempDir()
 		opts := &Options{Root: root, Hosts: []string{"codex"}, OutputDir: outputDir,
-			RunnerFor: func(name string) provider.HostCLI {
+			RunnerFor: func(name string) HostRunner {
 				return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
 			}}
 		var out, errOut bytes.Buffer
@@ -306,7 +305,7 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 		outputDir := t.TempDir()
 		const runID = "explicit-run"
 		opts := &Options{Root: root, Hosts: []string{"codex"}, OutputDir: outputDir, RunID: runID,
-			RunnerFor: func(name string) provider.HostCLI {
+			RunnerFor: func(name string) HostRunner {
 				return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
 			}}
 		var out, errOut bytes.Buffer
@@ -356,7 +355,7 @@ func TestRunReturnsInfrastructureErrorWhenCurrentJSONLReportCannotBeWritten(t *t
 	}
 	opts := &Options{
 		Root: root, Hosts: []string{"codex"}, OutputDir: outputDir, RunID: runID,
-		RunnerFor: func(name string) provider.HostCLI {
+		RunnerFor: func(name string) HostRunner {
 			return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
 		},
 	}
@@ -393,7 +392,7 @@ func TestRunUsesEitherPassPolicyAcrossDrivers(t *testing.T) {
 
 	t.Run("one pass and one fail still passes the gate", func(t *testing.T) {
 		opts := &Options{Root: root, Hosts: []string{"a", "b"},
-			RunnerFor: func(name string) provider.HostCLI {
+			RunnerFor: func(name string) HostRunner {
 				if name == "a" {
 					return &fakeHost{name: name, available: true, line: "done without handoff"}
 				}
@@ -410,7 +409,7 @@ func TestRunUsesEitherPassPolicyAcrossDrivers(t *testing.T) {
 
 	t.Run("all drivers fail blocks", func(t *testing.T) {
 		opts := &Options{Root: root, Hosts: []string{"a", "b"},
-			RunnerFor: func(name string) provider.HostCLI {
+			RunnerFor: func(name string) HostRunner {
 				return &fakeHost{name: name, available: true, line: "done without handoff"}
 			}}
 		var out, errOut bytes.Buffer
@@ -421,7 +420,7 @@ func TestRunUsesEitherPassPolicyAcrossDrivers(t *testing.T) {
 
 	t.Run("all drivers infra reports infrastructure error", func(t *testing.T) {
 		opts := &Options{Root: root, Hosts: []string{"a", "b"},
-			RunnerFor: func(name string) provider.HostCLI {
+			RunnerFor: func(name string) HostRunner {
 				return &fakeHost{name: name, available: true, runErr: fmt.Errorf("crashed")}
 			}}
 		var out, errOut bytes.Buffer
@@ -548,7 +547,7 @@ func TestResolveHosts(t *testing.T) {
 		t.Fatalf("ResolveHosts(all) = %v, %v", all, err)
 	}
 	pair, err := ResolveHosts("opencode,antigravity")
-	if err != nil || len(pair) != 2 || pair[0] != provider.HostOpenCode || pair[1] != provider.HostAntigravity {
+	if err != nil || len(pair) != 2 || pair[0] != HostOpenCode || pair[1] != HostAntigravity {
 		t.Fatalf("ResolveHosts(comma list) = %v, %v", pair, err)
 	}
 	if _, err := ResolveHosts("bogus"); err == nil {

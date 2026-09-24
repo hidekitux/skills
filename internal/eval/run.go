@@ -17,7 +17,6 @@ import (
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
 	"github.com/hidekitux/skills/internal/instructions"
-	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/support"
 	"github.com/hidekitux/skills/internal/trace"
 )
@@ -56,7 +55,7 @@ type Options struct {
 	Commit         string
 	// RunnerFor substitutes host runners (tests). When nil, runnerFor(name)
 	// provides the real drivers.
-	RunnerFor func(name string) provider.HostCLI
+	RunnerFor func(name string) HostRunner
 	Reviewer  RubricReviewer
 	// HandoffNames is the set of cataloged skill names used to decide which
 	// scenario handoffs are asserted against the transcript (a handoff that
@@ -173,7 +172,7 @@ func shouldSkip(sc *Scenario, opts *Options) (string, bool) {
 // runOne evaluates one scenario on one driver and returns its record. A
 // deliberation declaration opts the scenario into the bounded baseline
 // comparison; all other scenarios retain the single-agent path.
-func runOne(ctx context.Context, sc *Scenario, host provider.HostCLI, opts *Options, out, errOut io.Writer) Record {
+func runOne(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) Record {
 	if sc.Deliberation != nil {
 		return runOneDeliberation(ctx, sc, host, opts, out, errOut)
 	}
@@ -183,7 +182,7 @@ func runOne(ctx context.Context, sc *Scenario, host provider.HostCLI, opts *Opti
 // runOneSingle evaluates one scenario on one driver without deliberation.
 // Deliberation candidates call this function with their declaration removed,
 // so a candidate cannot see another candidate's context or result.
-func runOneSingle(ctx context.Context, sc *Scenario, host provider.HostCLI, opts *Options, out, errOut io.Writer) (record Record) {
+func runOneSingle(ctx context.Context, sc *Scenario, host HostRunner, opts *Options, out, errOut io.Writer) (record Record) {
 	started := time.Now().UTC()
 	record = Record{
 		RunID:              time.Now().UTC().Format("20060102T150405Z"),
@@ -338,7 +337,7 @@ func classifyHostError(ctx context.Context, stage string, err error) (string, st
 // single-stage scenarios, re-running the stage after each turn and counting
 // how many were needed. Multi-stage flows record 0 and leave corrections to
 // the reviewer so the flow's handoffs stay contiguous.
-func runCorrections(ctx context.Context, sc *Scenario, host provider.HostCLI, sandboxDir string, transcript *strings.Builder) (int, error) {
+func runCorrections(ctx context.Context, sc *Scenario, host HostRunner, sandboxDir string, transcript *strings.Builder) (int, error) {
 	if len(sc.Corrections) == 0 || len(sc.prompts()) > 1 {
 		return 0, nil
 	}
@@ -436,12 +435,12 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	// codex, claude-code, and antigravity drivers keep their own fixed
 	// defaults; per-driver EVAL_*_MODEL overrides win everywhere.
 	for _, name := range opts.Hosts {
-		if name != provider.HostOpenCode {
+		if name != HostOpenCode {
 			continue
 		}
-		envVar := provider.ModelEnvVar(name)
+		envVar := modelEnvVars[name]
 		if os.Getenv(envVar) == "" {
-			os.Setenv(envVar, provider.EffectiveModel(name, opts.Model))
+			os.Setenv(envVar, effectiveModel(name, opts.Model))
 		}
 	}
 
@@ -512,10 +511,10 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			// Record the driver's effective model so provenance matches the
 			// model actually invoked.
 			optsCopy := *opts
-			optsCopy.Model = provider.EffectiveModel(hostName, opts.Model)
+			optsCopy.Model = effectiveModel(hostName, opts.Model)
 			optsCopy.Context = contextByScenario[sc.ID]
 			wg.Add(1)
-			go func(host provider.HostCLI) {
+			go func(host HostRunner) {
 				defer wg.Done()
 				results[index] = runOne(ctx, sc, host, &optsCopy, out, errOut)
 			}(host)

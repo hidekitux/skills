@@ -54,7 +54,7 @@ type Record struct {
 
 // StrategyComparison records the policy difference between an adaptive
 // decision and a fixed baseline. The fixed baseline is unavailable until a
-// The host command line port can execute a scenario with an explicit strategy override.
+// HostRunner can execute a scenario with an explicit strategy override.
 type StrategyComparison struct {
 	Status                     string `json:"status"`
 	UnavailableReason          string `json:"unavailable_reason,omitempty"`
@@ -71,7 +71,7 @@ type StrategyComparison struct {
 
 // Comparison records the measurable difference between the single-agent
 // baseline and the bounded deliberation result. Token and monetary meters are
-// explicit about availability because the local host command line contract does not
+// explicit about availability because the local HostRunner contract does not
 // expose provider usage data.
 type Comparison struct {
 	Pattern                      string `json:"pattern"`
@@ -166,7 +166,7 @@ func markdownSummary(w io.Writer, records []Record, gates map[string]string, mod
 	}
 	if len(strategyComparisons) > 0 {
 		fmt.Fprintln(w, "\n## Execution strategy comparison (Issue 204)")
-		fmt.Fprintln(w, "The fixed baseline was not executed because the host command line contract has no strategy override. This comparison is unavailable; no completion, quality, latency, token, cost, or retry delta is inferred.")
+		fmt.Fprintln(w, "The fixed baseline was not executed because the HostRunner contract has no strategy override. This comparison is unavailable; no completion, quality, latency, token, cost, or retry delta is inferred.")
 		fmt.Fprintln(w, "| scenario | status | unavailable_reason | fixed | adaptive | selection_outcome | changed | policy_safety_floor_preserved | validation_tier_delta | retry_bound_delta | elapsed_bound_delta_ms | parallelism_changed |")
 		fmt.Fprintln(w, "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
 		for _, record := range strategyComparisons {
