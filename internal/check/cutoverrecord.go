@@ -357,10 +357,10 @@ func cutoverTextValues(record *cutoverRecord) []string {
 // CheckCutoverRecord validates workflow/cutover-record.yml against the
 // repository tree, the contract decisions, the module ownership model, and the
 // architecture record that explains it. It fails on a malformed file, an
-// unknown key, a missing field, a recorded contract or a declared module that
-// no participant covers, an evidence path that does not exist, an untested
-// recovery procedure, a missing post-cutover aspect, and a version identifier
-// Issue #326 has not separately approved.
+// unknown key, a missing field, a participant that leaves a recorded contract
+// uncovered, an evidence path that does not exist, an untested recovery
+// procedure, a missing post-cutover aspect, and a version identifier Issue
+// #326 has not separately approved.
 func CheckCutoverRecord(root string, out, errOut io.Writer) int {
 	record, err := readCutoverRecord(filepath.Join(root, "workflow", "cutover-record.yml"))
 	if err != nil {
