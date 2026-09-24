@@ -27,6 +27,7 @@ type Record struct {
 	Model              string                      `json:"model,omitempty"`
 	Commit             string                      `json:"repo_commit"`
 	SkillSourceCommit  string                      `json:"skill_source_commit,omitempty"`
+	InputDigest        string                      `json:"input_digest,omitempty"`
 	InstructionVariant string                      `json:"instruction_variant,omitempty"`
 	ContextMode        string                      `json:"context_mode,omitempty"`
 	Context            *skillcontext.Manifest      `json:"context,omitempty"`
