@@ -607,8 +607,7 @@ Run `20260924T033735Z` retired three conditions of the first two runs:
   host service fault. `opencode run --print-logs` showed
   `ProviderModelNotFoundError` for `opencode-go/deepseek-v4-flash` behind the
   `UnknownError`. After `opencode auth login`, the run recorded seven
-  `opencode` records: five verdicts, two stage timeouts, and no
-  `UnknownError`. `docs/evaluation.md` and
+  `opencode` verdicts and no `UnknownError`. `docs/evaluation.md` and
   `evaluations/README.md` name the credential as a driver prerequisite.
 - The two `sandbox_repo_not_configured` skips are gone: with
   `EVAL_GITHUB_REPO` set, `plan-issue-success` and `implement-issue-negative`
