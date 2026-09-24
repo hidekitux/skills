@@ -12,31 +12,48 @@
 //           evidence requirement.
 // ASSUME-4: deprecation is terminal in this model; publication ordering stays
 //           in release-gate.fsl and is not duplicated here.
+//
+// Formalization memo (Issue 367, comment #issuecomment-5810685942):
+// ASSUME-5: fresh records whether the retained evidence's input digest matches
+//           the skill's current input set (docs/evaluation.md). A commit
+//           outside the input set changes no state, so no action models it.
 spec EvaluationGate {
   enum Status { Experimental, Stable, Deprecated }
 
   state {
     status: Status,
-    evidence: Bool
+    evidence: Bool,
+    fresh: Bool
   }
 
   init {
     status = Experimental
     evidence = false
+    fresh = false
   }
 
-  // A passing behavioral evaluation is recorded while the skill is still
-  // experimental. Evidence may exist without promotion.
+  // A passing behavioral evaluation is recorded at the current input digest.
+  // Evidence may exist without promotion, and a stable skill may refresh its
+  // evidence after a relevant change.
   action record_evidence() {
-    requires status == Experimental
+    requires status == Experimental or status == Stable
     evidence = true
+    fresh = true
+  }
+
+  // A commit to the skill's directory, a shared input, or the evaluation
+  // harness changes the input digest and makes the retained evidence stale.
+  action change_relevant_input() {
+    requires status != Deprecated
+    fresh = false
   }
 
   // Promotion from experimental to stable requires retained behavioral
-  // evidence per docs/evaluation.md.
+  // evidence at the current input digest per docs/evaluation.md.
   action promote() {
     requires status == Experimental
     requires evidence
+    requires fresh
     status = Stable
   }
 
@@ -74,4 +91,5 @@ spec EvaluationGate {
   reachable StableSealedByEvidence { status == Stable }
   reachable DemotionRestoresExperimental { status == Experimental }
   reachable DeprecatedEnd { status == Deprecated }
+  reachable StaleEvidenceBlocksPromotion { status == Experimental and evidence and not fresh }
 }
