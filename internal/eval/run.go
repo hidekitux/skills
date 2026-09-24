@@ -158,6 +158,17 @@ func repoCommit(root string) string {
 	return strings.TrimSpace(out.Stdout)
 }
 
+// inputDigestFor returns the scenario skill's input digest. A digest that
+// cannot be computed stays empty, which makes the record ineligible as
+// stable promotion evidence without changing the evaluation verdict.
+func inputDigestFor(sc *Scenario, opts *Options) string {
+	digest, err := InputDigest(opts.Root, skillRootFor(opts), sc.Skill)
+	if err != nil {
+		return ""
+	}
+	return digest
+}
+
 // shouldSkip records a skipped verdict before any sandbox is created.
 func shouldSkip(sc *Scenario, opts *Options) (string, bool) {
 	if opts.DryRun {
@@ -193,6 +204,7 @@ func runOneSingle(ctx context.Context, sc *Scenario, host provider.HostCLI, opts
 		Model:              opts.Model,
 		Commit:             opts.Commit,
 		SkillSourceCommit:  repoCommit(skillRootFor(opts)),
+		InputDigest:        inputDigestFor(sc, opts),
 		InstructionVariant: variantFor(opts),
 		ContextMode:        opts.ContextMode,
 		Context:            opts.Context,
