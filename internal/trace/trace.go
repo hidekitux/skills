@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -22,7 +23,6 @@ import (
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
 	skillenvironment "github.com/hidekitux/skills/internal/environment"
-	"github.com/hidekitux/skills/internal/evidence"
 	"github.com/hidekitux/skills/internal/graph"
 	executionstrategy "github.com/hidekitux/skills/internal/strategy"
 	"gopkg.in/yaml.v3"
@@ -123,7 +123,10 @@ type Validation struct {
 
 // DiagnosticRef identifies a diagnostic without persisting its message,
 // observed state, command output, or evidence content.
-type DiagnosticRef = evidence.DiagnosticRef
+type DiagnosticRef struct {
+	Producer string `json:"producer"`
+	Code     string `json:"code"`
+}
 
 // Evidence is a safe pointer to an externally stored result.
 type Evidence struct {
@@ -243,9 +246,9 @@ var (
 	runIDPattern      = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:-]*$`)
 	metadataPattern   = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/:@+-]*$`)
 	versionPattern    = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
-	shaPattern        = evidence.CommitSHAPattern()
-	credentialPattern = evidence.CredentialPattern()
-	urlPattern        = evidence.URLPattern()
+	shaPattern        = regexp.MustCompile(`^[0-9a-f]{40}$`)
+	credentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
+	urlPattern        = regexp.MustCompile(`https?://[^\s"']+`)
 )
 
 // Validate checks a trace against the semantic contract.
@@ -1176,4 +1179,12 @@ func uniqueSorted(values []string) []string {
 	}
 	sort.Strings(result)
 	return result
+}
+
+// IsPrivateAddress is exposed for adapters that must reject local evidence URLs.
+func IsPrivateAddress(host string) bool {
+	if parsed := net.ParseIP(host); parsed != nil {
+		return parsed.IsPrivate() || parsed.IsLoopback()
+	}
+	return host == "localhost" || strings.HasSuffix(host, ".local")
 }
