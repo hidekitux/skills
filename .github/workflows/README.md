@@ -86,9 +86,11 @@ reasons:
 
 - Go-based policy checks use `.github/actions/setup-go`, which centralizes
   `actions/setup-go` (`go-version: 1.26.6` matching `go.mod` and `mise.toml`,
-  caching on, `go.sum` cache key). Checkout runs as a separate named step
-  before it, because GitHub loads local actions from the checked-out
-  workspace.
+  caching on, `go.sum` cache key). Workflows reference it through the
+  self-repository syntax, `uses: $/.github/actions/setup-go`, which resolves
+  to the running commit without a checkout. Checkout still runs as a separate
+  named step before it, because the cache key reads `go.sum` from the
+  workspace and later steps run repository scripts.
 - Task-driven workflows (`validate.yml`, `targeted.yml`, and `publish.yml`) run
   `scripts/setup/setup-environment.sh` before `jdx/mise-action`. The action
   installs only the tools named by that job's `install_args` once, with its
