@@ -8,7 +8,9 @@ keep it in sync when a command, workflow, or trigger changes. The
 `Changed: the repository check list` section of the
 [architecture record](architecture.md) holds the contract decision behind the
 `check:repository` total this document records, so a change to that total
-updates both documents.
+updates both documents. The [validation history](validation-history.md)
+records the CI failures each command caused and whether to keep, merge, or
+retire it.
 
 ## Tier definitions
 
