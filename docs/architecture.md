@@ -635,6 +635,26 @@ tiers, so no run blocks a pull request.
 | `20260918T045712Z` | After the `antigravity` sign-in, four scenarios passed, two were `skipped` with `sandbox_repo_not_configured`, and `triage-issues-success` failed on the one driver that ran: the transcript did not name the expected handoff `create-issue`. The `opencode` driver still returned `infrastructure_error` for every scenario it attempted. | product for the five scenarios that reached a verdict, unavailable environment for the two `skipped` scenarios, infrastructure for the `opencode` driver |
 | `20260924T033735Z` | Both drivers ran all seven scenarios: 6 records passed, 4 failed, 4 returned `infrastructure_error`, and none was `skipped`. No `opencode` record carries `UnknownError`. The four `infrastructure_error` records are the 5-minute stage timeout on `audit-workflow-enforcement-boundary` and `plan-issue-success`, on both drivers. | product for the ten records that reached a verdict, infrastructure for the four timeouts |
 
+Run `20260924T033735Z` retired two conditions of the first two runs and
+recorded the third as an environment limit:
+
+- The `opencode` driver failure was a missing OpenCode Go credential, not a
+  host service fault. `opencode run --print-logs` showed
+  `ProviderModelNotFoundError` for `opencode-go/deepseek-v4-flash` behind the
+  `UnknownError`. After `opencode auth login`, the run recorded seven
+  `opencode` records: five verdicts, two stage timeouts, and no
+  `UnknownError`. `docs/evaluation.md` and
+  `evaluations/README.md` name the credential as a driver prerequisite.
+- The two `sandbox_repo_not_configured` skips are gone: with
+  `EVAL_GITHUB_REPO` set, `plan-issue-success` and `implement-issue-negative`
+  ran on both drivers. `implement-issue-negative` reached a verdict, and
+  `plan-issue-success` ended in the stage timeout.
+- The `(could not read directory)` listing is still printed. It comes from
+  `gh skill install --from-local`, which reads a different path for its
+  post-install file tree than the one it installs to. `docs/evaluation.md`
+  records it as an environment limit with the evidence that installation is
+  complete.
+
 The `triage-issues-success` failure was a skill defect, not a model limit.
 Issue #351 reproduced it with `mise run evaluate:all -- --scenario
 triage-issues-success` on the drivers each row names and read each transcript.
@@ -670,25 +690,11 @@ goes to `create-issue`. The other three name `create-issue` as the owner of new
 work, and the `claude-code` transcript of run `20260924T025013Z` adds that a
 new investigation task, if one is needed, would go to `create-issue`.
 
-Run `20260924T033735Z` retired two conditions of the first two runs and
-recorded the third as an environment limit:
-
-- The `opencode` driver failure was a missing OpenCode Go credential, not a
-  host service fault. `opencode run --print-logs` showed
-  `ProviderModelNotFoundError` for `opencode-go/deepseek-v4-flash` behind the
-  `UnknownError`. After `opencode auth login`, the run recorded seven
-  `opencode` records: five verdicts, two stage timeouts, and no
-  `UnknownError`. `docs/evaluation.md` and
-  `evaluations/README.md` name the credential as a driver prerequisite.
-- The two `sandbox_repo_not_configured` skips are gone: with
-  `EVAL_GITHUB_REPO` set, `plan-issue-success` and `implement-issue-negative`
-  ran on both drivers. `implement-issue-negative` reached a verdict, and
-  `plan-issue-success` ended in the stage timeout.
-- The `(could not read directory)` listing is still printed. It comes from
-  `gh skill install --from-local`, which reads a different path for its
-  post-install file tree than the one it installs to. `docs/evaluation.md`
-  records it as an environment limit with the evidence that installation is
-  complete.
+Run `20260924T033735Z` of `mise run evaluate:smoke` reached the same failure
+on a third model. Its skill, scenario, and fixture match `8b5249f`, and
+`antigravity` with `gemini-3.8-flash-low` failed `triage-issues-success`
+because the transcript did not name `create-issue`. `opencode` with
+`opencode-go/deepseek-v4-flash` passed. The run kept no transcript.
 
 ### Outcome coverage
 
