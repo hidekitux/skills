@@ -32,7 +32,7 @@ Issue #29 confirmed this packaging memo: `create-issue` owns `issue-creation.fsl
 mise run verify:fsl
 ```
 
-The task discovers root specifications and `skills/**/specs/*.fsl` sources; downloads and checksum-verifies the official `fslc` v4.2.0 release; then runs `fslc check` and `fslc verify --depth 8` for each source. It installs and reads `fslc` in `FSLC_BIN_DIR`, which defaults to the `fslc` directory under the environment root that `scripts/setup/environment-state.sh` computes, so no variable needs exporting by hand. Repository validation checks symlink integrity without running sources twice. Override the depth when needed, for example `FSL_DEPTH=12 mise run verify:fsl`. Supported platforms are GitHub Actions Linux x64 and development macOS Apple Silicon.
+The task discovers root specifications and `skills/**/specs/*.fsl` sources; downloads and checksum-verifies the official `fslc` v4.2.0 release; then runs `fslc check` and `fslc verify --depth 8` for each source. It installs `fslc` in the `fslc` directory under the environment root that `scripts/setup/environment-state.sh` computes, and the verifier reads it there, so no variable needs exporting by hand. An exported `FSLC_BIN_DIR` redirects only the verifier; the installer still writes under the environment root. Repository validation checks symlink integrity without running sources twice. Override the depth when needed, for example `FSL_DEPTH=12 mise run verify:fsl`. Supported platforms are GitHub Actions Linux x64 and development macOS Apple Silicon.
 
 ## Cross-skill trace replay
 
