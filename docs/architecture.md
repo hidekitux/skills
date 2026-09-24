@@ -484,8 +484,8 @@ records the same outcome at the branch head.
 ## Final validation
 
 Issue #333 closes the redesign with one validation record. Every command below
-ran in the worktree for the `issue/333` branch, whose only change to the tree
-is the documentation this Issue adds. The record keeps four outcomes apart: a **product outcome**
+ran in the worktree for this Issue, on the tree that carries only this
+document's change. The record keeps four outcomes apart: a **product outcome**
 comes from the repository's own code and committed artifacts, an
 **infrastructure outcome** is a fault in the tool or its dependency rather than
 in the artifact under check, an **unavailable-environment outcome** is a check
