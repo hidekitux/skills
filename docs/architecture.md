@@ -584,19 +584,40 @@ recorded here.
 
 ### Behavioral evaluation
 
-`mise run evaluate:smoke` ran twice. Both runs are on repository commit
-`facf9e641f8020e35c10e0dab515e3352f81d40e`, and
+`mise run evaluate:smoke` ran three times. The first two runs are on
+repository commit `facf9e641f8020e35c10e0dab515e3352f81d40e`; the third, for
+Issue #352, is on `c51e94856641dc7cb7e3fd852c85bec65e27d695` with
+`EVAL_GITHUB_REPO` set to a private sandbox repository.
 `docs/validation-tiers.md` places live behavioral evaluation outside the CI
-tiers, so neither run blocks a pull request.
+tiers, so no run blocks a pull request.
 
 | Run | Outcome | Classification |
 | --- | --- | --- |
 | `20260918T044954Z` | Every driver returned `infrastructure_error` or `skipped`; no scenario produced a behavioral verdict. The `antigravity` driver was not signed in and the `opencode` driver returned `UnknownError` `err_34aa405f` from its server. | infrastructure, unavailable environment |
 | `20260918T045712Z` | After the `antigravity` sign-in, four scenarios passed, two were `skipped` with `sandbox_repo_not_configured`, and `triage-issues-success` failed on the one driver that ran: the transcript did not name the expected handoff `create-issue`. The `opencode` driver still returned `infrastructure_error` for every scenario it attempted. | product for the five scenarios that reached a verdict, unavailable environment for the two `skipped` scenarios, infrastructure for the `opencode` driver |
+| `20260924T033735Z` | Both drivers ran all seven scenarios: 6 records passed, 4 failed, 4 returned `infrastructure_error`, and none was `skipped`. No `opencode` record carries `UnknownError`. The four `infrastructure_error` records are the 5-minute stage timeout on `audit-workflow-enforcement-boundary` and `plan-issue-success`, on both drivers. | product for the ten records that reached a verdict, infrastructure for the four timeouts |
 
 The `triage-issues-success` failure is a behavioral result at the model this
 run used, `gemini-3.7-flash-low`. It is not a consequence of this Issue, whose
 change is confined to `docs/`. It is listed under `Remaining risks`.
+
+Run `20260924T033735Z` retired three conditions of the first two runs:
+
+- The `opencode` driver failure was a missing OpenCode Go credential, not a
+  host service fault. `opencode run --print-logs` showed
+  `ProviderModelNotFoundError` for `opencode-go/deepseek-v4-flash` behind the
+  `UnknownError`. After `opencode auth login`, the run recorded seven
+  `opencode` verdicts and no `UnknownError`. `docs/evaluation.md` and
+  `evaluations/README.md` name the credential as a driver prerequisite.
+- The two `sandbox_repo_not_configured` skips are gone: with
+  `EVAL_GITHUB_REPO` set, `plan-issue-success` and `implement-issue-negative`
+  ran on both drivers. `implement-issue-negative` reached a verdict, and
+  `plan-issue-success` ended in the stage timeout.
+- The `(could not read directory)` listing is still printed. It comes from
+  `gh skill install --from-local`, which reads a different path for its
+  post-install file tree than the one it installs to. `docs/evaluation.md`
+  records it as an environment limit with the evidence that installation is
+  complete.
 
 ### Outcome coverage
 
@@ -659,17 +680,6 @@ the evidence that retired it.
   `gemini-3.7-flash-low`, and one run does not separate a model limit from a
   skill defect. Live behavioral evaluation is local-only and blocks no pull
   request. Issue #351 owns the reproduction and the classification.
-- The `opencode` driver returned `UnknownError` `err_34aa405f` for every
-  scenario it attempted in both runs. The fault is in the host service, not in
-  a repository artifact, and it leaves the corpus measured on one driver.
-  Issue #352 owns it.
-- The host skill listing printed `(could not read directory)` for every
-  installed skill during both evaluation runs in this worktree. The
-  registration links resolve outside the worktree; the condition is local
-  installation state, not a committed artifact. Issue #352 owns it.
-- Two scenarios stay `skipped` with `sandbox_repo_not_configured`. The
-  scenarios that drive a governed Issue and Pull Request need a sandbox
-  repository that this environment does not provide. Issue #352 owns it.
 - The recovery rehearsal in `Cutover and recovery` reverted the tree and
   rebuilt it. It did not exercise the review path a real recovery Pull Request
   would take. Issue #353 owns it.
