@@ -196,6 +196,26 @@ func TestSetupEnvironmentExportsCIPathsWithoutGeneratingMiseConfig(t *testing.T)
 	}
 }
 
+// TestSetupEnvironmentKeepsAnExportedFSLCBinDir keeps scripts/fsl/install-fslc.sh
+// writing where an exported FSLC_BIN_DIR sends the verifier to read.
+func TestSetupEnvironmentKeepsAnExportedFSLCBinDir(t *testing.T) {
+	root, _ := newSetupRepository(t)
+	envFile := filepath.Join(root, "github-env")
+	custom := filepath.Join(root, "custom-fslc")
+	env := []string{"SETUP_ROOT=" + root, "GITHUB_ENV=" + envFile, "FSLC_BIN_DIR=" + custom}
+	stdout, stderr, code := runTestCommandWithEnv(t, root, env, "bash", filepath.Join(root, "scripts/setup/setup-environment.sh"))
+	if code != 0 {
+		t.Fatalf("environment setup failed: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	values, err := os.ReadFile(envFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(values), "FSLC_BIN_DIR="+custom+"\n") {
+		t.Fatalf("GITHUB_ENV does not keep the exported FSLC_BIN_DIR: %q", values)
+	}
+}
+
 func TestRunMiseSetupInstallsOnlyTheSetupToolAndDisablesAutoInstall(t *testing.T) {
 	root, fakeBin := newSetupRepository(t)
 	writeTestFile(t, filepath.Join(fakeBin, "mise"), "#!/bin/sh\nprintf '%s|%s|%s|%s\n' \"$*\" \"$MISE_GLOBAL_CONFIG_ROOT\" \"$MISE_SHARED_INSTALL_DIRS\" \"${MISE_AUTO_INSTALL:-unset}\" >> \"$SETUP_LOG\"\n")

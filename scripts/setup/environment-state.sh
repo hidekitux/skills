@@ -29,7 +29,7 @@ setup_environment_export() {
   export MISE_SHIMS_DIR="${environment_root}/shims"
   export GOCACHE="${environment_root}/go-build"
   export GOPATH="${environment_root}/gopath"
-  export FSLC_BIN_DIR="${environment_root}/fslc"
+  export FSLC_BIN_DIR="${FSLC_BIN_DIR:-${environment_root}/fslc}"
   export MISE_GLOBAL_CONFIG_ROOT="${environment_root}/global-config"
   export SETUP_SHARED_CACHE_ROOT="${shared_cache_root}"
   export SETUP_LOCK_ROOT="${shared_cache_root}/locks"
