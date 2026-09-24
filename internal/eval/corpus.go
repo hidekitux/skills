@@ -71,6 +71,34 @@ func failureKind(kind string) bool {
 	return kind == KindNegative || kind == KindBoundary
 }
 
+// checkSkillRelationships keeps every scenario reachable from a skill under
+// skills/. Evaluation scenarios are the per-skill asset kept outside the skill
+// directory, because installation copies the whole skill directory into the
+// evaluation sandbox; the scenario directory name is therefore the only link
+// between a skill and its scenarios, and each relationship below names the
+// link a rename can break.
+func checkSkillRelationships(root string, catalog []catalogSkill, catalogNames map[string]bool, scenarios []*Scenario, findings *[]string) {
+	entries, err := os.ReadDir(filepath.Join(root, scenarioBase))
+	if err == nil {
+		for _, entry := range entries {
+			if entry.IsDir() && entry.Name() != E2ESkill && !catalogNames[entry.Name()] {
+				*findings = append(*findings, fmt.Sprintf("scenario directory %s/%s does not name a cataloged skill or e2e", scenarioBase, entry.Name()))
+			}
+		}
+	}
+	for _, sc := range scenarios {
+		if sc.dir != sc.Skill {
+			*findings = append(*findings, fmt.Sprintf("%s: skill %q must match its scenario directory %q under %s", sc.ID, sc.Skill, sc.dir, scenarioBase))
+		}
+	}
+	for _, skill := range catalog {
+		matches, _ := filepath.Glob(filepath.Join(root, "skills", "*", skill.Name, "SKILL.md"))
+		if len(matches) == 0 {
+			*findings = append(*findings, fmt.Sprintf("cataloged skill %q has no skills/<category>/%s/SKILL.md for its scenarios", skill.Name, skill.Name))
+		}
+	}
+}
+
 // validateScenario applies the scenario schema rules and returns findings.
 func validateScenario(sc *Scenario, catalogNames map[string]bool, seen map[string]bool, root string, findings *[]string) {
 	if sc.ID == "" {
@@ -351,6 +379,8 @@ func CheckCorpus(root string, out, errOut io.Writer) int {
 		fmt.Fprintln(errOut, "Evaluation corpus check failed: no scenarios found under evaluations/scenarios/")
 		return 1
 	}
+
+	checkSkillRelationships(root, catalog, catalogNames, scenarios, &findings)
 
 	seen := make(map[string]bool, len(scenarios))
 	bySkill := make(map[string]map[string]bool, len(catalog))
