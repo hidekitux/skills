@@ -599,8 +599,8 @@ tiers, so no run blocks a pull request.
 | `20260918T045712Z` | After the `antigravity` sign-in, four scenarios passed, two were `skipped` with `sandbox_repo_not_configured`, and `triage-issues-success` failed on the one driver that ran: the transcript did not name the expected handoff `create-issue`. The `opencode` driver still returned `infrastructure_error` for every scenario it attempted. | product for the five scenarios that reached a verdict, unavailable environment for the two `skipped` scenarios, infrastructure for the `opencode` driver |
 | `20260924T033735Z` | Both drivers ran all seven scenarios: 6 records passed, 4 failed, 4 returned `infrastructure_error`, and none was `skipped`. No `opencode` record carries `UnknownError`. The four `infrastructure_error` records are the 5-minute stage timeout on `audit-workflow-enforcement-boundary` and `plan-issue-success`, on both drivers. | product for the ten records that reached a verdict, infrastructure for the four timeouts |
 
-The `triage-issues-success` failure is a behavioral result at the model this
-run used, `gemini-3.7-flash-low`. It is not a consequence of this Issue, whose
+The `triage-issues-success` failure in run `20260918T045712Z` is a behavioral
+result at the model that run used, `gemini-3.7-flash-low`. It is not a consequence of this Issue, whose
 change is confined to `docs/`. It is listed under `Remaining risks`.
 
 Run `20260924T033735Z` retired two conditions of the first two runs and
