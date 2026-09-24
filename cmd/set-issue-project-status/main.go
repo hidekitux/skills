@@ -92,5 +92,5 @@ func main() {
 		skipClosed = true
 	}
 
-	os.Exit(project.SetIssueStatusWithRetries(project.NewGH(), cfg, *repo, *issue, target, *dryRun, skipClosed, *maxAttempts, os.Stdout, os.Stderr))
+	os.Exit(project.SetIssueStatusWithRetries(project.GH{}, cfg, *repo, *issue, target, *dryRun, skipClosed, *maxAttempts, os.Stdout, os.Stderr))
 }
