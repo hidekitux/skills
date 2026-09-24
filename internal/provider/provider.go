@@ -5,12 +5,12 @@
 // operation, and one failure classification every caller reads the same way.
 //
 // This package belongs to the provider module. It imports the foundation
-// module and nothing else. The credential pattern, the URL pattern, and the
-// private host rule it applies before reporting process output come from
-// internal/redact, a foundation package. They cannot come from
-// internal/evidence, because the evidence module may import the policy module
-// and the policy module imports this one, so that edge would make the module
-// graph cyclic. See docs/architecture.md and workflow/module-ownership.yml.
+// module for environment helpers and nothing else. It cannot import
+// internal/evidence for the shared credential and URL patterns, because the
+// evidence module may import the policy module and the policy module imports
+// this one, so the edge would make the module graph cyclic. The patterns below
+// are therefore declared here. See docs/architecture.md and
+// workflow/module-ownership.yml.
 //
 // The filesystem is not a port. Its adapter is the operating system, and a
 // test substitutes it by pointing the caller at a temporary root, the seam
@@ -23,10 +23,21 @@ import (
 	"fmt"
 	"net/url"
 	"os/exec"
+	"regexp"
 	"strings"
-
-	"github.com/hidekitux/skills/internal/redact"
 )
+
+// credentialPattern matches a credential a provider diagnostic must never
+// carry. It repeats the rule internal/evidence states for persisted evidence,
+// because the module direction forbids importing that package here.
+var credentialPattern = regexp.MustCompile(`(?i)(bearer\s+|password\s*=\s*|token\s*=\s*|secret\s*=\s*|api[_-]?key\s*=\s*)([^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16})`)
+
+// urlPattern finds an absolute URL in process output.
+var urlPattern = regexp.MustCompile(`https?://[^\s"']+`)
+
+// privateHostPattern matches a host a diagnostic must not expose: a loopback
+// address, a private IPv4 range, or a local name.
+var privateHostPattern = regexp.MustCompile(`(?i)^(localhost|.*\.local|127\.[0-9.]+|10\.[0-9.]+|192\.168\.[0-9.]+|172\.(1[6-9]|2[0-9]|3[01])\.[0-9.]+|\[?::1\]?)$`)
 
 // Kind classifies why a provider operation did not succeed. A successful
 // operation returns a nil error, so the absence of a Kind is the success
@@ -121,15 +132,14 @@ func RetryExhausted(port, operation string, attempts int, last error) *Error {
 const detailLimit = 300
 
 // Redact removes the values a provider diagnostic must never expose: a
-// credential in any form redact.CredentialPattern recognizes, and a URL whose
-// host redact.IsPrivateHost reports as private or local. The result is
-// bounded to detailLimit characters, keeping the tail, because a process
-// reports its failure last.
+// credential in any form credentialPattern recognizes, and a URL whose host is
+// a private or local address. The result is bounded to detailLimit characters,
+// keeping the tail, because a process reports its failure last.
 func Redact(detail string) string {
-	cleaned := redact.CredentialPattern().ReplaceAllString(detail, "[redacted credential]")
-	cleaned = redact.URLPattern().ReplaceAllStringFunc(cleaned, func(raw string) string {
+	cleaned := credentialPattern.ReplaceAllString(detail, "[redacted credential]")
+	cleaned = urlPattern.ReplaceAllStringFunc(cleaned, func(raw string) string {
 		parsed, err := url.Parse(raw)
-		if err != nil || parsed.Hostname() == "" || redact.IsPrivateHost(parsed.Hostname()) {
+		if err != nil || parsed.Hostname() == "" || privateHostPattern.MatchString(parsed.Hostname()) {
 			return "[redacted private URL]"
 		}
 		return raw

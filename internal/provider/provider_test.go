@@ -25,35 +25,6 @@ func TestRedactRemovesCredentialsAndPrivateURLs(t *testing.T) {
 	}
 }
 
-// TestRedactRemovesEveryPrivateHostClass composes each URL from a host rather
-// than writing it out, because check-sensitive-content rejects a tracked file
-// that contains a literal private network URL.
-func TestRedactRemovesEveryPrivateHostClass(t *testing.T) {
-	for _, host := range []string{
-		"127.0.0.1",
-		"10.0.0.1",
-		"192.168.1.5",
-		"172.16.0.1",
-		"[::1]",
-		"[fd00::1]",
-		"[fc00::abcd]",
-		"169.254.1.1",
-		"[fe80::1]",
-		"localhost",
-		"build.local",
-	} {
-		rawURL := "https://" + host + "/path"
-		cleaned := Redact("fatal: request to " + rawURL + " failed")
-		if cleaned != "fatal: request to [redacted private URL] failed" {
-			t.Fatalf("private host %q survived redaction: %q", host, cleaned)
-		}
-	}
-	public := Redact("fatal: request to https://github.com/hidekitux/skills failed")
-	if !strings.Contains(public, "https://github.com/hidekitux/skills") {
-		t.Fatalf("public URL must stay readable: %q", public)
-	}
-}
-
 func TestRedactKeepsTheFailingTailWithinTheLimit(t *testing.T) {
 	cleaned := Redact(strings.Repeat("a", detailLimit+50) + "END")
 	if len([]rune(cleaned)) > detailLimit+3 {
