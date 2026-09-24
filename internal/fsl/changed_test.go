@@ -1,7 +1,6 @@
 package fsl
 
 import (
-	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,12 +10,6 @@ import (
 
 	"github.com/hidekitux/skills/internal/support"
 )
-
-// gitOutputForTest reads git state through the same Git port the package uses.
-func gitOutputForTest(root string, args ...string) (string, error) {
-	result, err := gitPort.Output(context.Background(), root, args...)
-	return result.Stdout, err
-}
 
 func TestIsScopedFSLPath(t *testing.T) {
 	cases := map[string]bool{
@@ -62,7 +55,7 @@ func baseCommit(t *testing.T, root string) string {
 	t.Helper()
 	gitTest(t, root, "add", "-A")
 	gitTest(t, root, "commit", "-m", "base")
-	out, err := gitOutputForTest(root, "rev-parse", "HEAD")
+	out, err := support.GitOutputIn(root, "rev-parse", "HEAD")
 	if err != nil {
 		t.Fatalf("rev-parse HEAD: %v", err)
 	}
@@ -80,7 +73,7 @@ type gitSnapshot struct {
 func snapshotGitState(t *testing.T, root string) gitSnapshot {
 	t.Helper()
 	read := func(args ...string) string {
-		out, err := gitOutputForTest(root, args...)
+		out, err := support.GitOutputIn(root, args...)
 		if err != nil {
 			t.Fatalf("git %v: %v", args, err)
 		}
@@ -124,7 +117,7 @@ func TestFixtureCommitsIgnoreInheritedCallerRepository(t *testing.T) {
 	if !reflect.DeepEqual(callerAfter, callerBefore) {
 		t.Fatalf("fixture commit changed caller repository:\nbefore=%+v\nafter=%+v", callerBefore, callerAfter)
 	}
-	fixtureHeadAfter, err := gitOutputForTest(fixture, "rev-parse", "HEAD")
+	fixtureHeadAfter, err := support.GitOutputIn(fixture, "rev-parse", "HEAD")
 	if err != nil {
 		t.Fatalf("read fixture HEAD after fixture commit: %v", err)
 	}

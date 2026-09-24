@@ -3,12 +3,11 @@ package release
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/hidekitux/skills/internal/provider"
 )
 
 type fakeGitResult struct {
@@ -55,45 +54,29 @@ func commandKey(name string, args ...string) string {
 	return strings.Join(values, "\x00")
 }
 
-// ports returns the release ports backed by this fake, so a release runs with
-// no process started and no network access.
-func (runner *fakeReleaseRunner) ports() releasePorts {
-	return newReleasePorts(&provider.Stub{Handler: runner.answer})
+func (runner *fakeReleaseRunner) gitOutput(root string, args ...string) (string, error) {
+	runner.gitCalls = append(runner.gitCalls, fakeGitCall{root: root, args: append([]string{}, args...)})
+	result, ok := runner.gitResults[commandKey("git", args...)]
+	if !ok {
+		return "", errors.New("unexpected git command: " + commandKey("git", args...))
+	}
+	return result.output, result.err
 }
 
-// answer resolves one command against the recorded results. A command listed
-// in gitResults is a git read, one listed in execResults is a git probe run
-// for its exit code, and the rest are streamed release commands.
-func (runner *fakeReleaseRunner) answer(command provider.Command) (provider.Result, error) {
-	key := commandKey(command.Name, command.Args...)
-	if result, ok := runner.gitResults[key]; ok {
-		runner.gitCalls = append(runner.gitCalls, fakeGitCall{root: command.Dir, args: append([]string{}, command.Args...)})
-		if result.err != nil {
-			return provider.Fail(command, provider.KindFailure, 1, result.err.Error())
-		}
-		return provider.Result{Stdout: result.output}, nil
+func (runner *fakeReleaseRunner) execIn(root, name string, args ...string) int {
+	runner.execCalls = append(runner.execCalls, fakeGitCall{root: root, args: append([]string{name}, args...)})
+	if code, ok := runner.execResults[commandKey(name, args...)]; ok {
+		return code
 	}
-	if code, ok := runner.execResults[key]; ok {
-		runner.execCalls = append(runner.execCalls, fakeGitCall{root: command.Dir, args: append([]string{command.Name}, command.Args...)})
-		return codeResult(command, code)
-	}
-	if command.Name == "git" {
-		runner.gitCalls = append(runner.gitCalls, fakeGitCall{root: command.Dir, args: append([]string{}, command.Args...)})
-		return provider.Fail(command, provider.KindFailure, 1, "unexpected git command: "+key)
-	}
-	runner.streamCalls = append(runner.streamCalls, fakeCommandCall{name: command.Name, args: append([]string{}, command.Args...)})
-	if code, ok := runner.streamResults[key]; ok {
-		return codeResult(command, code)
-	}
-	return codeResult(command, 99)
+	return 99
 }
 
-// codeResult returns the result and error for one recorded exit code.
-func codeResult(command provider.Command, code int) (provider.Result, error) {
-	if code == 0 {
-		return provider.Result{}, nil
+func (runner *fakeReleaseRunner) stream(name string, _, _ io.Writer, args ...string) int {
+	runner.streamCalls = append(runner.streamCalls, fakeCommandCall{name: name, args: append([]string{}, args...)})
+	if code, ok := runner.streamResults[commandKey(name, args...)]; ok {
+		return code
 	}
-	return provider.Fail(command, provider.KindFailure, code, "")
+	return 99
 }
 
 func writeSkill(t *testing.T, root, name, body string) {
@@ -186,7 +169,7 @@ func TestVerifyReleaseAcceptsCleanCatalogConsistentTag(t *testing.T) {
 	runner := newFakeReleaseRunner()
 	var out, errOut bytes.Buffer
 
-	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner.ports()); code != 0 {
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 0 {
 		t.Fatalf("expected clean release to pass, got %d: %s", code, errOut.String())
 	}
 	if !strings.Contains(out.String(), "Release contract is valid for v1.2.3") {
@@ -208,7 +191,7 @@ func TestVerifyReleaseRejectsDirtyWorkingTree(t *testing.T) {
 	runner.gitResults[commandKey("git", "diff", "--quiet")] = fakeGitResult{err: errors.New("unstaged changes")}
 	var out, errOut bytes.Buffer
 
-	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner.ports()); code != 1 {
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 1 {
 		t.Fatalf("expected dirty tree to fail, got %d", code)
 	}
 	if !strings.Contains(errOut.String(), "working tree has unstaged changes") {
@@ -221,7 +204,7 @@ func TestVerifyReleaseRejectsCatalogTagMismatch(t *testing.T) {
 	runner := newFakeReleaseRunner()
 	var out, errOut bytes.Buffer
 
-	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner.ports()); code != 1 {
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 1 {
 		t.Fatalf("expected catalog mismatch to fail, got %d", code)
 	}
 	if !strings.Contains(errOut.String(), `version "1.2.2" does not match "1.2.3"`) {
@@ -242,7 +225,7 @@ func TestVerifyReleaseRejectsStableCatalogWithoutPromotionEvidence(t *testing.T)
 	}
 	runner := newFakeReleaseRunner()
 	var out, errOut bytes.Buffer
-	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner.ports()); code != 1 {
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 1 {
 		t.Fatalf("expected stable promotion evidence to block release, got %d", code)
 	}
 	if !strings.Contains(errOut.String(), "stable promotion requires") {
@@ -256,7 +239,7 @@ func TestVerifyReleaseRejectsExistingLocalTag(t *testing.T) {
 	runner.gitResults[commandKey("git", "rev-parse", "--verify", "--quiet", "refs/tags/v1.2.3")] = fakeGitResult{}
 	var out, errOut bytes.Buffer
 
-	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner.ports()); code != 1 {
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 1 {
 		t.Fatalf("expected existing local tag to fail, got %d", code)
 	}
 	if !strings.Contains(errOut.String(), "tag v1.2.3 already exists locally") {
@@ -270,7 +253,7 @@ func TestVerifyReleaseRejectsExistingOriginTag(t *testing.T) {
 	runner.execResults[commandKey("git", "ls-remote", "--exit-code", "--refs", "origin", "refs/tags/v1.2.3")] = 0
 	var out, errOut bytes.Buffer
 
-	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner.ports()); code != 1 {
+	if code := verifyRelease("v1.2.3", root, &out, &errOut, runner); code != 1 {
 		t.Fatalf("expected existing origin tag to fail, got %d", code)
 	}
 	if !strings.Contains(errOut.String(), "tag v1.2.3 already exists on the origin remote") {

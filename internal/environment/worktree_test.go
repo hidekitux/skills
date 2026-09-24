@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/hidekitux/skills/internal/provider"
 )
 
 type worktreeCommandCall struct {
@@ -26,20 +24,15 @@ type worktreeCommandResponse struct {
 	err    error
 }
 
-func (r *worktreeScriptRunner) Available(string) bool { return true }
-
-func (r *worktreeScriptRunner) Run(_ context.Context, command provider.Command) (provider.Result, error) {
-	r.calls = append(r.calls, worktreeCommandCall{name: command.Name, args: append([]string(nil), command.Args...)})
-	key := command.Name + " " + strings.Join(command.Args, " ")
+func (r *worktreeScriptRunner) Run(_ context.Context, _ string, _ []string, name string, args ...string) (string, error) {
+	r.calls = append(r.calls, worktreeCommandCall{name: name, args: append([]string(nil), args...)})
+	key := name + " " + strings.Join(args, " ")
 	for prefix, response := range r.responses {
 		if strings.HasPrefix(key, prefix) {
-			if response.err != nil {
-				return provider.Fail(command, provider.KindFailure, 1, response.err.Error())
-			}
-			return provider.Result{Combined: response.output, Stdout: response.output}, nil
+			return response.output, response.err
 		}
 	}
-	return provider.Fail(command, provider.KindFailure, 1, "unexpected command: "+key)
+	return "", errors.New("unexpected command: " + key)
 }
 
 func TestParseNativeWorktreeListIncludesDetachedAndPrunableState(t *testing.T) {

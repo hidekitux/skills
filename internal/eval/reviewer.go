@@ -1,9 +1,11 @@
 package eval
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"strings"
 )
 
@@ -30,12 +32,14 @@ func (r *CommandReviewer) Review(ctx context.Context, sc *Scenario, transcript, 
 	if err != nil {
 		return nil, err
 	}
-	result, err := shellPort.Script(ctx, "", r.Command, string(payload), nil, 0)
+	cmd := exec.CommandContext(ctx, "sh", "-c", r.Command)
+	cmd.Stdin = bytes.NewReader(payload)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("reviewer command failed: %v", err)
 	}
 	var scores map[string]int
-	if err := json.Unmarshal([]byte(result.Combined), &scores); err != nil {
+	if err := json.Unmarshal(output, &scores); err != nil {
 		return nil, fmt.Errorf("reviewer output is not a JSON score object: %v", err)
 	}
 	// Every dimension documented in evaluations/rubric.md must be present with

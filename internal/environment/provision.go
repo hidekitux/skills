@@ -8,34 +8,34 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/hidekitux/skills/internal/graph"
-	"github.com/hidekitux/skills/internal/provider"
+	"github.com/hidekitux/skills/internal/support"
 )
 
-// runCombined runs one provisioning command through the Runner port and
-// returns its combined output. A nil runner uses the operating-system adapter,
-// which discovers the repository from dir because it removes every GIT_*
-// variable from the child environment.
-func runCombined(ctx context.Context, runner provider.Runner, dir, name string, args ...string) (string, error) {
-	if runner == nil {
-		runner = provider.OSRunner{}
+type CommandRunner interface {
+	Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error)
+}
+
+type OSCommandRunner struct{}
+
+func (OSCommandRunner) Run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
+	command := exec.CommandContext(ctx, name, args...)
+	command.Dir = dir
+	if name == "git" || filepath.Base(name) == worktrunkCommand {
+		if env == nil {
+			env = os.Environ()
+		}
+		command.Env = support.WithoutGitEnvironment(env)
+	} else if env != nil {
+		command.Env = env
 	}
-	port := provider.PortTool
-	if name == "git" {
-		port = provider.PortGit
-	}
-	operation := name
-	if len(args) > 0 {
-		operation = args[0]
-	}
-	result, err := runner.Run(ctx, provider.Command{
-		Port: port, Operation: operation, Name: name, Args: args, Dir: dir,
-	})
-	return result.Combined, err
+	output, err := command.CombinedOutput()
+	return string(output), err
 }
 
 type IssueVerifier func(context.Context, int) error
@@ -43,7 +43,7 @@ type IssueVerifier func(context.Context, int) error
 type Provisioner struct {
 	Root        string
 	Graph       *graph.Graph
-	Runner      provider.Runner
+	Runner      CommandRunner
 	Worktree    WorktreeProvider
 	VerifyIssue IssueVerifier
 }
@@ -197,7 +197,10 @@ func (p Provisioner) resolveRevision(ctx context.Context, root, revision string)
 }
 
 func (p Provisioner) runGit(ctx context.Context, dir string, args ...string) (string, error) {
-	return runCombined(ctx, p.Runner, dir, "git", args...)
+	if p.Runner != nil {
+		return p.Runner.Run(ctx, dir, nil, "git", args...)
+	}
+	return (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "git", args...)
 }
 
 func (p Provisioner) runGitWithoutHooks(ctx context.Context, dir string, args ...string) (string, error) {
@@ -216,7 +219,11 @@ func (p Provisioner) runSetup(ctx context.Context, dir string) error {
 	setupScript := filepath.Join(dir, "scripts", "setup", "run-mise.sh")
 	var output string
 	var err error
-	output, err = runCombined(ctx, p.Runner, dir, "bash", setupScript, "run", "setup:refresh")
+	if p.Runner != nil {
+		output, err = p.Runner.Run(ctx, dir, nil, "bash", setupScript, "run", "setup:refresh")
+	} else {
+		output, err = (OSCommandRunner{}).Run(ctx, dir, support.GitEnv(), "bash", setupScript, "run", "setup:refresh")
+	}
 	if err != nil {
 		return fmt.Errorf("run setup:refresh before execution: %w", err)
 	}
@@ -228,11 +235,11 @@ func (p Provisioner) writePolicy(policyDir string, permissions Permissions) erro
 	if err := os.MkdirAll(filepath.Join(policyDir, "bin"), 0o755); err != nil {
 		return fmt.Errorf("create command policy: %w", err)
 	}
-	gitPath, err := provider.LookPath("git")
+	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		return fmt.Errorf("resolve git for command policy: %w", err)
 	}
-	ghPath, err := provider.LookPath("gh")
+	ghPath, err := exec.LookPath("gh")
 	if err != nil {
 		ghPath = ""
 	}

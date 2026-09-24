@@ -13,7 +13,7 @@ import (
 func initTestRepository(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	if _, err := gitOutput(root, "init", "--quiet"); err != nil {
+	if _, err := GitOutputIn(root, "init", "--quiet"); err != nil {
 		t.Fatalf("git init failed: %v", err)
 	}
 	return root
@@ -85,7 +85,7 @@ func TestResolveRootPreservesTrailingSpace(t *testing.T) {
 	if err := os.Mkdir(root, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := gitOutput(root, "init", "--quiet"); err != nil {
+	if _, err := GitOutputIn(root, "init", "--quiet"); err != nil {
 		t.Fatalf("git init failed: %v", err)
 	}
 	expectedRoot, err := filepath.EvalSymlinks(root)
@@ -108,7 +108,7 @@ func TestResolveRootPreservesTrailingNewline(t *testing.T) {
 	if err := os.Mkdir(root, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := gitOutput(root, "init", "--quiet"); err != nil {
+	if _, err := GitOutputIn(root, "init", "--quiet"); err != nil {
 		t.Fatalf("git init failed: %v", err)
 	}
 	expectedRoot, err := filepath.EvalSymlinks(root)

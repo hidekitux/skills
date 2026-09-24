@@ -17,7 +17,7 @@ import (
 // Commands default their --root flag to the current working directory because
 // mise tasks and workflow steps run from the repository root.
 func ResolveRoot(cwd string) (string, error) {
-	root, err := gitOutput(cwd, "rev-parse", "--show-toplevel")
+	root, err := GitOutputIn(cwd, "rev-parse", "--show-toplevel")
 	if err != nil {
 		if cwd == "" {
 			return "", fmt.Errorf("cannot resolve working directory: %w", err)
@@ -81,12 +81,8 @@ func WithoutGitEnvironment(environment []string) []string {
 	return clean
 }
 
-// gitOutput runs git in dir with GIT_* environment variables removed. It is
-// the one process this module starts. Repository-root resolution needs it, and
-// foundation cannot import the provider module, which imports foundation. Every
-// other git invocation in the repository goes through the Git port in
-// internal/provider.
-func gitOutput(dir string, args ...string) (string, error) {
+// GitOutputIn runs git in dir with GIT_* environment variables removed.
+func GitOutputIn(dir string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 	cmd.Env = GitEnv()

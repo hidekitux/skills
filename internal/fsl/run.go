@@ -4,21 +4,17 @@ package fsl
 
 import (
 	"bytes"
-	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/support"
 )
-
-// fslPort runs the pinned FSL verifier. A test substitutes it by assigning an
-// FSL built on a provider.Stub runner.
-var fslPort = provider.NewFSL(provider.OSRunner{})
 
 // cacheRoot returns the shared fslc cache directory outside the repository.
 func cacheRoot() string {
@@ -149,16 +145,19 @@ type fslcResult struct {
 }
 
 func runFslcResult(out, errOut io.Writer, args ...string) fslcResult {
-	result, err := fslPort.Verify(context.Background(), filepath.Join(binPath(), "fslc"), out, errOut, args...)
+	cmd := exec.Command(filepath.Join(binPath(), "fslc"), args...)
+	cmd.Stdout = out
+	cmd.Stderr = errOut
+	cmd.Env = support.GitEnv()
+	err := cmd.Run()
 	if err == nil {
 		return fslcResult{started: true}
 	}
-	// An unavailable verifier never started, so the caller reports a verifier
-	// infrastructure error rather than an invalid specification.
-	if provider.IsUnavailable(err) {
-		return fslcResult{exitCode: 1}
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		return fslcResult{exitCode: exitErr.ExitCode(), started: true}
 	}
-	return fslcResult{exitCode: result.ExitCode, started: true}
+	return fslcResult{exitCode: 1}
 }
 
 // VerifyFSL checks and verifies every FSL spec with the pinned fslc binary.

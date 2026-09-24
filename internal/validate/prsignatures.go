@@ -1,10 +1,10 @@
 package validate
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -74,12 +74,25 @@ func loadCommitsFixture(path string) ([]map[string]any, error) {
 // fetchPullRequestCommits paginates the GitHub API for a pull request's
 // commits with a per-page limit of 100.
 func fetchPullRequestCommits(repo string, pullRequest int, token string) ([]map[string]any, error) {
+	client := &http.Client{Timeout: 30 * 1e9}
 	var commits []map[string]any
 	for page := 1; ; page++ {
-		path := fmt.Sprintf("/repos/%s/pulls/%d/commits?per_page=100&page=%d", repo, pullRequest, page)
-		body, err := apiPort.Get(context.Background(), path, token)
+		url := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%d/commits?per_page=100&page=%d", repo, pullRequest, page)
+		request, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			return nil, fmt.Errorf("cannot fetch pull-request commits: %v", err)
+		}
+		request.Header.Set("Accept", "application/vnd.github+json")
+		request.Header.Set("Authorization", "Bearer "+token)
+		request.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+		response, err := client.Do(request)
+		if err != nil {
+			return nil, fmt.Errorf("cannot fetch pull-request commits: %v", err)
+		}
+		body, readErr := io.ReadAll(response.Body)
+		response.Body.Close()
+		if readErr != nil {
+			return nil, fmt.Errorf("cannot fetch pull-request commits: %v", readErr)
 		}
 		var payload []map[string]any
 		if err := json.Unmarshal(body, &payload); err != nil {

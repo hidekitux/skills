@@ -1,10 +1,11 @@
 package check
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/hidekitux/skills/internal/support"
 )
@@ -13,22 +14,33 @@ import (
 // streams its output, returning the process exit code.
 func gitDiffCheck(root string, out io.Writer, args ...string) int {
 	full := append([]string{"diff", "--check"}, args...)
-	result, _ := gitPort.Stream(context.Background(), root, out, out, full...)
-	return result.ExitCode
+	cmd := exec.Command("git", full...)
+	cmd.Dir = root
+	cmd.Env = support.GitEnv()
+	cmd.Stdout = out
+	cmd.Stderr = out
+	err := cmd.Run()
+	return support.ExitError(err)
 }
 
 // gitVerify reports whether a Git ref resolves to a commit.
 func gitVerify(root, ref string) bool {
-	return gitSucceeds(root, "rev-parse", "--verify", "--quiet", ref)
+	_, err := support.GitOutputIn(root, "rev-parse", "--verify", "--quiet", ref)
+	return err == nil
 }
 
 // emptyTreeSHA returns the SHA-1 of the empty tree object.
 func emptyTreeSHA(root string) string {
-	return gitTrimmed(root, "hash-object", "-t", "tree", os.DevNull)
+	stdout, err := support.GitOutputIn(root, "hash-object", "-t", "tree", os.DevNull)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(stdout)
 }
 
 func isAncestor(root, base, head string) bool {
-	return gitSucceeds(root, "merge-base", "--is-ancestor", base, head)
+	_, err := support.GitOutputIn(root, "merge-base", "--is-ancestor", base, head)
+	return err == nil
 }
 
 // CheckWhitespace rejects whitespace errors in local changes and the committed

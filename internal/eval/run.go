@@ -18,6 +18,7 @@ import (
 	skillcontext "github.com/hidekitux/skills/internal/context"
 	"github.com/hidekitux/skills/internal/instructions"
 	"github.com/hidekitux/skills/internal/provider"
+	"github.com/hidekitux/skills/internal/support"
 	"github.com/hidekitux/skills/internal/trace"
 )
 
@@ -151,11 +152,11 @@ func promptSHA(sc *Scenario) string {
 
 // repoCommit returns the HEAD commit of the repository, used as provenance.
 func repoCommit(root string) string {
-	out, err := gitPort.Output(context.Background(), root, "rev-parse", "HEAD")
+	out, err := support.GitOutputIn(root, "rev-parse", "HEAD")
 	if err != nil {
 		return "unknown"
 	}
-	return strings.TrimSpace(out.Stdout)
+	return strings.TrimSpace(out)
 }
 
 // shouldSkip records a skipped verdict before any sandbox is created.

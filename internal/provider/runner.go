@@ -156,15 +156,3 @@ func Fail(command Command, kind Kind, exitCode int, detail string) (Result, erro
 		Detail:    Redact(detail),
 	}
 }
-
-// LookPath resolves an executable name to its absolute path. It is the one
-// capability query the repository makes outside a Runner, because a caller
-// that records a resolved path in a generated script needs the path itself
-// rather than the result of running the command.
-func LookPath(name string) (string, error) {
-	path, err := exec.LookPath(name)
-	if err != nil {
-		return "", Unavailable(PortTool, "look-path", name+" is not installed")
-	}
-	return path, nil
-}

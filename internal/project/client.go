@@ -1,13 +1,11 @@
 package project
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os/exec"
 	"strings"
-
-	"github.com/hidekitux/skills/internal/provider"
 )
 
 // Runner executes one gh CLI command and returns its combined output.
@@ -15,30 +13,21 @@ type Runner interface {
 	Run(args ...string) (string, error)
 }
 
-// GH runs gh through the GitHub command line port.
-type GH struct {
-	github provider.GitHub
-}
-
-// NewGH returns the production gh runner.
-func NewGH() GH { return GH{github: provider.NewGitHub(provider.OSRunner{})} }
+// GH runs gh through the local binary.
+type GH struct{}
 
 // Run executes gh with the given arguments, keeping the process output in
 // the error so scope and API failures stay actionable and classifiable.
-func (g GH) Run(args ...string) (string, error) {
-	github := g.github
-	if github == nil {
-		github = provider.NewGitHub(provider.OSRunner{})
-	}
-	result, err := github.Combined(context.Background(), "", args...)
+func (GH) Run(args ...string) (string, error) {
+	out, err := exec.Command("gh", args...).CombinedOutput()
 	if err != nil {
-		output := strings.TrimSpace(result.Combined)
+		output := strings.TrimSpace(string(out))
 		if output != "" {
-			return result.Combined, fmt.Errorf("gh %s: %w: %s", strings.Join(args, " "), err, output)
+			return string(out), fmt.Errorf("gh %s: %w: %s", strings.Join(args, " "), err, output)
 		}
-		return result.Combined, fmt.Errorf("gh %s: %w", strings.Join(args, " "), err)
+		return string(out), fmt.Errorf("gh %s: %w", strings.Join(args, " "), err)
 	}
-	return result.Combined, nil
+	return string(out), nil
 }
 
 // AccessError reports that Project access is unavailable so callers can fail

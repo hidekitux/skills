@@ -8,15 +8,13 @@ package govuln
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/hidekitux/skills/internal/provider"
 )
 
 // Scan exit codes: 0 clean (no reachable findings), 1 reachable findings,
@@ -27,9 +25,24 @@ const (
 	codeErr  = 2
 )
 
-// toolPort runs the pinned govulncheck binary. A test substitutes it with a
-// Tool built on a provider.Stub runner, so the failure policy is exercised
-// without invoking the real scanner or reaching the vulnerability database.
+// runner abstracts subprocess execution so the failure policy is testable
+// without invoking the real govulncheck binary.
+type runner interface {
+	run(dir, name string, args ...string) (stdout, stderr []byte, err error)
+}
+
+// execRunner runs the pinned govulncheck on the real toolchain.
+type execRunner struct{}
+
+func (execRunner) run(dir, name string, args ...string) ([]byte, []byte, error) {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.Bytes(), stderr.Bytes(), err
+}
 
 // config mirrors the govulncheck streaming JSON Config message, which must be
 // the first message of a stream (schema in golang.org/x/vuln/internal/govulncheck).
@@ -170,20 +183,16 @@ func decodeStream(r io.Reader) (*result, error) {
 // non-empty, retains the raw JSON stream as machine-readable evidence. Package
 // patterns default to ./... when none are given.
 func Run(out, errOut io.Writer, dir, outPath string, patterns []string) int {
-	return Scan(provider.NewTool(provider.OSRunner{}), out, errOut, dir, outPath, patterns)
+	return Scan(execRunner{}, out, errOut, dir, outPath, patterns)
 }
 
-// Scan is the testable core of Run; tool must be the operating-system Tool
-// port in production.
-func Scan(tool provider.Tool, out, errOut io.Writer, dir, outPath string, patterns []string) int {
+// Scan is the testable core of Run; run must be the execRunner in production.
+func Scan(run runner, out, errOut io.Writer, dir, outPath string, patterns []string) int {
 	if len(patterns) == 0 {
 		patterns = []string{"./..."}
 	}
 	args := append([]string{"-json", "-mode", "source"}, patterns...)
-	result, err := tool.Invoke(context.Background(), provider.Command{
-		Port: "govulncheck", Operation: "scan", Name: "govulncheck", Args: args, Dir: dir,
-	})
-	stdout, stderr := []byte(result.Stdout), []byte(result.Stderr)
+	stdout, stderr, err := run.run(dir, "govulncheck", args...)
 	if outPath != "" {
 		if werr := os.WriteFile(outPath, stdout, 0o644); werr != nil {
 			fmt.Fprintf(errOut, "failed to retain scan output: %v\n", werr)

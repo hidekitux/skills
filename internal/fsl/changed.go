@@ -1,21 +1,17 @@
 package fsl
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 
-	"github.com/hidekitux/skills/internal/provider"
+	"github.com/hidekitux/skills/internal/support"
 )
-
-// gitPort is the Git port this package reads the working tree through. A test
-// substitutes it by assigning a Git built on a provider.Stub runner.
-var gitPort = provider.NewGit(provider.OSRunner{})
 
 // isScopedFSLPath reports whether rel is a repository-owned spec under specs/
 // or a skill-owned spec under skills/<name>/specs/, mirroring the scoping used
@@ -34,18 +30,23 @@ func isScopedFSLPath(rel string) bool {
 // tree, from git diff --name-only run in root, plus untracked (not ignored)
 // files so a newly added spec is detected before it is committed.
 func gitDiffNames(root, rev string) ([]string, error) {
-	ctx := context.Background()
-	diff, err := gitPort.Output(ctx, root, "diff", "--name-only", rev)
+	cmd := exec.Command("git", "diff", "--name-only", rev)
+	cmd.Dir = root
+	cmd.Env = support.GitEnv()
+	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("git diff --name-only %s: %w", rev, err)
 	}
-	names := splitLines(diff.Stdout)
+	names := splitLines(string(out))
 
-	untracked, err := gitPort.Output(ctx, root, "ls-files", "--others", "--exclude-standard")
+	untracked := exec.Command("git", "ls-files", "--others", "--exclude-standard")
+	untracked.Dir = root
+	untracked.Env = support.GitEnv()
+	out, err = untracked.Output()
 	if err != nil {
 		return nil, fmt.Errorf("git ls-files --others: %w", err)
 	}
-	names = append(names, splitLines(untracked.Stdout)...)
+	names = append(names, splitLines(string(out))...)
 	return names, nil
 }
 

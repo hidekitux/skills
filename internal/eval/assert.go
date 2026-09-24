@@ -6,9 +6,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 // assertionTimeout bounds every command_run assertion so a hanging fixture
@@ -121,12 +124,17 @@ func evaluateAssertions(ctx context.Context, sc *Scenario, transcript, sandboxDi
 		if check.Dir != "" {
 			dir = filepath.Join(sandboxDir, filepath.FromSlash(check.Dir))
 		}
-		result, _ := shellPort.Script(ctx, dir, name, "", nil, assertionTimeout)
-		exitCode := result.ExitCode
+		runCtx, cancel := context.WithTimeout(ctx, assertionTimeout)
+		cmd := exec.CommandContext(runCtx, "sh", "-c", name)
+		cmd.Dir = dir
+		cmd.Env = support.GitEnv()
+		output, err := cmd.CombinedOutput()
+		cancel()
+		exitCode := support.ExitError(err)
 		if exitCode != check.Exit {
 			failures = append(failures, fmt.Sprintf("command %q in %s exited %d, want %d", name, dir, exitCode, check.Exit))
-			if len(result.Combined) > 0 {
-				trimmed := strings.TrimSpace(result.Combined)
+			if len(output) > 0 {
+				trimmed := strings.TrimSpace(string(output))
 				if len(trimmed) > 200 {
 					trimmed = trimmed[:200] + "..."
 				}
