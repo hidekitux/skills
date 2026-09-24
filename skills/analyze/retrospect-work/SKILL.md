@@ -119,3 +119,6 @@ external change.
 Use plain, active, evidence-backed prose. Name the file, command, trace,
 Issue, Pull Request, or output behind every repository claim, and distinguish
 facts from hypotheses.
+
+Choose the plain word over an inflated or Latinate one: write `use` rather
+than `utilize` and `is` rather than `serves as`.

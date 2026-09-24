@@ -131,3 +131,6 @@ Issues. The handoff ends the triage run.
 Use plain, active, evidence-backed prose. Name the file, command, Issue, Pull
 Request, or output behind every repository claim, and distinguish facts from
 inferences.
+
+Choose the plain word over an inflated or Latinate one: write `use` rather
+than `utilize` and `is` rather than `serves as`.

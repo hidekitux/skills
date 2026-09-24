@@ -83,3 +83,6 @@ Return:
 
 Use plain, active, evidence-backed prose. Name the file, symbol, command, or
 test behind every repository claim.
+
+Choose the plain word over an inflated or Latinate one: write `use` rather
+than `utilize` and `is` rather than `serves as`.
