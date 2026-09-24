@@ -65,6 +65,7 @@ func scaffoldEval(t *testing.T, catalogSkills []map[string]string, scenarios []*
 			status = "experimental"
 		}
 		entries = append(entries, "  - name: "+name+"\n    owner: hidekitux\n    status: "+status+"\n    license: Apache-2.0\n    version: 0.1.0\n    layer: process\n")
+		writeTestFile(t, root, filepath.Join("skills", "process", name, "SKILL.md"), "---\nname: "+name+"\n---\n")
 	}
 	writeTestFile(t, root, "CATALOG.yml", "catalog_version: 1\nlicense: Apache-2.0\nskills:\n"+strings.Join(entries, ""))
 
@@ -255,6 +256,64 @@ func TestCheckCorpusRejectsStagesWithoutE2E(t *testing.T) {
 	}
 	if !strings.Contains(errOut, "stages are only allowed for skill: e2e") {
 		t.Fatalf("missing stages finding:\n%s", errOut)
+	}
+}
+
+// passingPlanIssueCorpus returns a corpus root that passes CheckCorpus with one
+// positive and one boundary plan-issue scenario.
+func passingPlanIssueCorpus(t *testing.T) string {
+	t.Helper()
+	return scaffoldEval(t,
+		[]map[string]string{skillEntry("plan-issue", "experimental")},
+		[]*Scenario{
+			baseScenario(),
+			{ID: "plan-issue-boundary", Skill: "plan-issue", Kind: KindBoundary, Title: "Stop without Scope", Prompt: "Plan the draft issue.", Expectations: Expectations{Handoff: "blocked-ask"}, Rubric: fullRubric()},
+		},
+		nil,
+	)
+}
+
+func TestCheckCorpusRejectsScenarioDirectoryWithoutCatalogedSkill(t *testing.T) {
+	root := passingPlanIssueCorpus(t)
+	if err := os.MkdirAll(filepath.Join(root, "evaluations", "scenarios", "retired-skill"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	code, _, errOut := runCheckCorpus(t, root)
+	if code != 1 {
+		t.Fatalf("expected failure, got %d", code)
+	}
+	if !strings.Contains(errOut, "scenario directory evaluations/scenarios/retired-skill does not name a cataloged skill or e2e") {
+		t.Fatalf("missing scenario directory finding:\n%s", errOut)
+	}
+}
+
+func TestCheckCorpusRejectsSkillFieldOutsideItsDirectory(t *testing.T) {
+	root := passingPlanIssueCorpus(t)
+	content, err := yaml.Marshal(&Scenario{ID: "plan-issue-negative", Skill: "plan-issue", Kind: KindNegative, Title: "Refuse to code", Prompt: "Write the code now.", Expectations: Expectations{Handoff: "blocked-ask"}, Rubric: fullRubric()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, root, "evaluations/scenarios/e2e/plan-issue-negative.yaml", string(content))
+	code, _, errOut := runCheckCorpus(t, root)
+	if code != 1 {
+		t.Fatalf("expected failure, got %d", code)
+	}
+	if !strings.Contains(errOut, `plan-issue-negative: skill "plan-issue" must match its scenario directory "e2e"`) {
+		t.Fatalf("missing skill field finding:\n%s", errOut)
+	}
+}
+
+func TestCheckCorpusRejectsCatalogedSkillWithoutSkillDirectory(t *testing.T) {
+	root := passingPlanIssueCorpus(t)
+	if err := os.Rename(filepath.Join(root, "skills", "process", "plan-issue"), filepath.Join(root, "skills", "process", "plan-issue-renamed")); err != nil {
+		t.Fatal(err)
+	}
+	code, _, errOut := runCheckCorpus(t, root)
+	if code != 1 {
+		t.Fatalf("expected failure, got %d", code)
+	}
+	if !strings.Contains(errOut, `cataloged skill "plan-issue" has no skills/<category>/plan-issue/SKILL.md for its scenarios`) {
+		t.Fatalf("missing skill directory finding:\n%s", errOut)
 	}
 }
 

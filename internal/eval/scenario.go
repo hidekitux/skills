@@ -148,6 +148,11 @@ type Scenario struct {
 	Expectations      Expectations           `yaml:"expectations"`
 	Rubric            Rubric                 `yaml:"rubric"`
 	Corrections       []string               `yaml:"corrections"`
+
+	// dir is the directory directly below evaluations/scenarios that holds
+	// the scenario file, or "" for a file placed directly in that base.
+	// LoadAllScenarios sets it; the corpus check compares it with Skill.
+	dir string
 }
 
 // prompts returns the stage prompts of the scenario. A single-skill scenario
@@ -219,6 +224,7 @@ func LoadAllScenarios(root string) ([]*Scenario, error) {
 		if err != nil {
 			return err
 		}
+		sc.dir = scenarioDir(base, path)
 		scenarios = append(scenarios, sc)
 		return nil
 	})
@@ -227,6 +233,16 @@ func LoadAllScenarios(root string) ([]*Scenario, error) {
 	}
 	sort.Slice(scenarios, func(i, j int) bool { return scenarios[i].ID < scenarios[j].ID })
 	return scenarios, nil
+}
+
+// scenarioDir returns the first path element of path below base, or "" when
+// path sits directly in base.
+func scenarioDir(base, path string) string {
+	rel, err := filepath.Rel(base, filepath.Dir(path))
+	if err != nil || rel == "." {
+		return ""
+	}
+	return strings.Split(filepath.ToSlash(rel), "/")[0]
 }
 
 // ScenarioByID returns the scenario with the given id from a loaded corpus.
