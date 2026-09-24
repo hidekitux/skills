@@ -90,13 +90,6 @@ decides the schema version, the event order, the terminal classification, and
 the redaction summary in `trace.FromEvaluationRun`. `internal/eval` therefore
 records what a run did without writing any persisted field itself.
 
-The `evidence` module owns both the typed result and the conversion, but they
-sit in `internal/trace` rather than in `internal/evidence`. `internal/trace`
-imports `internal/evidence` for the shared primitives, and `RunResult` holds a
-`*trace.Deliberation`, so a conversion declared in `internal/evidence` would
-close an import cycle. Moving either one there needs `Deliberation` and every
-type it reaches to move first.
-
 `internal/trace/testdata/evaluation-run-traces.json` pins the trace that
 conversion produces for every outcome. The file was captured from the assembly
 `internal/eval` owned before Issue #329, so
