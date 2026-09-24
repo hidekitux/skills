@@ -1,8 +1,9 @@
 name: Set up the repository Go toolchain
 description: >-
-  Set up the pinned Go toolchain with module and build caching. Checkout runs
-  as a separate preceding step, because GitHub loads local actions from the
-  checked-out workspace.
+  Set up the pinned Go toolchain with module and build caching. Workflows load
+  this action through the self-repository syntax (`$/`), which needs no
+  checkout. Checkout still runs as a separate preceding step, because the
+  cache key reads `go.sum` from the workspace.
 
 runs:
   using: composite
