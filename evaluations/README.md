@@ -210,6 +210,12 @@ human-readable Markdown summary, written under `--output` (default
   `gemini-3.8-flash-low`. Override per driver with `EVAL_CODEX_MODEL`,
   `EVAL_CLAUDE_MODEL`, `EVAL_OPENCODE_MODEL`, and `EVAL_ANTIGRAVITY_MODEL`;
   provenance always records the model actually invoked.
+- The default `opencode` tier model needs an OpenCode Go credential. Sign in
+  once with `opencode auth login` and confirm that `opencode models` lists
+  `opencode-go/deepseek-v4-flash`.
+  Without the credential, `opencode run` returns `UnknownError` for every
+  scenario, and only `opencode run --print-logs` shows the cause:
+  `ProviderModelNotFoundError` for `opencode-go/deepseek-v4-flash`.
 - The `antigravity` driver runs `antigravity --print --add-dir <sandbox>` and
   uses the **logged-in Google account by default** (the CLI's keyring/sign-in
   flow). For headless runs without an account session, opt into Gemini API
