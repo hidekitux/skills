@@ -24,8 +24,9 @@ type promotionRun struct {
 }
 
 // PromotionFindings checks the complete evidence contract for every stable
-// catalog entry. It runs at release verification time, after the repository
-// has a committed revision to compare with the retained reports.
+// catalog entry. It runs at release verification time on a committed
+// revision and compares each retained record's input digest with the
+// skill's input digest at that revision.
 func PromotionFindings(root string) []string {
 	catalog, err := loadCatalogSkills(root)
 	if err != nil {
@@ -54,7 +55,12 @@ func PromotionFindings(root string) []string {
 	findings := append([]string{}, reportFindings...)
 	sort.Strings(stable)
 	for _, skill := range stable {
-		findings = append(findings, checkStableSkillPromotion(skill, revision, scenarios, reports)...)
+		digest, err := InputDigest(root, root, skill)
+		if err != nil {
+			findings = append(findings, fmt.Sprintf("cannot compute the input digest of stable skill %q: %v", skill, err))
+			continue
+		}
+		findings = append(findings, checkStableSkillPromotion(skill, digest, scenarios, reports)...)
 	}
 	sort.Strings(findings)
 	return findings
@@ -152,7 +158,11 @@ func decodePromotionReport(path string) ([]Record, error) {
 	return []Record{record}, nil
 }
 
-func checkStableSkillPromotion(skill, revision string, scenarios []*Scenario, recordsBySkill map[string][]Record) []string {
+// checkStableSkillPromotion checks one stable skill's two most recent runs.
+// A record is fresh only when its input digest equals digest, the skill's
+// input digest at the checked-out revision; repo_commit and
+// skill_source_commit remain provenance.
+func checkStableSkillPromotion(skill, digest string, scenarios []*Scenario, recordsBySkill map[string][]Record) []string {
 	required := map[string]bool{}
 	for _, scenario := range scenarios {
 		if scenario.Skill != skill || (scenario.Kind != KindPositive && scenario.Kind != KindNegative && scenario.Kind != KindBoundary) {
@@ -181,7 +191,7 @@ func checkStableSkillPromotion(skill, revision string, scenarios []*Scenario, re
 		}
 	}
 	if len(runsByID) < 2 {
-		return []string{fmt.Sprintf("stable skill %q needs two complete evaluation runs at revision %s; found %d run(s)", skill, revision, len(runsByID))}
+		return []string{fmt.Sprintf("stable skill %q needs two complete evaluation runs with input digest %s; found %d run(s)", skill, digest, len(runsByID))}
 	}
 
 	runs := make([]*promotionRun, 0, len(runsByID))
@@ -198,7 +208,7 @@ func checkStableSkillPromotion(skill, revision string, scenarios []*Scenario, re
 	findings := []string{}
 	validated := make([]map[string]Record, 0, len(latest))
 	for _, run := range latest {
-		valid, runFindings := validatePromotionRun(skill, revision, required, run)
+		valid, runFindings := validatePromotionRun(skill, digest, required, run)
 		findings = append(findings, runFindings...)
 		validated = append(validated, valid)
 	}
@@ -228,7 +238,7 @@ func checkStableSkillPromotion(skill, revision string, scenarios []*Scenario, re
 	return findings
 }
 
-func validatePromotionRun(skill, revision string, required map[string]bool, run *promotionRun) (map[string]Record, []string) {
+func validatePromotionRun(skill, digest string, required map[string]bool, run *promotionRun) (map[string]Record, []string) {
 	validated := map[string]Record{}
 	findings := []string{}
 	seenScenarios := map[string]bool{}
@@ -240,8 +250,8 @@ func validatePromotionRun(skill, revision string, required map[string]bool, run 
 		}
 		validated[key] = record
 		seenScenarios[record.Scenario] = true
-		if record.Commit != revision || record.SkillSourceCommit != revision {
-			findings = append(findings, fmt.Sprintf("stable skill %q has stale or incomplete revision evidence in run %s for %s", skill, run.id, key))
+		if record.InputDigest != digest {
+			findings = append(findings, fmt.Sprintf("stable skill %q has stale or missing input digest evidence in run %s for %s", skill, run.id, key))
 		}
 		if record.Skill != skill || record.Host == "" || record.PromptSHA == "" {
 			findings = append(findings, fmt.Sprintf("stable skill %q has incomplete identity evidence in run %s for %s", skill, run.id, key))

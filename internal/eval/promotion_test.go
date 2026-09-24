@@ -8,7 +8,10 @@ import (
 	"testing"
 )
 
-const promotionTestRevision = "0123456789abcdef0123456789abcdef01234567"
+const (
+	promotionTestRevision = "0123456789abcdef0123456789abcdef01234567"
+	promotionTestDigest   = "input-digest-demo"
+)
 
 func promotionScenarioSet() []*Scenario {
 	return []*Scenario{
@@ -25,7 +28,7 @@ func promotionRecords() map[string][]Record {
 			records = append(records, Record{
 				RunID: runID, Scenario: scenario.ID, Skill: "demo", Kind: scenario.Kind,
 				Host: "codex", Model: "gpt-5", Commit: promotionTestRevision,
-				SkillSourceCommit: promotionTestRevision, PromptSHA: "prompt-" + scenario.ID,
+				SkillSourceCommit: promotionTestRevision, InputDigest: promotionTestDigest, PromptSHA: "prompt-" + scenario.ID,
 				Verdict: VerdictPass, RubricReview: RubricComplete, RubricScores: promotionScores(4),
 				FinishedAt: finishedAt,
 			})
@@ -47,7 +50,7 @@ func promotionScores(score int) map[string]int {
 
 func promotionFindingContains(t *testing.T, records map[string][]Record, want string) {
 	t.Helper()
-	findings := checkStableSkillPromotion("demo", promotionTestRevision, promotionScenarioSet(), records)
+	findings := checkStableSkillPromotion("demo", promotionTestDigest, promotionScenarioSet(), records)
 	for _, finding := range findings {
 		if strings.Contains(finding, want) {
 			return
@@ -57,9 +60,21 @@ func promotionFindingContains(t *testing.T, records map[string][]Record, want st
 }
 
 func TestStableSkillPromotionAcceptsTwoCompleteRuns(t *testing.T) {
-	findings := checkStableSkillPromotion("demo", promotionTestRevision, promotionScenarioSet(), promotionRecords())
+	findings := checkStableSkillPromotion("demo", promotionTestDigest, promotionScenarioSet(), promotionRecords())
 	if len(findings) != 0 {
 		t.Fatalf("findings = %v, want none", findings)
+	}
+}
+
+func TestStableSkillPromotionAcceptsRecordsFromAnotherCommit(t *testing.T) {
+	records := promotionRecords()
+	for index := range records["demo"] {
+		records["demo"][index].Commit = "fedcba9876543210fedcba9876543210fedcba98"
+		records["demo"][index].SkillSourceCommit = "fedcba9876543210fedcba9876543210fedcba98"
+	}
+	findings := checkStableSkillPromotion("demo", promotionTestDigest, promotionScenarioSet(), records)
+	if len(findings) != 0 {
+		t.Fatalf("findings = %v, want none for records with the current input digest", findings)
 	}
 }
 
@@ -71,8 +86,11 @@ func TestStableSkillPromotionRejectsUnmetEvidence(t *testing.T) {
 		"incomplete scenario": func(records map[string][]Record) {
 			records["demo"] = append(records["demo"][:5], records["demo"][6:]...)
 		},
-		"stale revision": func(records map[string][]Record) {
-			records["demo"][0].Commit = "fedcba9876543210fedcba9876543210fedcba9"
+		"stale input digest": func(records map[string][]Record) {
+			records["demo"][0].InputDigest = "input-digest-before-a-relevant-commit"
+		},
+		"missing input digest": func(records map[string][]Record) {
+			records["demo"][3].InputDigest = ""
 		},
 		"newer failure": func(records map[string][]Record) {
 			records["demo"][3].Verdict = VerdictFail
@@ -90,11 +108,12 @@ func TestStableSkillPromotionRejectsUnmetEvidence(t *testing.T) {
 			records := promotionRecords()
 			mutate(records)
 			want := map[string]string{
-				"low score":           "want 3-5",
-				"incomplete scenario": "missing required scenario",
-				"stale revision":      "stale or incomplete revision evidence",
-				"newer failure":       "has fail evidence",
-				"bounded variance":    "bounded rubric variance",
+				"low score":            "want 3-5",
+				"incomplete scenario":  "missing required scenario",
+				"stale input digest":   "stale or missing input digest evidence",
+				"missing input digest": "stale or missing input digest evidence",
+				"newer failure":        "has fail evidence",
+				"bounded variance":     "bounded rubric variance",
 			}[name]
 			promotionFindingContains(t, records, want)
 		})
