@@ -7,10 +7,9 @@ command, location, rule or invariant, expected and observed state, evidence,
 retryability, and remediation category.
 
 `internal/diagnostic` in the `evidence` module produces a diagnostic, and
-`internal/validate` and `internal/fsl` supply it. The `Evidence data path`
-section of the [architecture record](architecture.md) holds that path, and its
-`Failure classification` section names the provider outcomes that separate a
-tool which could not run from one that ran and rejected its input.
+`internal/validate` and `internal/fsl` supply it. The
+[architecture record](architecture.md) holds that data path, and its provider
+failure classification names what an `infrastructure_error` comes from.
 
 ## Categories and codes
 

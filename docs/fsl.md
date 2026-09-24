@@ -15,9 +15,8 @@ Use `gh skill publish --dry-run` for prose, file-name, and frontmatter checks.
 `internal/fsl/run.go` reports on a specification only when the verifier ran and
 returned a status. Every other outcome is a verifier infrastructure error, so
 an absent, timed-out, or interrupted `fslc` no longer reads as an invalid
-specification. The `Changed: the FSL verifier failure classification` section
-of the [architecture record](architecture.md) holds that contract decision and
-the requester confirmation behind it.
+specification. The [architecture record](architecture.md) holds that contract
+decision and the requester confirmation behind it.
 
 ## Location and verification
 

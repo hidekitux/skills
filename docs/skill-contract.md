@@ -1,6 +1,6 @@
 # Skill contract
 
-Every skill states where its result goes and which skill owns the next phase. This document defines the shared handoff contract: the artifact flow from report to review, the debug and review closed loops, and the analyze-to-change boundary. The `Evidence data path` section of the [architecture record](architecture.md) names the internal module that produces the structured trace and the replay report, which the `Cross-skill replay boundary` and `Structured execution trace` sections of this document depend on. `workflow/module-ownership.yml` is the machine-readable form of that ownership.
+Every skill states where its result goes and which skill owns the next phase. This document defines the shared handoff contract: the artifact flow from report to review, the debug and review closed loops, and the analyze-to-change boundary. The [architecture record](architecture.md) names the internal module that produces the structured trace and the replay report the two sections below depend on, and `workflow/module-ownership.yml` is its machine-readable form.
 
 ## Machine-readable graph
 
