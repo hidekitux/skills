@@ -143,3 +143,59 @@ func TestLoadPromotionReportsReadsNestedReports(t *testing.T) {
 		t.Fatalf("runs = %#v, want nested report for run-1", runs)
 	}
 }
+
+// writePromotionReports retains two complete runs of the demo skill that
+// carry digest as their input digest.
+func writePromotionReports(t *testing.T, root, digest string) {
+	t.Helper()
+	var lines []string
+	for _, run := range []struct{ id, finishedAt string }{
+		{"run-old", "2026-09-10T12:00:00Z"},
+		{"run-new", "2026-09-11T12:00:00Z"},
+	} {
+		content, err := json.Marshal(Record{
+			RunID: run.id, Scenario: "demo-success", Skill: "demo", Kind: KindPositive,
+			Host: "codex", Commit: promotionTestRevision, SkillSourceCommit: promotionTestRevision,
+			InputDigest: digest, PromptSHA: "prompt-demo-success", Verdict: VerdictPass,
+			RubricReview: RubricComplete, RubricScores: promotionScores(4), FinishedAt: run.finishedAt,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		lines = append(lines, string(content))
+	}
+	writeInputFile(t, root, "evaluations/reports/demo.jsonl", strings.Join(lines, "\n")+"\n")
+}
+
+func TestPromotionFindingsScopesFreshnessToInputs(t *testing.T) {
+	root := newInputRepository(t)
+	writeInputFile(t, root, "CATALOG.yml", "skills:\n  - name: demo\n    status: stable\n  - name: other\n    status: experimental\n")
+	commitAll(t, root, "catalog")
+	digest, err := InputDigest(root, root, "demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	writePromotionReports(t, root, digest)
+	commitAll(t, root, "retain evaluation reports")
+	if findings := PromotionFindings(root); len(findings) != 0 {
+		t.Fatalf("findings = %v, want none for fresh evidence", findings)
+	}
+
+	writeInputFile(t, root, "docs/evaluation.md", "changed docs\n")
+	commitAll(t, root, "unrelated documentation change")
+	if findings := PromotionFindings(root); len(findings) != 0 {
+		t.Fatalf("findings = %v, want none after an unrelated commit", findings)
+	}
+
+	writeInputFile(t, root, "skills/process/demo/SKILL.md", "---\nname: demo\n---\nchanged\n")
+	commitAll(t, root, "relevant skill change")
+	findings := PromotionFindings(root)
+	if len(findings) == 0 {
+		t.Fatal("findings = none, want stale evidence after a commit to the skill directory")
+	}
+	for _, finding := range findings {
+		if !strings.Contains(finding, "stale or missing input digest evidence") {
+			t.Fatalf("finding %q, want only stale input digest findings", finding)
+		}
+	}
+}
