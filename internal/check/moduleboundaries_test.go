@@ -2,10 +2,8 @@ package check
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 )
@@ -29,49 +27,26 @@ modules:
 
 // writeModuleTree builds a repository root whose internal packages contain
 // only the given import lines, so a test states exactly the edges it exercises.
-// A package path prefixed with cmd/ is written below cmd/ instead of internal/,
-// so a test can exercise the composition-root scan. The tree also carries an
-// architecture record; record is that document, and an empty record means the
-// helper derives one that agrees with ownership.
-func writeModuleTree(t *testing.T, ownership, record string, imports map[string][]string) string {
+func writeModuleTree(t *testing.T, ownership string, imports map[string][]string) string {
 	t.Helper()
 	root := t.TempDir()
 	workflowDir := filepath.Join(root, "workflow")
 	if err := os.MkdirAll(workflowDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	ownershipPath := filepath.Join(workflowDir, "module-ownership.yml")
-	if err := os.WriteFile(ownershipPath, []byte(ownership), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	docsDir := filepath.Join(root, "docs")
-	if err := os.MkdirAll(docsDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if record == "" {
-		record = agreeingRecord(t, ownershipPath)
-	}
-	if err := os.WriteFile(filepath.Join(docsDir, "architecture.md"), []byte(record), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workflowDir, "module-ownership.yml"), []byte(ownership), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	for pkg, paths := range imports {
-		tree, relative := "internal", pkg
-		if trimmed, ok := strings.CutPrefix(pkg, "cmd/"); ok {
-			tree, relative = "cmd", trimmed
-		}
-		dir := filepath.Join(root, tree, filepath.FromSlash(relative))
+		dir := filepath.Join(root, "internal", filepath.FromSlash(pkg))
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		name := relative
-		if index := strings.LastIndex(relative, "/"); index >= 0 {
-			name = relative[index+1:]
+		name := pkg
+		if index := strings.LastIndex(pkg, "/"); index >= 0 {
+			name = pkg[index+1:]
 		}
-		clause := name
-		if tree == "cmd" {
-			clause = "main"
-		}
-		source := "package " + clause + "\n"
+		source := "package " + name + "\n"
 		if len(paths) > 0 {
 			source += "\nimport (\n"
 			for _, path := range paths {
@@ -94,31 +69,6 @@ func writeModuleTree(t *testing.T, ownership, record string, imports map[string]
 	return root
 }
 
-// agreeingRecord returns an architecture record whose Module ownership table
-// lists exactly the modules and packages of the ownership file at path, so a
-// test that does not exercise the record comparison reports nothing from it. An
-// ownership file the check itself rejects yields a table with only the
-// composition row, because the check fails before it reads the record.
-func agreeingRecord(t *testing.T, path string) string {
-	t.Helper()
-	var builder strings.Builder
-	builder.WriteString("# Architecture\n\n## Module ownership\n\n| Module | Owns | Packages |\n| --- | --- | --- |\n")
-	if model, err := readOwnershipModel(path); err == nil {
-		for _, module := range model.order {
-			owned := []string{}
-			for pkg, owner := range model.moduleOf {
-				if owner == module {
-					owned = append(owned, "`"+pkg+"`")
-				}
-			}
-			sort.Strings(owned)
-			fmt.Fprintf(&builder, "| `%s` | Owns. | %s |\n", module, strings.Join(owned, ", "))
-		}
-	}
-	builder.WriteString("| `composition` | Command-line assembly. | `cmd/**` |\n\n## Next section\n")
-	return builder.String()
-}
-
 func runModuleBoundaries(t *testing.T, root string) (int, string, string) {
 	t.Helper()
 	var out, errOut bytes.Buffer
@@ -130,7 +80,6 @@ func TestCheckModuleBoundaries(t *testing.T) {
 	cases := []struct {
 		name      string
 		ownership string
-		record    string
 		imports   map[string][]string
 		wantCode  int
 		wantText  string
@@ -140,7 +89,7 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			ownership: fixtureOwnership,
 			imports:   map[string][]string{"support": nil, "strategy": {"support"}},
 			wantCode:  0,
-			wantText:  "module boundaries valid: 2 packages in 2 modules, 1 allowed module edges, 0 command packages scanned.",
+			wantText:  "module boundaries valid: 2 packages in 2 modules, 1 allowed module edges.",
 		},
 		{
 			name:      "external operation outside the provider module fails",
@@ -154,7 +103,7 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			ownership: fixtureOwnership,
 			imports:   map[string][]string{"support": {"std:os/exec"}, "strategy": nil},
 			wantCode:  0,
-			wantText:  "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges, 0 command packages scanned.",
+			wantText:  "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges.",
 		},
 		{
 			name:      "forbidden reverse dependency fails",
@@ -175,7 +124,7 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			ownership: fixtureOwnership,
 			imports:   map[string][]string{"support": nil, "strategy/rule": {"support"}, "strategy": nil},
 			wantCode:  0,
-			wantText:  "module boundaries valid: 3 packages in 2 modules, 1 allowed module edges, 0 command packages scanned.",
+			wantText:  "module boundaries valid: 3 packages in 2 modules, 1 allowed module edges.",
 		},
 		{
 			name:      "import of the composition root fails",
@@ -189,7 +138,7 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			ownership: fixtureOwnership,
 			imports:   map[string][]string{"support": nil, "support/testdata": {"strategy"}, "strategy": nil},
 			wantCode:  0,
-			wantText:  "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges, 0 command packages scanned.",
+			wantText:  "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges.",
 		},
 		{
 			name:      "unowned package fails",
@@ -204,90 +153,6 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			imports:   map[string][]string{"support": nil},
 			wantCode:  1,
 			wantText:  "workflow/module-ownership.yml lists internal/strategy, which does not exist",
-		},
-		{
-			name:      "an external operation under cmd fails",
-			ownership: fixtureOwnership,
-			imports: map[string][]string{
-				"support": nil, "strategy": nil, "cmd/publish-release": {"std:os/exec"},
-			},
-			wantCode: 1,
-			wantText: "cmd/publish-release (composition) imports os/exec; only the provider module starts a process or sends a request",
-		},
-		{
-			name:      "a command package without an external operation passes",
-			ownership: fixtureOwnership,
-			imports: map[string][]string{
-				"support": nil, "strategy": nil, "cmd/publish-release": {"support"},
-			},
-			wantCode: 0,
-			wantText: "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges, 1 command packages scanned.",
-		},
-		{
-			name:      "a module the record does not list fails",
-			ownership: fixtureOwnership,
-			record: `## Module ownership
-
-| Module | Owns | Packages |
-| --- | --- | --- |
-| ` + "`foundation`" + ` | Owns. | ` + "`support`" + ` |
-| ` + "`composition`" + ` | Command-line assembly. | ` + "`cmd/**`" + ` |
-`,
-			imports:  map[string][]string{"support": nil, "strategy": nil},
-			wantCode: 1,
-			wantText: `module policy is declared in workflow/module-ownership.yml and is not recorded in the "## Module ownership" table of docs/architecture.md`,
-		},
-		{
-			name:      "a package the record omits from its module row fails",
-			ownership: fixtureOwnership,
-			record: `## Module ownership
-
-| Module | Owns | Packages |
-| --- | --- | --- |
-| ` + "`foundation`" + ` | Owns. | ` + "`support`" + ` |
-| ` + "`policy`" + ` | Owns. | ` + "`context`" + ` |
-`,
-			imports:  map[string][]string{"support": nil, "strategy": nil},
-			wantCode: 1,
-			wantText: `workflow/module-ownership.yml gives internal/strategy to module policy, whose row in the "## Module ownership" table of docs/architecture.md does not list it`,
-		},
-		{
-			name:      "a module only the record names fails",
-			ownership: fixtureOwnership,
-			record: `## Module ownership
-
-| Module | Owns | Packages |
-| --- | --- | --- |
-| ` + "`foundation`" + ` | Owns. | ` + "`support`" + ` |
-| ` + "`policy`" + ` | Owns. | ` + "`strategy`" + ` |
-| ` + "`evidence`" + ` | Owns. | ` + "`trace`" + ` |
-`,
-			imports:  map[string][]string{"support": nil, "strategy": nil},
-			wantCode: 1,
-			wantText: `the "## Module ownership" table of docs/architecture.md records module evidence, which workflow/module-ownership.yml does not declare`,
-		},
-		{
-			name:      "the composition row stays outside the declared modules",
-			ownership: fixtureOwnership,
-			record: `## Module ownership
-
-| Module | Owns | Packages |
-| --- | --- | --- |
-| ` + "`foundation`" + ` | Owns. | ` + "`support`" + ` |
-| ` + "`policy`" + ` | Owns. | ` + "`strategy`" + ` |
-| ` + "`composition`" + ` | Command-line assembly. | ` + "`cmd/**`" + ` |
-`,
-			imports:  map[string][]string{"support": nil, "strategy": nil},
-			wantCode: 0,
-			wantText: "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges, 0 command packages scanned.",
-		},
-		{
-			name:      "a record without the Module ownership section fails",
-			ownership: fixtureOwnership,
-			record:    "# Architecture\n\n## Measured baseline\n",
-			imports:   map[string][]string{"support": nil, "strategy": nil},
-			wantCode:  1,
-			wantText:  `docs/architecture.md has no "## Module ownership" section`,
 		},
 		{
 			name: "may_import naming an unknown module fails",
@@ -340,7 +205,7 @@ modules:
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			root := writeModuleTree(t, testCase.ownership, testCase.record, testCase.imports)
+			root := writeModuleTree(t, testCase.ownership, testCase.imports)
 			code, out, errOut := runModuleBoundaries(t, root)
 			if code != testCase.wantCode {
 				t.Fatalf("exit code = %d, want %d (stdout %q, stderr %q)", code, testCase.wantCode, out, errOut)

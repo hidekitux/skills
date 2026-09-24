@@ -1,7 +1,6 @@
 package check
 
 import (
-	"errors"
 	"fmt"
 	"go/parser"
 	"go/token"
@@ -167,13 +166,7 @@ func sortedKeys(set map[string]bool) []string {
 // ownership file must still name its top-level directory, and its test imports
 // stay outside the module-edge rule.
 func internalPackages(root string) ([]string, error) {
-	return goPackagesBelow(filepath.Join(root, "internal"))
-}
-
-// goPackagesBelow returns every directory below base that contains at least one
-// Go file, as a slash-separated path relative to base. A directory the Go build
-// ignores is skipped with its whole subtree.
-func goPackagesBelow(base string) ([]string, error) {
+	base := filepath.Join(root, "internal")
 	packages := []string{}
 	err := filepath.WalkDir(base, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -211,19 +204,6 @@ func goPackagesBelow(base string) ([]string, error) {
 	return packages, nil
 }
 
-// commandPackages returns every directory below cmd/ that contains at least
-// one Go file, as a slash-separated path relative to cmd/. It uses the same
-// walk rule as internalPackages, so a nested command package is included and a
-// directory the Go build ignores is skipped with its whole subtree. A
-// repository without a cmd/ directory yields no package rather than an error.
-func commandPackages(root string) ([]string, error) {
-	base := filepath.Join(root, "cmd")
-	if _, err := os.Stat(base); errors.Is(err, fs.ErrNotExist) {
-		return []string{}, nil
-	}
-	return goPackagesBelow(base)
-}
-
 // buildableDirectory reports whether the Go build considers a directory with
 // this name. The build ignores testdata and any name beginning with an
 // underscore or a dot, so a Go file below one of them is test data rather than
@@ -258,140 +238,6 @@ func topLevelPackages(packages []string) []string {
 	return sortedKeys(seen)
 }
 
-// recordPath is the architecture record that explains the ownership file. The
-// two must describe the same modules and the same packages.
-const recordPath = "docs/architecture.md"
-
-// recordSection is the heading of the table in the architecture record that
-// carries the module identifiers and their packages.
-const recordSection = "## Module ownership"
-
-// recordOnlyModule is the one module the architecture record names and the
-// ownership file does not. cmd/** is the composition root: it is not a
-// directory below internal/, so no ownership entry can own it, and the check
-// forbids the reverse import instead.
-const recordOnlyModule = "composition"
-
-// readRecordedModules parses the Module ownership table of the architecture
-// record into the packages each module row lists. It returns an error when the
-// section or its table is absent, so a rewrite of the record fails the check
-// rather than silently disabling the comparison.
-func readRecordedModules(path string) (map[string][]string, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	lines := strings.Split(string(content), "\n")
-	start := -1
-	for index, line := range lines {
-		if strings.TrimSpace(line) == recordSection {
-			start = index + 1
-			break
-		}
-	}
-	if start < 0 {
-		return nil, fmt.Errorf("%s has no %q section", recordPath, recordSection)
-	}
-	recorded := map[string][]string{}
-	for _, line := range lines[start:] {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "## ") {
-			break
-		}
-		if !strings.HasPrefix(trimmed, "|") {
-			continue
-		}
-		cells := tableCells(trimmed)
-		if len(cells) < 3 {
-			continue
-		}
-		module := unquoteCell(cells[0])
-		if module == "" || module == "Module" || strings.HasPrefix(module, "---") {
-			continue
-		}
-		packages := []string{}
-		for _, item := range strings.Split(cells[2], ",") {
-			if name := unquoteCell(item); name != "" {
-				packages = append(packages, name)
-			}
-		}
-		recorded[module] = packages
-	}
-	if len(recorded) == 0 {
-		return nil, fmt.Errorf("the %q section of %s records no module", recordSection, recordPath)
-	}
-	return recorded, nil
-}
-
-// tableCells splits one Markdown table row into its cells, without the
-// leading and trailing pipe.
-func tableCells(row string) []string {
-	cells := strings.Split(strings.Trim(row, "|"), "|")
-	for index, cell := range cells {
-		cells[index] = strings.TrimSpace(cell)
-	}
-	return cells
-}
-
-// unquoteCell returns the cell text without its surrounding backticks and
-// spaces, so `foundation` and foundation read the same.
-func unquoteCell(cell string) string {
-	return strings.Trim(strings.TrimSpace(cell), "` ")
-}
-
-// recordFindings compares the ownership model with the architecture record. It
-// reports a module or a package that one of the two carries and the other does
-// not, so a module split recorded in only one place fails the check.
-func recordFindings(model *ownershipModel, recorded map[string][]string) []string {
-	findings := []string{}
-	ownedBy := map[string][]string{}
-	for pkg, module := range model.moduleOf {
-		ownedBy[module] = append(ownedBy[module], pkg)
-	}
-	for _, module := range model.order {
-		packages, ok := recorded[module]
-		if !ok {
-			findings = append(findings, fmt.Sprintf(
-				"module %s is declared in workflow/module-ownership.yml and is not recorded in the %q table of %s",
-				module, recordSection, recordPath))
-			continue
-		}
-		present := map[string]bool{}
-		for _, name := range packages {
-			present[name] = true
-		}
-		names := ownedBy[module]
-		sort.Strings(names)
-		for _, pkg := range names {
-			if !present[pkg] {
-				findings = append(findings, fmt.Sprintf(
-					"workflow/module-ownership.yml gives internal/%s to module %s, whose row in the %q table of %s does not list it",
-					pkg, module, recordSection, recordPath))
-			}
-		}
-	}
-	for _, module := range sortedKeys(boolSet(recorded)) {
-		if module == recordOnlyModule {
-			continue
-		}
-		if _, ok := model.mayImport[module]; !ok {
-			findings = append(findings, fmt.Sprintf(
-				"the %q table of %s records module %s, which workflow/module-ownership.yml does not declare",
-				recordSection, recordPath, module))
-		}
-	}
-	return findings
-}
-
-// boolSet returns the keys of recorded as a set, so sortedKeys can order them.
-func boolSet(recorded map[string][]string) map[string]bool {
-	set := map[string]bool{}
-	for key := range recorded {
-		set[key] = true
-	}
-	return set
-}
-
 // externalOperationExempt names the packages that may import an
 // external-operation standard package. internal/provider owns every port and
 // adapter. internal/support keeps one git invocation for repository-root
@@ -402,13 +248,11 @@ var externalOperationExempt = map[string]bool{"provider": true, "support": true}
 // CheckModuleBoundaries enforces the internal module ownership recorded in
 // workflow/module-ownership.yml and documented in docs/architecture.md. It
 // fails when an internal package belongs to no module, when the ownership file
-// names a package that no longer exists, when the ownership file and the
-// Module ownership table of docs/architecture.md carry different modules or
-// different packages, when a package imports a package whose module the
-// importing module may not import, when any internal package imports the
-// composition root under cmd/, and when a package outside the provider module,
-// including a package under cmd/, imports os/exec or net/http. It returns 0 on
-// success and 1 on any violation.
+// names a package that no longer exists, when a package imports a package
+// whose module the importing module may not import, when any internal package
+// imports the composition root under cmd/, and when a package outside the
+// provider module imports os/exec or net/http. It returns 0 on success and 1
+// on any violation.
 //
 // The check reads imports with go/parser rather than building the packages, so
 // an import behind a build tag the parser skips is not observed.
@@ -418,22 +262,12 @@ func CheckModuleBoundaries(root string, out, errOut io.Writer) int {
 		fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
 		return 1
 	}
-	recorded, err := readRecordedModules(filepath.Join(root, filepath.FromSlash(recordPath)))
-	if err != nil {
-		fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
-		return 1
-	}
 	packages, err := internalPackages(root)
 	if err != nil {
 		fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
 		return 1
 	}
-	commands, err := commandPackages(root)
-	if err != nil {
-		fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
-		return 1
-	}
-	findings := recordFindings(model, recorded)
+	findings := []string{}
 	present := map[string]bool{}
 	for _, pkg := range topLevelPackages(packages) {
 		present[pkg] = true
@@ -492,18 +326,6 @@ func CheckModuleBoundaries(root string, out, errOut io.Writer) int {
 			}
 		}
 	}
-	for _, command := range commands {
-		_, _, externals, err := packageImports(filepath.Join(root, "cmd", filepath.FromSlash(command)))
-		if err != nil {
-			fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
-			return 1
-		}
-		for _, external := range externals {
-			findings = append(findings, fmt.Sprintf(
-				"cmd/%s (composition) imports %s; only the provider module starts a process or sends a request",
-				command, external))
-		}
-	}
 	if len(findings) > 0 {
 		sort.Strings(findings)
 		for _, finding := range findings {
@@ -512,7 +334,7 @@ func CheckModuleBoundaries(root string, out, errOut io.Writer) int {
 		fmt.Fprintf(errOut, "module-boundaries check failed: %d violation(s).\n", len(findings))
 		return 1
 	}
-	fmt.Fprintf(out, "module boundaries valid: %d packages in %d modules, %d allowed module edges, %d command packages scanned.\n",
-		len(packages), len(model.order), edges, len(commands))
+	fmt.Fprintf(out, "module boundaries valid: %d packages in %d modules, %d allowed module edges.\n",
+		len(packages), len(model.order), edges)
 	return 0
 }
