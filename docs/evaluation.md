@@ -250,16 +250,6 @@ environment, and only the antigravity key-mode process receives
 evaluated agent also sees the developer's global `~/.gemini` skills; prefer
 the opt-in key mode for reproducible runs.
 
-Every run prints `(could not read directory)` under each skill name, such as
-`analyze/analyze-codebase/`. The listing is an environment limit in `gh`, not
-an installation failure. `gh skill install --from-local`, in 2.97.0 and
-2.101.0, copies each skill to `<install dir>/<skill>` but reads
-`<install dir>/<category>/<skill>` when it prints the post-install file tree
-on stderr. The installed copy matches the source except for the
-`metadata.local-path` frontmatter that `gh` adds, which `diff -r` against
-`skills/<category>/<skill>` shows. The listing goes away only when `gh` reads
-the path it installed to.
-
 ## Validation of this system (Issue 173)
 
 - Smoke suite run locally for the supported drivers with retained reports.
