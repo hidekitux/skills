@@ -27,13 +27,6 @@ evaluations/
   reports/<run>/                     machine- and human-readable run output
 ```
 
-- Scenarios are the one per-skill asset kept outside `skills/<category>/<skill-name>/`.
-  `gh skill install` copies the whole skill directory into the evaluation
-  sandbox, so a scenario there would show its expectations to the agent under
-  evaluation. The scenario directory name is the link to the skill instead:
-  `check-evaluation` requires every directory except `e2e` to name a cataloged
-  skill, every scenario's `skill` field to equal its directory name, and every
-  cataloged skill to resolve to `skills/<category>/<skill-name>/SKILL.md`.
 - Every cataloged skill has at least one `positive` and one `negative` or
   `boundary` scenario mapped to an observable outcome (Acceptance criterion 1).
 - High-impact workflows have end-to-end scenarios under `scenarios/e2e/` that
