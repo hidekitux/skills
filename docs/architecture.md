@@ -645,7 +645,7 @@ file outside the repository.
 | Run | Commit | `claude-code`, `claude-sonnet-5` | `antigravity`, `gemini-3.7-flash-low` |
 | --- | --- | --- | --- |
 | `20260924T023443Z` | `8b5249f` | `infrastructure_error`, not signed in | `fail`: sends the ready Issue #44 to `plan-issue` and never names `create-issue` |
-| `20260924T023541Z` | `8b5249f` | `infrastructure_error`, not signed in | `pass`: names `create-issue` as the owner of merging #41 into the existing #42 |
+| `20260924T023541Z` | `8b5249f` | `infrastructure_error`, not signed in | `pass`: names `create-issue` as one of two owners for merging #41 into the existing #42 |
 | `20260924T023925Z` | `8b5249f` | `pass`: names `create-issue` for a correction that "may" need a new or corrected Issue | not run |
 | `20260924T024155Z` | `8b5249f` | `pass`: names `create-issue` as one of two owners for the #41 and #42 merge | not run |
 | `20260924T024729Z` | `2d3f9ee` | `pass` | `pass` |
