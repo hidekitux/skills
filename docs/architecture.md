@@ -625,11 +625,6 @@ baseline 21 and the current 24.
 
 ## Remaining risks
 
-- `mise run verify:fsl` reports an unavailable environment when `FSLC_BIN_DIR`
-  is unset, because the task does not export the variable that
-  `scripts/setup/environment-state.sh` sets. Its text output names no
-  classification, so a reader who checks only the exit status cannot tell an
-  absent verifier from an invalid specification.
 - `triage-issues-success` failed in run `20260918T045712Z`: the transcript did
   not name the expected handoff `create-issue`. The run used
   `gemini-3.7-flash-low`, and one run does not separate a model limit from a
