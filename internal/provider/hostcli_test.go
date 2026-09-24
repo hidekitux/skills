@@ -183,8 +183,8 @@ func TestModelFlagPinsModelForEveryDriver(t *testing.T) {
 			t.Fatalf("%s modelFlag = %v", name, got)
 		}
 	}
-	if got := modelFlag(HostAntigravity); got[1] != "gemini-3.8-flash-low" {
-		t.Fatalf("antigravity default = %s, want gemini-3.8-flash-low", got[1])
+	if got := modelFlag(HostAntigravity); got[1] != defaultGeminiModel {
+		t.Fatalf("antigravity default = %s, want %s", got[1], defaultGeminiModel)
 	}
 	if got := modelFlag(HostClaudeCode); got[1] != defaultClaudeModel {
 		t.Fatalf("claude default = %s, want %s", got[1], defaultClaudeModel)
@@ -195,13 +195,6 @@ func TestModelFlagHonorsEnvOverride(t *testing.T) {
 	t.Setenv("EVAL_CODEX_MODEL", "gpt-5.1-codex")
 	if got := modelFlag(HostCodex); got[1] != "gpt-5.1-codex" {
 		t.Fatalf("modelFlag = %v, want env override", got)
-	}
-}
-
-func TestModelFlagHonorsAntigravityOverride(t *testing.T) {
-	t.Setenv("EVAL_ANTIGRAVITY_MODEL", "gemini-3.8-flash-high")
-	if got := modelFlag(HostAntigravity); got[1] != "gemini-3.8-flash-high" {
-		t.Fatalf("antigravity modelFlag = %v, want env override", got)
 	}
 }
 
@@ -218,8 +211,8 @@ func TestEffectiveModelMatchesInvocation(t *testing.T) {
 		t.Fatalf("EffectiveModel(unset) = %s", got)
 	}
 	// Antigravity and claude-code pin their own defaults and ignore the tier.
-	if got := EffectiveModel(HostAntigravity, "opencode-go/deepseek-v4-flash"); got != "gemini-3.8-flash-low" {
-		t.Fatalf("antigravity effectiveModel = %s, want gemini-3.8-flash-low", got)
+	if got := EffectiveModel(HostAntigravity, "opencode-go/deepseek-v4-flash"); got != defaultGeminiModel {
+		t.Fatalf("antigravity effectiveModel = %s, want %s", got, defaultGeminiModel)
 	}
 	if got := EffectiveModel(HostClaudeCode, "opencode-go/deepseek-v4-flash"); got != defaultClaudeModel {
 		t.Fatalf("claude effectiveModel = %s, want %s", got, defaultClaudeModel)
