@@ -54,3 +54,6 @@ Run the phases in order. A phase is complete only when its primitive's artifact 
 
 Use plain, active, evidence-backed prose in the final handoff. Keep headings in
 sentence case and name the file, command, or output behind each repository claim.
+
+Choose the plain word over an inflated or Latinate one: write `use` rather
+than `utilize` and `is` rather than `serves as`.
