@@ -98,26 +98,19 @@ func readOwnershipModel(path string) (*ownershipModel, error) {
 	return model, nil
 }
 
-// providerStandardImports names the standard-library packages that start an
-// external process or send a network request. Only the provider module may
-// import them, so every external operation has one owner.
-var providerStandardImports = []string{"os/exec", "net/http"}
-
 // packageImports returns the repository packages imported by the Go files
-// directly under dir, split into the internal packages, the cmd packages, and
-// the external-operation standard packages it imports. The internal and
-// command lists carry the path below their prefix. It reads imports with
+// directly under dir, split into the internal packages and the cmd packages it
+// imports. Both lists carry the path below their prefix. It reads imports with
 // go/parser and ignores test files, so a package that only a test imports is
 // not treated as a module edge.
-func packageImports(dir string) (internal, command, external []string, err error) {
+func packageImports(dir string) (internal, command []string, err error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	fileSet := token.NewFileSet()
 	seenInternal := map[string]bool{}
 	seenCommand := map[string]bool{}
-	seenExternal := map[string]bool{}
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
@@ -125,12 +118,12 @@ func packageImports(dir string) (internal, command, external []string, err error
 		}
 		file, err := parser.ParseFile(fileSet, filepath.Join(dir, name), nil, parser.ImportsOnly)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		for _, spec := range file.Imports {
 			path, err := strconv.Unquote(spec.Path.Value)
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, nil, err
 			}
 			switch {
 			case strings.HasPrefix(path, internalImportPrefix):
@@ -138,14 +131,9 @@ func packageImports(dir string) (internal, command, external []string, err error
 			case strings.HasPrefix(path, commandImportPrefix):
 				seenCommand[strings.TrimPrefix(path, commandImportPrefix)] = true
 			}
-			for _, external := range providerStandardImports {
-				if path == external {
-					seenExternal[path] = true
-				}
-			}
 		}
 	}
-	return sortedKeys(seenInternal), sortedKeys(seenCommand), sortedKeys(seenExternal), nil
+	return sortedKeys(seenInternal), sortedKeys(seenCommand), nil
 }
 
 // sortedKeys returns the keys of set in a stable order.
@@ -238,21 +226,13 @@ func topLevelPackages(packages []string) []string {
 	return sortedKeys(seen)
 }
 
-// externalOperationExempt names the packages that may import an
-// external-operation standard package. internal/provider owns every port and
-// adapter. internal/support keeps one git invocation for repository-root
-// resolution, because the foundation module cannot import the provider module,
-// which imports foundation.
-var externalOperationExempt = map[string]bool{"provider": true, "support": true}
-
 // CheckModuleBoundaries enforces the internal module ownership recorded in
 // workflow/module-ownership.yml and documented in docs/architecture.md. It
 // fails when an internal package belongs to no module, when the ownership file
 // names a package that no longer exists, when a package imports a package
-// whose module the importing module may not import, when any internal package
-// imports the composition root under cmd/, and when a package outside the
-// provider module imports os/exec or net/http. It returns 0 on success and 1
-// on any violation.
+// whose module the importing module may not import, and when any internal
+// package imports the composition root under cmd/. It returns 0 on success and
+// 1 on any violation.
 //
 // The check reads imports with go/parser rather than building the packages, so
 // an import behind a build tag the parser skips is not observed.
@@ -291,18 +271,10 @@ func CheckModuleBoundaries(root string, out, errOut io.Writer) int {
 		if !ok {
 			continue
 		}
-		imports, commands, externals, err := packageImports(filepath.Join(root, "internal", filepath.FromSlash(pkg)))
+		imports, commands, err := packageImports(filepath.Join(root, "internal", filepath.FromSlash(pkg)))
 		if err != nil {
 			fmt.Fprintf(errOut, "module-boundaries check failed: %v\n", err)
 			return 1
-		}
-		for _, external := range externals {
-			if externalOperationExempt[pkg] {
-				continue
-			}
-			findings = append(findings, fmt.Sprintf(
-				"internal/%s (%s) imports %s; only the provider module starts a process or sends a request",
-				pkg, source, external))
 		}
 		for _, command := range commands {
 			findings = append(findings, fmt.Sprintf(

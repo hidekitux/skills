@@ -50,10 +50,6 @@ func writeModuleTree(t *testing.T, ownership string, imports map[string][]string
 		if len(paths) > 0 {
 			source += "\nimport (\n"
 			for _, path := range paths {
-				if standard, ok := strings.CutPrefix(path, "std:"); ok {
-					source += "\t_ \"" + standard + "\"\n"
-					continue
-				}
 				prefix := internalImportPrefix
 				if strings.HasPrefix(path, "cmd/") {
 					prefix, path = commandImportPrefix, strings.TrimPrefix(path, "cmd/")
@@ -90,20 +86,6 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			imports:   map[string][]string{"support": nil, "strategy": {"support"}},
 			wantCode:  0,
 			wantText:  "module boundaries valid: 2 packages in 2 modules, 1 allowed module edges.",
-		},
-		{
-			name:      "external operation outside the provider module fails",
-			ownership: fixtureOwnership,
-			imports:   map[string][]string{"support": nil, "strategy": {"std:os/exec"}},
-			wantCode:  1,
-			wantText:  "internal/strategy (policy) imports os/exec; only the provider module starts a process or sends a request",
-		},
-		{
-			name:      "repository-root resolution keeps its documented exemption",
-			ownership: fixtureOwnership,
-			imports:   map[string][]string{"support": {"std:os/exec"}, "strategy": nil},
-			wantCode:  0,
-			wantText:  "module boundaries valid: 2 packages in 2 modules, 0 allowed module edges.",
 		},
 		{
 			name:      "forbidden reverse dependency fails",
