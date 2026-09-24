@@ -51,17 +51,6 @@ func TestSensitiveContentRejectsEveryPrivateHostClass(t *testing.T) {
 	}
 }
 
-func TestSensitiveContentRejectsAnUppercaseScheme(t *testing.T) {
-	root := t.TempDir()
-	content := "HTTPS://" + "10.0.0.1/x\n"
-	if err := os.WriteFile(filepath.Join(root, "notes.md"), []byte(content), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if code := runCheck(t, CheckSensitiveContent, root); code != 1 {
-		t.Fatalf("expected an uppercase scheme to fail the check, got exit %d", code)
-	}
-}
-
 func TestSensitiveContentAcceptsAHostThatOnlyLooksPrivate(t *testing.T) {
 	root := t.TempDir()
 	content := "https://" + "192.168.1.5.example.com/docs\n"

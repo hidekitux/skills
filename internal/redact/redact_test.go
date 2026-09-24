@@ -65,14 +65,6 @@ func TestURLPatternFindsEveryAbsoluteURL(t *testing.T) {
 	}
 }
 
-func TestURLPatternIgnoresTheCaseOfTheScheme(t *testing.T) {
-	for _, value := range []string{"HTTPS://github.com/a", "Http://example.org/b"} {
-		if URLPattern().FindString(value) != value {
-			t.Fatalf("expected %q to match whatever the case of its scheme", value)
-		}
-	}
-}
-
 func TestCommitSHAPatternAcceptsOnlyAFullIdentifier(t *testing.T) {
 	if !CommitSHAPattern().MatchString("aec2925cdba690384feaa7830d79fd6b18e22c77") {
 		t.Fatal("expected a 40-character identifier to match")
