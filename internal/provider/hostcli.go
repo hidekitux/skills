@@ -42,10 +42,10 @@ const defaultCodexModel = "gpt-5.6-luna"
 
 // defaultGeminiModel is the fixed default model for the antigravity driver,
 // which does not consume OpenCode Go tier models. It must be one of the
-// model identifiers the pinned antigravity CLI advertises; Gemini 3.8 Flash
-// low is the cheapest 3.8 Flash variant (override with
+// model identifiers the pinned antigravity CLI advertises; Gemini 3.7 Flash
+// low is the cheapest 3.7 Flash variant (override with
 // EVAL_ANTIGRAVITY_MODEL).
-const defaultGeminiModel = "gemini-3.8-flash-low"
+const defaultGeminiModel = "gemini-3.7-flash-low"
 
 // defaultClaudeModel is the fixed default for the claude-code driver, which
 // does not consume OpenCode Go tier models (override with EVAL_CLAUDE_MODEL).
