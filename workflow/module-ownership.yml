@@ -15,7 +15,6 @@ modules:
     packages:
       - discover
       - hooks
-      - redact
       - support
     may_import: []
 
