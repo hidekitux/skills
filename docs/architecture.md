@@ -16,12 +16,8 @@ section each Sub-issue changes.
 `workflow/module-ownership.yml` is the machine-readable form of the model below.
 The `check-module-boundaries` repository check reads that file, resolves the
 imports of every package below `internal/` including a nested one, and fails on
-any module edge the file does not allow. The check also reads the
-`Module ownership` table below and fails when the file declares a module or a
-package that the table does not record, or when the table records a module the
-file does not declare. It also fails when a package outside the `provider`
-module imports `os/exec` or `net/http`; that rule covers every package below
-`internal/` and every package below `cmd/`. The ownership
+any module edge the file does not allow. The check also fails when a package
+outside the `provider` module imports `os/exec` or `net/http`. The ownership
 file lists only top-level directories; a nested package such as `support/util`
 belongs to the module that owns its top-level directory.
 `cmd/check-repository` runs the check, so `mise run check:repository` and
@@ -60,13 +56,6 @@ broken import graph.
 | `execution` | Workflow execution and release assembly. | `eval`, `release` |
 | `governance` | Repository checks and validation of committed artifacts. | `check`, `commitlint`, `fsl`, `govuln`, `project`, `validate` |
 | `composition` | Command-line assembly. | `cmd/**` |
-
-`composition` is the composition root rather than a module of the ownership
-file. `cmd/**` is not a directory below `internal/`, so
-`workflow/module-ownership.yml` cannot own it and declares seven modules while
-this table has eight rows. Every count of modules elsewhere in this document is
-that seven. The check compares the other seven rows with the file and skips
-this one by name.
 
 One module owns each of the five responsibilities Issue #326 names: `execution`
 owns workflow execution, `policy` owns policy decisions, `provider` owns
@@ -521,7 +510,7 @@ status.
 | `go run ./cmd/verify-fsl -diagnostic-format json` without `FSLC_BIN_DIR` | `{"code":"fsl.verify.infrastructure","category":"infrastructure_error",...,"retryable":true,"remediation":"retry_operation"}` | unavailable environment |
 | The `check-cutover-record` check, run by `go run ./cmd/check-repository` | `cutover record valid: 19 participant(s), 6 recovery step(s), 12 post-cutover check(s).` | product |
 | The `check-contract-decisions` check, run by `go run ./cmd/check-repository` | `contract decisions valid: 16 contract(s), 14 preserved, 2 changed.` | product |
-| The `check-module-boundaries` check, run by `go run ./cmd/check-repository` | `module boundaries valid: 24 packages in 7 modules, 35 allowed module edges, 43 command packages scanned.` | product |
+| The `check-module-boundaries` check, run by `go run ./cmd/check-repository` | `module boundaries valid: 24 packages in 7 modules, 35 allowed module edges.` | product |
 | `go run ./cmd/check-sensitive-content` | `Sensitive-content check passed.` | product |
 
 The text form of `verify-fsl` prints `exit status 1` and names no
@@ -585,7 +574,7 @@ agree at the branch head.
 | replay validation | `validate-replay-fixtures` inside `check-repository` | 10 fixtures, each returning its recorded outcome. |
 | trace validation | `validate-skill-trace` and `validate-diagnostic` inside `check-repository` | The committed trace and diagnostic fixtures match their schemas. |
 | evaluation report | `go run ./cmd/check-evaluation` | 77 scenarios for 20 cataloged skills. |
-| module boundaries | `check-module-boundaries` inside `check-repository` | 24 packages in 7 modules, 35 allowed edges, 43 command packages scanned. |
+| module boundaries | `check-module-boundaries` inside `check-repository` | 24 packages in 7 modules, 35 allowed edges. |
 
 ### Documentation alignment
 
