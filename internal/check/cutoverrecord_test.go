@@ -36,26 +36,6 @@ order:
     depends_on:
       - 328
 participants:
-  - id: module-foundation
-    kind: module
-    surface: Shared primitives every other module imports.
-    owner: foundation
-    contracts: []
-    evidence:
-      - mise.toml
-    readiness: The foundation module imports no other internal module.
-    readiness_check: go run ./cmd/check-repository
-    recovery: The foundation packages keep their paths, so no caller changes.
-  - id: module-policy
-    kind: module
-    surface: Policy decisions about execution strategy.
-    owner: policy
-    contracts: []
-    evidence:
-      - mise.toml
-    readiness: The committed execution-strategy policy validates.
-    readiness_check: go run ./cmd/validate-execution-strategy
-    recovery: The policy files are unchanged, so reverting restores only the call sites.
   - id: mise-tasks
     kind: workflow
     surface: The task names mise.toml defines.
@@ -119,8 +99,6 @@ const fixtureRecord = `# Architecture
 The cutover point is 9f04db42a68e5140e4dc4067a42fdc8b02b230f0 and the baseline
 is 4cce0641bbc9bc28c9bba47522a6071b0acded69.
 
-| module-foundation | module | foundation |
-| module-policy | module | policy |
 | mise-tasks | workflow | composition |
 | mise-task-names | preserved |
 `
@@ -169,7 +147,7 @@ func TestCutoverRecordAcceptsACompleteRecord(t *testing.T) {
 	if status != 0 {
 		t.Fatalf("status = %d, want 0: %s", status, output)
 	}
-	if !strings.Contains(output, "3 participant(s), 1 recovery step(s), 7 post-cutover check(s)") {
+	if !strings.Contains(output, "1 participant(s), 1 recovery step(s), 7 post-cutover check(s)") {
 		t.Fatalf("output does not report the counted rows: %s", output)
 	}
 }
@@ -187,26 +165,6 @@ func TestCutoverRecordRejectsAnUncoveredContract(t *testing.T) {
 	status, output := runCutover(t, cutover, fixtureRecord)
 	if status != 1 || !strings.Contains(output, "contract mise-task-names appears in no participant") {
 		t.Fatalf("status = %d, output = %q; want the uncovered contract reported", status, output)
-	}
-}
-
-func TestCutoverRecordRejectsAModuleWithNoParticipant(t *testing.T) {
-	// The shared ownership fixture declares foundation and policy. Dropping the
-	// foundation row leaves that module without one.
-	cutover := strings.Replace(fixtureCutover, `  - id: module-foundation
-    kind: module
-    surface: Shared primitives every other module imports.
-    owner: foundation
-    contracts: []
-    evidence:
-      - mise.toml
-    readiness: The foundation module imports no other internal module.
-    readiness_check: go run ./cmd/check-repository
-    recovery: The foundation packages keep their paths, so no caller changes.
-`, "", 1)
-	status, output := runCutover(t, cutover, fixtureRecord)
-	if status != 1 || !strings.Contains(output, "module foundation owns no participant") {
-		t.Fatalf("status = %d, output = %q; want the uncovered module reported", status, output)
 	}
 }
 
