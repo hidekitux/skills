@@ -480,11 +480,20 @@ accepts it alongside the seven module identifiers in
 
 ### Recovery
 
-The documented safe state is the measured baseline
-`4cce0641bbc9bc28c9bba47522a6071b0acded69`, reached by reverting the redesign
-commit range on a new branch. Recovery never rewrites published history, so it
-needs no force-push and no GitHub Ruleset change, both of which Issue #326
+The documented safe state is the tree of the measured baseline
+`4cce0641bbc9bc28c9bba47522a6071b0acded69`. Recovery reaches it by reverting
+every commit from the `main` head back to the baseline, newest first, on the
+Issue branch of a recovery Issue. Recovery never rewrites published history, so
+it needs no force-push and no GitHub Ruleset change, both of which Issue #326
 excludes.
+
+The range starts at the `main` head rather than at the cutover point. A branch
+from the cutover point that reverts only the redesign conflicts with `main` in
+18 files once `main` is 48 commits past the cutover point, and GitHub runs no
+`pull_request` check on a Pull Request with a merge conflict. Reverting a
+linear history newest first cannot conflict. The cost is that the work that
+landed after the cutover point is reverted too, and it must land again after
+recovery.
 
 Three conditions start recovery: a readiness condition that fails at the
 cutover point, a post-cutover check that fails after it, and a contract drift
@@ -492,9 +501,9 @@ that `check-contract-decisions` or `check-cutover-record` reports. The third
 condition has two answers, and the record states which applies: reconcile the
 record when the tree is correct, and revert when the tree is not.
 
-The procedure was rehearsed once, in a throwaway worktree checked out at the
-cutover point, so the branch under review and the published history stayed
-untouched. The observations:
+The procedure was rehearsed twice. The first rehearsal ran for Issue #332 in a
+throwaway worktree checked out at the cutover point, so the branch under review
+and the published history stayed untouched. The observations:
 
 - `git revert --no-commit 4cce0641..9f04db4` reverted all 20 commits of the
   range without a conflict.
@@ -506,9 +515,35 @@ untouched. The observations:
   the baseline total. The three checks this redesign adds are removed by the
   same revert that removes the three records they enforce.
 
-The rehearsal ends there. It shows that the revert produces a building,
-passing tree at the baseline; it does not exercise the review path a real
-recovery Pull Request would take.
+That rehearsal showed that the revert produces a building, passing tree at
+the baseline. It did not exercise the review path a real recovery Pull Request
+takes.
+
+The second rehearsal ran for Issue #353 and took that review path without
+merging:
+
+- `issue/353` was created from the `main` head
+  `f049bf8ae49183577fa0d94a6bba3eb50a7d8fe7`, and all 68 commits back to the
+  baseline reverted newest first without a conflict, one signed revert commit
+  each. `git diff --stat 4cce0641` reported no difference.
+- On the reverted tree, `go build ./...` and `go test ./...` exited zero,
+  `go run ./cmd/check-repository` reported `all 21 repository checks passed`,
+  and `mise run validate:all` exited zero with `FSLC_BIN_DIR` set.
+- Draft Pull Request [#360](https://github.com/hidekitux/skills/pull/360)
+  opened from `issue/353` to `main` at the head
+  `747602c36a1e1ae8476dedc507460a95e9cd6166`.
+- All 10 status checks the `main` ruleset requires passed, and
+  `gh pr view 360 --json mergeStateStatus` reported `CLEAN`.
+- The [review](https://github.com/hidekitux/skills/pull/360#issuecomment-5807903929)
+  reported no findings. Each revert commit has the `git patch-id` of the
+  reverse of the commit it names, and the named commits equal
+  `git rev-list 4cce0641..f049bf8` exactly.
+- Pull Request #360 was closed without a merge, and `main` stayed at
+  `f049bf8`.
+
+Pull Request #360 retired the `Remaining risks` entry that Issue #353 owned:
+the recovery procedure has now passed the required checks and a review as a
+recovery Pull Request.
 
 ### Post-cutover observations
 
@@ -684,9 +719,6 @@ the evidence that retired it.
   `gemini-3.7-flash-low`, and one run does not separate a model limit from a
   skill defect. Live behavioral evaluation is local-only and blocks no pull
   request. Issue #351 owns the reproduction and the classification.
-- The recovery rehearsal in `Cutover and recovery` reverted the tree and
-  rebuilt it. It did not exercise the review path a real recovery Pull Request
-  would take. Issue #353 owns it.
 
 ## Handoff to the dependent Sub-issues
 
