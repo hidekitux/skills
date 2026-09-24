@@ -85,8 +85,7 @@ producers stays with its producer: `Evidence`, `RedactionSummary`, and
 `internal/redact` holds the rules a package applies before it persists or
 reports a value: `CredentialPattern`, `URLPattern`, `CommitSHAPattern`, and
 `IsPrivateHost`. `internal/trace`, `internal/diagnostic`, `internal/strategy`,
-`internal/provider`, and `internal/check` call them, so one definition decides
-every answer.
+and `internal/provider` call them, so one definition decides every answer.
 
 The rules live in `foundation` rather than in `evidence` because two of those
 callers cannot import the `evidence` module. `internal/strategy` belongs to
@@ -98,10 +97,7 @@ without changing a single `may_import` list.
 
 `IsPrivateHost` decides one question for every caller. It reports a loopback
 address, an IPv4 private range, a unique local IPv6 address, a link local
-unicast address, the name `localhost`, and any name ending in `.local` as
-private. `internal/check` asks the same function, so the `private network URL`
-rule of `check-sensitive-content` and the redaction rule of `internal/provider`
-cannot disagree about a host.
+address, the name `localhost`, and any name ending in `.local` as private.
 Before Issue #343 the same question had two answers: `internal/provider`
 matched a regular expression that covered no unique local IPv6 address, so a
 URL whose host was `fd00::1` reached a diagnostic while a URL whose host was
@@ -655,7 +651,7 @@ baseline 21 and the current 24.
 | Issue | Extends | Completed evidence |
 | --- | --- | --- |
 | #328 | Landed. Added `Module ownership`, `Dependency direction`, and `Test substitution points`. | `workflow/module-ownership.yml`; `check-module-boundaries` reports 24 packages in 7 modules and 35 allowed edges. |
-| #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. | `internal/evidence` holds `DiagnosticRef`, which `internal/trace` and `internal/diagnostic` alias; `go test ./internal/trace/` and `go test ./internal/diagnostic/` pass inside `test:go`. Issue #343 moved the pattern tests to `internal/redact` with the patterns, so `internal/evidence` has none of its own. |
+| #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. | `internal/evidence`; `go test ./internal/evidence/` and `go test ./internal/trace/` pass inside `test:go`. |
 | #330 | Landed. Added the `provider` module to `Module ownership` and `Dependency direction`, added `Provider ownership`, and replaced the provider note in `Test substitution points`. | `internal/provider`; `check-module-boundaries` fails a use of `os/exec` or `net/http` outside the module, and `go test ./internal/provider/` keeps every failure kind apart. |
 | #331 | Landed. Added `Contract decisions`, `workflow/contract-decisions.yml`, and the `check-contract-decisions` repository check. | `check-contract-decisions` reports 16 contracts, 14 preserved and 2 changed. |
 | #332 | Landed. Added `Cutover and recovery`, `workflow/cutover-record.yml`, and the `check-cutover-record` repository check. | `check-cutover-record` reports 19 participants, 6 recovery steps, and 12 post-cutover checks. |
