@@ -226,7 +226,7 @@ Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
 `antigravity` (uses the logged-in Google account by default; opt into Gemini
 API key auth for headless runs with `EVAL_ANTIGRAVITY_KEY_MODE=1` plus
 `GEMINI_API_KEY`, which makes the harness write `modelProvider: gemini` into
-the sandbox settings and isolate HOME; default model `gemini-3.7-flash-low`).
+the sandbox settings and isolate HOME; default model `gemini-3.8-flash-low`).
 Every driver pins an explicit model.
 Driver commands are overridable through `EVAL_CODEX_CMD`, `EVAL_CLAUDE_CMD`,
 `EVAL_OPENCODE_CMD`, and `EVAL_ANTIGRAVITY_CMD`; per-driver models through

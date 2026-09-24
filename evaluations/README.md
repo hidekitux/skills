@@ -207,7 +207,7 @@ human-readable Markdown summary, written under `--output` (default
   uses `gpt-5.6-luna`, claude-code uses `claude-sonnet-5`, opencode uses the
   repository tier model (`agent.low.model`, default
   `opencode-go/deepseek-v4-flash`), and antigravity uses
-  `gemini-3.7-flash-low`. Override per driver with `EVAL_CODEX_MODEL`,
+  `gemini-3.8-flash-low`. Override per driver with `EVAL_CODEX_MODEL`,
   `EVAL_CLAUDE_MODEL`, `EVAL_OPENCODE_MODEL`, and `EVAL_ANTIGRAVITY_MODEL`;
   provenance always records the model actually invoked.
 - The `antigravity` driver runs `antigravity --print --add-dir <sandbox>` and
