@@ -222,10 +222,7 @@ evidence.
 
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
 `claude-code` (needs login; default `claude-sonnet-5`), `opencode` (reads
-`.agents/skills`; default tier model `opencode-go/deepseek-v4-flash`, which
-needs an OpenCode Go credential from `opencode auth login`; without it every
-scenario returns `UnknownError`, and `--print-logs` shows
-`ProviderModelNotFoundError`), and
+`.agents/skills`; default tier model `opencode-go/deepseek-v4-flash`), and
 `antigravity` (uses the logged-in Google account by default; opt into Gemini
 API key auth for headless runs with `EVAL_ANTIGRAVITY_KEY_MODE=1` plus
 `GEMINI_API_KEY`, which makes the harness write `modelProvider: gemini` into
