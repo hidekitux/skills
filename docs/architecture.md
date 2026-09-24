@@ -543,9 +543,7 @@ records the same outcome at the branch head.
 
 Issue #333 closes the redesign with one validation record. Every command below
 ran in the worktree for the `issue/333` branch, whose only change to the tree
-is the documentation this Issue adds. The one exception is run
-`20260924T033735Z` under `Behavioral evaluation`, which ran for Issue #352 on
-its own branch. The record keeps four outcomes apart: a
+is the documentation this Issue adds. The record keeps four outcomes apart: a
 **product outcome** comes from the repository's own code and committed
 artifacts, an
 **infrastructure outcome** is a fault in the tool or its dependency rather than
