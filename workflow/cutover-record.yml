@@ -404,8 +404,9 @@ participants:
 
 recovery:
   safe_state: >-
-    The measured baseline commit, reached by reverting the redesign commit
-    range on a new branch. Published history is never rewritten.
+    The measured baseline tree, reached by reverting every commit from the
+    baseline to the main head on a new branch. Published history is never
+    rewritten.
   method: revert
   triggers:
     - id: readiness-unmet
@@ -427,13 +428,21 @@ recovery:
         when the tree is not.
   steps:
     - id: create-recovery-branch
-      action: Create a branch from the cutover point for the revert commits.
-      observation: The branch resolves and the working tree is clean.
+      action: >-
+        Create the Issue branch of the recovery Issue from the main head for the
+        revert commits. A branch from the cutover point conflicts with main once
+        main moves past it, and GitHub runs no pull request check on a
+        conflicting Pull Request.
+      observation: The branch resolves at the main head and the working tree is clean.
     - id: revert-range
       action: >-
-        Revert the redesign commit range from the cutover point back to the
-        baseline, keeping one revert commit per reverted commit.
-      observation: Every revert applies without a conflict marker in the tree.
+        Revert every commit from the main head back to the baseline, newest
+        first, keeping one signed revert commit per reverted commit. The range
+        includes the work that landed after the cutover point, which must land
+        again after recovery.
+      observation: >-
+        Every revert applies without a conflict, and git diff --stat against
+        the baseline reports no difference.
     - id: build-reverted-tree
       action: Build every package of the reverted tree.
       observation: go build ./... exits zero.
@@ -449,7 +458,9 @@ recovery:
       action: >-
         Report the reverted state, the commands, and their results, and open
         the recovery Pull Request through the ordinary review path.
-      observation: The report names every command and its exit status.
+      observation: >-
+        The report names every command and its exit status, every required
+        status check passes, and gh pr view reports the merge state CLEAN.
   rehearsal:
     - command: git worktree add --detach
       observation: >-
@@ -469,6 +480,31 @@ recovery:
       observation: >-
         The reverted tree reported "all 21 repository checks passed" and exited
         zero, which is the baseline total.
+    - command: git revert --no-commit
+      observation: >-
+        Issue #353 rehearsed the review path. On issue/353 from the main head
+        f049bf8ae49183577fa0d94a6bba3eb50a7d8fe7, all 68 commits back to the
+        baseline reverted newest first without a conflict, one signed revert
+        commit each, and git diff --stat against the baseline reported no
+        difference. The reverted tree built, passed go test ./..., and reported
+        "all 21 repository checks passed".
+    - command: gh pr create --draft
+      observation: >-
+        Pull Request #360 opened from issue/353 to main with the head
+        747602c36a1e1ae8476dedc507460a95e9cd6166.
+    - command: gh pr checks 360
+      observation: >-
+        All 10 status checks the main ruleset requires passed, and gh pr view
+        reported the merge state CLEAN.
+    - command: review-pr
+      observation: >-
+        The review comment on Pull Request #360 reported no findings. Each
+        revert commit has the patch-id of the reverse of the commit it names,
+        and the named commits equal the range exactly.
+    - command: gh pr close 360
+      observation: >-
+        Pull Request #360 closed without a merge, and main stayed at
+        f049bf8ae49183577fa0d94a6bba3eb50a7d8fe7.
 
 post_cutover:
   - id: public-command-behavior
