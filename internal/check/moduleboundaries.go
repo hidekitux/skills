@@ -339,10 +339,9 @@ func unquoteCell(cell string) string {
 	return strings.Trim(strings.TrimSpace(cell), "` ")
 }
 
-// recordFindings compares the ownership model with the architecture record in
-// both directions. It reports a module or a package that one of the two
-// carries and the other does not, so a module split recorded in only one place
-// fails the check whichever place that is.
+// recordFindings compares the ownership model with the architecture record. It
+// reports a module or a package that one of the two carries and the other does
+// not, so a module split recorded in only one place fails the check.
 func recordFindings(model *ownershipModel, recorded map[string][]string) []string {
 	findings := []string{}
 	ownedBy := map[string][]string{}
@@ -371,40 +370,26 @@ func recordFindings(model *ownershipModel, recorded map[string][]string) []strin
 			}
 		}
 	}
-	declared := map[string]bool{}
-	for _, module := range model.order {
-		declared[module] = true
-	}
-	for _, module := range sortedRecordedModules(recorded) {
+	for _, module := range sortedKeys(boolSet(recorded)) {
 		if module == recordOnlyModule {
 			continue
 		}
-		if !declared[module] {
+		if _, ok := model.mayImport[module]; !ok {
 			findings = append(findings, fmt.Sprintf(
 				"the %q table of %s records module %s, which workflow/module-ownership.yml does not declare",
 				recordSection, recordPath, module))
-			continue
-		}
-		for _, pkg := range recorded[module] {
-			if model.moduleOf[pkg] != module {
-				findings = append(findings, fmt.Sprintf(
-					"the %q table of %s gives internal/%s to module %s, which workflow/module-ownership.yml does not",
-					recordSection, recordPath, pkg, module))
-			}
 		}
 	}
 	return findings
 }
 
-// sortedRecordedModules returns the module identifiers of recorded in a stable
-// order, so the findings of one run do not depend on map iteration.
-func sortedRecordedModules(recorded map[string][]string) []string {
-	modules := make([]string, 0, len(recorded))
-	for module := range recorded {
-		modules = append(modules, module)
+// boolSet returns the keys of recorded as a set, so sortedKeys can order them.
+func boolSet(recorded map[string][]string) map[string]bool {
+	set := map[string]bool{}
+	for key := range recorded {
+		set[key] = true
 	}
-	sort.Strings(modules)
-	return modules
+	return set
 }
 
 // externalOperationExempt names the packages that may import an

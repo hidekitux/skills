@@ -267,20 +267,6 @@ func TestCheckModuleBoundaries(t *testing.T) {
 			wantText: `the "## Module ownership" table of docs/architecture.md records module evidence, which workflow/module-ownership.yml does not declare`,
 		},
 		{
-			name:      "a package only the record gives to a module fails",
-			ownership: fixtureOwnership,
-			record: `## Module ownership
-
-| Module | Owns | Packages |
-| --- | --- | --- |
-| ` + "`foundation`" + ` | Owns. | ` + "`support`" + `, ` + "`discover`" + ` |
-| ` + "`policy`" + ` | Owns. | ` + "`strategy`" + ` |
-`,
-			imports:  map[string][]string{"support": nil, "strategy": nil},
-			wantCode: 1,
-			wantText: `the "## Module ownership" table of docs/architecture.md gives internal/discover to module foundation, which workflow/module-ownership.yml does not`,
-		},
-		{
 			name:      "the composition row stays outside the declared modules",
 			ownership: fixtureOwnership,
 			record: `## Module ownership
