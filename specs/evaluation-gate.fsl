@@ -17,19 +17,24 @@
 // ASSUME-5: fresh records whether the retained evidence's input digest matches
 //           the skill's current input set (docs/evaluation.md). A commit
 //           outside the input set changes no state, so no action models it.
+//           promoted_fresh records the freshness at the last promotion, so
+//           StablePromotedWithFreshEvidence detects a promotion on stale
+//           evidence even after a later relevant change clears fresh.
 spec EvaluationGate {
   enum Status { Experimental, Stable, Deprecated }
 
   state {
     status: Status,
     evidence: Bool,
-    fresh: Bool
+    fresh: Bool,
+    promoted_fresh: Bool
   }
 
   init {
     status = Experimental
     evidence = false
     fresh = false
+    promoted_fresh = false
   }
 
   // A passing behavioral evaluation is recorded at the current input digest.
@@ -54,6 +59,7 @@ spec EvaluationGate {
     requires status == Experimental
     requires evidence
     requires fresh
+    promoted_fresh = fresh
     status = Stable
   }
 
@@ -76,6 +82,10 @@ spec EvaluationGate {
 
   invariant StableRequiresEvidence {
     status == Stable => evidence
+  }
+
+  invariant StablePromotedWithFreshEvidence {
+    status == Stable => promoted_fresh
   }
 
   invariant EvidenceRequiresExperimentalOrStable {
