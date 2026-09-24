@@ -93,8 +93,12 @@ counts in `comparison.json`.
 
 ### What a prose observation cannot decide
 
-Each skill carries its own writing rules in its `SKILL.md`. Every positive
-scenario in the corpus asserts that the transcript holds none of five markers.
+Each skill carries its own writing rules in its `SKILL.md` or in a reference
+that its `SKILL.md` names. All 20 skills carry the plain-word rule, a rule
+that asks for the plain or ordinary word over an inflated one. A search of each
+skill directory for `ordinary word` or `plain word` finds it. Every positive
+scenario in the corpus asserts that the transcript holds none of five markers,
+so each marker checks a word choice that the skill's own rule asks for.
 `docs/writing-style.md` calls `delve`, `pivotal`, and `multifaceted` an
 inflated style word, and it calls `facilitate` and `commence` Latinate padding.
 
@@ -126,9 +130,10 @@ limits bound it:
   evidence about a gated skill.
 - The match is a case-sensitive substring, so only the two cased forms each
   scenario lists are observed.
-- `utilize` and `serves as` are absent from the marker lists on purpose. Both
-  appear in the carried rules as the example of what to avoid, so asserting
-  them would fail every run in which an agent quotes its own instructions.
+- `utilize` and `serves as` are absent from the marker lists on purpose. The
+  plain-word rule in 15 of the 20 skills names both as the example of what to
+  avoid, so asserting them would fail every run in which an agent quotes its
+  own instructions. Recount those skills with `grep -rl utilize skills`.
 - `not just` is absent too. The rule it marks is the `not just X, but Y`
   frame, and the bare phrase is common enough in correct prose to fail a
   conforming run.
