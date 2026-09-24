@@ -272,16 +272,12 @@ contracts:
     classification: preserved
     owner: evidence
     evidence:
-      - internal/redact/redact.go
+      - internal/evidence/evidence.go
       - docs/security.md
     reason: >-
       Issue #329 moved the credential, URL, and commit patterns into
-      internal/evidence so one definition serves every producer. Issue #343
-      moved the same rules again, into internal/redact, so the packages that
-      cannot import the evidence module read them too, and added
-      IsPrivateHost. Every change tightened a rule: a unique local IPv6 host, a
-      link local unicast host, and an uppercase URL scheme are now redacted
-      where they were not. No rule was relaxed.
+      internal/evidence so one definition serves every producer. The patterns
+      themselves are unchanged, and no rule was relaxed.
     check: >-
       check-sensitive-content inside check:repository, plus
       TestSensitiveFixtureValuesNeverReachPersistedJSON and
