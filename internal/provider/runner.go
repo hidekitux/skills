@@ -6,26 +6,10 @@ import (
 	"io"
 	"os/exec"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hidekitux/skills/internal/support"
 )
-
-// lockedWriter serializes writes to the writer it wraps. exec.Cmd copies
-// standard output and standard error in separate goroutines whenever the
-// writer is not an *os.File, so the combined buffer and a caller writer that
-// receives both streams would otherwise be written concurrently.
-type lockedWriter struct {
-	mutex  *sync.Mutex
-	writer io.Writer
-}
-
-func (w *lockedWriter) Write(content []byte) (int, error) {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	return w.writer.Write(content)
-}
 
 // Command describes one external process invocation. Name is the binary, by
 // name for a PATH lookup or by path when the caller pins the install location.
@@ -106,12 +90,8 @@ func (OSRunner) Run(ctx context.Context, command Command) (Result, error) {
 	if command.Stderr != nil {
 		stderrWriters = append(stderrWriters, command.Stderr)
 	}
-	// One mutex covers both streams, so the combined buffer keeps the order
-	// the process wrote in and a caller writer that receives both streams
-	// never sees two concurrent writes.
-	var mutex sync.Mutex
-	process.Stdout = &lockedWriter{mutex: &mutex, writer: io.MultiWriter(stdoutWriters...)}
-	process.Stderr = &lockedWriter{mutex: &mutex, writer: io.MultiWriter(stderrWriters...)}
+	process.Stdout = io.MultiWriter(stdoutWriters...)
+	process.Stderr = io.MultiWriter(stderrWriters...)
 
 	err := process.Run()
 	result := Result{

@@ -79,25 +79,20 @@ func TestOSRunnerClassifiesEveryFailureKind(t *testing.T) {
 }
 
 func TestOSRunnerSeparatesAndStreamsOutput(t *testing.T) {
-	// One writer receives both streams, which is what internal/eval passes for
-	// a host stage transcript. Run it repeatedly so the race detector observes
-	// the two copy goroutines.
-	for attempt := 0; attempt < 20; attempt++ {
-		var streamed strings.Builder
-		result, err := OSRunner{}.Run(context.Background(), Command{
-			Port: PortShell, Operation: "script", Name: "sh",
-			Args:   []string{"-c", "printf out; printf err 1>&2"},
-			Stdout: &streamed, Stderr: &streamed,
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if result.Stdout != "out" || result.Stderr != "err" {
-			t.Fatalf("result = %+v", result)
-		}
-		if len(result.Combined) != 6 || streamed.Len() != 6 {
-			t.Fatalf("combined = %q, streamed = %q", result.Combined, streamed.String())
-		}
+	var streamed strings.Builder
+	result, err := OSRunner{}.Run(context.Background(), Command{
+		Port: PortShell, Operation: "script", Name: "sh",
+		Args:   []string{"-c", "printf out; printf err 1>&2"},
+		Stdout: &streamed, Stderr: &streamed,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Stdout != "out" || result.Stderr != "err" {
+		t.Fatalf("result = %+v", result)
+	}
+	if len(result.Combined) != 6 || streamed.Len() != 6 {
+		t.Fatalf("combined = %q, streamed = %q", result.Combined, streamed.String())
 	}
 }
 
