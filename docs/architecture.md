@@ -306,20 +306,18 @@ files this redesign adds.
 
 `cmd/check-repository` ran 21 checks at the baseline and printed
 `check:repository: all 21 repository checks passed.` on its final line. It now
-runs 24 and prints the matching total. Issue #328 added
-`check-module-boundaries` so the recorded dependency direction is enforced,
+runs 23 and prints the matching total. Issue #328 added
+`check-module-boundaries` so the recorded dependency direction is enforced, and
 Issue #331 added `check-contract-decisions` so this table is enforced the same
-way, and Issue #332 added `check-cutover-record` so the cutover record is too.
-An unenforced record drifts, which `docs/validation-tiers.md` demonstrated by
-carrying a stale check total until Issue #331 reconciled it.
+way. An unenforced record drifts, which `docs/validation-tiers.md` demonstrated
+by carrying a stale check total until this Issue reconciled it.
 
-The requester confirmed the change while planning Issue #331 and confirmed the
-third added check while planning Issue #332. A consumer that reads the printed
-list by name keeps working, because the list grows and no existing name was
-removed or renamed; a consumer that asserts an exact total updates that total
-once. The exit status contract is unchanged: zero when every check passes and
-one when any check fails. `go run ./cmd/check-repository`
-prints the 24 named checks and the matching total, and
+The requester confirmed the change while planning Issue #331. A consumer that
+reads the printed list by name keeps working, because the list grows and no
+existing name was removed or renamed; a consumer that asserts an exact total
+updates that total once. The exit status contract is unchanged: zero when every
+check passes and one when any check fails. `go run ./cmd/check-repository`
+prints the 23 named checks and the matching total, and
 `cmd/check-repository/main_test.go` covers the aggregate result.
 
 ### Changed: the FSL verifier failure classification
@@ -349,134 +347,6 @@ identifier, its compatibility meaning, and its migration conditions, and the
 `version_decision` field. The `schema_version` field inside an existing schema
 is not a new identifier; this Issue changes no such value.
 
-## Cutover and recovery
-
-Issue #326 requires one cutover point for the selected boundary model and the
-approved contract changes, with pre-cutover readiness conditions, a recovery
-procedure, a migration order, and post-cutover validation. Issue #332 records
-them here. `workflow/cutover-record.yml` is the machine-readable form, and the
-`check-cutover-record` repository check enforces it.
-
-The cutover point is `9f04db42a68e5140e4dc4067a42fdc8b02b230f0`, the commit
-Issue #331 produced. Every approved contract change is active at that commit
-and at no earlier one: `check-module-boundaries` lands with Issue #328, the
-typed evidence boundary with Issue #329, the provider ports with Issue #330,
-and `check-contract-decisions` with Issue #331. The readiness conditions were
-observed at that commit rather than before it, because the four Sub-issues
-merged one at a time through the ordinary review path. The record therefore
-proves that the conditions hold at the recorded point; it does not claim a gate
-ran ahead of it.
-
-### Migration order
-
-| Order | Issue | Delivers | Depends on |
-| --- | --- | --- | --- |
-| 1 | #328 | Module ownership and dependency direction, enforced by `check-module-boundaries`. | none |
-| 2 | #329 | The typed evidence boundary: `internal/evidence` and `trace.RunResult`. | #328 |
-| 3 | #330 | Provider ports and adapters in `internal/provider` with one failure classification. | #328, #329 |
-| 4 | #331 | The contract decisions and `check-contract-decisions`. | #328, #329, #330 |
-
-Each slice depends only on slices before it. `check-cutover-record` rejects a
-`depends_on` entry that names an Issue further down the list, so the file
-states an order rather than a set.
-
-### Readiness and recovery matrix
-
-Every component, consumer, schema, fixture, workflow, and document the cutover
-touches is one row. Each row names the module that owns it, the readiness
-condition, the command that observes the condition, and what recovery does to
-it. The sixteen contracts of `workflow/contract-decisions.yml` are each covered
-by at least one row, and `check-cutover-record` fails when one is not.
-
-| Participant | Kind | Owner | Readiness observed by |
-| --- | --- | --- | --- |
-| `module-foundation` | module | foundation | `go run ./cmd/check-repository` |
-| `module-provider` | module | provider | `go run ./cmd/check-repository` |
-| `module-domain` | module | domain | `go run ./cmd/validate-skill-graph` |
-| `module-policy` | module | policy | `go run ./cmd/validate-execution-strategy` |
-| `module-evidence` | module | evidence | `go run ./cmd/check-repository` |
-| `module-execution` | module | execution | `go run ./cmd/check-evaluation` |
-| `module-governance` | module | governance | `go run ./cmd/check-repository` |
-| `command-surface` | command | composition | `go run ./cmd/validate-script-tests` |
-| `mise-tasks` | workflow | composition | `go run ./cmd/validate-mise-tasks` |
-| `continuous-integration` | workflow | composition | `go run ./cmd/check-repository` |
-| `fsl-specifications` | schema | domain | `mise run verify:fsl` |
-| `evidence-schemas` | schema | evidence | `go run ./cmd/check-repository` |
-| `skill-graph-data` | consumer | domain | `go run ./cmd/validate-skill-graph` |
-| `replay-consumers` | consumer | evidence | `go run ./cmd/check-repository` |
-| `evidence-fixtures` | fixture | evidence | `go run ./cmd/check-repository` |
-| `execution-policies` | fixture | policy | `go run ./cmd/validate-deliberation-policy` |
-| `published-skills` | consumer | domain | `go run ./cmd/check-repository` |
-| `evaluation-reports` | consumer | execution | `go run ./cmd/check-evaluation` |
-| `architecture-record` | document | composition | `go run ./cmd/check-repository` |
-
-`composition` is the owner for a surface that lives in `cmd/` or in the
-repository configuration rather than inside one internal module. It is the same
-owner name `workflow/contract-decisions.yml` uses, and `check-cutover-record`
-accepts it alongside the seven module identifiers in
-`workflow/module-ownership.yml`.
-
-### Recovery
-
-The documented safe state is the measured baseline
-`4cce0641bbc9bc28c9bba47522a6071b0acded69`, reached by reverting the redesign
-commit range on a new branch. Recovery never rewrites published history, so it
-needs no force-push and no GitHub Ruleset change, both of which Issue #326
-excludes.
-
-Three conditions start recovery: a readiness condition that fails at the
-cutover point, a post-cutover check that fails after it, and a contract drift
-that `check-contract-decisions` or `check-cutover-record` reports. The third
-condition has two answers, and the record states which applies: reconcile the
-record when the tree is correct, and revert when the tree is not.
-
-The procedure was rehearsed once, in a throwaway worktree checked out at the
-cutover point, so the branch under review and the published history stayed
-untouched. The observations:
-
-- `git revert --no-commit 4cce0641..9f04db4` reverted all 20 commits of the
-  range without a conflict.
-- `git diff --stat 4cce0641` reported no difference afterwards, so the reverted
-  tree is the baseline tree rather than something close to it.
-- `go build ./...` exited zero.
-- `go test ./...` exited zero with 30 packages reporting `ok`.
-- `go run ./cmd/check-repository` reported `all 21 repository checks passed`,
-  the baseline total. The three checks this redesign adds are removed by the
-  same revert that removes the three records they enforce.
-
-The rehearsal ends there. It shows that the revert produces a building,
-passing tree at the baseline; it does not exercise the review path a real
-recovery Pull Request would take.
-
-### Post-cutover observations
-
-The checks below ran at the branch head. Each one covers an aspect Issue #332
-names, and `check-cutover-record` fails when an aspect has no check.
-
-| Aspect | Command | Result |
-| --- | --- | --- |
-| public behavior | `go run ./cmd/check-repository` | All 24 named checks ran and the final line reported the matching total. |
-| public behavior | `go run ./cmd/validate-script-tests` | 43 commands and 12 scripts mapped; no command name or flag changed. |
-| privacy | `go run ./cmd/check-sensitive-content` | Passed; no credential, private address, or user path reached a committed artifact. |
-| authority | `go run ./cmd/check-analyze-readonly` | Passed; no `analyze-*` skill instructs an Issue or Pull Request mutation. |
-| provider failure | `go test ./internal/provider/` | Passed; success, failure, timeout, interruption, unavailable capability, and retry exhaustion stay separate. |
-| provider failure | `go test ./internal/fsl/` | Passed; an absent, timed-out, or interrupted verifier reports a verifier infrastructure error. |
-| terminal outcome | `go test ./internal/trace/` | Passed; the pass, fail, skipped, interrupted, and infrastructure-error outcomes stay separate. |
-| deterministic replay | `go test ./internal/replay/` | Passed; and `check-repository` returned the recorded outcome for all 10 replay fixtures. |
-| compatibility | `go run ./cmd/validate-skill-graph` | 20 skills, schema version 1, unchanged. |
-| compatibility | `go run ./cmd/check-evaluation` | 77 scenarios for 20 cataloged skills passed. |
-| compatibility | `mise run verify:fsl` | Verified every committed specification once `FSLC_BIN_DIR` was set. Without it the task reports an unavailable environment. See below. |
-| compatibility | `mise run validate:all` | Exit status 0 from the branch tip, with `FSLC_BIN_DIR` set. |
-
-`mise run verify:fsl` first failed in the worktree that produced this record,
-because the task does not export `FSLC_BIN_DIR`, which
-`scripts/setup/environment-state.sh` sets for a provisioned environment. With
-that variable set the same task verifies every committed specification and
-`mise run validate:all` exits zero. The first failure is an unavailable
-environment, which `internal/fsl/run.go` has classified separately since Issue
-#330; it is neither a product failure nor a contract change. Issue #333 owns
-the final validation record.
-
 ## Handoff to the dependent Sub-issues
 
 | Issue | Extends |
@@ -484,7 +354,7 @@ the final validation record.
 | #329 | Landed. Added `Evidence data path`, the `internal/evidence` package to `Module ownership`, and the typed-result seam to `Test substitution points`. |
 | #330 | Landed. Added the `provider` module to `Module ownership` and `Dependency direction`, added `Provider ownership`, and replaced the provider note in `Test substitution points`. |
 | #331 | Landed. Added `Contract decisions`, `workflow/contract-decisions.yml`, and the `check-contract-decisions` repository check. |
-| #332 | Landed. Added `Cutover and recovery`, `workflow/cutover-record.yml`, and the `check-cutover-record` repository check. |
+| #332 | Adds the cutover runbook and recovery procedure as a new section. |
 | #333 | Records the final validation results and reconciles every section with the shipped tree. |
 
 Each Sub-issue changes `workflow/module-ownership.yml` and this document

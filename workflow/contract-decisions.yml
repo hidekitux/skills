@@ -47,19 +47,17 @@ contracts:
       The command ran 21 checks and its final line read
       "check:repository: all 21 repository checks passed."
     new: >-
-      The command runs 24 checks and its final line reads
-      "check:repository: all 24 repository checks passed." The added checks are
-      check-module-boundaries, check-contract-decisions, and
-      check-cutover-record.
+      The command runs 23 checks and its final line reads
+      "check:repository: all 23 repository checks passed." The added checks are
+      check-module-boundaries and check-contract-decisions.
     reason: >-
       Issue #328 enforces the recorded module ownership in continuous
-      integration, Issue #331 enforces the contract decisions the same way, and
-      Issue #332 enforces the cutover record. An unenforced record drifts, which
-      is the failure the architecture record names.
+      integration, and Issue #331 enforces the contract decisions the same way.
+      An unenforced record drifts, which is the failure the architecture record
+      names.
     confirmation: >-
       The requester confirmed this classification while planning Issue #331 and
-      chose to record both landed behavior changes as changed. The requester
-      confirmed the third added check while planning Issue #332.
+      chose to record both landed behavior changes as changed.
     migration: >-
       A consumer that reads the printed list by name keeps working, because the
       list grows and no existing name was removed or renamed. A consumer that
@@ -69,7 +67,7 @@ contracts:
       one when any check fails. Only the membership of the list and the printed
       total differ.
     validation: >-
-      go run ./cmd/check-repository prints the 24 named checks and the matching
+      go run ./cmd/check-repository prints the 23 named checks and the matching
       total, and cmd/check-repository/main_test.go covers the aggregate result.
 
   - id: mise-task-names
