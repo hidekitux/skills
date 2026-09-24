@@ -100,11 +100,8 @@ type it reaches to move first.
 `internal/trace/testdata/evaluation-run-traces.json` pins the trace that
 conversion produces for every outcome. The file was captured from the assembly
 `internal/eval` owned before Issue #329, so
-`TestFromEvaluationRunReproducesTheRecordedTrace` fails when a field is added,
-removed, or given a different value, and when the event order changes. The
-comparison decodes and re-encodes both sides, which sorts the keys of a JSON
-object, so it does not detect a different order of the fields inside one
-object.
+`TestFromEvaluationRunReproducesTheRecordedTrace` fails on any change to a
+persisted field, event, or order.
 
 ## Dependency direction
 
