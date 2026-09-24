@@ -601,8 +601,7 @@ The `triage-issues-success` failure is a behavioral result at the model this
 run used, `gemini-3.7-flash-low`. It is not a consequence of this Issue, whose
 change is confined to `docs/`. It is listed under `Remaining risks`.
 
-Run `20260924T033735Z` retired two conditions of the first two runs and
-recorded the third as an environment limit:
+Run `20260924T033735Z` retired three conditions of the first two runs:
 
 - The `opencode` driver failure was a missing OpenCode Go credential, not a
   host service fault. `opencode run --print-logs` showed
