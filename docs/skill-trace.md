@@ -8,10 +8,6 @@ decision. It may also include the deliberation summary defined by
 [multi-agent deliberation](multi-agent-deliberation.md) and the environment
 manifest produced by the Issue #199 provisioner.
 
-The `evidence` module owns the trace writer. The
-[architecture record](architecture.md) states the data path from an execution
-module's typed result to this record.
-
 ## Persistence boundary
 
 Trace persistence is opt-in. A caller enables it by supplying a destination to

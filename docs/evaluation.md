@@ -4,10 +4,6 @@ This document defines how the repository measures the user outcome of every
 published skill and what the evidence means for catalog status. The corpus,
 input contract, and harness live under [evaluations/](../evaluations/README.md).
 
-The [architecture record](architecture.md) holds the outcome-coverage table for
-this corpus and records why the two approved contract changes of Issue #326
-required no new scenario.
-
 Metadata validation and `gh skill publish --dry-run` are **not** behavioral
 evaluation: they check shape, not outcome. Behavioral evaluation runs a
 realistic request against a skill on a real host and checks whether the agent
