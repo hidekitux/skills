@@ -46,9 +46,13 @@ func RunGoTestsWithSentinel(git provider.Git, tool provider.Tool, dir string, ar
 		return 2
 	}
 	env := append(support.GitEnv(), "GIT_DIR="+gitDir)
+	// -count=1 disables the test cache. Go keys a cached result only on the
+	// variables a test reads through os.Getenv, so a child git process that
+	// inherits GIT_DIR from os.Environ() would otherwise pass from the cache
+	// on every run after the first. A later -count in args still wins.
 	result, runErr := tool.Invoke(context.Background(), provider.Command{
 		Name:   "go",
-		Args:   append([]string{"test"}, args...),
+		Args:   append([]string{"test", "-count=1"}, args...),
 		Dir:    dir,
 		Env:    env,
 		Stdout: out,
