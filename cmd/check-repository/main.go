@@ -52,6 +52,7 @@ var repoChecks = []repoCheck{
 	{name: "check-catalog-docs", fn: check.CheckCatalogDocs},
 	{name: "check-dependabot-config", fn: check.CheckDependabotConfig},
 	{name: "check-module-boundaries", fn: check.CheckModuleBoundaries},
+	{name: "check-test-git-isolation", fn: check.CheckTestGitIsolation},
 	{name: "check-contract-decisions", fn: check.CheckContractDecisions},
 	{name: "check-cutover-record", fn: check.CheckCutoverRecord},
 	{name: "check-public-status", fn: publicstatus.Check},
