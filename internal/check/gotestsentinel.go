@@ -25,22 +25,24 @@ var sentinelElements = []string{"config", "HEAD", "refs", "index"}
 // nothing, so the leak would go unreported. The function returns go test's
 // exit status when the sentinel's configuration, HEAD, refs, and index are
 // unchanged, 1 when any of them changed, and 2 when the sentinel cannot be
-// prepared or read. A leak that only reads from the sentinel leaves no trace;
+// prepared or read, or when ctx ends go test early. The sentinel is removed
+// on every return, so a caller that cancels ctx on an interrupt leaves no
+// directory behind. A leak that only reads from the sentinel leaves no trace;
 // CheckTestGitIsolation covers the literal git calls such a leak comes from.
-func RunGoTestsWithSentinel(git provider.Git, tool provider.Tool, dir string, args []string, out, errOut io.Writer) int {
+func RunGoTestsWithSentinel(ctx context.Context, git provider.Git, tool provider.Tool, dir string, args []string, out, errOut io.Writer) int {
 	parent, err := os.MkdirTemp("", "skills-git-sentinel-")
 	if err != nil {
 		fmt.Fprintf(errOut, "error: create the Git sentinel repository: %v\n", err)
 		return 2
 	}
 	defer os.RemoveAll(parent)
-	sentinel, err := prepareSentinel(git, parent)
+	sentinel, err := prepareSentinel(ctx, git, parent)
 	if err != nil {
 		fmt.Fprintf(errOut, "error: create the Git sentinel repository: %v\n", err)
 		return 2
 	}
 	gitDir := filepath.Join(sentinel, ".git")
-	before, err := snapshotSentinel(git, sentinel)
+	before, err := snapshotSentinel(ctx, git, sentinel)
 	if err != nil {
 		fmt.Fprintf(errOut, "error: read the Git sentinel repository: %v\n", err)
 		return 2
@@ -50,7 +52,7 @@ func RunGoTestsWithSentinel(git provider.Git, tool provider.Tool, dir string, ar
 	// variables a test reads through os.Getenv, so a child git process that
 	// inherits GIT_DIR from os.Environ() would otherwise pass from the cache
 	// on every run after the first. A later -count in args still wins.
-	result, runErr := tool.Invoke(context.Background(), provider.Command{
+	result, runErr := tool.Invoke(ctx, provider.Command{
 		Name:   "go",
 		Args:   append([]string{"test", "-count=1"}, args...),
 		Dir:    dir,
@@ -63,7 +65,7 @@ func RunGoTestsWithSentinel(git provider.Git, tool provider.Tool, dir string, ar
 		fmt.Fprintf(errOut, "error: run go test: %v\n", runErr)
 		return 2
 	}
-	after, err := snapshotSentinel(git, sentinel)
+	after, err := snapshotSentinel(ctx, git, sentinel)
 	if err != nil {
 		fmt.Fprintf(errOut, "error: read the Git sentinel repository: %v\n", err)
 		return 2
@@ -85,7 +87,7 @@ func RunGoTestsWithSentinel(git provider.Git, tool provider.Tool, dir string, ar
 // returns its work tree. The path is resolved through symbolic links so the
 // GIT_DIR a test inherits names the same directory git reports. The commit
 // turns hooks off, so a user's global commit-msg hook cannot block every run.
-func prepareSentinel(git provider.Git, parent string) (string, error) {
+func prepareSentinel(ctx context.Context, git provider.Git, parent string) (string, error) {
 	resolved, err := filepath.EvalSymlinks(parent)
 	if err != nil {
 		return "", err
@@ -98,7 +100,7 @@ func prepareSentinel(git provider.Git, parent string) (string, error) {
 		{"init", "--quiet"},
 		{"-c", "core.hooksPath=/dev/null", "-c", "user.name=Sentinel", "-c", "user.email=sentinel" + "@" + "example.invalid", "-c", "commit.gpgsign=false", "commit", "--quiet", "--allow-empty", "--message", "sentinel"},
 	} {
-		if _, err := git.Output(context.Background(), sentinel, args...); err != nil {
+		if _, err := git.Output(ctx, sentinel, args...); err != nil {
 			return "", err
 		}
 	}
@@ -107,7 +109,7 @@ func prepareSentinel(git provider.Git, parent string) (string, error) {
 
 // snapshotSentinel reads each element of sentinelElements from the sentinel
 // repository at sentinel.
-func snapshotSentinel(git provider.Git, sentinel string) (map[string]string, error) {
+func snapshotSentinel(ctx context.Context, git provider.Git, sentinel string) (map[string]string, error) {
 	gitDir := filepath.Join(sentinel, ".git")
 	snapshot := map[string]string{}
 	for _, name := range []string{"config", "HEAD", "index"} {
@@ -121,7 +123,7 @@ func snapshotSentinel(git provider.Git, sentinel string) (map[string]string, err
 		}
 		snapshot[name] = string(content)
 	}
-	refs, err := git.Output(context.Background(), sentinel, "for-each-ref", "--format=%(refname) %(objectname)")
+	refs, err := git.Output(ctx, sentinel, "for-each-ref", "--format=%(refname) %(objectname)")
 	if err != nil {
 		return nil, err
 	}
