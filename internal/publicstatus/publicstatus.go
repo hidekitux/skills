@@ -140,43 +140,141 @@ func validateEvidence(evidence ReleaseEvidence, catalog map[string]catalogEntry)
 	return nil
 }
 
-// versionAtLeast reports whether version equals base or has a higher
-// MAJOR.MINOR.PATCH core. Build metadata after "+" is ignored in the order, so
-// two versions that differ only in build metadata must be equal strings.
+// versionAtLeast reports whether version equals base or follows it in the
+// order of the versions mise run verify:release accepts: MAJOR.MINOR.PATCH,
+// then a "-" pre-release ordered as in Semantic Versioning, then a "+N" build
+// identifier whose number increases with each build. Two versions whose order
+// is undefined, such as non-numeric build identifiers, must be equal strings.
 func versionAtLeast(version, base string) bool {
 	if version == base {
 		return true
 	}
-	got, ok := versionCore(version)
-	want, wantOK := versionCore(base)
+	got, ok := parseVersion(version)
+	want, wantOK := parseVersion(base)
 	if !ok || !wantOK {
 		return false
 	}
-	for i := range got {
-		if got[i] != want[i] {
-			return got[i] > want[i]
-		}
-	}
-	return false
+	order, comparable := compareVersions(got, want)
+	return comparable && order > 0
 }
 
-// versionCore parses the MAJOR.MINOR.PATCH core of a version, or returns
-// ok=false when the core is not three non-negative integers.
-func versionCore(version string) ([3]int, bool) {
-	var core [3]int
-	head, _, _ := strings.Cut(version, "+")
+// releaseVersion is a parsed catalog or tag version without the "v" prefix.
+type releaseVersion struct {
+	core       [3]int
+	preRelease []string
+	build      int // -1 when the version has no build identifier
+	buildText  string
+}
+
+// parseVersion splits a version into its core, pre-release identifiers, and
+// build identifier, or returns ok=false when the core is not three
+// non-negative integers without leading zeros.
+func parseVersion(text string) (releaseVersion, bool) {
+	v := releaseVersion{build: -1}
+	head, build, hasBuild := strings.Cut(text, "+")
+	head, pre, hasPre := strings.Cut(head, "-")
 	parts := strings.Split(head, ".")
 	if len(parts) != 3 {
-		return core, false
+		return v, false
 	}
 	for i, part := range parts {
-		n, err := strconv.Atoi(part)
-		if err != nil || n < 0 || part != strconv.Itoa(n) {
-			return core, false
+		n, ok := numericIdentifier(part)
+		if !ok {
+			return v, false
 		}
-		core[i] = n
+		v.core[i] = n
 	}
-	return core, true
+	if hasPre {
+		if pre == "" {
+			return v, false
+		}
+		v.preRelease = strings.Split(pre, ".")
+	}
+	if hasBuild {
+		if build == "" {
+			return v, false
+		}
+		v.buildText = build
+		if n, ok := numericIdentifier(build); ok {
+			v.build = n
+		} else {
+			v.build = -2
+		}
+	}
+	return v, true
+}
+
+// compareVersions returns the sign of a minus b, and comparable=false when a
+// non-numeric build identifier leaves the order undefined.
+func compareVersions(a, b releaseVersion) (int, bool) {
+	for i := range a.core {
+		if a.core[i] != b.core[i] {
+			return sign(a.core[i] - b.core[i]), true
+		}
+	}
+	if order := comparePreRelease(a.preRelease, b.preRelease); order != 0 {
+		return order, true
+	}
+	if a.buildText == b.buildText {
+		return 0, true
+	}
+	if a.build == -2 || b.build == -2 {
+		return 0, false
+	}
+	return sign(a.build - b.build), true
+}
+
+// comparePreRelease orders pre-release identifiers as Semantic Versioning
+// does: a version without a pre-release follows one with it, numeric
+// identifiers compare as numbers and precede alphanumeric ones, and a longer
+// list follows its own prefix.
+func comparePreRelease(a, b []string) int {
+	switch {
+	case len(a) == 0 && len(b) == 0:
+		return 0
+	case len(a) == 0:
+		return 1
+	case len(b) == 0:
+		return -1
+	}
+	for i := 0; i < len(a) && i < len(b); i++ {
+		an, aNumeric := numericIdentifier(a[i])
+		bn, bNumeric := numericIdentifier(b[i])
+		switch {
+		case aNumeric && bNumeric:
+			if an != bn {
+				return sign(an - bn)
+			}
+		case aNumeric:
+			return -1
+		case bNumeric:
+			return 1
+		default:
+			if order := strings.Compare(a[i], b[i]); order != 0 {
+				return order
+			}
+		}
+	}
+	return sign(len(a) - len(b))
+}
+
+// numericIdentifier parses a non-negative integer without leading zeros.
+func numericIdentifier(text string) (int, bool) {
+	n, err := strconv.Atoi(text)
+	if err != nil || n < 0 || text != strconv.Itoa(n) {
+		return 0, false
+	}
+	return n, true
+}
+
+func sign(n int) int {
+	switch {
+	case n > 0:
+		return 1
+	case n < 0:
+		return -1
+	}
+	return 0
 }
 
 // stabilitySentence describes preview stability from the catalog statuses.
