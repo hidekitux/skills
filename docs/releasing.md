@@ -23,7 +23,7 @@ The evidence must come after publication. A commit cannot record its own hash, a
 
 ## Prepare the release
 
-1. Align every `CATALOG.yml` skill version with the target `vX.Y.Z`. `check:repository` accepts a catalog version newer than the released tag in `docs/release-evidence.yml`, so the previous evidence stays in place.
+1. Align every `CATALOG.yml` skill version with the target `vX.Y.Z`. Set every `skill_version` in `workflow/trace-fixtures/representative.jsonl` to the same version, because `validate-skill-trace` compares it with the catalog. Run `mise run generate:public-status`, because the README public status section shows the catalog version. `check:repository` accepts a catalog version newer than the released tag in `docs/release-evidence.yml`, so the previous evidence stays in place.
 2. Review the Todo List, validation results, and changes.
 3. Run `mise run validate:all` from the repository root. It verifies installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate:skill-creator`.
 4. Run `mise run check:promotion` when any catalog entry is `stable`. It checks that the retained evidence carries the input digest of the current revision (see [Evidence freshness](evaluation.md#evidence-freshness)), two recent complete runs, required scenario coverage, rubric floor, regression handling, and bounded variance. A reviewer remains responsible for the judgment behind the rubric scores.
