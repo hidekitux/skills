@@ -50,7 +50,7 @@ func CheckTestGitIsolation(root string, out, errOut io.Writer) int {
 			return nil
 		}
 		for _, line := range fileFindings {
-			findings = append(findings, fmt.Sprintf("%s:%d: git command started without Env; set it from support.GitEnv() (internal/support/support.go)", relPath(root, path), line))
+			findings = append(findings, fmt.Sprintf("%s:%d: git command without an Env set from support.GitEnv, support.WithoutGitEnvironment, or a helper in the same file, in the same block before any reassignment", relPath(root, path), line))
 		}
 		return nil
 	})
