@@ -13,7 +13,7 @@ Read this reference after validation passes and the branch is ready to publish.
 
 - Use the repository Pull Request template. If none exists, use `Issue`, `Summary`, and `Validation` in that order.
 - Use `[Type]: Summary` in sentence case, with an imperative first verb. Use `[Release]: vX.Y.Z` only for releases.
-- Make `## Issue` the first section. Put standalone Issue references directly below it, with the branch Issue first and `Closes #<number>` for each change Issue. Use `Tracks #<number>` only for release work.
+- Make `## Issue` the first section. Put standalone Issue references directly below it, with the branch Issue first and `Closes #<number>` for each change Issue. Use `Tracks #<number>` only for a release Pull Request merged before publication; a release Pull Request merged after publication uses `Closes #<number>`.
 - Summarize observable behavior and scope, then list exact validation commands and outcomes. Begin ordinary English sentences and list items with a capital letter while preserving literal names and commands.
 - Include conditional checklists only when applicable, and mark allowed non-applicable items instead of hiding evidence.
 - Validate the exact body with `go run ./cmd/validate-branch-policy --base <base> --head <head> --body "$final_body"` and the exact title with `go run ./cmd/validate-work-item-title --title "$final_title"` before the GitHub API call. Read the validators and tests before diagnosing a preflight failure.

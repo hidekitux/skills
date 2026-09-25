@@ -12,10 +12,11 @@ Read this reference when a Pull Request conflicts or after the merge gate passes
 
 - Use rebase merge only: `gh pr merge <number> --rebase` after all gates pass. Never use `--admin` or bypass required checks.
 - After merging, verify `merged=true`, timestamp, merge commit, base branch, and expected head ancestry. Do not retry an ambiguous merge.
-- Do not publish a release, create tags, edit release notes, or close a Release Issue here.
+- Do not publish a release, create tags, edit release notes, or close a Release Issue by hand here. Only the `Closes` line of a release Pull Request merged after publication closes it.
 
 ## Reconcile linked work
 
 - For a change Pull Request using `Closes`, verify GitHub closed the Issue and the Project item reached `Done`; report automation delay instead of manually forcing it.
 - For a release Pull Request using `Tracks`, verify the Release Issue remains open and its Project Status remains non-terminal until publication.
+- For a release Pull Request using `Closes` after publication, verify GitHub closed the Release Issue and the Project item reached `Done`.
 - Verify each linked Issue independently and report mismatches as follow-up work.

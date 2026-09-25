@@ -1,6 +1,6 @@
 ## Issue
 
-<!-- Keep this section first. Start change work with the branch's matching Closes #123 line, then add one Closes line per additional Issue; keep every reference here. Use Tracks #123 only for releases. -->
+<!-- Keep this section first. Start change work with the branch's matching Closes #123 line, then add one Closes line per additional Issue; keep every reference here. Use Tracks #123 only for a release Pull Request merged before publication; a release Pull Request merged after publication uses Closes #123. -->
 
 ## Summary
 
