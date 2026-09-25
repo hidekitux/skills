@@ -139,6 +139,28 @@ func TestRunGoTestsWithSentinelReportsAnUnpreparedSentinel(t *testing.T) {
 	}
 }
 
+// TestRunGoTestsWithSentinelIgnoresGitHooks keeps a global commit-msg hook
+// that rejects every message from failing each test run.
+func TestRunGoTestsWithSentinelIgnoresGitHooks(t *testing.T) {
+	home := t.TempDir()
+	hooks := filepath.Join(home, "hooks")
+	if err := os.Mkdir(hooks, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(hooks, "commit-msg"), []byte("#!/bin/sh\nexit 1\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(home, ".gitconfig"), []byte("[core]\n\thooksPath = "+hooks+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	var out, errOut bytes.Buffer
+	if got := RunGoTestsWithSentinel(realGit, provider.NewTool(&provider.Stub{}), ".", nil, &out, &errOut); got != 0 {
+		t.Fatalf("RunGoTestsWithSentinel() = %d, want 0; err=%q", got, errOut.String())
+	}
+}
+
 // runSentinelGit runs git in a fresh temporary directory holding leaked.txt
 // with the environment the stubbed go test received, which is what an
 // unisolated test does with its own temporary repository.
