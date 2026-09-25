@@ -76,8 +76,15 @@ func issueLinksAtStart(body string) ([]int, bool) {
 	return issueReferencesAtStart(body, "Closes")
 }
 
+// matchingIssueLinkStartsBody reports whether the opening Issue section starts
+// with the branch Issue. A change Pull Request uses Closes lines; a release
+// preparation Pull Request uses Tracks lines so its merge leaves the Release
+// Issue open until publication.
 func matchingIssueLinkStartsBody(body string, issueNumber int) bool {
-	links, ok := issueLinksAtStart(body)
+	if links, ok := issueLinksAtStart(body); ok && len(links) > 0 && links[0] == issueNumber {
+		return true
+	}
+	links, ok := issueReferencesAtStart(body, "Tracks")
 	return ok && len(links) > 0 && links[0] == issueNumber
 }
 
@@ -152,7 +159,8 @@ func CheckBranchPolicy(configPath, base, head, body string, validateConfig bool,
 		fmt.Fprintf(errOut, "error: disallowed pull-request direction or issue linkage; "+
 			"an Issue-backed Pull Request must start with an Issue section "+
 			"whose first content line is the branch Issue's matching Closes "+
-			"line, with every additional Closes line kept in that section: "+
+			"line, or Tracks line for a release preparation, with every "+
+			"additional line using the same keyword in that section: "+
 			"%s -> %s\n", head, base)
 		return 1
 	}
