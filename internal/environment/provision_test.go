@@ -493,7 +493,9 @@ func TestTestRepositoryIgnoresAmbientGitContext(t *testing.T) {
 	if got := runFixtureGitOutput(t, outer, "config", "--get", "user.email"); got != "outer-user" {
 		t.Fatalf("ambient user.email changed to %q", got)
 	}
-	if _, err := exec.Command("git", "-C", outer, "rev-parse", "--verify", "HEAD").Output(); err == nil {
+	head := exec.Command("git", "-C", outer, "rev-parse", "--verify", "HEAD")
+	head.Env = fixtureGitEnvironment()
+	if _, err := head.Output(); err == nil {
 		t.Fatal("fixture commit was created in the ambient repository")
 	}
 }
