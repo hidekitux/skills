@@ -176,12 +176,12 @@ gh skill install hidekitux/skills --all --agent codex --scope user
 gh skill install hidekitux/skills --all --agent claude-code --scope user
 ```
 
-Use `--scope project` for a project install and `skill-name@vX.Y.Z` to pin a release. `--agent` selects one host, so run each command to install for both.
+Use `--scope project` for a project install and `skill-name --pin vX.Y.Z` to pin a release. `--agent` selects one host, so run each command to install for both.
 
 Pinning changes how an install resolves:
 
 - **Unpinned** (`hidekitux/skills`) resolves to the default branch head, so it tracks the latest unreleased catalog snapshot.
-- **Pinned** (`skill-name@vX.Y.Z`) resolves to the immutable release tag, so it is reproducible and stable.
+- **Pinned** (`skill-name --pin vX.Y.Z`) resolves to the immutable release tag, so it is reproducible and stable. `gh skill update` skips a pinned skill.
 
 Each released tag matches a GitHub Release at `https://github.com/hidekitux/skills/releases` and the `CATALOG.yml` versions for that release. Published `v` release tags are immutable: the repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving them, so a released version always points at the same verified commit. To correct a bad release, publish a new patch release; never replace or reuse an existing tag. See [docs/releasing.md](docs/releasing.md) for the release procedure.
 
