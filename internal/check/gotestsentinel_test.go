@@ -89,7 +89,7 @@ func TestRunGoTestsWithSentinel(t *testing.T) {
 				t.Fatalf("expected one go test call, got %d", len(stub.Calls))
 			}
 			call := stub.Calls[0]
-			if call.Name != "go" || !slices.Equal(call.Args, []string{"test", "-json", "./..."}) || call.Dir != "/module" {
+			if call.Name != "go" || !slices.Equal(call.Args, []string{"test", "-count=1", "-json", "./..."}) || call.Dir != "/module" {
 				t.Fatalf("unexpected go test call %#v", call)
 			}
 			gitDir := sentinelEnv(call.Env, "GIT_DIR")
