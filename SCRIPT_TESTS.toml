@@ -27,6 +27,7 @@
 "cmd/validate-commit-message" = "./internal/commitlint"
 "cmd/lint-commits" = "./internal/commitlint"
 "cmd/check-whitespace" = "./internal/check"
+"cmd/test-go" = "./internal/check"
 "cmd/collect-badges" = "./internal/badges"
 "cmd/verify-fsl" = "./internal/fsl"
 "cmd/mutate-fsl" = "./internal/fsl"
