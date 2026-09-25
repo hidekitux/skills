@@ -52,7 +52,7 @@ CI-bound evaluation check.
 | `check:branch-policy` (`cmd/validate-branch-policy`) | 1 | every PR / `main` push | repository owner | ~0.2s | blocking |
 | `check:diff` (`cmd/check-whitespace`) | 1 | every PR / `main` push | repository owner | ~0.5s | blocking |
 | `lint:all` (workflows, Python, shell, Go) | 1 | every PR / `main` push | repository owner | ~0.2s warm | blocking |
-| `test:all` (`go test ./...`) | 1 | every PR / `main` push | repository owner | ~0.2s warm / ~18.7s cold | blocking |
+| `test:all` (`cmd/test-go`, `go test ./...` against a Git sentinel repository) | 1 | every PR / `main` push | repository owner | ~0.2s warm / ~18.7s cold | blocking |
 | `verify:fsl` (`cmd/verify-fsl`) | 1 | every PR / `main` push | repository owner | ~0.3s warm | blocking |
 | `check:skills` (`gh skill publish --dry-run`) | 1 | every PR / `main` push | repository owner | ~2.1s warm | blocking |
 | `Validate branch policy` / `Validate work item title` / `Validate commit conventions` (`policy.yml`) | 1 | every PR | repository owner | seconds | blocking |

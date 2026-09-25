@@ -104,12 +104,12 @@ description = "Lint and format-check Python template sources under skills/"
 run = "ruff check skills && ruff format --check skills"
 
 [tasks."test:go"]
-description = "Run the Go repository test suite"
-run = "go test ./..."
+description = "Run the Go repository test suite against a Git sentinel repository"
+run = "go run ./cmd/test-go ./..."
 
 [tasks."test:json"]
-description = "Run Go tests and emit machine-consumable JSON"
-run = "go test -json ./..."
+description = "Run Go tests against a Git sentinel repository and emit machine-consumable JSON"
+run = "go run ./cmd/test-go -json ./..."
 
 [tasks."test:all"]
 description = "Run repository tests"
