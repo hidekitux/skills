@@ -2,8 +2,12 @@
 // throwaway sentinel repository, and fails when a test changed that repository
 // (Issue #372). The test:go and test:json mise tasks use it, so every run
 // checks that the tests would leave a calling repository unchanged when a Git
-// hook starts them. An interrupt or termination signal stops go test and still
-// removes the sentinel.
+// hook starts them.
+//
+// A terminal interrupt reaches go test through the process group, so test-go
+// drops its own copy and waits: go test then removes its build directory,
+// and test-go removes the sentinel. A termination signal reaches test-go
+// alone, so it stops go test and removes the sentinel.
 package main
 
 import (
@@ -17,7 +21,15 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	// signal.Ignore would be inherited by go test, so the interrupt is
+	// received and dropped instead.
+	interrupts := make(chan os.Signal, 1)
+	signal.Notify(interrupts, os.Interrupt)
+	go func() {
+		for range interrupts {
+		}
+	}()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	runner := provider.OSRunner{}
 	code := check.RunGoTestsWithSentinel(ctx, provider.NewGit(runner), provider.NewTool(runner), ".", os.Args[1:], os.Stdout, os.Stderr)
 	stop()
