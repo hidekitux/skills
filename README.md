@@ -152,8 +152,8 @@ Verified release: `v0.1.0` ([GitHub Release](https://github.com/hidekitux/skills
 The verified preview release is `v0.1.0` (commit `746ad8e3ab92a5591e34a5146cfd7d06b96e883a`). Pin any cataloged skill or entry point for Codex and Claude Code, for example:
 
 ```bash
-gh skill install hidekitux/skills <skill>@v0.1.0 --agent codex --scope user
-gh skill install hidekitux/skills <skill>@v0.1.0 --agent claude-code --scope user
+gh skill install hidekitux/skills <skill> --pin v0.1.0 --agent codex --scope user
+gh skill install hidekitux/skills <skill> --pin v0.1.0 --agent claude-code --scope user
 ```
 <!-- END generated: public-status -->
 
