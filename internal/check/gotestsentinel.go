@@ -83,7 +83,8 @@ func RunGoTestsWithSentinel(git provider.Git, tool provider.Tool, dir string, ar
 
 // prepareSentinel creates a repository with one commit below parent and
 // returns its work tree. The path is resolved through symbolic links so the
-// GIT_DIR a test inherits names the same directory git reports.
+// GIT_DIR a test inherits names the same directory git reports. The commit
+// turns hooks off, so a user's global commit-msg hook cannot block every run.
 func prepareSentinel(git provider.Git, parent string) (string, error) {
 	resolved, err := filepath.EvalSymlinks(parent)
 	if err != nil {
@@ -95,7 +96,7 @@ func prepareSentinel(git provider.Git, parent string) (string, error) {
 	}
 	for _, args := range [][]string{
 		{"init", "--quiet"},
-		{"-c", "user.name=Sentinel", "-c", "user.email=sentinel" + "@" + "example.invalid", "-c", "commit.gpgsign=false", "commit", "--quiet", "--allow-empty", "--message", "sentinel"},
+		{"-c", "core.hooksPath=/dev/null", "-c", "user.name=Sentinel", "-c", "user.email=sentinel" + "@" + "example.invalid", "-c", "commit.gpgsign=false", "commit", "--quiet", "--allow-empty", "--message", "sentinel"},
 	} {
 		if _, err := git.Output(context.Background(), sentinel, args...); err != nil {
 			return "", err
