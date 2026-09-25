@@ -157,6 +157,39 @@ func TestBranchPolicyAcceptsDependabotRouteWithoutIssueLink(t *testing.T) {
 	}
 }
 
+func TestBranchPolicyAcceptsMatchingTracksBlockForReleasePreparation(t *testing.T) {
+	body := "## Issue\n\nTracks #35\n\n## Summary\n\n- Align the catalog with v0.2.0.\n"
+	if !matchingIssueLinkStartsBody(body, 35) {
+		t.Fatal("expected match")
+	}
+	config := branchPolicyConfigPath(t)
+	code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
+		return CheckBranchPolicy(config, "main", "issue/35", body, false, out, errOut)
+	})
+	if code != 0 {
+		t.Fatalf("expected 0, got %d", code)
+	}
+}
+
+func TestBranchPolicyRejectsTracksForAnotherIssue(t *testing.T) {
+	body := "## Issue\n\nTracks #36\n\n## Summary\n"
+	if matchingIssueLinkStartsBody(body, 35) {
+		t.Fatal("expected no match")
+	}
+}
+
+func TestBranchPolicyRejectsMixedClosesAndTracks(t *testing.T) {
+	for _, body := range []string{
+		"## Issue\n\nTracks #35\nCloses #36\n\n## Summary\n",
+		"## Issue\n\nCloses #35\nTracks #36\n\n## Summary\n",
+		"## Issue\n\nTracks #35\n\n## Summary\n\nCloses #36\n",
+	} {
+		if matchingIssueLinkStartsBody(body, 35) {
+			t.Fatalf("expected no match for %q", body)
+		}
+	}
+}
+
 func TestBranchPolicyRejectsIssueBranchWithoutMatchingLink(t *testing.T) {
 	config := branchPolicyConfigPath(t)
 	code := runEventCheck(t, func(out, errOut *bytes.Buffer) int {
