@@ -171,6 +171,13 @@ func TestBranchPolicyAcceptsMatchingTracksBlockForReleasePreparation(t *testing.
 	}
 }
 
+func TestBranchPolicyAcceptsTracksWithClosingKeywordInComment(t *testing.T) {
+	body := "## Issue\n\nTracks #35\n\n## Summary\n\n<!-- Closes #35 after publication. -->\n- Align the catalog.\n"
+	if !matchingIssueLinkStartsBody(body, 35) {
+		t.Fatal("expected match")
+	}
+}
+
 func TestBranchPolicyRejectsTracksForAnotherIssue(t *testing.T) {
 	body := "## Issue\n\nTracks #36\n\n## Summary\n"
 	if matchingIssueLinkStartsBody(body, 35) {
@@ -183,6 +190,8 @@ func TestBranchPolicyRejectsMixedClosesAndTracks(t *testing.T) {
 		"## Issue\n\nTracks #35\nCloses #36\n\n## Summary\n",
 		"## Issue\n\nCloses #35\nTracks #36\n\n## Summary\n",
 		"## Issue\n\nTracks #35\n\n## Summary\n\nCloses #36\n",
+		"## Issue\n\nTracks #35\n\n## Summary\n\nFixes #35 after publication.\n",
+		"## Issue\n\nTracks #35\n\n## Summary\n\n- Resolves: hidekitux/skills#35\n",
 	} {
 		if matchingIssueLinkStartsBody(body, 35) {
 			t.Fatalf("expected no match for %q", body)
