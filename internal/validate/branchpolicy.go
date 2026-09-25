@@ -16,7 +16,12 @@ var anyClosingLineRE = regexp.MustCompile(`(?im)^\s*(?:close[sd]?|fix(?:e[sd])?|
 
 // closingKeywordRE finds a GitHub closing keyword followed by an Issue
 // reference anywhere in a line, including inside a sentence or a list item.
-var closingKeywordRE = regexp.MustCompile(`(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+`)
+// The reference is #N, owner/repo#N, or a github.com Issue URL.
+var closingKeywordRE = regexp.MustCompile(`(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+(?:(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+|https?://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+)`)
+
+// markdownCodeRE matches fenced code blocks and inline code spans, where
+// GitHub does not read a closing keyword.
+var markdownCodeRE = regexp.MustCompile("(?s)```.*?```|`[^`\n]*`")
 var anyReferenceLineRE = regexp.MustCompile(`(?im)^\s*(?:(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)|tracks)\s+#[1-9][0-9]*\s*$`)
 
 type branchPolicyHeading struct {
@@ -84,12 +89,12 @@ func issueLinksAtStart(body string) ([]int, bool) {
 // with the branch Issue. A change Pull Request uses Closes lines; a release
 // preparation Pull Request uses Tracks lines so its merge leaves the Release
 // Issue open until publication, so a Tracks body must not contain a closing
-// keyword anywhere outside comments.
+// keyword anywhere outside comments and code.
 func matchingIssueLinkStartsBody(body string, issueNumber int) bool {
 	if links, ok := issueLinksAtStart(body); ok && len(links) > 0 && links[0] == issueNumber {
 		return true
 	}
-	if closingKeywordRE.MatchString(withoutComments(body)) {
+	if closingKeywordRE.MatchString(markdownCodeRE.ReplaceAllString(withoutComments(body), "")) {
 		return false
 	}
 	links, ok := issueReferencesAtStart(body, "Tracks")
