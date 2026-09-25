@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/hidekitux/skills/internal/support"
 )
 
 // writeInputFile writes content to a slash-separated path below root.
@@ -28,6 +30,7 @@ func commitAll(t *testing.T, root, message string) {
 	} {
 		command := exec.Command("git", args...)
 		command.Dir = root
+		command.Env = support.GitEnv()
 		if out, err := command.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
@@ -42,6 +45,7 @@ func newInputRepository(t *testing.T) string {
 	root := t.TempDir()
 	command := exec.Command("git", "init", "--quiet")
 	command.Dir = root
+	command.Env = support.GitEnv()
 	if out, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("git init: %v\n%s", err, out)
 	}
