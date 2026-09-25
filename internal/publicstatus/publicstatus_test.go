@@ -329,12 +329,17 @@ func TestRenderReleasedIncludesPinnedInstallationCommands(t *testing.T) {
 	block := renderFixture(t, fixtureCatalog, evidence)
 	for _, want := range []string{
 		"Verified release: `v0.1.0`",
-		"gh skill install hidekitux/skills <skill>@v0.1.0 --agent codex --scope user",
-		"gh skill install hidekitux/skills <skill>@v0.1.0 --agent claude-code --scope user",
+		"gh skill install hidekitux/skills <skill> --pin v0.1.0 --agent codex --scope user",
+		"gh skill install hidekitux/skills <skill> --pin v0.1.0 --agent claude-code --scope user",
 	} {
 		if !strings.Contains(block, want) {
 			t.Errorf("released block missing %q", want)
 		}
+	}
+	// gh skill update skips only a skill installed with --pin; the
+	// skill@tag form records no pin.
+	if strings.Contains(block, "<skill>@") {
+		t.Errorf("released block must pin with --pin, not skill@tag")
 	}
 	if strings.Contains(block, "No verified release exists yet") {
 		t.Errorf("released block must not claim the absence of a release")

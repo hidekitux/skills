@@ -104,7 +104,7 @@ func Render(catalogContent, evidenceContent []byte) (string, error) {
 	if evidence.Released {
 		b.WriteString(fmt.Sprintf("The verified preview release is `%s` (commit `%s`). Pin any cataloged skill or entry point for Codex and Claude Code, for example:\n\n```bash\n", evidence.Tag, evidence.Commit))
 		for _, agent := range []string{"codex", "claude-code"} {
-			fmt.Fprintf(&b, "gh skill install hidekitux/skills <skill>@%s --agent %s --scope user\n", evidence.Tag, agent)
+			fmt.Fprintf(&b, "gh skill install hidekitux/skills <skill> --pin %s --agent %s --scope user\n", evidence.Tag, agent)
 		}
 		b.WriteString("```\n")
 	} else {
