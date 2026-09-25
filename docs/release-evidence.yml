@@ -1,14 +1,14 @@
 # Retained release evidence for the public status documentation.
 #
-# The release flow (Issue 174) sets released: true and records the verified
-# tag, GitHub Release URL, and verified commit only after the release gate
-# (mise run verify:release) and publishing succeed. Until then the public
+# The evidence Pull Request of the release procedure (docs/releasing.md) sets
+# released: true and records the tag, the GitHub Release URL, and the tag
+# target commit after mise run publish:release succeeds. Until then the public
 # status section must not claim a verified release or a pinned installation;
 # check-public-status enforces that boundary.
 #
 # pinned_installation records one pinned installation per host after
-# publication, as "After publication" in docs/releasing.md requires. No check
-# validates this key.
+# publication. The key is optional, and no check validates it; see
+# docs/public-skill-status.md.
 released: true
 tag: "v0.1.0"
 release_url: "https://github.com/hidekitux/skills/releases/tag/v0.1.0"
