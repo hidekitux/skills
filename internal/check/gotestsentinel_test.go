@@ -81,7 +81,7 @@ func TestRunGoTestsWithSentinel(t *testing.T) {
 				return provider.Result{}, nil
 			}}
 			var out, errOut bytes.Buffer
-			got := RunGoTestsWithSentinel(realGit, provider.NewTool(stub), "/module", []string{"-json", "./..."}, &out, &errOut)
+			got := RunGoTestsWithSentinel(context.Background(), realGit, provider.NewTool(stub), "/module", []string{"-json", "./..."}, &out, &errOut)
 			if got != tc.want {
 				t.Fatalf("RunGoTestsWithSentinel() = %d, want %d; err=%q", got, tc.want, errOut.String())
 			}
@@ -115,7 +115,7 @@ func TestRunGoTestsWithSentinel(t *testing.T) {
 func TestRunGoTestsWithSentinelReportsAnUnrunTest(t *testing.T) {
 	stub := &provider.Stub{Absent: map[string]bool{"go": true}}
 	var out, errOut bytes.Buffer
-	if got := RunGoTestsWithSentinel(realGit, provider.NewTool(stub), ".", nil, &out, &errOut); got != 2 {
+	if got := RunGoTestsWithSentinel(context.Background(), realGit, provider.NewTool(stub), ".", nil, &out, &errOut); got != 2 {
 		t.Fatalf("RunGoTestsWithSentinel() = %d, want 2; err=%q", got, errOut.String())
 	}
 	if !strings.Contains(errOut.String(), "error: run go test:") {
@@ -131,11 +131,33 @@ func TestRunGoTestsWithSentinelReportsAnUnpreparedSentinel(t *testing.T) {
 	}})
 	tool := &provider.Stub{}
 	var out, errOut bytes.Buffer
-	if got := RunGoTestsWithSentinel(git, provider.NewTool(tool), ".", nil, &out, &errOut); got != 2 {
+	if got := RunGoTestsWithSentinel(context.Background(), git, provider.NewTool(tool), ".", nil, &out, &errOut); got != 2 {
 		t.Fatalf("RunGoTestsWithSentinel() = %d, want 2; err=%q", got, errOut.String())
 	}
 	if len(tool.Calls) != 0 {
 		t.Fatalf("go test ran without a sentinel: %#v", tool.Calls)
+	}
+}
+
+// TestRunGoTestsWithSentinelRemovesTheSentinelOnInterrupt keeps an
+// interrupted run from leaving the sentinel directory behind.
+func TestRunGoTestsWithSentinelRemovesTheSentinelOnInterrupt(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var gitDir string
+	stub := &provider.Stub{Handler: func(command provider.Command) (provider.Result, error) {
+		gitDir = sentinelEnv(command.Env, "GIT_DIR")
+		cancel()
+		return provider.Fail(command, provider.KindInterrupted, -1, "signal: killed")
+	}}
+	var out, errOut bytes.Buffer
+	if got := RunGoTestsWithSentinel(ctx, realGit, provider.NewTool(stub), ".", nil, &out, &errOut); got != 2 {
+		t.Fatalf("RunGoTestsWithSentinel() = %d, want 2; err=%q", got, errOut.String())
+	}
+	if gitDir == "" {
+		t.Fatal("go test did not run")
+	}
+	if _, err := os.Stat(filepath.Dir(filepath.Dir(gitDir))); !os.IsNotExist(err) {
+		t.Fatalf("sentinel directory was not removed: %v", err)
 	}
 }
 
@@ -156,7 +178,7 @@ func TestRunGoTestsWithSentinelIgnoresGitHooks(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	var out, errOut bytes.Buffer
-	if got := RunGoTestsWithSentinel(realGit, provider.NewTool(&provider.Stub{}), ".", nil, &out, &errOut); got != 0 {
+	if got := RunGoTestsWithSentinel(context.Background(), realGit, provider.NewTool(&provider.Stub{}), ".", nil, &out, &errOut); got != 0 {
 		t.Fatalf("RunGoTestsWithSentinel() = %d, want 0; err=%q", got, errOut.String())
 	}
 }
