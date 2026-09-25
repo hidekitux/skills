@@ -22,16 +22,64 @@ func TestCheckTestGitIsolation(t *testing.T) {
 		line   string
 	}{
 		{
-			name:   "Env assigned",
+			name:   "Env from GitEnv",
 			file:   "demo_test.go",
-			source: gitIsolationSource("func run() {\n\tcmd := exec.Command(\"git\", \"init\")\n\tcmd.Env = nil\n\t_ = cmd.Run()\n}\n"),
+			source: gitIsolationSource("func run() {\n\tcmd := exec.Command(\"git\", \"init\")\n\tcmd.Env = support.GitEnv()\n\t_ = cmd.Run()\n}\n"),
 			want:   0,
 		},
 		{
-			name:   "Env assigned with var",
+			name:   "Env from WithoutGitEnvironment with var",
 			file:   "demo_test.go",
-			source: gitIsolationSource("func run() {\n\tvar cmd = exec.CommandContext(context.Background(), \"git\", \"init\")\n\tcmd.Env = nil\n\t_ = cmd.Run()\n}\n"),
+			source: gitIsolationSource("func run() {\n\tvar cmd = exec.CommandContext(context.Background(), \"git\", \"init\")\n\tcmd.Env = append(support.WithoutGitEnvironment(os.Environ()), \"X=1\")\n\t_ = cmd.Run()\n}\n"),
 			want:   0,
+		},
+		{
+			name:   "Env from a helper",
+			file:   "demo_test.go",
+			source: gitIsolationSource("func base() []string {\n\treturn support.GitEnv()\n}\n\nfunc fixture() []string {\n\treturn append(base(), \"X=1\")\n}\n\nfunc run() {\n\tcmd := exec.Command(\"git\", \"init\")\n\tcmd.Env = fixture()\n\t_ = cmd.Run()\n}\n"),
+			want:   0,
+		},
+		{
+			name:   "Env inheriting os.Environ",
+			file:   "demo_test.go",
+			source: gitIsolationSource("func run() {\n\tcmd := exec.Command(\"git\", \"init\")\n\tcmd.Env = append(os.Environ(), \"X=1\")\n\t_ = cmd.Run()\n}\n"),
+			want:   1,
+			line:   "demo_test.go:11:",
+		},
+		{
+			name:   "nil Env",
+			file:   "demo_test.go",
+			source: gitIsolationSource("func run() {\n\tcmd := exec.Command(\"git\", \"init\")\n\tcmd.Env = nil\n\t_ = cmd.Run()\n}\n"),
+			want:   1,
+			line:   "demo_test.go:11:",
+		},
+		{
+			name:   "one of two subtests isolated",
+			file:   "demo_test.go",
+			source: gitIsolationSource("func run(t *testing.T) {\n\tt.Run(\"a\", func(t *testing.T) {\n\t\tcmd := exec.Command(\"git\", \"init\")\n\t\tcmd.Env = support.GitEnv()\n\t\t_ = cmd.Run()\n\t})\n\tt.Run(\"b\", func(t *testing.T) {\n\t\tcmd := exec.Command(\"git\", \"commit\")\n\t\t_ = cmd.Run()\n\t})\n}\n"),
+			want:   1,
+			line:   "demo_test.go:17:",
+		},
+		{
+			name:   "reassigned after Env",
+			file:   "demo_test.go",
+			source: gitIsolationSource("func run() {\n\tcmd := exec.Command(\"git\", \"init\")\n\tcmd.Env = support.GitEnv()\n\t_ = cmd.Run()\n\tcmd = exec.Command(\"git\", \"commit\")\n\t_ = cmd.Run()\n}\n"),
+			want:   1,
+			line:   "demo_test.go:14:",
+		},
+		{
+			name:   "Env before the command",
+			file:   "demo_test.go",
+			source: gitIsolationSource("func run() {\n\tvar cmd *exec.Cmd\n\tcmd.Env = support.GitEnv()\n\tcmd = exec.Command(\"git\", \"init\")\n\t_ = cmd.Run()\n}\n"),
+			want:   1,
+			line:   "demo_test.go:13:",
+		},
+		{
+			name:   "package-level function literal",
+			file:   "demo_test.go",
+			source: gitIsolationSource("var helper = func() {\n\t_ = exec.Command(\"git\", \"init\").Run()\n}\n"),
+			want:   1,
+			line:   "demo_test.go:11:",
 		},
 		{
 			name:   "Env missing",
@@ -57,7 +105,7 @@ func TestCheckTestGitIsolation(t *testing.T) {
 		{
 			name:   "Env set on another command",
 			file:   "demo_test.go",
-			source: gitIsolationSource("func run() {\n\tother := exec.Command(\"git\", \"init\")\n\tother.Env = nil\n\tcmd := exec.Command(\"git\", \"add\")\n\t_ = other.Run()\n\t_ = cmd.Run()\n}\n"),
+			source: gitIsolationSource("func run() {\n\tother := exec.Command(\"git\", \"init\")\n\tother.Env = support.GitEnv()\n\tcmd := exec.Command(\"git\", \"add\")\n\t_ = other.Run()\n\t_ = cmd.Run()\n}\n"),
 			want:   1,
 			line:   "demo_test.go:13:",
 		},

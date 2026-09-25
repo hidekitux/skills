@@ -13,15 +13,17 @@ import (
 	"strings"
 )
 
-// CheckTestGitIsolation rejects a Go test that starts git without setting the
-// command's Env. A test run from inside a Git hook inherits GIT_DIR and
-// similar variables, so an unisolated git init or git commit writes to the
-// calling repository instead of the test's temporary one (Issue #372). The
-// check walks every _test.go file below root, skipping hidden directories and
-// testdata. It reports each exec.Command or exec.CommandContext call whose
-// command argument is the literal "git" unless the call result is assigned to
-// a variable whose Env field the same top-level function assigns. It returns 0
-// on success and 1 when findings exist.
+// CheckTestGitIsolation rejects a Go test that starts git without an isolated
+// environment. A test run from inside a Git hook inherits GIT_DIR and similar
+// variables, so an unisolated git init or git commit writes to the calling
+// repository instead of the test's temporary one (Issue #372). The check walks
+// every _test.go file below root, skipping hidden directories and testdata. It
+// reports each exec.Command or exec.CommandContext call whose command argument
+// is the literal "git" unless the call is assigned to a variable and a later
+// statement in the same block, before any reassignment, sets that variable's
+// Env from support.GitEnv, support.WithoutGitEnvironment, or a function in the
+// same file that returns one of them. It returns 0 on success and 1 when
+// findings exist.
 //
 // The rule is syntactic: a git binary passed through a variable or started by
 // a script is not observed. test:go runs the suite against a sentinel
@@ -63,9 +65,13 @@ func CheckTestGitIsolation(root string, out, errOut io.Writer) int {
 		}
 		return 1
 	}
-	fmt.Fprintln(out, "Test Git-isolation check passed: every literal git command in a Go test sets Env.")
+	fmt.Fprintln(out, "Test Git-isolation check passed: every literal git command in a Go test sets Env from support.GitEnv().")
 	return 0
 }
+
+// isolatingFunctions names the support functions whose result is an
+// environment without GIT_* variables.
+var isolatingFunctions = map[string]bool{"GitEnv": true, "WithoutGitEnvironment": true}
 
 // unisolatedGitCalls returns the line of every unisolated git call in the Go
 // file at path.
@@ -79,16 +85,26 @@ func unisolatedGitCalls(path string) ([]int, error) {
 	if execName == "" {
 		return nil, nil
 	}
-	lines := []int{}
-	for _, decl := range file.Decls {
-		function, ok := decl.(*ast.FuncDecl)
-		if !ok || function.Body == nil {
-			continue
+	helpers := isolatingHelpers(file)
+	isolated := map[*ast.CallExpr]bool{}
+	ast.Inspect(file, func(node ast.Node) bool {
+		switch block := node.(type) {
+		case *ast.BlockStmt:
+			markIsolated(block.List, execName, helpers, isolated)
+		case *ast.CaseClause:
+			markIsolated(block.Body, execName, helpers, isolated)
+		case *ast.CommClause:
+			markIsolated(block.Body, execName, helpers, isolated)
 		}
-		for _, call := range unisolatedCallsIn(function.Body, execName) {
+		return true
+	})
+	lines := []int{}
+	ast.Inspect(file, func(node ast.Node) bool {
+		if call, ok := node.(*ast.CallExpr); ok && isLiteralGitCommand(call, execName) && !isolated[call] {
 			lines = append(lines, fileSet.Position(call.Pos()).Line)
 		}
-	}
+		return true
+	})
 	return lines, nil
 }
 
@@ -110,53 +126,136 @@ func execImportName(file *ast.File) string {
 	return ""
 }
 
-// unisolatedCallsIn returns the literal git calls in body that no Env
-// assignment in body isolates.
-func unisolatedCallsIn(body *ast.BlockStmt, execName string) []*ast.CallExpr {
-	assignedTo := map[*ast.CallExpr]string{}
-	withEnv := map[string]bool{}
-	ast.Inspect(body, func(node ast.Node) bool {
-		switch statement := node.(type) {
-		case *ast.AssignStmt:
-			for index, left := range statement.Lhs {
-				if selector, ok := left.(*ast.SelectorExpr); ok && selector.Sel.Name == "Env" {
-					if target, ok := selector.X.(*ast.Ident); ok {
-						withEnv[target.Name] = true
-					}
-				}
-				if len(statement.Lhs) != len(statement.Rhs) {
-					continue
-				}
-				if call, ok := statement.Rhs[index].(*ast.CallExpr); ok {
-					if target, ok := left.(*ast.Ident); ok {
-						assignedTo[call] = target.Name
-					}
-				}
+// isolatingHelpers returns the top-level functions in file that return an
+// isolating value, such as fixtureGitEnvironment in
+// internal/environment/provision_test.go. It repeats until no helper is added,
+// so a helper that returns another helper's result also counts.
+func isolatingHelpers(file *ast.File) map[string]bool {
+	helpers := map[string]bool{}
+	for added := true; added; {
+		added = false
+		for _, decl := range file.Decls {
+			function, ok := decl.(*ast.FuncDecl)
+			if !ok || function.Recv != nil || function.Body == nil || helpers[function.Name.Name] {
+				continue
 			}
-		case *ast.ValueSpec:
-			for index, name := range statement.Names {
-				if index < len(statement.Values) {
-					if call, ok := statement.Values[index].(*ast.CallExpr); ok {
-						assignedTo[call] = name.Name
+			ast.Inspect(function.Body, func(node ast.Node) bool {
+				if _, ok := node.(*ast.FuncLit); ok {
+					return false
+				}
+				if statement, ok := node.(*ast.ReturnStmt); ok && !helpers[function.Name.Name] {
+					for _, result := range statement.Results {
+						if isIsolatingValue(result, helpers) {
+							helpers[function.Name.Name] = true
+							added = true
+						}
 					}
 				}
-			}
+				return true
+			})
 		}
-		return true
-	})
-	calls := []*ast.CallExpr{}
-	ast.Inspect(body, func(node ast.Node) bool {
+	}
+	return helpers
+}
+
+// isIsolatingValue reports whether expr calls support.GitEnv,
+// support.WithoutGitEnvironment, or an isolating helper. append(os.Environ(),
+// ...) and nil do not, because both keep an inherited GIT_DIR.
+func isIsolatingValue(expr ast.Expr, helpers map[string]bool) bool {
+	found := false
+	ast.Inspect(expr, func(node ast.Node) bool {
 		call, ok := node.(*ast.CallExpr)
-		if !ok || !isLiteralGitCommand(call, execName) {
-			return true
+		if !ok {
+			return !found
 		}
-		if name, ok := assignedTo[call]; ok && withEnv[name] {
-			return true
+		switch function := call.Fun.(type) {
+		case *ast.Ident:
+			found = found || isolatingFunctions[function.Name] || helpers[function.Name]
+		case *ast.SelectorExpr:
+			found = found || isolatingFunctions[function.Sel.Name]
 		}
-		calls = append(calls, call)
-		return true
+		return !found
 	})
-	return calls
+	return found
+}
+
+// markIsolated records each literal git command assigned to a variable in
+// statements when a later statement of the same list assigns that variable's
+// Env an isolating value before any statement reassigns the variable.
+func markIsolated(statements []ast.Stmt, execName string, helpers map[string]bool, isolated map[*ast.CallExpr]bool) {
+	for index, statement := range statements {
+		name, call := gitCommandAssignment(statement, execName)
+		if call == nil {
+			continue
+		}
+		for _, later := range statements[index+1:] {
+			assignment, ok := later.(*ast.AssignStmt)
+			if !ok {
+				continue
+			}
+			if isEnvAssignment(assignment, name) {
+				if isIsolatingValue(assignment.Rhs[0], helpers) {
+					isolated[call] = true
+				}
+				break
+			}
+			if assignsName(assignment, name) {
+				break
+			}
+		}
+	}
+}
+
+// gitCommandAssignment returns the variable and the call when statement
+// assigns exactly one literal git command to exactly one variable.
+func gitCommandAssignment(statement ast.Stmt, execName string) (string, *ast.CallExpr) {
+	switch statement := statement.(type) {
+	case *ast.AssignStmt:
+		if len(statement.Lhs) != 1 || len(statement.Rhs) != 1 {
+			return "", nil
+		}
+		target, ok := statement.Lhs[0].(*ast.Ident)
+		call, isCall := statement.Rhs[0].(*ast.CallExpr)
+		if ok && isCall && isLiteralGitCommand(call, execName) {
+			return target.Name, call
+		}
+	case *ast.DeclStmt:
+		declaration, ok := statement.Decl.(*ast.GenDecl)
+		if !ok || len(declaration.Specs) != 1 {
+			return "", nil
+		}
+		spec, ok := declaration.Specs[0].(*ast.ValueSpec)
+		if !ok || len(spec.Names) != 1 || len(spec.Values) != 1 {
+			return "", nil
+		}
+		if call, ok := spec.Values[0].(*ast.CallExpr); ok && isLiteralGitCommand(call, execName) {
+			return spec.Names[0].Name, call
+		}
+	}
+	return "", nil
+}
+
+// isEnvAssignment reports whether assignment sets name.Env alone.
+func isEnvAssignment(assignment *ast.AssignStmt, name string) bool {
+	if len(assignment.Lhs) != 1 || len(assignment.Rhs) != 1 {
+		return false
+	}
+	selector, ok := assignment.Lhs[0].(*ast.SelectorExpr)
+	if !ok || selector.Sel.Name != "Env" {
+		return false
+	}
+	target, ok := selector.X.(*ast.Ident)
+	return ok && target.Name == name
+}
+
+// assignsName reports whether assignment writes the variable name itself.
+func assignsName(assignment *ast.AssignStmt, name string) bool {
+	for _, left := range assignment.Lhs {
+		if target, ok := left.(*ast.Ident); ok && target.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 // isLiteralGitCommand reports whether call is exec.Command("git", ...) or
