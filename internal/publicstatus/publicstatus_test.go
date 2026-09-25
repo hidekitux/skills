@@ -240,6 +240,43 @@ func TestCheckRejectsCatalogVersionReleaseMismatch(t *testing.T) {
 	}
 }
 
+func TestCheckAcceptsCatalogAheadOfReleasedTag(t *testing.T) {
+	// A merged release preparation raises every catalog version to 0.2.0
+	// while the evidence still records the published v0.1.0 release.
+	catalog := strings.ReplaceAll(fixtureCatalog, "version: 0.1.0", "version: 0.2.0")
+	evidence := "released: true\ntag: v0.1.0\nrelease_url: https://github.com/hidekitux/skills/releases/tag/v0.1.0\ncommit: abc123\n"
+	files := baseFiles()
+	files["CATALOG.yml"] = catalog
+	files["docs/release-evidence.yml"] = evidence
+	files["README.md"] = readmeWithBlock(renderFixture(t, catalog, evidence))
+	root := writeRepo(t, files)
+	if code, errOut := runCheck(t, root); code != 0 {
+		t.Fatalf("expected success, got exit %d:\n%s", code, errOut)
+	}
+}
+
+func TestVersionAtLeast(t *testing.T) {
+	for _, tc := range []struct {
+		version, base string
+		want          bool
+	}{
+		{"0.1.0", "0.1.0", true},
+		{"0.2.0", "0.1.0", true},
+		{"0.1.10", "0.1.9", true},
+		{"1.0.0", "0.9.9", true},
+		{"0.1.0", "0.2.0", false},
+		{"0.1.0+2", "0.1.0+1", false},
+		{"0.2.0+1", "0.1.0", true},
+		{"0.2", "0.1.0", false},
+		{"0.02.0", "0.1.0", false},
+		{"x.1.0", "0.1.0", false},
+	} {
+		if got := versionAtLeast(tc.version, tc.base); got != tc.want {
+			t.Errorf("versionAtLeast(%q, %q) = %v, want %v", tc.version, tc.base, got, tc.want)
+		}
+	}
+}
+
 func TestCheckRejectsPartialReleasedEvidence(t *testing.T) {
 	// A released record missing its commit cannot back a pinned-installation
 	// claim.

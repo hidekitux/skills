@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -114,8 +115,12 @@ func Render(catalogContent, evidenceContent []byte) (string, error) {
 }
 
 // validateEvidence rejects release evidence that cannot back the documented
-// claims: a released tag contradicting the catalog versions, a partially
-// filled released record, or a filled record that is not marked released.
+// claims: a catalog version older than the released tag, a partially filled
+// released record, or a filled record that is not marked released. A catalog
+// version newer than the released tag is accepted: a merged release
+// preparation raises the catalog before its tag exists, and
+// mise run verify:release checks that the new tag equals every catalog
+// version.
 func validateEvidence(evidence ReleaseEvidence, catalog map[string]catalogEntry) error {
 	if evidence.Released {
 		if evidence.Tag == "" || evidence.ReleaseURL == "" || evidence.Commit == "" {
@@ -123,8 +128,8 @@ func validateEvidence(evidence ReleaseEvidence, catalog map[string]catalogEntry)
 		}
 		version := strings.TrimPrefix(evidence.Tag, "v")
 		for _, entry := range catalog {
-			if entry.Version != version {
-				return fmt.Errorf("release tag %s version %q does not match catalog version %q of %s; align every catalog version or publish a new release (Issue #174)", evidence.Tag, version, entry.Version, entry.Name)
+			if !versionAtLeast(entry.Version, version) {
+				return fmt.Errorf("release tag %s version %q does not match catalog version %q of %s; every catalog version must equal or follow the released tag (docs/releasing.md)", evidence.Tag, version, entry.Version, entry.Name)
 			}
 		}
 		return nil
@@ -133,6 +138,45 @@ func validateEvidence(evidence ReleaseEvidence, catalog map[string]catalogEntry)
 		return fmt.Errorf("docs/release-evidence.yml records release fields while released is false")
 	}
 	return nil
+}
+
+// versionAtLeast reports whether version equals base or has a higher
+// MAJOR.MINOR.PATCH core. Build metadata after "+" is ignored in the order, so
+// two versions that differ only in build metadata must be equal strings.
+func versionAtLeast(version, base string) bool {
+	if version == base {
+		return true
+	}
+	got, ok := versionCore(version)
+	want, wantOK := versionCore(base)
+	if !ok || !wantOK {
+		return false
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			return got[i] > want[i]
+		}
+	}
+	return false
+}
+
+// versionCore parses the MAJOR.MINOR.PATCH core of a version, or returns
+// ok=false when the core is not three non-negative integers.
+func versionCore(version string) ([3]int, bool) {
+	var core [3]int
+	head, _, _ := strings.Cut(version, "+")
+	parts := strings.Split(head, ".")
+	if len(parts) != 3 {
+		return core, false
+	}
+	for i, part := range parts {
+		n, err := strconv.Atoi(part)
+		if err != nil || n < 0 || part != strconv.Itoa(n) {
+			return core, false
+		}
+		core[i] = n
+	}
+	return core, true
 }
 
 // stabilitySentence describes preview stability from the catalog statuses.
