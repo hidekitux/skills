@@ -95,10 +95,12 @@ The 24 checks in `check-repository` are the entries of `repoChecks` in
 
 The Git-history search found no commit that names one of these commands as the
 failure it fixed. Commit messages in this repository describe the change, not
-the check that flagged it, so the search cannot count local catches. The
-matching commits change the commands or their workflows instead, for example
-`3ee5c95` and `1afb081` (`verify-fsl`), `9b825f2` (`check-sensitive-content`),
-`1ef692a` (a `lint-commits` test), and `042f6ba` (the `policy.yml` jobs).
+the check that flagged it, so the search cannot count local catches. The four
+matching commits change the commands themselves: `3ee5c95` and `1afb081`
+(`verify-fsl`), `9b825f2` (`check-sensitive-content`), and `aa5d81d`
+(`check-public-status`). The search misses `1ef692a` (a `lint-commits` test)
+and `042f6ba` (the `policy.yml` jobs), which fix failures this record cites
+from run logs.
 
 ## Evidence behind each recommendation
 
