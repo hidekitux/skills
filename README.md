@@ -145,11 +145,16 @@ The evaluated entry points coordinate the primitive skills from a user request t
 
 Every cataloged skill is `experimental` until behavioral and release evidence qualify promotion ([docs/evaluation.md](docs/evaluation.md)).
 
-No verified release exists yet ([Issue #174](https://github.com/hidekitux/skills/issues/174)); until the preview release is published, any `@vX.Y.Z` installation resolves to the default branch head.
+Verified release: `v0.1.0` ([GitHub Release](https://github.com/hidekitux/skills/releases/tag/v0.1.0), commit `746ad8e3ab92a5591e34a5146cfd7d06b96e883a`).
 
 ### Pinned installation
 
-Pinned installation is documented from retained release evidence only. No verified release exists yet, so no pinned installation is claimed; the release flow ([Issue #174](https://github.com/hidekitux/skills/issues/174)) records the preview tag, commit, and Codex and Claude Code installation results in `docs/release-evidence.yml` before this section can state them.
+The verified preview release is `v0.1.0` (commit `746ad8e3ab92a5591e34a5146cfd7d06b96e883a`). Pin any cataloged skill or entry point for Codex and Claude Code, for example:
+
+```bash
+gh skill install hidekitux/skills <skill>@v0.1.0 --agent codex --scope user
+gh skill install hidekitux/skills <skill>@v0.1.0 --agent claude-code --scope user
+```
 <!-- END generated: public-status -->
 
 ## Development workflow

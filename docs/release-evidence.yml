@@ -5,7 +5,22 @@
 # (mise run verify:release) and publishing succeed. Until then the public
 # status section must not claim a verified release or a pinned installation;
 # check-public-status enforces that boundary.
-released: false
-tag: ""
-release_url: ""
-commit: ""
+#
+# pinned_installation records one pinned installation per host after
+# publication, as "After publication" in docs/releasing.md requires. No check
+# validates this key.
+released: true
+tag: "v0.1.0"
+release_url: "https://github.com/hidekitux/skills/releases/tag/v0.1.0"
+commit: "746ad8e3ab92a5591e34a5146cfd7d06b96e883a"
+pinned_installation:
+  - host: codex
+    command: "gh skill install hidekitux/skills create-issue --pin v0.1.0 --agent codex --scope project"
+    installed_path: ".agents/skills/create-issue"
+    result: "The installed skill records github-pinned v0.1.0 and github-tree-sha 2f75150e993d4cc4f69ef28ab4098d6a459616cf, the tree of skills/process/create-issue at v0.1.0."
+    date: "2026-09-25"
+  - host: claude-code
+    command: "gh skill install hidekitux/skills create-issue --pin v0.1.0 --agent claude-code --scope project"
+    installed_path: ".claude/skills/create-issue"
+    result: "The installed skill records github-pinned v0.1.0 and github-tree-sha 2f75150e993d4cc4f69ef28ab4098d6a459616cf, the tree of skills/process/create-issue at v0.1.0."
+    date: "2026-09-25"
