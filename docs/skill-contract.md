@@ -173,7 +173,9 @@ Rules:
 - Approval boundaries and external mutation authority are unchanged: only
   `create-issue` and `create-pr` create external work items, `fix-pr` updates
   an existing Pull Request but never creates one, and read-only phases stay
-  read-only.
+  read-only. A read-only phase changes no repository file, Git state, or work
+  item. It posts only the report that its skill owns: the `plan-issue` plan
+  comment or the `review-pr` findings.
 - Direct primitive invocation remains documented and functional; entry points
   are optional coordinators, not replacements.
 - Entry points terminate their loops deterministically (bounded rework passes)
