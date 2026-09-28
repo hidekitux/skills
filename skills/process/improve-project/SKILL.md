@@ -20,7 +20,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 
 - Resolve the repository, the user's target improvement, and the boundary of that improvement before any phase starts. Do not expand the improvement beyond what the user requested.
 - Route every phase through its owning primitive skill. This entry point coordinates phases and tracks a single progress model; it never performs a phase's work itself and never duplicates a primitive's instructions.
-- Preserve approval boundaries: read-only phases change no repository file, Git state, or work item and post only their own report, and every external mutation (Issue creation, Pull Request creation) happens only through the owning primitive with the user's confirmation.
+- Preserve approval boundaries. A read-only phase changes no repository file, Git state, or work item, and posts only the report that its skill owns. Every external mutation (Issue creation, Pull Request creation) happens only through the owning primitive with the user's confirmation.
 - Keep direct primitive invocation available: do not remove or shadow the primitives this entry point coordinates.
 - Stop and report when a phase cannot produce its artifact or approval is withheld; never continue past an unverified handoff.
 
