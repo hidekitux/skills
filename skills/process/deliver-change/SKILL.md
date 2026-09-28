@@ -30,17 +30,17 @@ Run the phases in order. A phase is complete only when its primitive's artifact 
 
 | Phase | Primitive | Read-only | Continue when | Artifact |
 | --- | --- | --- | --- | --- |
-| Plan | `plan-issue` | yes | plan posted as an Issue comment | verified plan |
+| Plan | `plan-issue` | yes (posts the plan comment) | plan posted as an Issue comment | verified plan |
 | Implement | `implement-issue` | no (edits in-scope files only) | per-task evidence recorded | in-scope changes |
 | Pull request | `create-pr` | no | Pull Request opened after user confirmation | Pull Request URL |
-| Review | `review-pr` | yes | findings returned | severity-ordered findings |
+| Review | `review-pr` | yes (posts the findings) | findings returned | severity-ordered findings |
 | Fix | `fix-pr` | no (edits what findings justify) | fixed head pushed and body synced | published fixed head |
 
 ## State and authority contract
 
 - **One progress model:** maintain one Todo List for the whole run and map each primitive's own progress into it; the user never tracks a separate list per phase.
 - **External mutation authority:** only `create-pr` creates the Pull Request, pausing for user confirmation; `fix-pr` updates that Pull Request but never creates one. `implement-issue` edits only files inside the verified plan's in-scope boundary.
-- **Read-only phases:** plan and review never mutate repository files or external work items.
+- **Read-only phases:** plan and review never change repository files, Git state, or work items. Plan posts only the `plan-issue` plan comment, whose marker lets the Project workflow move the Issue to `Planned`. Review posts only the `review-pr` findings on the Pull Request or in the linked conversation.
 - **Handoff rule:** every phase hands its artifact to the next owning primitive; an incomplete artifact returns to its owning primitive for rework, never to the entry point's own logic.
 - **Loop termination:** when `review-pr` returns findings, send them to `fix-pr`, which fixes, validates, and pushes on the same branch in one pass, then re-review. Terminate when `review-pr` reports no blocking findings, or after two complete rework passes; then stop and report the unresolved findings with evidence instead of continuing.
 
