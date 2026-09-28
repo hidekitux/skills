@@ -306,105 +306,135 @@
     {
       "spec": "specs/evaluation-gate.fsl",
       "status": "mutated",
-      "total": 41,
-      "killed": 25,
-      "survived": 16,
+      "total": 56,
+      "killed": 35,
+      "survived": 21,
       "invalid": 0,
       "survivors": [
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 25,
+          "line": 35,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 36,
+          "column": 5
+        },
+        {
+          "op": "assignment_remove",
+          "target": "init assignment",
+          "line": 37,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "record_evidence requires #1 Stable-\u003eExperimental",
+          "line": 44,
+          "column": 5
+        },
+        {
+          "op": "requires_remove",
+          "target": "change_relevant_input requires #1",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "op": "enum_constant_swap",
+          "target": "change_relevant_input requires #1 Deprecated-\u003eStable",
+          "line": 52,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "promote requires #1",
-          "line": 38,
+          "line": 59,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "demote requires #1",
-          "line": 46,
+          "line": 69,
           "column": 5
         },
         {
           "op": "requires_negate",
           "target": "demote requires #1",
-          "line": 46,
+          "line": 69,
           "column": 5
         },
         {
           "op": "equality_operator_flip",
           "target": "demote requires #1",
-          "line": 46,
+          "line": 69,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "demote requires #1 Stable-\u003eExperimental",
-          "line": 46,
+          "line": 69,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "demote requires #1 Stable-\u003eDeprecated",
-          "line": 46,
+          "line": 69,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "demote assignment",
-          "line": 47,
+          "line": 70,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "demote assignment Experimental-\u003eDeprecated",
-          "line": 48,
+          "line": 71,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "deprecate requires #1",
-          "line": 55,
+          "line": 78,
           "column": 5
         },
         {
           "op": "equality_operator_flip",
           "target": "deprecate requires #1",
-          "line": 55,
+          "line": 78,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "deprecate requires #1 Experimental-\u003eStable",
-          "line": 55,
+          "line": 78,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "deprecate requires #1 Experimental-\u003eDeprecated",
-          "line": 55,
+          "line": 78,
           "column": 5
         },
         {
           "op": "equality_operator_flip",
           "target": "deprecate requires #1",
-          "line": 55,
+          "line": 78,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "deprecate requires #1 Stable-\u003eExperimental",
-          "line": 55,
+          "line": 78,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "deprecate requires #1 Stable-\u003eDeprecated",
-          "line": 55,
+          "line": 78,
           "column": 5
         }
       ]
@@ -1520,8 +1550,8 @@
   ],
   "totals": {
     "specs": 9,
-    "killed": 1066,
-    "survived": 238,
+    "killed": 1076,
+    "survived": 243,
     "invalid": 0,
     "infrastructure_errors": 0
   }
