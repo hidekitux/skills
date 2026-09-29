@@ -6,6 +6,10 @@
 #
 # The cmds table maps a cmd/ Go entrypoint, and the scripts table maps a
 # retained executable file under scripts/.
+#
+# Skill scripts under skills/**/scripts/ are outside this mapping. ruff check
+# skills lints them, and the files under templates/ are copied into the
+# projects that bootstrap-project generates.
 [cmds]
 "cmd/check-sensitive-content" = { package = "./internal/check", tests = ["TestSensitiveContentRejectsATokenAndPrivateURL"] }
 "cmd/check-analyze-readonly" = { package = "./internal/check", tests = ["TestAnalyzeReadonlyRejectsIssueCreationInstruction"] }
