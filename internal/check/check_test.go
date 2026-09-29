@@ -191,6 +191,47 @@ func TestToolLicensesRequiresEveryDirectGoModule(t *testing.T) {
 	}
 }
 
+const scriptToolEntry = "[script_tools.fslc]\nlicense = \"Apache-2.0\"\nsource = \"https://github.com/ymm-oss/fsl\"\nversion = \"4.2.0\"\npinned_in = [\"install.sh\"]\n"
+
+func TestToolLicensesAcceptsScriptToolAtPinnedVersion(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "install.sh", "fsl_version=\"4.2.0\"\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+scriptToolEntry)
+	if code := runCheck(t, CheckToolLicenses, root); code != 0 {
+		t.Fatalf("expected pass, got exit %d", code)
+	}
+}
+
+func TestToolLicensesRejectsStaleScriptToolVersion(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "install.sh", "fsl_version=\"4.4.1\"\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+scriptToolEntry)
+	if code := runCheck(t, CheckToolLicenses, root); code != 1 {
+		t.Fatalf("expected failure for a bumped pin with a stale entry, got exit %d", code)
+	}
+}
+
+func TestToolLicensesRejectsMissingScriptToolPinFile(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+scriptToolEntry)
+	if code := runCheck(t, CheckToolLicenses, root); code != 1 {
+		t.Fatalf("expected failure for a missing pinned_in file, got exit %d", code)
+	}
+}
+
+func TestToolLicensesRejectsScriptToolWithoutLicense(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "install.sh", "fsl_version=\"4.2.0\"\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+strings.Replace(scriptToolEntry, "license = \"Apache-2.0\"\n", "", 1))
+	if code := runCheck(t, CheckToolLicenses, root); code != 1 {
+		t.Fatalf("expected failure for a missing license, got exit %d", code)
+	}
+}
+
 func writeFile(t *testing.T, root, name, content string) {
 	t.Helper()
 	if err := os.WriteFile(filepath.Join(root, name), []byte(content), 0o644); err != nil {
