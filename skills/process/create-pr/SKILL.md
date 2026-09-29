@@ -11,7 +11,7 @@ license: Apache-2.0
 1. **in progress:** Resolve the repository, linked Issue, head and base branches, branch policy, and any existing Pull Request.
 2. Review the worktree, commits, and base diff against the linked Issue scope.
 3. Run the repository-required validation and record the evidence; decide whether the Pull Request can be ready or must be draft.
-4. Push the resolved head branch, then create or update the Pull Request.
+4. After requester approval, push the resolved head branch, then create or update the Pull Request.
 5. Complete the list only when the Pull Request URL, base and head branches, linked Issues, and validation evidence are available; hand off all of them.
 
 Keep exactly one item in progress. Mark an item complete only after its stated evidence exists. Add or revise items when the agreed scope changes.
@@ -23,6 +23,8 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Require the repository's Issue-backed branch convention for human work. If the required Issue or branch is absent, stop and route to Issue creation rather than creating an unlinked Pull Request.
 - Search for an open Pull Request with the same head and base. Update and hand off that Pull Request instead of creating a duplicate.
 - Preserve unrelated user changes. Do not switch branches, stage files, or rewrite history when doing so would include or overwrite work outside the linked Issue.
+- Push the Issue branch and create or update the Pull Request only with requester approval. Requester approval is an explicit instruction from the requester that covers this push and Pull Request, given in the request or in reply to the finalized title and body.
+- When no instruction covers them, such as when the requester approved only implementation, present the finalized title and body and wait for an explicit answer. Treat no answer or an ambiguous answer as no approval, and do not push.
 
 ## Review and Validate
 
