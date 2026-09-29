@@ -311,7 +311,7 @@ validation observation.
 
 | Contract | Surface | Decision |
 | --- | --- | --- |
-| `cli-command-names` | Command names and flags under `cmd/`. | preserved |
+| `cli-command-names` | Command names and flags under `cmd/`. | changed |
 | `repository-check-list` | The checks `cmd/check-repository` prints and its total. | changed |
 | `mise-task-names` | Task names in `mise.toml`. | preserved |
 | `skill-trace-jsonl` | The persisted skill-trace JSONL shape. | preserved |

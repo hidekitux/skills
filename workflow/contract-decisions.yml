@@ -23,16 +23,42 @@ schema_version: 1
 contracts:
   - id: cli-command-names
     surface: The command names and flags of every program under cmd/.
-    classification: preserved
+    classification: changed
     owner: composition
     evidence:
       - cmd
       - SCRIPT_TESTS.toml
-    reason: >-
+      - cmd/check-repository/main.go
+    old: >-
       The redesign moved external calls behind provider ports without renaming
-      a command, adding a flag, or removing one. The three Project commands
-      changed only their call sites.
-    check: check:repository (validate-script-tests) maps 43 commands and 12 scripts.
+      a command, adding a flag, or removing one. cmd/ held 44 commands,
+      including validate-repository, check-tool-licenses, check-mutation-badges,
+      and backfill-issue-project.
+    new: >-
+      cmd/ holds 40 commands. Issue #393 removed validate-repository,
+      check-tool-licenses, and check-mutation-badges, whose checks
+      cmd/check-repository runs under the same labels, and
+      backfill-issue-project, whose triage-label migration is complete. No
+      remaining command was renamed or changed a flag.
+    reason: >-
+      No mise task, workflow, or document ran the three wrappers, and each one
+      still needed a SCRIPT_TESTS.toml entry. The repository has no triage label
+      left to migrate, so the back-fill command and its library had no caller.
+    confirmation: >-
+      The requester chose to remove these four commands, to keep
+      validate-script-tests for the architecture record, and to drop the
+      back-fill library while planning Issue #393.
+    migration: >-
+      A caller of a removed wrapper runs go run ./cmd/check-repository, which
+      prints the same check under the same label. No replacement exists for
+      backfill-issue-project, because no label remains to migrate.
+    compatibility: >-
+      The checks, their exit statuses, and every remaining command name and
+      flag are unchanged. Only the four removed commands no longer resolve.
+    validation: >-
+      check:repository (validate-script-tests) maps 40 commands and 12 scripts,
+      and go run ./cmd/check-repository still prints validate-repository,
+      check-tool-licenses, and check-mutation-badges.
 
   - id: repository-check-list
     surface: >-
