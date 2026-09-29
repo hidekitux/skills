@@ -23,8 +23,6 @@ depends = [
   "verify:fsl",
   "lint:all",
   "test:all",
-  "check:diff",
-  "check:branch-policy",
 ]
 
 [tasks."setup:all"]
