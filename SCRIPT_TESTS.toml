@@ -1,63 +1,63 @@
 # Representative test evidence for each executable repository script or
-# command. This mapping proves that an added command or script has an
-# intentional test home; reviewers still inspect whether that test exercises
-# the changed behavior.
+# command. Each entry names the Go test package and the test functions that
+# exercise the command or script, and check:repository fails when a named test
+# is not declared in that package. The check proves that the named test
+# exists; reviewers still inspect that it exercises the changed behavior.
 #
-# The cmds table maps a cmd/ Go entrypoint to a Go test package directory.
-# The scripts table maps a retained executable file under scripts/ to an
-# existing test home (a test file or a Go test package).
+# The cmds table maps a cmd/ Go entrypoint, and the scripts table maps a
+# retained executable file under scripts/.
 [cmds]
-"cmd/check-sensitive-content" = "./internal/check"
-"cmd/check-analyze-readonly" = "./internal/check"
-"cmd/check-repository" = "./cmd/check-repository"
-"cmd/validate-script-tests" = "./internal/validate"
-"cmd/validate-branch-policy" = "./internal/validate"
-"cmd/validate-pr-commit-signatures" = "./internal/validate"
-"cmd/validate-issue-body" = "./internal/validate"
-"cmd/validate-issue-project" = "./internal/project"
-"cmd/validate-plan-comment" = "./cmd/validate-plan-comment"
-"cmd/set-issue-project-status" = "./internal/project"
-"cmd/validate-work-item-title" = "./internal/validate"
-"cmd/validate-hosts" = "./internal/validate"
-"cmd/validate-mise-tasks" = "./cmd/validate-mise-tasks"
-"cmd/validate-commit-message" = "./internal/commitlint"
-"cmd/lint-commits" = "./internal/commitlint"
-"cmd/check-whitespace" = "./internal/check"
-"cmd/test-go" = "./internal/check"
-"cmd/collect-badges" = "./internal/badges"
-"cmd/verify-fsl" = "./internal/fsl"
-"cmd/mutate-fsl" = "./internal/fsl"
-"cmd/verify-release" = "./internal/release"
-"cmd/publish-release" = "./internal/release"
-"cmd/scan-go-vuln" = "./internal/govuln"
-"cmd/validate-skill-creator" = "./internal/validate"
-"cmd/validate-skill-graph" = "./internal/graph"
-"cmd/read-skill-graph" = "./internal/graph"
-"cmd/validate-skill-trace" = "./internal/trace"
-"cmd/read-skill-trace" = "./internal/trace"
-"cmd/replay-skill-trace" = "./cmd/replay-skill-trace"
-"cmd/validate-diagnostic" = "./cmd/validate-diagnostic"
-"cmd/evaluate" = "./internal/eval"
-"cmd/evaluate-compaction" = "./cmd/evaluate-compaction"
-"cmd/measure-instructions" = "./cmd/measure-instructions"
-"cmd/check-evaluation" = "./internal/eval"
-"cmd/check-promotion" = "./internal/eval"
-"cmd/compile-context" = "./internal/context"
-"cmd/validate-deliberation-policy" = "./internal/deliberation"
-"cmd/select-execution-strategy" = "./internal/strategy"
-"cmd/validate-execution-strategy" = "./internal/strategy"
-"cmd/generate-public-status" = "./internal/publicstatus"
+"cmd/check-sensitive-content" = { package = "./internal/check", tests = ["TestSensitiveContentRejectsATokenAndPrivateURL"] }
+"cmd/check-analyze-readonly" = { package = "./internal/check", tests = ["TestAnalyzeReadonlyRejectsIssueCreationInstruction"] }
+"cmd/check-repository" = { package = "./cmd/check-repository", tests = ["TestRunReportsEveryCheckAndPasses"] }
+"cmd/validate-script-tests" = { package = "./internal/validate", tests = ["TestScriptTestsPassesWithCompleteCoverage"] }
+"cmd/validate-branch-policy" = { package = "./internal/validate", tests = ["TestBranchPolicyAcceptsDependabotRouteWithoutIssueLink"] }
+"cmd/validate-pr-commit-signatures" = { package = "./internal/validate", tests = ["TestCheckPrCommitSignaturesRejectsMissingFixture"] }
+"cmd/validate-issue-body" = { package = "./internal/validate", tests = ["TestIssueBodyAcceptsOrderedChangeBody"] }
+"cmd/validate-issue-project" = { package = "./internal/project", tests = ["TestCheckIssueProjectAcceptsValidContract"] }
+"cmd/validate-plan-comment" = { package = "./cmd/validate-plan-comment", tests = ["TestPlanCommentValidationContract"] }
+"cmd/set-issue-project-status" = { package = "./internal/project", tests = ["TestSetIssueStatusRetriesItemEditWithoutRepeatingReads", "TestPullRequestStatusCoversAllEventPatterns"] }
+"cmd/validate-work-item-title" = { package = "./internal/validate", tests = ["TestWorkItemTitleAcceptsSentenceCaseWithProperNouns"] }
+"cmd/validate-hosts" = { package = "./internal/validate", tests = ["TestHostsDiagnosticsPreserveDetailedOutput"] }
+"cmd/validate-mise-tasks" = { package = "./cmd/validate-mise-tasks", tests = ["TestValidateRejectsRetiredReference"] }
+"cmd/validate-commit-message" = { package = "./internal/commitlint", tests = ["TestValidateMessageAcceptsSingleLineWithIssue"] }
+"cmd/lint-commits" = { package = "./internal/commitlint", tests = ["TestLintCommitsLintsPRRangeAndExitsZero"] }
+"cmd/check-whitespace" = { package = "./internal/check", tests = ["TestCheckWhitespacePassesOnCleanCommit"] }
+"cmd/test-go" = { package = "./internal/check", tests = ["TestRunGoTestsWithSentinel"] }
+"cmd/collect-badges" = { package = "./internal/badges", tests = ["TestCollectBadgesAcceptsMultilineMutationLog"] }
+"cmd/verify-fsl" = { package = "./internal/fsl", tests = ["TestVerifyFSLResultDistinguishesInvalidSpecFromUnavailableTool"] }
+"cmd/mutate-fsl" = { package = "./internal/fsl", tests = ["TestMutateFSLResultRetainsReportWhenMutationOutputIsInvalid"] }
+"cmd/verify-release" = { package = "./internal/release", tests = ["TestVerifyReleaseUsesCommandAdapter"] }
+"cmd/publish-release" = { package = "./internal/release", tests = ["TestPublishReleaseUsesCommandAdapter"] }
+"cmd/scan-go-vuln" = { package = "./internal/govuln", tests = ["TestScanDefaultPatternsInvokesPinnedJSONMode"] }
+"cmd/validate-skill-creator" = { package = "./internal/validate", tests = ["TestValidateSkillCreatorReportsMissingValidatorWithoutRunningExternalTool"] }
+"cmd/validate-skill-graph" = { package = "./internal/graph", tests = ["TestValidateCurrentGraph"] }
+"cmd/read-skill-graph" = { package = "./internal/graph", tests = ["TestIssue175EntrypointsUseGraphRoutes"] }
+"cmd/validate-skill-trace" = { package = "./internal/trace", tests = ["TestValidateJSONLRejectsTrailingData"] }
+"cmd/read-skill-trace" = { package = "./internal/trace", tests = ["TestWriteAndReadJSONL"] }
+"cmd/replay-skill-trace" = { package = "./cmd/replay-skill-trace", tests = ["TestCommandReportIncludesFSLConformance"] }
+"cmd/validate-diagnostic" = { package = "./cmd/validate-diagnostic", tests = ["TestDiagnosticValidationReportAcceptsValidJSONL"] }
+"cmd/evaluate" = { package = "./internal/eval", tests = ["TestRunAggregateReturnsExpectedExitCodes"] }
+"cmd/evaluate-compaction" = { package = "./cmd/evaluate-compaction", tests = ["TestCompactionCommandUsesPairedReportContract"] }
+"cmd/measure-instructions" = { package = "./cmd/measure-instructions", tests = ["TestMeasurementUsesPinnedTokenizer"] }
+"cmd/check-evaluation" = { package = "./internal/eval", tests = ["TestCheckCorpusPassesCompleteCorpus"] }
+"cmd/check-promotion" = { package = "./internal/eval", tests = ["TestCheckPromotionReportsExitStatusAndSummary"] }
+"cmd/compile-context" = { package = "./internal/context", tests = ["TestCompileSelectsOnlyActivatedModules"] }
+"cmd/validate-deliberation-policy" = { package = "./internal/deliberation", tests = ["TestCurrentPolicyCheckReportsCoverage"] }
+"cmd/select-execution-strategy" = { package = "./internal/strategy", tests = ["TestSelectsDeterministicallyForRepresentativeSignals"] }
+"cmd/validate-execution-strategy" = { package = "./internal/strategy", tests = ["TestCurrentPolicyIsValid"] }
+"cmd/generate-public-status" = { package = "./internal/publicstatus", tests = ["TestWriteInsertsBlockAndIsIdempotent"] }
 
 [scripts]
-"scripts/fsl/install-fslc.sh" = "./internal/fsl"
-"scripts/setup/environment-state.sh" = "./internal/hooks"
-"scripts/setup/register-local-skills.sh" = "./internal/hooks"
-"scripts/setup/setup-commitlint.sh" = "./internal/hooks"
-"scripts/setup/setup-local-skills.sh" = "./internal/hooks"
-"scripts/setup/setup-all.sh" = "./internal/hooks"
-"scripts/setup/setup-bootstrap.sh" = "./internal/hooks"
-"scripts/setup/setup-environment.sh" = "./internal/hooks"
-"scripts/setup/setup-refresh.sh" = "./internal/hooks"
-"scripts/setup/setup-state.sh" = "./internal/hooks"
-"scripts/setup/setup-validator.sh" = "./internal/hooks"
-"scripts/setup/run-mise.sh" = "./internal/hooks"
+"scripts/fsl/install-fslc.sh" = { package = "./internal/fsl", tests = ["TestBinPathPrefersFSLCBinDir"] }
+"scripts/setup/environment-state.sh" = { package = "./internal/fsl", tests = ["TestBinPathReadsEnvironmentState"] }
+"scripts/setup/register-local-skills.sh" = { package = "./internal/hooks", tests = ["TestRegisterLocalSkillsDiscoversNestedSkillsRecursively"] }
+"scripts/setup/setup-commitlint.sh" = { package = "./internal/hooks", tests = ["TestSetupCommitlintPreparesOnlyTheLocalCommitlint"] }
+"scripts/setup/setup-local-skills.sh" = { package = "./internal/hooks", tests = ["TestSetupLocalSkillsEnablesHooks"] }
+"scripts/setup/setup-all.sh" = { package = "./internal/hooks", tests = ["TestSetupAllRunsBootstrapBeforeRefresh"] }
+"scripts/setup/setup-bootstrap.sh" = { package = "./internal/hooks", tests = ["TestSetupAllRunsBootstrapBeforeRefresh"] }
+"scripts/setup/setup-environment.sh" = { package = "./internal/hooks", tests = ["TestSetupEnvironmentExportsCIPathsWithoutGeneratingMiseConfig"] }
+"scripts/setup/setup-refresh.sh" = { package = "./internal/hooks", tests = ["TestSetupAllRunsBootstrapBeforeRefresh"] }
+"scripts/setup/setup-state.sh" = { package = "./internal/hooks", tests = ["TestSetupStateProvidesAtomicStateHelpers"] }
+"scripts/setup/setup-validator.sh" = { package = "./internal/hooks", tests = ["TestSetupValidatorBuildsAndLinksTheRevisionValidator"] }
+"scripts/setup/run-mise.sh" = { package = "./internal/hooks", tests = ["TestPostCheckoutOnlyRefreshesSetupOnBranchCheckouts"] }

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -39,6 +40,44 @@ func TestOpenCodeConfigParses(t *testing.T) {
 	}
 }
 
+const sampleTestFile = "package sample\n\nimport \"testing\"\n\nfunc TestSample(t *testing.T) {}\n"
+
+func TestScriptTestsRejectsUndeclaredNamedTest(t *testing.T) {
+	root := t.TempDir()
+	writeVFile(t, root, "cmd/sample/main.go", "package main\n")
+	writeVFile(t, root, "internal/sample/sample_test.go", sampleTestFile)
+	if err := os.MkdirAll(filepath.Join(root, "scripts"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeVFile(t, root, "SCRIPT_TESTS.toml", `[cmds]
+"cmd/sample" = { package = "./internal/sample", tests = ["TestMissing"] }
+[scripts]
+`)
+	var out, errOut bytes.Buffer
+	if code := CheckScriptTests(root, &out, &errOut); code != 1 {
+		t.Fatalf("expected failure for an undeclared named test, got exit %d", code)
+	}
+	if !strings.Contains(errOut.String(), "cmd/sample: test TestMissing is not declared in ./internal/sample") {
+		t.Fatalf("stderr = %q, want the undeclared test named", errOut.String())
+	}
+}
+
+func TestScriptTestsRejectsEntryWithoutNamedTest(t *testing.T) {
+	root := t.TempDir()
+	writeVFile(t, root, "cmd/sample/main.go", "package main\n")
+	writeVFile(t, root, "internal/sample/sample_test.go", sampleTestFile)
+	if err := os.MkdirAll(filepath.Join(root, "scripts"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeVFile(t, root, "SCRIPT_TESTS.toml", `[cmds]
+"cmd/sample" = { package = "./internal/sample", tests = [] }
+[scripts]
+`)
+	if code := runValidateCheck(t, CheckScriptTests, root); code != 1 {
+		t.Fatalf("expected failure for an entry that names no test, got exit %d", code)
+	}
+}
+
 func TestScriptTestsRequiresEveryScript(t *testing.T) {
 	root := t.TempDir()
 	writeVFile(t, root, "scripts/new.py", "print('ok')\n")
@@ -69,14 +108,14 @@ func TestScriptTestsRequiresEveryCmdEntrypoint(t *testing.T) {
 func TestScriptTestsRejectsOrphanCmdMapping(t *testing.T) {
 	root := t.TempDir()
 	writeVFile(t, root, "cmd/sample/main.go", "package main\n")
-	writeVFile(t, root, "internal/sample/sample_test.go", "package sample\n")
+	writeVFile(t, root, "internal/sample/sample_test.go", sampleTestFile)
 	// scripts/ directory is empty so no script mappings are required.
 	if err := os.MkdirAll(filepath.Join(root, "scripts"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	writeVFile(t, root, "SCRIPT_TESTS.toml", `[cmds]
-"cmd/sample" = "./internal/sample"
-"cmd/ghost" = "./internal/sample"
+"cmd/sample" = { package = "./internal/sample", tests = ["TestSample"] }
+"cmd/ghost" = { package = "./internal/sample", tests = ["TestSample"] }
 [scripts]
 `)
 	if code := runValidateCheck(t, CheckScriptTests, root); code != 1 {
@@ -87,12 +126,12 @@ func TestScriptTestsRejectsOrphanCmdMapping(t *testing.T) {
 func TestScriptTestsPassesWithCompleteCoverage(t *testing.T) {
 	root := t.TempDir()
 	writeVFile(t, root, "cmd/sample/main.go", "package main\n")
-	writeVFile(t, root, "internal/sample/sample_test.go", "package sample\n")
+	writeVFile(t, root, "internal/sample/sample_test.go", sampleTestFile)
 	if err := os.MkdirAll(filepath.Join(root, "scripts"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	writeVFile(t, root, "SCRIPT_TESTS.toml", `[cmds]
-"cmd/sample" = "./internal/sample"
+"cmd/sample" = { package = "./internal/sample", tests = ["TestSample"] }
 [scripts]
 `)
 	if code := runValidateCheck(t, CheckScriptTests, root); code != 0 {
