@@ -17,6 +17,16 @@ type attestation struct {
 	Source  string `toml:"source"`
 }
 
+// scriptAttestation is a reviewed license entry for a tool that a repository
+// script or workflow pins outside mise and go.mod. PinnedIn names the files
+// that pin Version, so a bump that skips the entry fails the check.
+type scriptAttestation struct {
+	License  string   `toml:"license"`
+	Source   string   `toml:"source"`
+	Version  string   `toml:"version"`
+	PinnedIn []string `toml:"pinned_in"`
+}
+
 // directGoModules parses the direct (non-indirect) require entries out of a
 // go.mod file without invoking the Go toolchain.
 func directGoModules(goModPath string) ([]string, error) {
@@ -62,8 +72,9 @@ func CheckToolLicenses(root string, out, errOut io.Writer) int {
 		Tools map[string]string `toml:"tools"`
 	}
 	var registry struct {
-		Tools     map[string]attestation `toml:"tools"`
-		GoModules map[string]attestation `toml:"go_modules"`
+		Tools       map[string]attestation       `toml:"tools"`
+		GoModules   map[string]attestation       `toml:"go_modules"`
+		ScriptTools map[string]scriptAttestation `toml:"script_tools"`
 	}
 	misePath := filepath.Join(root, "mise.toml")
 	registryPath := filepath.Join(root, "TOOL_LICENSES.toml")
@@ -146,6 +157,7 @@ func CheckToolLicenses(root string, out, errOut io.Writer) int {
 		"source must be a public https URL",
 		"attestation has no go.mod direct dependency",
 	)
+	errors = append(errors, checkScriptAttestations(root, registry.ScriptTools)...)
 
 	if len(errors) > 0 {
 		fmt.Fprintln(errOut, "Tool-license check failed:")
@@ -154,6 +166,45 @@ func CheckToolLicenses(root string, out, errOut io.Writer) int {
 		}
 		return 1
 	}
-	fmt.Fprintf(out, "Tool-license check passed: %d tool(s) and %d Go module(s) attested.\n", len(tools), len(modules))
+	fmt.Fprintf(out, "Tool-license check passed: %d tool(s), %d script-pinned tool(s), and %d Go module(s) attested.\n", len(tools), len(registry.ScriptTools), len(modules))
 	return 0
+}
+
+// checkScriptAttestations validates every script_tools entry: it needs a
+// license, a public https source, a version, and at least one pinned_in file
+// that exists and still contains that version.
+func checkScriptAttestations(root string, attestations map[string]scriptAttestation) []string {
+	names := make([]string, 0, len(attestations))
+	for name := range attestations {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	var errors []string
+	for _, name := range names {
+		entry := attestations[name]
+		if strings.TrimSpace(entry.License) == "" {
+			errors = append(errors, fmt.Sprintf("%s: license must be non-empty", name))
+		}
+		if !strings.HasPrefix(entry.Source, "https://") {
+			errors = append(errors, fmt.Sprintf("%s: source must be a public https URL", name))
+		}
+		if strings.TrimSpace(entry.Version) == "" {
+			errors = append(errors, fmt.Sprintf("%s: version must be non-empty", name))
+			continue
+		}
+		if len(entry.PinnedIn) == 0 {
+			errors = append(errors, fmt.Sprintf("%s: pinned_in must name at least one file", name))
+		}
+		for _, file := range entry.PinnedIn {
+			data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(file)))
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("%s: pinned_in file %s cannot be read", name, file))
+				continue
+			}
+			if !strings.Contains(string(data), entry.Version) {
+				errors = append(errors, fmt.Sprintf("%s: pinned_in file %s does not contain version %s", name, file, entry.Version))
+			}
+		}
+	}
+	return errors
 }
