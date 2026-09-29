@@ -14,9 +14,9 @@ Repository tasks use the form `verb:task-name`.
 
 | Category | Task names |
 | --- | --- |
-| check | `check:all`, `check:branch-policy`, `check:diff`, `check:go-vuln`, `check:hosts`, `check:local`, `check:repository`, `check:skills`, `check:tasks` |
-| evaluate | `evaluate:all`, `evaluate:smoke` |
-| generate | `generate:public-status` |
+| check | `check:all`, `check:branch-policy`, `check:diff`, `check:go-vuln`, `check:hosts`, `check:local`, `check:promotion`, `check:repository`, `check:skills`, `check:tasks` |
+| evaluate | `evaluate:all`, `evaluate:compaction`, `evaluate:smoke` |
+| generate | `generate:context`, `generate:public-status` |
 | install | `install:fsl` |
 | lint | `lint:all`, `lint:actions`, `lint:go`, `lint:python`, `lint:shell` |
 | mutate | `mutate:fsl`, `mutate:fsl-changed` |
