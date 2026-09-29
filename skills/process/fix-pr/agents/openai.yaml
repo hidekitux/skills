@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix Pull Request"
+  short_description: "Fix review findings and push the reviewed head"
+  default_prompt: "Use $fix-pr to fix the review findings on this Pull Request and push the reviewed commit as its head."
