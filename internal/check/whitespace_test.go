@@ -14,7 +14,7 @@ func git(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
-	cmd.Env = support.GitEnv()
+	cmd.Env = append(support.GitEnv(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("git %v failed: %v\n%s", args, err, out)
 	}
@@ -28,7 +28,7 @@ func seedRepo(t *testing.T) string {
 		t.Fatal(err)
 	}
 	git(t, dir, "add", "README")
-	git(t, dir, "-c", "commit.gpgsign=false", "-c", "user.name=Test User", "-c", "user.email="+testEmail, "commit", "--quiet", "-m", "chore: add base")
+	git(t, dir, "-c", "user.name=Test User", "-c", "user.email="+testEmail, "commit", "--quiet", "-m", "chore: add base")
 	return dir
 }
 

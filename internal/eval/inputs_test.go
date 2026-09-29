@@ -21,16 +21,22 @@ func writeInputFile(t *testing.T, root, path, content string) {
 	}
 }
 
+// inputsGitEnv removes the inherited Git environment and the global and
+// system configuration, so a fixture commit reads no signing setup.
+func inputsGitEnv() []string {
+	return append(support.GitEnv(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
+}
+
 // commitAll commits every file in root without signing or user config.
 func commitAll(t *testing.T, root, message string) {
 	t.Helper()
 	for _, args := range [][]string{
 		{"add", "--all"},
-		{"-c", "user.name=Test", "-c", "user.email=test" + "@" + "example.invalid", "-c", "commit.gpgsign=false", "commit", "--quiet", "--message", message},
+		{"-c", "user.name=Test", "-c", "user.email=test" + "@" + "example.invalid", "commit", "--quiet", "--message", message},
 	} {
 		command := exec.Command("git", args...)
 		command.Dir = root
-		command.Env = support.GitEnv()
+		command.Env = inputsGitEnv()
 		if out, err := command.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
@@ -45,7 +51,7 @@ func newInputRepository(t *testing.T) string {
 	root := t.TempDir()
 	command := exec.Command("git", "init", "--quiet")
 	command.Dir = root
-	command.Env = support.GitEnv()
+	command.Env = inputsGitEnv()
 	if out, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("git init: %v\n%s", err, out)
 	}

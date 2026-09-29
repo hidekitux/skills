@@ -25,7 +25,7 @@ func writeWritingFile(t *testing.T, root, name, content string) {
 
 func isolatedWritingGit(root string, args ...string) *exec.Cmd {
 	command := exec.Command("git", append([]string{"-C", root}, args...)...)
-	command.Env = support.GitEnv()
+	command.Env = append(support.GitEnv(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
 	return command
 }
 
