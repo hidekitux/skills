@@ -6,9 +6,9 @@ The repository owner, `@hidekitux`, reviews every pinned tool in the first week 
 
 1. Read the authoritative release source for each pinned tool and record the current pin and latest stable release in the inventory below.
 2. Read the newer release notes and public security advisories. Record whether a newer security fix affects the current pin.
-3. Read the upstream license and source record. For a mise-managed tool, keep the matching entry in [`TOOL_LICENSES.toml`](../TOOL_LICENSES.toml). A version bump must update that attestation when the license or source changes and must state in the Pull Request when the attestation remains valid.
+3. Read the upstream license and source record. For a mise-managed tool, keep the matching `[tools]` entry in [`TOOL_LICENSES.toml`](../TOOL_LICENSES.toml). For a tool that a script or workflow pins, such as commitlint or fslc, keep the matching `[script_tools]` entry and change its `version` with the pin. A version bump must update that attestation when the license or source changes and must state in the Pull Request when the attestation remains valid.
 4. Run `mise run check:repository` and `mise run check:go-vuln`. Run `mise run validate:all` before publishing the bump. Record the scanner and vulnerability-database versions from `mise run check:go-vuln`.
-5. For fslc, record the upstream license and release source with the bump and update the checksum for every supported platform. `mise run check:repository` checks mise-managed tools and direct Go modules; it does not check fslc because fslc is installed by a script.
+5. For fslc, update the checksum for every supported platform with the bump. `mise run check:repository` checks mise-managed tools, direct Go modules, and every `[script_tools]` entry, and it fails when a `pinned_in` file no longer contains the recorded version. It does not discover a newly pinned script tool, so add that entry by hand.
 
 The Pull Request for a bump must link the upstream release or advisory, name the old and new pins, include the validation results, and describe the license-attestation decision. This policy review does not bump a tool version.
 
