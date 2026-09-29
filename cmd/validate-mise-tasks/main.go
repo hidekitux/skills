@@ -4,7 +4,7 @@ package main
 
 import (
 	"bufio"
-
+	"context"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -13,7 +13,11 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/hidekitux/skills/internal/provider"
 )
+
+var gitPort = provider.NewGit(provider.OSRunner{})
 
 var taskHeader = regexp.MustCompile(`^\[tasks\.(?:"([^"]+)"|([^]]+))\]$`)
 var taskName = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9-]*$`)
@@ -158,9 +162,38 @@ func isTaskCharacter(value byte) bool {
 }
 
 func findReference(root, retired string) (bool, string) {
-	var found string
+	validatorDir := filepath.Join(root, "cmd", "validate-mise-tasks")
+	for _, path := range candidateFiles(root) {
+		if filepath.Dir(path) == validatorDir {
+			continue
+		}
+		data, err := os.ReadFile(path)
+		if err == nil && taskReference(string(data), retired) {
+			return true, path
+		}
+	}
+	return false, ""
+}
+
+// candidateFiles returns the tracked and untracked non-ignored files under
+// root, so a Git-ignored copy of the repository, such as an agent worktree,
+// cannot fail the check. It falls back to a plain walk when root is not a Git
+// work tree.
+func candidateFiles(root string) []string {
+	result, err := gitPort.Output(context.Background(), root, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
+	if err == nil {
+		var files []string
+		for _, item := range strings.Split(result.Stdout, "\x00") {
+			if item != "" {
+				files = append(files, filepath.Join(root, item))
+			}
+		}
+		sort.Strings(files)
+		return files
+	}
+	var files []string
 	_ = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
-		if err != nil || found != "" {
+		if err != nil {
 			return nil
 		}
 		if entry.IsDir() {
@@ -169,15 +202,8 @@ func findReference(root, retired string) (bool, string) {
 			}
 			return nil
 		}
-		validatorDir := filepath.Join(root, "cmd", "validate-mise-tasks")
-		if filepath.Dir(path) == validatorDir {
-			return nil
-		}
-		data, readErr := os.ReadFile(path)
-		if readErr == nil && taskReference(string(data), retired) {
-			found = path
-		}
+		files = append(files, path)
 		return nil
 	})
-	return found != "", found
+	return files
 }
