@@ -93,6 +93,7 @@ skills:
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Body Structure, classification: task-procedure}
+      - {heading: Requester Approval, classification: invariant}
       - {heading: Project Triage, classification: conditional-reference, load_condition: When the Issue must enter the repository Project, read the Project triage reference., reference: skills/process/create-issue/references/project-triage.md}
       - {heading: Change Issues, classification: conditional-reference, load_condition: When creating a Change Issue, read the Change Issue rules., reference: skills/process/create-issue/references/change-issues.md}
       - {heading: Release Issues, classification: conditional-reference, load_condition: When creating a Release Issue, read the Release Issue rules., reference: skills/process/create-issue/references/release-issues.md}
