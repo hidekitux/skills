@@ -64,8 +64,9 @@ func validate(root, misePath string) []error {
 			errs = append(errs, fmt.Errorf("task %q must use a one-word verb category and hyphenated task name", task))
 		}
 	}
+	candidates := candidateFiles(root)
 	for _, retired := range retiredTasks {
-		if found, path := findReference(root, retired); found {
+		if found, path := findReference(root, candidates, retired); found {
 			errs = append(errs, fmt.Errorf("retired task %q is referenced by %s", retired, path))
 		}
 	}
@@ -161,9 +162,9 @@ func isTaskCharacter(value byte) bool {
 	return value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' || value >= '0' && value <= '9' || value == '-' || value == ':'
 }
 
-func findReference(root, retired string) (bool, string) {
+func findReference(root string, candidates []string, retired string) (bool, string) {
 	validatorDir := filepath.Join(root, "cmd", "validate-mise-tasks")
-	for _, path := range candidateFiles(root) {
+	for _, path := range candidates {
 		if filepath.Dir(path) == validatorDir {
 			continue
 		}
