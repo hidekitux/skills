@@ -7,7 +7,7 @@ workflow.
 | Category | Use it for | Skills |
 | --- | --- | --- |
 | `process` | Governed Issues, plans, implementations, Pull Requests, and reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` |
-| `analyze` | Read-only project, session, and backlog investigation. | `analyze-codebase`, `analyze-project`, `propose-improvements`, `retrospect-work`, `triage-issues` |
+| `analyze` | Read-only codebase, project, session, and backlog investigation, and redesign proposals. | `analyze-codebase`, `analyze-project`, `propose-improvements`, `retrospect-work`, `triage-issues` |
 | `fix` | Reproduced repairs, focused tests, and behavior-preserving refactors. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` |
 | `govern` | Repository setup and enforcement audits. | `bootstrap-project`, `audit-workflow-enforcement` |
 
