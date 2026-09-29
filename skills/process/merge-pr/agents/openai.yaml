@@ -1,0 +1,4 @@
+interface:
+  display_name: "Merge Pull Request"
+  short_description: "Merge approved Pull Requests through branch policy"
+  default_prompt: "Use $merge-pr to merge this approved Pull Request after its required checks pass."
