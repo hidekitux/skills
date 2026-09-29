@@ -149,9 +149,10 @@ reasons:
 
 - `plan-issue` must post the exact first-line marker
   `<!-- skills:plan-issue issue=<number> -->`, with the governing Issue number
-  substituted, followed by the ordered plan sections. The validator accepts the
-  current `## Ordered implementation plan` heading and the original
-  `## Implementation plan` heading for backward compatibility; all required
+  substituted, followed by the ordered plan sections. `plan-issue` writes
+  `## Implementation plan`, `## Out of scope`, `## Residual risk`, and
+  `## Next-phase handoff`. The validator also accepts
+  `## Ordered implementation plan` in place of the first heading. All required
   sections must occur once, in order, and contain non-empty content.
 - The `Policy (Project)` comment job considers only comments containing the
   `<!-- skills:plan-issue` marker prefix. Unrelated owner comments are skipped
