@@ -18,7 +18,7 @@ Repository tasks use the form `verb:task-name`.
 | evaluate | `evaluate:all`, `evaluate:compaction`, `evaluate:smoke` |
 | generate | `generate:context`, `generate:public-status` |
 | install | `install:fsl` |
-| lint | `lint:all`, `lint:actions`, `lint:go`, `lint:python`, `lint:shell` |
+| lint | `lint:all`, `lint:actions`, `lint:go`, `lint:python`, `lint:shell`, `lint:workflow-security` |
 | mutate | `mutate:fsl`, `mutate:fsl-changed` |
 | publish | `publish:release` |
 | setup | `setup:all`, `setup:bootstrap`, `setup:commitlint`, `setup:environment`, `setup:local-skills`, `setup:refresh` |
