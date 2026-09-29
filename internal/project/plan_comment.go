@@ -8,9 +8,10 @@ import (
 
 const planCommentMarkerFormat = "<!-- skills:plan-issue issue=%d -->"
 
-// requiredPlanCommentHeadingGroups keeps the emitted heading compatible with
-// both the original contract and the heading currently produced by plan-issue.
-// Each group must contribute exactly one heading, in this order.
+// requiredPlanCommentHeadingGroups lists the headings of a plan comment.
+// plan-issue writes `## Implementation plan`; the first group also accepts
+// `## Ordered implementation plan`. Each group must contribute exactly one
+// heading, in this order.
 var requiredPlanCommentHeadingGroups = [][]string{
 	{"## Implementation plan", "## Ordered implementation plan"},
 	{"## Out of scope"},
