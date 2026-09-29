@@ -725,13 +725,15 @@ a committed asset that observes it.
 | privacy | `go run ./cmd/check-sensitive-content`; `evaluations/scenarios/analyze-project/analyze-project-safety.yaml`; the `evidence-redaction` contract | The check passes, and the scenario asserts that a private context log stays out of a public report. |
 | deterministic replay | The 10 files under `workflow/replay-fixtures/`; `cmd/replay-skill-trace` | `validate-replay-fixtures` returns the recorded outcome for all 10 files on every run. |
 
-No approved contract change required a new observation. The two changed
-contracts in `workflow/contract-decisions.yml` are `repository-check-list` and
+No approved contract change required a new observation. When this record was
+written at `c2a1a1b` for Issue #333, `workflow/contract-decisions.yml` had two
+changed contracts, `repository-check-list` and
 `fsl-verifier-failure-classification`. The first changes a printed total inside
 `cmd/check-repository`, and the second changes how `internal/fsl/run.go`
 classifies a verifier that never judged a specification. Neither changes a
-skill behavior an evaluation scenario observes, so the evaluation corpus stays
-at 77 scenarios and no fixture changes.
+skill behavior an evaluation scenario observes, so the evaluation corpus stayed
+at 77 scenarios and no fixture changed. Later Issues reclassified more
+contracts, so `workflow/contract-decisions.yml` is the current list.
 
 ### Consumer agreement
 
