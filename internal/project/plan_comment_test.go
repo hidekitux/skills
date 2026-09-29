@@ -1,8 +1,13 @@
 package project
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
 
-func TestIsAuthoritativePlanCommentAcceptsCurrentPlanIssueOutput(t *testing.T) {
+func TestIsAuthoritativePlanCommentAcceptsOrderedHeading(t *testing.T) {
 	body := PlanCommentMarker(226) + `
 
 ## Ordered implementation plan
@@ -25,7 +30,7 @@ Use implement-issue.`
 	}
 }
 
-func TestIsAuthoritativePlanCommentKeepsOriginalHeadingCompatible(t *testing.T) {
+func TestIsAuthoritativePlanCommentAcceptsPlanIssueHeading(t *testing.T) {
 	body := PlanCommentMarker(226) + `
 
 ## Implementation plan
@@ -75,5 +80,32 @@ func TestParsePlanCommentIssue(t *testing.T) {
 	}
 	if _, err := ParsePlanCommentIssue("<!-- skills:plan-issue issue=x -->"); err == nil {
 		t.Fatal("expected malformed marker to fail")
+	}
+}
+
+// TestPlanIssueNamesEveryRequiredPlanHeading keeps skills/process/plan-issue
+// in step with the validator: the skill must name one heading from every
+// required group, in the order the validator checks them.
+func TestPlanIssueNamesEveryRequiredPlanHeading(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "skills", "process", "plan-issue", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	skill := string(data)
+	previous := -1
+	for _, group := range requiredPlanCommentHeadingGroups {
+		position := -1
+		for _, heading := range group {
+			if index := strings.Index(skill, "`"+heading+"`"); index >= 0 && (position < 0 || index < position) {
+				position = index
+			}
+		}
+		if position < 0 {
+			t.Fatalf("plan-issue SKILL.md names none of the required plan headings %q", group)
+		}
+		if position < previous {
+			t.Fatalf("plan-issue SKILL.md names %q out of the validator's order", group)
+		}
+		previous = position
 	}
 }
