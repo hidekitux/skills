@@ -346,7 +346,9 @@ runs 25 and prints the matching total. Issue #328 added
 Issue #331 added `check-contract-decisions` so this table is enforced the same
 way, and Issue #332 added `check-cutover-record` so the cutover record is too.
 Issue #372 added `check-test-git-isolation`, which rejects a Go test that
-starts `git` without isolating it from an inherited Git environment.
+starts `git` without isolating it from an inherited Git environment. Issue #401
+extended it to reject a test whose Git environment still reads the developer's
+global or system Git configuration.
 An unenforced record drifts, which `docs/validation-tiers.md` demonstrated by
 carrying a stale check total until Issue #331 reconciled it.
 
