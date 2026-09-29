@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -197,5 +198,35 @@ func TestPromotionFindingsScopesFreshnessToInputs(t *testing.T) {
 		if !strings.Contains(finding, "stale or missing input digest evidence") {
 			t.Fatalf("finding %q, want only stale input digest findings", finding)
 		}
+	}
+}
+
+func TestCheckPromotionReportsExitStatusAndSummary(t *testing.T) {
+	root := newInputRepository(t)
+	writeInputFile(t, root, "CATALOG.yml", "skills:\n  - name: demo\n    status: stable\n")
+	commitAll(t, root, "catalog")
+	digest, err := InputDigest(root, root, "demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	writePromotionReports(t, root, digest)
+	commitAll(t, root, "retain evaluation reports")
+	var out, errOut bytes.Buffer
+	if code := CheckPromotion(root, &out, &errOut); code != 0 {
+		t.Fatalf("exit = %d, want 0; stderr: %s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "Stable promotion verification passed: 1 stable skill(s).") {
+		t.Fatalf("stdout = %q, want the passing summary", out.String())
+	}
+
+	writeInputFile(t, root, "skills/process/demo/SKILL.md", "---\nname: demo\n---\nchanged\n")
+	commitAll(t, root, "relevant skill change")
+	out.Reset()
+	errOut.Reset()
+	if code := CheckPromotion(root, &out, &errOut); code != 1 {
+		t.Fatalf("exit = %d, want 1 for stale evidence", code)
+	}
+	if !strings.Contains(errOut.String(), "Stable promotion verification failed:") {
+		t.Fatalf("stderr = %q, want the failure heading", errOut.String())
 	}
 }
