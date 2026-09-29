@@ -1,5 +1,6 @@
 # Development and CI tools used through mise. Each entry is reviewed when the
-# corresponding tool is added or updated.
+# corresponding tool is added or updated. Tools pinned by scripts or workflows
+# are listed under script_tools below.
 [tools.go]
 license = "BSD-3-Clause"
 source = "https://go.dev/LICENSE"
@@ -24,8 +25,10 @@ license = "Proprietary"
 source = "https://github.com/google-antigravity/antigravity-cli"
 
 [tools."aqua:anomalyco/opencode"]
+# Reviewed 2026-09-29: MIT per anomalyco/opencode. The former source,
+# opencode-ai/opencode, is a different, archived project.
 license = "MIT"
-source = "https://github.com/opencode-ai/opencode"
+source = "https://github.com/anomalyco/opencode"
 
 [tools."go:golang.org/x/vuln/cmd/govulncheck"]
 # Reviewed 2026-08-28 (v1.7.0): BSD-3-Clause per the golang.org/x/vuln module.
@@ -35,6 +38,24 @@ source = "https://go.dev/security/vuln/"
 [tools.actionlint]
 license = "MIT"
 source = "https://github.com/rhysd/actionlint"
+
+# Development and CI tools that a repository script or workflow installs at a
+# fixed version outside mise and go.mod. Add an entry by hand when a script or
+# workflow starts pinning a new tool. check:repository fails when a pinned_in
+# file no longer contains the recorded version, so a bump must update the entry.
+[script_tools.commitlint]
+# Reviewed 2026-09-29 (v0.12.0): MIT per conventionalcommit/commitlint.
+license = "MIT"
+source = "https://github.com/conventionalcommit/commitlint"
+version = "v0.12.0"
+pinned_in = ["scripts/setup/setup-commitlint.sh", ".github/workflows/policy.yml"]
+
+[script_tools.fslc]
+# Reviewed 2026-09-29 (4.2.0): Apache-2.0 per ymm-oss/fsl.
+license = "Apache-2.0"
+source = "https://github.com/ymm-oss/fsl"
+version = "4.2.0"
+pinned_in = ["scripts/fsl/install-fslc.sh"]
 
 # Direct Go module dependencies declared in go.mod. Each entry is reviewed when
 # the corresponding module is added or updated.
