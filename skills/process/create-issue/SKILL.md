@@ -10,7 +10,7 @@ license: Apache-2.0
 
 1. **in progress:** Confirm repository, outcome, and whether the Issue is a change or release.
 2. Draft the title and body from the matching repository template.
-3. After requester approval, add the Issue to the declared GitHub Project with Status, Scope, and Priority, then create it.
+3. After user confirmation, add the Issue to the declared GitHub Project with Status, Scope, and Priority, then create it.
 4. Complete the list only when the Issue URL and its Project item are available; report the Project Status, Scope, and Priority in the handoff.
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
@@ -27,11 +27,11 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 - Preserve canonical lowercase or mixed-case names such as `iPhone`, `npm`, and `eBay`. Also preserve literal commands, paths, code, and identifiers instead of capitalizing them mechanically.
 - Before creation, review the rendered title and body for heading order, duplicate sections, empty content, unresolved placeholders, and accidental lowercase prose.
 
-## Requester Approval
+## User Confirmation
 
-- Create the Issue only with requester approval. Requester approval is an explicit instruction from the requester that covers creating this Issue, given in the request or in reply to the finalized title and body.
-- When no instruction covers the creation, such as when the requester approved only an investigation, present the finalized title and body and wait for an explicit answer.
-- Treat no answer or an ambiguous answer as no approval. Do not create the Issue.
+- Create the Issue only with user confirmation. User confirmation is an explicit instruction from the user that covers creating this Issue, given in the request or in reply to the finalized title and body.
+- When no instruction covers the creation, such as when the user approved only an investigation, present the finalized title and body and wait for an explicit answer.
+- Treat no answer or an ambiguous answer as no confirmation. Do not create the Issue.
 
 ## Project Triage
 
