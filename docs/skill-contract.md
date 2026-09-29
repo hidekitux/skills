@@ -98,7 +98,7 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `review-pr` | Severity-ordered findings | `fix-pr` | Reviews; does not edit the branch or merge |
 | `fix-pr` | Fixed, validated commits pushed as the Pull Request head, with the body synced | `review-pr` | Fixes an open Pull Request from review findings; does not open the first Pull Request, merge, or release |
 | `merge-pr` | Merged Pull Request and linked-work outcome evidence | Post-merge verification or release publication | Merges only after review and required checks; may resolve narrowly scoped conflicts after explicit authorization, but does not apply substantive fixes or publish releases |
-| `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`, then `implement-issue` | Fixes only the isolated bug; does not design tests or refactor |
+| `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`; for a governed fix, `create-issue` without a governing Change Issue or `implement-issue` with one | Fixes only the isolated bug; does not design tests or refactor |
 | `write-tests` | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
 | `refactor-code` | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
 | `bootstrap-project` | Runnable foundation with protected branch flow and FSL adoption plan | The project's governed change flow | Initialization only |
