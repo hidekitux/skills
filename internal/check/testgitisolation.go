@@ -21,9 +21,12 @@ import (
 // reports each exec.Command or exec.CommandContext call whose command argument
 // is the literal "git" unless the call is assigned to a variable and a later
 // statement in the same block, before any reassignment, sets that variable's
-// Env from support.GitEnv, support.WithoutGitEnvironment, or a function in the
-// same file that returns one of them. It returns 0 on success and 1 when
-// findings exist.
+// Env to a config-isolated environment. That value calls support.GitEnv or
+// support.WithoutGitEnvironment and also sets GIT_CONFIG_GLOBAL and
+// GIT_CONFIG_SYSTEM, directly or through a function in the same file that
+// returns such a value, so a fixture commit reads neither the developer's
+// global signing configuration nor the system one (Issue #401). It returns 0
+// on success and 1 when findings exist.
 //
 // The rule is syntactic: a git binary passed through a variable or started by
 // a script is not observed. test:go runs the suite against a sentinel
@@ -50,7 +53,7 @@ func CheckTestGitIsolation(root string, out, errOut io.Writer) int {
 			return nil
 		}
 		for _, line := range fileFindings {
-			findings = append(findings, fmt.Sprintf("%s:%d: git command without an Env set from support.GitEnv, support.WithoutGitEnvironment, or a helper in the same file, in the same block before any reassignment", relPath(root, path), line))
+			findings = append(findings, fmt.Sprintf("%s:%d: git command without an Env that calls support.GitEnv or support.WithoutGitEnvironment and sets GIT_CONFIG_GLOBAL and GIT_CONFIG_SYSTEM, directly or through a helper in the same file, in the same block before any reassignment", relPath(root, path), line))
 		}
 		return nil
 	})
@@ -65,7 +68,7 @@ func CheckTestGitIsolation(root string, out, errOut io.Writer) int {
 		}
 		return 1
 	}
-	fmt.Fprintln(out, "Test Git-isolation check passed: every literal git command in a Go test sets Env from support.GitEnv().")
+	fmt.Fprintln(out, "Test Git-isolation check passed: every literal git command in a Go test sets a config-isolated Env from support.GitEnv().")
 	return 0
 }
 
@@ -126,29 +129,45 @@ func execImportName(file *ast.File) string {
 	return ""
 }
 
-// isolatingHelpers returns the top-level functions in file that return an
-// isolating value, such as fixtureGitEnvironment in
-// internal/environment/provision_test.go. It repeats until no helper is added,
-// so a helper that returns another helper's result also counts.
-func isolatingHelpers(file *ast.File) map[string]bool {
-	helpers := map[string]bool{}
-	for added := true; added; {
-		added = false
+// Helper levels record what a top-level function in a test file returns.
+const (
+	helperStripsGitEnvironment = 1 // an environment without GIT_* variables
+	helperIsolatesConfig       = 2 // a config-isolated environment
+)
+
+// isolatingHelpers returns the level of each top-level function in file that
+// returns an environment without GIT_* variables or a config-isolated one,
+// such as fixtureGitEnvironment in internal/environment/provision_test.go. It
+// repeats until no level rises, so a helper that builds on another helper's
+// result also counts.
+func isolatingHelpers(file *ast.File) map[string]int {
+	helpers := map[string]int{}
+	for raised := true; raised; {
+		raised = false
 		for _, decl := range file.Decls {
 			function, ok := decl.(*ast.FuncDecl)
-			if !ok || function.Recv != nil || function.Body == nil || helpers[function.Name.Name] {
+			if !ok || function.Recv != nil || function.Body == nil || helpers[function.Name.Name] == helperIsolatesConfig {
 				continue
 			}
 			ast.Inspect(function.Body, func(node ast.Node) bool {
 				if _, ok := node.(*ast.FuncLit); ok {
 					return false
 				}
-				if statement, ok := node.(*ast.ReturnStmt); ok && !helpers[function.Name.Name] {
-					for _, result := range statement.Results {
-						if isIsolatingValue(result, helpers) {
-							helpers[function.Name.Name] = true
-							added = true
-						}
+				statement, ok := node.(*ast.ReturnStmt)
+				if !ok {
+					return true
+				}
+				for _, result := range statement.Results {
+					level := 0
+					switch {
+					case isIsolatingValue(result, helpers):
+						level = helperIsolatesConfig
+					case stripsGitEnvironment(result, helpers):
+						level = helperStripsGitEnvironment
+					}
+					if level > helpers[function.Name.Name] {
+						helpers[function.Name.Name] = level
+						raised = true
 					}
 				}
 				return true
@@ -158,10 +177,65 @@ func isolatingHelpers(file *ast.File) map[string]bool {
 	return helpers
 }
 
-// isIsolatingValue reports whether expr calls support.GitEnv,
-// support.WithoutGitEnvironment, or an isolating helper. append(os.Environ(),
-// ...) and nil do not, because both keep an inherited GIT_DIR.
-func isIsolatingValue(expr ast.Expr, helpers map[string]bool) bool {
+// configIsolationPrefixes are the variable assignments a config-isolated
+// environment must contain, so Git reads no global or system configuration.
+var configIsolationPrefixes = []string{"GIT_CONFIG_GLOBAL=", "GIT_CONFIG_SYSTEM="}
+
+// isIsolatingValue reports whether expr is a config-isolated environment: it
+// calls an isolating helper, or it calls support.GitEnv or
+// support.WithoutGitEnvironment and contains a string literal for each of
+// configIsolationPrefixes. append(os.Environ(), ...) and nil are not, because
+// both keep an inherited GIT_DIR, and support.GitEnv() alone is not, because
+// it keeps the developer's global configuration.
+func isIsolatingValue(expr ast.Expr, helpers map[string]int) bool {
+	if callsIsolatingHelper(expr, helpers) {
+		return true
+	}
+	return stripsGitEnvironment(expr, helpers) && setsConfigIsolation(expr)
+}
+
+// callsIsolatingHelper reports whether expr calls a same-file helper that
+// already returns a config-isolated environment.
+func callsIsolatingHelper(expr ast.Expr, helpers map[string]int) bool {
+	found := false
+	ast.Inspect(expr, func(node ast.Node) bool {
+		if call, ok := node.(*ast.CallExpr); ok {
+			if function, ok := call.Fun.(*ast.Ident); ok && helpers[function.Name] == helperIsolatesConfig {
+				found = true
+			}
+		}
+		return !found
+	})
+	return found
+}
+
+// setsConfigIsolation reports whether expr contains a string literal that
+// starts with each of configIsolationPrefixes.
+func setsConfigIsolation(expr ast.Expr) bool {
+	seen := map[string]bool{}
+	ast.Inspect(expr, func(node ast.Node) bool {
+		literal, ok := node.(*ast.BasicLit)
+		if !ok || literal.Kind != token.STRING {
+			return true
+		}
+		value, err := strconv.Unquote(literal.Value)
+		if err != nil {
+			return true
+		}
+		for _, prefix := range configIsolationPrefixes {
+			if strings.HasPrefix(value, prefix) {
+				seen[prefix] = true
+			}
+		}
+		return true
+	})
+	return len(seen) == len(configIsolationPrefixes)
+}
+
+// stripsGitEnvironment reports whether expr calls support.GitEnv,
+// support.WithoutGitEnvironment, or a same-file helper that returns their
+// result, all of which remove the inherited GIT_* variables.
+func stripsGitEnvironment(expr ast.Expr, helpers map[string]int) bool {
 	found := false
 	ast.Inspect(expr, func(node ast.Node) bool {
 		call, ok := node.(*ast.CallExpr)
@@ -170,7 +244,7 @@ func isIsolatingValue(expr ast.Expr, helpers map[string]bool) bool {
 		}
 		switch function := call.Fun.(type) {
 		case *ast.Ident:
-			found = found || isolatingFunctions[function.Name] || helpers[function.Name]
+			found = found || isolatingFunctions[function.Name] || helpers[function.Name] >= helperStripsGitEnvironment
 		case *ast.SelectorExpr:
 			found = found || isolatingFunctions[function.Sel.Name]
 		}
@@ -182,7 +256,7 @@ func isIsolatingValue(expr ast.Expr, helpers map[string]bool) bool {
 // markIsolated records each literal git command assigned to a variable in
 // statements when a later statement of the same list assigns that variable's
 // Env an isolating value before any statement reassigns the variable.
-func markIsolated(statements []ast.Stmt, execName string, helpers map[string]bool, isolated map[*ast.CallExpr]bool) {
+func markIsolated(statements []ast.Stmt, execName string, helpers map[string]int, isolated map[*ast.CallExpr]bool) {
 	for index, statement := range statements {
 		name, call := gitCommandAssignment(statement, execName)
 		if call == nil {
