@@ -72,9 +72,9 @@ conditions:
   - id: no-warranted-follow-up
     description: The retrospective found no supported durable repository follow-up.
   - id: governed-change-issue-exists
-    description: A governing Change Issue already exists for the improvement proposal.
+    description: A governing Change Issue already exists for the handed-off work.
   - id: no-governed-change-issue
-    description: No governing Change Issue exists for the improvement proposal.
+    description: No governing Change Issue exists for the handed-off work.
 
 context:
   schema_version: 1
@@ -529,6 +529,16 @@ skills:
         condition: related-refactor-needed
         artifact: defect-evidence
         destination: {skill: refactor-code}
+      - id: handoff-governed-fix-new-issue
+        outcome: success
+        condition: no-governed-change-issue
+        artifact: defect-evidence
+        destination: {skill: create-issue}
+      - id: handoff-governed-fix-existing-issue
+        outcome: success
+        condition: governed-change-issue-exists
+        artifact: defect-evidence
+        destination: {skill: implement-issue}
       - id: stop-with-debug-blocker
         outcome: blocked
         artifact: blocked-report
