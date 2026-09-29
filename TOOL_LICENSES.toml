@@ -39,6 +39,11 @@ source = "https://go.dev/security/vuln/"
 license = "MIT"
 source = "https://github.com/rhysd/actionlint"
 
+[tools."aqua:zizmorcore/zizmor"]
+# Reviewed 2026-09-29 (1.30.1): MIT per zizmorcore/zizmor.
+license = "MIT"
+source = "https://github.com/zizmorcore/zizmor"
+
 # Development and CI tools that a repository script or workflow installs at a
 # fixed version outside mise and go.mod. Add an entry by hand when a script or
 # workflow starts pinning a new tool. check:repository fails when a pinned_in

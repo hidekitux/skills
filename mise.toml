@@ -13,6 +13,10 @@ actionlint = "1.7.12"
 # Pinned Go vulnerability scanner behind the check:go-vuln task (Issue #178);
 # updates are manual mise bumps because Dependabot does not cover mise tools.
 "go:golang.org/x/vuln/cmd/govulncheck" = "v1.7.0"
+# Pinned workflow auditor behind the lint:workflow-security task (Issue #410).
+# CI runs zizmor through zizmorcore/zizmor-action, which uses the latest
+# release; updates to this pin are manual mise bumps.
+"aqua:zizmorcore/zizmor" = "1.30.1"
 
 [tasks."validate:all"]
 description = "Run supported-platform repository validations"
@@ -80,6 +84,10 @@ run = "go run ./cmd/mutate-fsl --changed-base \"$@\""
 [tasks."lint:actions"]
 description = "Lint GitHub Actions workflows"
 run = "actionlint"
+
+[tasks."lint:workflow-security"]
+description = "Audit GitHub Actions workflows with the pinned zizmor"
+run = "zizmor .github/workflows"
 
 [tasks."lint:go"]
 description = "Format-check and vet Go sources"
