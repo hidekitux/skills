@@ -44,6 +44,23 @@ audits workflow files. Check each surface with its own command.
   standard-library findings, and re-run the scan until the finding is gone or
   an explicit reviewed exception is recorded.
 
+## Local workflow audit (`lint:workflow-security`)
+
+- **Command.** Run `mise run lint:workflow-security` before pushing a change to
+  `.github/workflows/**`. It runs `zizmor .github/workflows` with the default
+  persona, as the CI job does. `validate:all` does not run it, and no CI job
+  calls the task.
+- **Pinned tool.** zizmor 1.30.1 is pinned in `mise.toml`
+  (`aqua:zizmorcore/zizmor`) with its license attested in `TOOL_LICENSES.toml`.
+  Updates follow `docs/tool-update-policy.md`.
+- **Difference from CI.** The `Audit workflow security` job runs
+  `zizmorcore/zizmor-action` without a `version` input, so it uses the latest
+  zizmor release. After an upstream release and before the pin is bumped, the
+  two runs can report different findings. The job also passes a GitHub token,
+  which lets zizmor run its online audits. zizmor reads a token from
+  `GH_TOKEN`, `GITHUB_TOKEN`, or `ZIZMOR_GITHUB_TOKEN`; a local run without one
+  runs only the offline audits. The CI job stays the blocking check.
+
 ## What this does not claim
 
 - An available dependency update is not itself a vulnerability, and a version
