@@ -6,15 +6,7 @@ license: Apache-2.0
 
 # Project Bootstrap
 
-## Overview
-
-Create only the smallest project foundation justified by the request. Establish how
-the project is run and verified, then decide deliberately whether and how FSL
-should document or verify its stateful workflows.
-
-## Workflow
-
-### 0. Create and maintain the Todo List
+## Todo List
 
 - Before inspecting or changing the project, create a Todo List. Include
   **establish boundary**, **build foundation**, **decide FSL adoption**,
@@ -27,6 +19,14 @@ should document or verify its stateful workflows.
   discovery changes the plan.
 - Before handoff, resolve every item or explain why it remains open. Keep the
   handoff report aligned with the final Todo List.
+
+## Overview
+
+Create only the smallest project foundation justified by the request. Establish how
+the project is run and verified, then decide deliberately whether and how FSL
+should document or verify its stateful workflows.
+
+## Workflow
 
 ### 1. Establish the project boundary
 
