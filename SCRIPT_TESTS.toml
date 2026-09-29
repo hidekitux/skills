@@ -20,7 +20,6 @@
 "cmd/validate-issue-project" = "./internal/project"
 "cmd/validate-plan-comment" = "./cmd/validate-plan-comment"
 "cmd/set-issue-project-status" = "./internal/project"
-"cmd/backfill-issue-project" = "./internal/project"
 "cmd/validate-work-item-title" = "./internal/validate"
 "cmd/validate-hosts" = "./internal/validate"
 "cmd/validate-mise-tasks" = "./cmd/validate-mise-tasks"
