@@ -74,9 +74,9 @@ skills:
     before_commit: c8fa48c28267c01f10b0215e599bdb45ae39cd73
     after_commit: 42296b4
     sections:
+      - {heading: Todo List, classification: invariant}
       - {heading: Overview, classification: invariant}
       - {heading: Workflow, classification: task-procedure}
-      - {heading: "0. Create and maintain the Todo List", classification: invariant}
       - {heading: "1. Establish the project boundary", classification: task-procedure}
       - {heading: "2. Build a minimal, runnable foundation", classification: task-procedure}
       - {heading: "3. Decide optional property and mutation checks", classification: task-procedure}
