@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -129,4 +130,57 @@ func errorStrings(errs []error) []string {
 		result[i] = err.Error()
 	}
 	return result
+}
+
+// gitFixture turns root into a Git work tree, writes .gitignore, and stages
+// the tracked paths. It stages without committing, so no commit-signing
+// configuration is involved.
+func gitFixture(t *testing.T, root, gitignore string, tracked ...string) {
+	t.Helper()
+	ctx := context.Background()
+	if _, err := gitPort.Output(ctx, root, "init", "-q"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".gitignore"), []byte(gitignore), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := gitPort.Output(ctx, root, append([]string{"add", "--"}, tracked...)...); err != nil {
+		t.Fatal(err)
+	}
+}
+
+const canonicalMise = "[tasks.\"verify:fsl\"]\nrun = \"true\"\n"
+
+func TestValidateIgnoresRetiredReferenceInGitIgnoredFile(t *testing.T) {
+	root := writeFixture(t, canonicalMise, map[string]string{".claude/worktrees/copy/README.md": "mise run verify-fsl\n"})
+	gitFixture(t, root, ".claude/\n", "mise.toml")
+	if errs := validate(root, filepath.Join(root, "mise.toml")); len(errs) != 0 {
+		t.Fatalf("expected a Git-ignored reference to be skipped, got %v", errs)
+	}
+}
+
+func TestValidateRejectsRetiredReferenceInTrackedFile(t *testing.T) {
+	root := writeFixture(t, canonicalMise, map[string]string{"docs/guide.md": "mise run verify-fsl\n"})
+	gitFixture(t, root, ".claude/\n", "mise.toml", "docs/guide.md")
+	joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+	if !strings.Contains(joined, "retired task \"verify-fsl\" is referenced by "+filepath.Join(root, "docs", "guide.md")) {
+		t.Fatalf("expected the tracked reference to fail, got %s", joined)
+	}
+}
+
+func TestValidateRejectsRetiredReferenceInUntrackedNonIgnoredFile(t *testing.T) {
+	root := writeFixture(t, canonicalMise, map[string]string{"notes/draft.md": "mise run verify-fsl\n"})
+	gitFixture(t, root, ".claude/\n", "mise.toml")
+	joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+	if !strings.Contains(joined, "retired task \"verify-fsl\" is referenced by "+filepath.Join(root, "notes", "draft.md")) {
+		t.Fatalf("expected the untracked, non-ignored reference to fail, got %s", joined)
+	}
+}
+
+func TestValidateWalksEveryFileOutsideAGitWorkTree(t *testing.T) {
+	root := writeFixture(t, canonicalMise, map[string]string{".claude/worktrees/copy/README.md": "mise run verify-fsl\n"})
+	joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+	if !strings.Contains(joined, "retired task \"verify-fsl\"") {
+		t.Fatalf("expected the fallback walk to read every file, got %s", joined)
+	}
 }
