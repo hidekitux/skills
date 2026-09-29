@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -13,31 +14,65 @@ import (
 )
 
 // scriptTestMapping is the decoded form of SCRIPT_TESTS.toml. The cmds table
-// maps a cmd/ entrypoint to a Go test package; the scripts table maps a
-// retained executable script to an existing test home (a test file or a Go
-// test package).
+// maps a cmd/ entrypoint, and the scripts table maps a retained executable
+// script, to the Go test package and the named tests that exercise it.
 type scriptTestMapping struct {
-	Cmds    map[string]string `toml:"cmds"`
-	Scripts map[string]string `toml:"scripts"`
+	Cmds    map[string]testEvidence `toml:"cmds"`
+	Scripts map[string]testEvidence `toml:"scripts"`
 }
 
-// testHomeExists reports whether value names an existing file or a directory
-// containing at least one _test.go file.
-func testHomeExists(root, value string) bool {
-	path := filepath.Join(root, value)
-	if info, err := os.Stat(path); err == nil && !info.IsDir() {
-		return true
-	}
-	entries, err := os.ReadDir(path)
+// testEvidence names a Go test package and the test functions in it that
+// exercise one command or script.
+type testEvidence struct {
+	Package string   `toml:"package"`
+	Tests   []string `toml:"tests"`
+}
+
+var testFunctionPattern = regexp.MustCompile(`(?m)^func (Test\w+)\(t \*testing\.T\)`)
+
+// testFunctions returns the names of the test functions declared in the
+// _test.go files of dir, or false when dir holds no test file.
+func testFunctions(dir string) (map[string]bool, bool) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return false
+		return nil, false
 	}
+	names := map[string]bool{}
+	found := false
 	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), "_test.go") {
-			return true
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+		found = true
+		data, err := os.ReadFile(filepath.Join(dir, entry.Name()))
+		if err != nil {
+			continue
+		}
+		for _, match := range testFunctionPattern.FindAllStringSubmatch(string(data), -1) {
+			names[match[1]] = true
 		}
 	}
-	return false
+	return names, found
+}
+
+// evidenceErrors reports why entry does not show a test that exercises name:
+// no named test, a package without test files, or a named test the package
+// does not declare.
+func evidenceErrors(root, name string, entry testEvidence) []string {
+	if len(entry.Tests) == 0 {
+		return []string{fmt.Sprintf("%s: names no test", name)}
+	}
+	functions, ok := testFunctions(filepath.Join(root, filepath.FromSlash(entry.Package)))
+	if !ok {
+		return []string{fmt.Sprintf("%s: package %s has no test file", name, entry.Package)}
+	}
+	var errors []string
+	for _, test := range entry.Tests {
+		if !functions[test] {
+			errors = append(errors, fmt.Sprintf("%s: test %s is not declared in %s", name, test, entry.Package))
+		}
+	}
+	return errors
 }
 
 // cmdEntrypoints returns every cmd/<name> directory that contains a main.go
@@ -94,21 +129,23 @@ func CheckScriptTests(root string, out, errOut io.Writer) int {
 		return 1
 	}
 	if mapping.Cmds == nil {
-		mapping.Cmds = map[string]string{}
+		mapping.Cmds = map[string]testEvidence{}
 	}
 	if mapping.Scripts == nil {
-		mapping.Scripts = map[string]string{}
+		mapping.Scripts = map[string]testEvidence{}
 	}
 
 	errors := []string{}
 	commands := cmdEntrypoints(root)
 	for _, command := range commands {
-		value, ok := mapping.Cmds[command]
-		if !ok || !testHomeExists(root, value) {
+		entry, ok := mapping.Cmds[command]
+		if !ok {
 			errors = append(errors, fmt.Sprintf("%s: missing representative Go test package", command))
+			continue
 		}
+		errors = append(errors, evidenceErrors(root, command, entry)...)
 	}
-	for _, command := range sortedStringKeys(mapping.Cmds) {
+	for _, command := range sortedEntryKeys(mapping.Cmds) {
 		if !containsCommand(commands, command) {
 			errors = append(errors, fmt.Sprintf("%s: mapping has no repository command", command))
 		}
@@ -116,12 +153,14 @@ func CheckScriptTests(root string, out, errOut io.Writer) int {
 
 	scripts := scriptFiles(root)
 	for _, script := range scripts {
-		value, ok := mapping.Scripts[script]
-		if !ok || !testHomeExists(root, value) {
+		entry, ok := mapping.Scripts[script]
+		if !ok {
 			errors = append(errors, fmt.Sprintf("%s: missing representative test", script))
+			continue
 		}
+		errors = append(errors, evidenceErrors(root, script, entry)...)
 	}
-	for _, script := range sortedStringKeys(mapping.Scripts) {
+	for _, script := range sortedEntryKeys(mapping.Scripts) {
 		if !containsCommand(scripts, script) {
 			errors = append(errors, fmt.Sprintf("%s: mapping has no repository script", script))
 		}
@@ -138,7 +177,7 @@ func CheckScriptTests(root string, out, errOut io.Writer) int {
 	return 0
 }
 
-func sortedStringKeys(m map[string]string) []string {
+func sortedEntryKeys(m map[string]testEvidence) []string {
 	keys := make([]string, 0, len(m))
 	for key := range m {
 		keys = append(keys, key)
