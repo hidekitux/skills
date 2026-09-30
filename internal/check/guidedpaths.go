@@ -33,6 +33,13 @@ var (
 	// cmd/, scripts/, or templates/. The leading [^...] guard prevents matching
 	// the "cmd" inside "./cmd/", which goRunCmdRE already handles.
 	guidedPathRE = regexp.MustCompile(`(?:^|[^A-Za-z0-9_.-])((?:cmd|scripts|templates)/[A-Za-z0-9_./-]+)`)
+	// markdownLinkRE matches an inline Markdown link or image and yields its
+	// target, without an optional quoted title.
+	markdownLinkRE = regexp.MustCompile(`!?\[[^\]]*\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)`)
+	// inlineCodeRE matches an inline code span so links inside it are ignored.
+	inlineCodeRE = regexp.MustCompile("`[^`\n]*`")
+	// urlSchemeRE matches a target that starts with a URL scheme such as https:.
+	urlSchemeRE = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*:`)
 )
 
 // guidedPathFile returns true when the repository-relative path should be
@@ -123,10 +130,63 @@ func resolveGuidedPath(root, rel, candidate string) bool {
 	return false
 }
 
+// markdownLinkTargets returns the inline link and image targets in text,
+// outside fenced code blocks and inline code spans.
+func markdownLinkTargets(text string) []string {
+	var targets []string
+	fenced := false
+	for _, line := range strings.Split(text, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~") {
+			fenced = !fenced
+			continue
+		}
+		if fenced {
+			continue
+		}
+		for _, m := range markdownLinkRE.FindAllStringSubmatch(inlineCodeRE.ReplaceAllString(line, ""), -1) {
+			targets = append(targets, m[1])
+		}
+	}
+	return targets
+}
+
+// skillLinkFindings reports each relative Markdown link in the skill file rel
+// whose target is missing or lies outside the skill root, because installation
+// copies only the skill directory. URL, anchor-only, and absolute targets are
+// ignored, and a #fragment is removed before resolution.
+func skillLinkFindings(root, rel, text string) []string {
+	skill := skillRoot(root, rel)
+	if skill == "" || !strings.HasSuffix(rel, ".md") {
+		return nil
+	}
+	var findings []string
+	for _, target := range markdownLinkTargets(text) {
+		if strings.HasPrefix(target, "#") || strings.HasPrefix(target, "/") || urlSchemeRE.MatchString(target) {
+			continue
+		}
+		path, _, _ := strings.Cut(target, "#")
+		if path == "" {
+			continue
+		}
+		resolved := filepath.Clean(filepath.Join(filepath.Dir(rel), filepath.FromSlash(path)))
+		inSkill, err := filepath.Rel(skill, resolved)
+		if err != nil || inSkill == ".." || strings.HasPrefix(inSkill, ".."+string(filepath.Separator)) {
+			findings = append(findings, fmt.Sprintf("%s: link %q points outside its skill root %s, so it breaks in an installed copy", rel, target, filepath.ToSlash(skill)))
+			continue
+		}
+		if _, err := os.Stat(filepath.Join(root, resolved)); err != nil {
+			findings = append(findings, fmt.Sprintf("%s: link %q does not resolve to a file", rel, target))
+		}
+	}
+	return findings
+}
+
 // CheckGuidedPaths scans published guidance and specifications for references to
 // repository-owned command and template paths and fails when one does not
-// resolve to a tracked repository file. It returns 0 on success or 1 when a
-// stale reference is found.
+// resolve to a tracked repository file. It also fails when a relative Markdown
+// link in a published skill file is missing or leaves its skill root. It returns
+// 0 on success or 1 when a stale reference is found.
 func CheckGuidedPaths(root string, out, errOut io.Writer) int {
 	var findings []string
 	for _, rel := range guidedPathFiles(root) {
@@ -152,6 +212,7 @@ func CheckGuidedPaths(root string, out, errOut io.Writer) int {
 			}
 			findings = append(findings, fmt.Sprintf("%s: %q does not resolve to a tracked repository file", rel, candidate))
 		}
+		findings = append(findings, skillLinkFindings(root, rel, text)...)
 	}
 	if len(findings) > 0 {
 		fmt.Fprintln(errOut, "Guided-path check failed:")
