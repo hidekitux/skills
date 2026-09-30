@@ -13,9 +13,8 @@ jobs:
     name: Validate issue policy
     runs-on: ubuntu-latest
     steps:
-      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
       - name: Check out repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
       - name: Set up Go toolchain
