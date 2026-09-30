@@ -138,3 +138,55 @@ func TestScriptTestsPassesWithCompleteCoverage(t *testing.T) {
 		t.Fatalf("expected pass, got exit %d", code)
 	}
 }
+
+func TestScriptTestsPassesWithMappedSkillScripts(t *testing.T) {
+	root := t.TempDir()
+	writeVFile(t, root, "internal/sample/sample_test.go", sampleTestFile)
+	writeVFile(t, root, "skills/demo/tool/scripts/run.py", "print('ok')\n")
+	writeVFile(t, root, "skills/demo/tool/templates/github/scripts/check.py", "print('ok')\n")
+	writeVFile(t, root, "skills/demo/tool/scripts/__pycache__/run.cpython-312.pyc", "")
+	writeVFile(t, root, "skills/demo/tool/SKILL.md", "---\nname: tool\n---\n")
+	writeVFile(t, root, "SCRIPT_TESTS.toml", `[cmds]
+[scripts]
+[skill_scripts]
+"skills/demo/tool/scripts/run.py" = { package = "./internal/sample", tests = ["TestSample"] }
+"skills/demo/tool/templates/github/scripts/check.py" = { package = "./internal/sample", tests = ["TestSample"] }
+`)
+	var out, errOut bytes.Buffer
+	if code := CheckScriptTests(root, &out, &errOut); code != 0 {
+		t.Fatalf("expected pass, got exit %d: %s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "2 skill script(s) mapped") {
+		t.Fatalf("stdout = %q, want the skill-script count", out.String())
+	}
+}
+
+func TestScriptTestsRequiresEverySkillScript(t *testing.T) {
+	root := t.TempDir()
+	writeVFile(t, root, "skills/demo/tool/templates/github/scripts/check.py", "print('ok')\n")
+	writeVFile(t, root, "SCRIPT_TESTS.toml", "[cmds]\n[scripts]\n[skill_scripts]\n")
+	var out, errOut bytes.Buffer
+	if code := CheckScriptTests(root, &out, &errOut); code != 1 {
+		t.Fatalf("expected failure for an unmapped skill script, got exit %d", code)
+	}
+	if !strings.Contains(errOut.String(), "skills/demo/tool/templates/github/scripts/check.py: missing representative test") {
+		t.Fatalf("stderr = %q, want the unmapped skill script named", errOut.String())
+	}
+}
+
+func TestScriptTestsRejectsOrphanSkillScriptMapping(t *testing.T) {
+	root := t.TempDir()
+	writeVFile(t, root, "internal/sample/sample_test.go", sampleTestFile)
+	writeVFile(t, root, "SCRIPT_TESTS.toml", `[cmds]
+[scripts]
+[skill_scripts]
+"skills/demo/tool/scripts/gone.py" = { package = "./internal/sample", tests = ["TestSample"] }
+`)
+	var out, errOut bytes.Buffer
+	if code := CheckScriptTests(root, &out, &errOut); code != 1 {
+		t.Fatalf("expected failure for a stale skill-script entry, got exit %d", code)
+	}
+	if !strings.Contains(errOut.String(), "skills/demo/tool/scripts/gone.py: mapping has no skill script") {
+		t.Fatalf("stderr = %q, want the stale entry named", errOut.String())
+	}
+}
