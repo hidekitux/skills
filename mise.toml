@@ -143,10 +143,6 @@ run = "bash scripts/setup/setup-bootstrap.sh"
 description = "Refresh revision-dependent worktree setup"
 run = "bash scripts/setup/setup-refresh.sh"
 
-[tasks."setup:local-skills"]
-description = "Refresh local Git hooks and repository skills"
-run = "bash scripts/setup/setup-refresh.sh"
-
 [tasks."check:skills"]
 description = "Validate publishable Agent Skills"
 run = "gh skill publish --dry-run"
