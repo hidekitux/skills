@@ -42,7 +42,7 @@ var allowedVerbs = map[string]bool{
 // only an executable reference or a redeclaration fails.
 var retiredTasks = []string{
 	"diagnose:worktree", "evaluate", "fsl:install", "lint", "mutate-fsl",
-	"mutate-fsl:changed", "release:publish", "setup", "test", "validate",
+	"mutate-fsl:changed", "release:publish", "setup", "setup:local-skills", "test", "validate",
 	"validate-skill-creator", "verify-fsl", "verify-release", "worktree:diagnose",
 }
 
