@@ -76,6 +76,27 @@ func TestActionPinsFailsOnSameLineSHAComment(t *testing.T) {
 	}
 }
 
+func TestActionPinsReadsYAMLExtension(t *testing.T) {
+	stale := "steps:\n  # v3 -> 3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518\n  - uses: jdx/mise-action@" + pinSHA + "\n"
+	code, output := runActionPinCheck(t, map[string]string{
+		".github/workflows/ci.yaml":     stale,
+		".github/actions/x/action.yaml": stale,
+	})
+	if code != 1 {
+		t.Fatalf("expected 1, got %d:\n%s", code, output)
+	}
+	for _, want := range []string{
+		".github/workflows/ci.yaml:2: comment repeats a commit SHA",
+		".github/workflows/ci.yaml:3: pinned uses: needs a trailing",
+		".github/actions/x/action.yaml:2: comment repeats a commit SHA",
+		".github/actions/x/action.yaml:3: pinned uses: needs a trailing",
+	} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("output missing %q:\n%s", want, output)
+		}
+	}
+}
+
 func TestActionPinsSkipsLocalAndUnpinnedReferences(t *testing.T) {
 	code, output := runActionPinCheck(t, map[string]string{
 		".github/workflows/ci.yml": "steps:\n      - uses: $/.github/actions/setup-go\n      - uses: ./.github/actions/setup-go\n      - uses: actions/checkout@v4\n",
