@@ -19,9 +19,8 @@ jobs:
     name: Audit workflow security
     runs-on: ubuntu-latest
     steps:
-      # v4 -> 11d5960a326750d5838078e36cf38b85af677262
       - name: Check out repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -36,10 +35,9 @@ jobs:
           else
             echo "workflows-changed=false" >> "${GITHUB_OUTPUT}"
           fi
-      # v0.6.2 -> 3dc1ecc9bcb9e94e9b2c709687979e1298497054
       - name: Audit GitHub Actions workflows
         if: steps.changed.outputs.workflows-changed == 'true'
-        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482
+        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
         with:
           # advanced-security: true uploads SARIF to GitHub Code Scanning,
           # which adds the unnameable `Code scanning results / zizmor` check.
