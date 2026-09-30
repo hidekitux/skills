@@ -137,9 +137,9 @@ The evaluated entry points coordinate the primitive skills from a user request t
 
 | Entry point | Outcome | Status | Version |
 | --- | --- | --- | --- |
-| `improve-project` | Improve a project end to end from read-only analysis through an Issue-backed, reviewed change. | experimental | 0.1.0 |
-| `deliver-change` | Deliver a governed Change Issue end to end from its verified plan through a reviewed Pull Request. | experimental | 0.1.0 |
-| `resolve-defect` | Resolve a verified defect from reproduction through fix, regression tests, and any required governed change. | experimental | 0.1.0 |
+| `improve-project` | Improve a project end to end from read-only analysis through an Issue-backed, reviewed change. | experimental | 0.1.1 |
+| `deliver-change` | Deliver a governed Change Issue end to end from its verified plan through a reviewed Pull Request. | experimental | 0.1.1 |
+| `resolve-defect` | Resolve a verified defect from reproduction through fix, regression tests, and any required governed change. | experimental | 0.1.1 |
 
 ### Preview stability
 
