@@ -84,6 +84,12 @@ reasons:
 
 ## Runtime setup
 
+- Every external action is pinned to a full commit SHA with its release tag in
+  a trailing comment on the same line, such as
+  `uses: jdx/mise-action@<sha> # v4.3.0`. Dependabot rewrites that comment
+  together with the SHA. The `check-action-pins` check in `check:repository`
+  fails on a pinned `uses:` line without the tag and on any comment that
+  repeats a SHA, because Dependabot leaves such a comment stale.
 - Go-based policy checks use `.github/actions/setup-go`, which centralizes
   `actions/setup-go` (`go-version: 1.26.6` matching `go.mod` and `mise.toml`,
   caching on, `go.sum` cache key). Workflows reference it through the

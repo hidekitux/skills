@@ -341,25 +341,28 @@ files this redesign adds.
 
 `cmd/check-repository` ran 21 checks at the baseline and printed
 `check:repository: all 21 repository checks passed.` on its final line. It now
-runs 25 and prints the matching total. Issue #328 added
+runs 26 and prints the matching total. Issue #328 added
 `check-module-boundaries` so the recorded dependency direction is enforced,
 Issue #331 added `check-contract-decisions` so this table is enforced the same
 way, and Issue #332 added `check-cutover-record` so the cutover record is too.
 Issue #372 added `check-test-git-isolation`, which rejects a Go test that
 starts `git` without isolating it from an inherited Git environment. Issue #401
 extended it to reject a test whose Git environment still reads the developer's
-global or system Git configuration.
+global or system Git configuration. Issue #424 added `check-action-pins`,
+which requires each SHA-pinned action to carry its release tag on the `uses:`
+line and rejects a comment that repeats a SHA.
 An unenforced record drifts, which `docs/validation-tiers.md` demonstrated by
 carrying a stale check total until Issue #331 reconciled it.
 
 The requester confirmed the change while planning Issue #331, the third added
-check while planning Issue #332, and the fourth while planning Issue #372. A
+check while planning Issue #332, the fourth while planning Issue #372, and the
+fifth while planning Issue #424. A
 consumer that reads the printed
 list by name keeps working, because the list grows and no existing name was
 removed or renamed; a consumer that asserts an exact total updates that total
 once. The exit status contract is unchanged: zero when every check passes and
 one when any check fails. `go run ./cmd/check-repository`
-prints the 25 named checks and the matching total, and
+prints the 26 named checks and the matching total, and
 `cmd/check-repository/main_test.go` covers the aggregate result.
 
 ### Changed: the FSL verifier failure classification
