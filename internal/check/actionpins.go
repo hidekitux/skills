@@ -31,7 +31,9 @@ func CheckActionPins(root string, out, errOut io.Writer) int {
 	files := []string{}
 	for _, pattern := range []string{
 		filepath.Join(root, ".github", "workflows", "*.yml"),
+		filepath.Join(root, ".github", "workflows", "*.yaml"),
 		filepath.Join(root, ".github", "actions", "*", "action.yml"),
+		filepath.Join(root, ".github", "actions", "*", "action.yaml"),
 	} {
 		matches, err := filepath.Glob(pattern)
 		if err != nil {
