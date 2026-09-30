@@ -197,6 +197,26 @@ func TestValidateRejectsRedeclaredDiagnoseWorktree(t *testing.T) {
 	}
 }
 
+func TestValidateRejectsRetiredSetupLocalSkills(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"setup:refresh\"]\nrun = \"true\"\n", map[string]string{
+		"README.md": "mise run setup:local-skills\n",
+	})
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"setup:local-skills\"") {
+		t.Fatalf("expected retired setup:local-skills reference failure, got %v", errs)
+	}
+}
+
+func TestValidateRejectsRedeclaredSetupLocalSkills(t *testing.T) {
+	root := writeFixture(t, "[tasks.\"setup:local-skills\"]\nrun = \"true\"\n", nil)
+	errs := validate(root, filepath.Join(root, "mise.toml"))
+	joined := strings.Join(errorStrings(errs), "\n")
+	if !strings.Contains(joined, "retired task \"setup:local-skills\"") {
+		t.Fatalf("expected retired setup:local-skills declaration failure, got %v", errs)
+	}
+}
+
 func TestValidateRejectsRetiredDependencyInAnyPosition(t *testing.T) {
 	mise := "[tasks.\"check:all\"]\nrun = \"true\"\n[tasks.\"validate:all\"]\ndepends = [\"check:all\", \"diagnose:worktree\"]\n"
 	root := writeFixture(t, mise, nil)
