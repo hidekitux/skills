@@ -10,17 +10,17 @@
 # publication. The key is optional, and no check validates it; see
 # docs/public-skill-status.md.
 released: true
-tag: "v0.1.0"
-release_url: "https://github.com/hidekitux/skills/releases/tag/v0.1.0"
-commit: "746ad8e3ab92a5591e34a5146cfd7d06b96e883a"
+tag: "v0.1.1"
+release_url: "https://github.com/hidekitux/skills/releases/tag/v0.1.1"
+commit: "f78f0c97d1edf88185018a41a7a762549a03e035"
 pinned_installation:
   - host: codex
-    command: "gh skill install hidekitux/skills create-issue --pin v0.1.0 --agent codex --scope project"
+    command: "gh skill install hidekitux/skills create-issue --pin v0.1.1 --agent codex --scope project"
     installed_path: ".agents/skills/create-issue"
-    result: "The installed skill records github-pinned v0.1.0 and github-tree-sha 2f75150e993d4cc4f69ef28ab4098d6a459616cf, the tree of skills/process/create-issue at v0.1.0."
-    date: "2026-09-25"
+    result: "The installed skill records github-pinned v0.1.1 and github-tree-sha 9f88c6ff57e0bf736850c4a8b6568e2659f48b1c, the tree of skills/process/create-issue at v0.1.1."
+    date: "2026-09-30"
   - host: claude-code
-    command: "gh skill install hidekitux/skills create-issue --pin v0.1.0 --agent claude-code --scope project"
+    command: "gh skill install hidekitux/skills create-issue --pin v0.1.1 --agent claude-code --scope project"
     installed_path: ".claude/skills/create-issue"
-    result: "The installed skill records github-pinned v0.1.0 and github-tree-sha 2f75150e993d4cc4f69ef28ab4098d6a459616cf, the tree of skills/process/create-issue at v0.1.0."
-    date: "2026-09-25"
+    result: "The installed skill records github-pinned v0.1.1 and github-tree-sha 9f88c6ff57e0bf736850c4a8b6568e2659f48b1c, the tree of skills/process/create-issue at v0.1.1."
+    date: "2026-09-30"
