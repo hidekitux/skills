@@ -84,15 +84,16 @@ func validate(root, misePath string) []error {
 	return errs
 }
 
-// inventoryTasks reads the canonical task inventory table and returns the
-// category of each listed task. It fails when the document or its inventory
-// heading is missing, so the comparison cannot pass by skipping the table.
-func inventoryTasks(root string) (map[string]string, error) {
+// inventoryTasks reads the canonical task inventory table and returns, for
+// each listed task, the category of every row that lists it. It fails when the
+// document or its inventory heading is missing, so the comparison cannot pass
+// by skipping the table.
+func inventoryTasks(root string) (map[string][]string, error) {
 	data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(inventoryPath)))
 	if err != nil {
 		return nil, fmt.Errorf("read task inventory %s: %w", inventoryPath, err)
 	}
-	listed := map[string]string{}
+	listed := map[string][]string{}
 	inSection := false
 	found := false
 	for _, line := range strings.Split(string(data), "\n") {
@@ -114,7 +115,7 @@ func inventoryTasks(root string) (map[string]string, error) {
 			continue
 		}
 		for _, match := range inventoryTaskName.FindAllStringSubmatch(cells[1], -1) {
-			listed[match[1]] = category
+			listed[match[1]] = append(listed[match[1]], category)
 		}
 	}
 	if !found {
@@ -124,8 +125,8 @@ func inventoryTasks(root string) (map[string]string, error) {
 }
 
 // inventoryErrors reports each declared task missing from the canonical task
-// inventory, each listed task that mise.toml does not declare, and each listed
-// task whose row category differs from its verb.
+// inventory, each listed task that mise.toml does not declare, and each row
+// that lists a task under a category other than its verb.
 func inventoryErrors(root string, tasks []string) []error {
 	listed, err := inventoryTasks(root)
 	if err != nil {
@@ -135,13 +136,16 @@ func inventoryErrors(root string, tasks []string) []error {
 	declared := map[string]bool{}
 	for _, task := range tasks {
 		declared[task] = true
-		category, ok := listed[task]
+		categories, ok := listed[task]
 		if !ok {
 			errs = append(errs, fmt.Errorf("task %q is declared in mise.toml but missing from the canonical task inventory in %s", task, inventoryPath))
 			continue
 		}
-		if verb, _, _ := strings.Cut(task, ":"); category != verb {
-			errs = append(errs, fmt.Errorf("task %q is listed under category %q in %s instead of %q", task, category, inventoryPath, verb))
+		verb, _, _ := strings.Cut(task, ":")
+		for _, category := range categories {
+			if category != verb {
+				errs = append(errs, fmt.Errorf("task %q is listed under category %q in %s instead of %q", task, category, inventoryPath, verb))
+			}
 		}
 	}
 	for task := range listed {
