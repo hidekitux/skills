@@ -8,6 +8,7 @@ Repository tasks use the form `verb:task-name`.
 - A task must describe an action. The approved verb vocabulary is `check`, `evaluate`, `format`, `generate`, `install`, `lint`, `mutate`, `publish`, `setup`, `test`, `validate`, and `verify`.
 - Top-level convenience tasks are not exceptions: aggregate operations use an explicit task name such as `validate:all` or `test:all`.
 - A task name is a public repository interface. Renaming one requires updating every tracked invocation, dependency, example, workflow, hook, and document in the same change.
+- Issue #426 retired `setup:local-skills`. Use `setup:refresh`, which runs the same `scripts/setup/setup-refresh.sh`.
 - The task validator rejects malformed declarations and references to retired names. It also fails when the canonical task inventory below does not list exactly the tasks that `mise.toml` declares, each under the category of its verb.
 
 ## Canonical task inventory
@@ -21,7 +22,7 @@ Repository tasks use the form `verb:task-name`.
 | lint | `lint:all`, `lint:actions`, `lint:go`, `lint:python`, `lint:shell`, `lint:workflow-security` |
 | mutate | `mutate:fsl`, `mutate:fsl-changed` |
 | publish | `publish:release` |
-| setup | `setup:all`, `setup:bootstrap`, `setup:commitlint`, `setup:environment`, `setup:local-skills`, `setup:refresh` |
+| setup | `setup:all`, `setup:bootstrap`, `setup:commitlint`, `setup:environment`, `setup:refresh` |
 | test | `test:all`, `test:go`, `test:json` |
 | validate | `validate:all`, `validate:skill-creator` |
 | verify | `verify:fsl`, `verify:release` |
