@@ -4,12 +4,11 @@
 # is not declared in that package. The check proves that the named test
 # exists; reviewers still inspect that it exercises the changed behavior.
 #
-# The cmds table maps a cmd/ Go entrypoint, and the scripts table maps a
-# retained executable file under scripts/.
-#
-# Skill scripts under skills/**/scripts/ are outside this mapping. ruff check
-# skills lints them, and the files under templates/ are copied into the
-# projects that bootstrap-project generates.
+# The cmds table maps a cmd/ Go entrypoint, the scripts table maps a retained
+# executable file under scripts/, and the skill_scripts table maps each file
+# below skills/ whose path has a scripts/ directory at any depth. The Go tests
+# for skill scripts run them with python3; the files under templates/ are
+# copied into the projects that bootstrap-project generates.
 [cmds]
 "cmd/check-sensitive-content" = { package = "./internal/check", tests = ["TestSensitiveContentRejectsATokenAndPrivateURL"] }
 "cmd/check-analyze-readonly" = { package = "./internal/check", tests = ["TestAnalyzeReadonlyRejectsIssueCreationInstruction"] }
@@ -65,3 +64,8 @@
 "scripts/setup/setup-state.sh" = { package = "./internal/hooks", tests = ["TestSetupStateProvidesAtomicStateHelpers"] }
 "scripts/setup/setup-validator.sh" = { package = "./internal/hooks", tests = ["TestSetupValidatorBuildsAndLinksTheRevisionValidator"] }
 "scripts/setup/run-mise.sh" = { package = "./internal/hooks", tests = ["TestPostCheckoutOnlyRefreshesSetupOnBranchCheckouts"] }
+
+[skill_scripts]
+"skills/govern/bootstrap-project/scripts/configure-github-ruleset.py" = { package = "./internal/check", tests = ["TestConfigureRulesetDryRunPrintsPayloadWithoutCallingGH", "TestConfigureRulesetRejectsInvalidArguments", "TestConfigureRulesetApplyCreatesAndVerifiesRuleset", "TestConfigureRulesetApplyUpdatesRulesetAndRemovesDeprecatedOne"] }
+"skills/govern/bootstrap-project/templates/github/scripts/validate-commit-message.py" = { package = "./internal/check", tests = ["TestCommitMessageScriptAcceptsSingleHeaderWithIssue", "TestCommitMessageScriptRejectsEachMessageClass"] }
+"skills/govern/bootstrap-project/templates/github/scripts/validate-work-item-title.py" = { package = "./internal/check", tests = ["TestWorkItemTitleScriptAcceptsStandardAndReleaseTitles", "TestWorkItemTitleScriptRejectsEachTitleClass"] }

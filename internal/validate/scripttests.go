@@ -14,11 +14,13 @@ import (
 )
 
 // scriptTestMapping is the decoded form of SCRIPT_TESTS.toml. The cmds table
-// maps a cmd/ entrypoint, and the scripts table maps a retained executable
-// script, to the Go test package and the named tests that exercise it.
+// maps a cmd/ entrypoint, the scripts table maps a retained executable script,
+// and the skill_scripts table maps a script bundled with a skill, to the Go
+// test package and the named tests that exercise it.
 type scriptTestMapping struct {
-	Cmds    map[string]testEvidence `toml:"cmds"`
-	Scripts map[string]testEvidence `toml:"scripts"`
+	Cmds         map[string]testEvidence `toml:"cmds"`
+	Scripts      map[string]testEvidence `toml:"scripts"`
+	SkillScripts map[string]testEvidence `toml:"skill_scripts"`
 }
 
 // testEvidence names a Go test package and the test functions in it that
@@ -119,9 +121,59 @@ func scriptFiles(root string) []string {
 	return files
 }
 
-// CheckScriptTests requires each cmd/ entrypoint and each executable script
-// under scripts/ to name an existing representative test, returning 0 on
-// success or 1 when the registry has gaps or orphans.
+// skillScriptFiles returns every file below root/skills whose path has a
+// scripts directory component, at any depth, excluding bytecode caches,
+// relative to root with forward slashes.
+func skillScriptFiles(root string) []string {
+	var files []string
+	_ = filepath.WalkDir(filepath.Join(root, "skills"), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			if d.Name() == "__pycache__" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil || strings.HasSuffix(rel, ".pyc") {
+			return nil
+		}
+		rel = filepath.ToSlash(rel)
+		if containsCommand(strings.Split(filepath.Dir(rel), "/"), "scripts") {
+			files = append(files, rel)
+		}
+		return nil
+	})
+	sort.Strings(files)
+	return files
+}
+
+// checkMappedFiles reports each file without an entry, each entry whose
+// evidence is incomplete, and each entry that names no existing file.
+func checkMappedFiles(root string, files []string, entries map[string]testEvidence, orphan string) []string {
+	var errors []string
+	for _, file := range files {
+		entry, ok := entries[file]
+		if !ok {
+			errors = append(errors, fmt.Sprintf("%s: missing representative test", file))
+			continue
+		}
+		errors = append(errors, evidenceErrors(root, file, entry)...)
+	}
+	for _, file := range sortedEntryKeys(entries) {
+		if !containsCommand(files, file) {
+			errors = append(errors, fmt.Sprintf("%s: mapping has no %s", file, orphan))
+		}
+	}
+	return errors
+}
+
+// CheckScriptTests requires each cmd/ entrypoint, each executable script
+// under scripts/, and each script bundled with a skill to name an existing
+// representative test, returning 0 on success or 1 when the registry has gaps
+// or orphans.
 func CheckScriptTests(root string, out, errOut io.Writer) int {
 	var mapping scriptTestMapping
 	if err := support.LoadTOMLFile(filepath.Join(root, "SCRIPT_TESTS.toml"), &mapping); err != nil {
@@ -133,6 +185,9 @@ func CheckScriptTests(root string, out, errOut io.Writer) int {
 	}
 	if mapping.Scripts == nil {
 		mapping.Scripts = map[string]testEvidence{}
+	}
+	if mapping.SkillScripts == nil {
+		mapping.SkillScripts = map[string]testEvidence{}
 	}
 
 	errors := []string{}
@@ -152,19 +207,9 @@ func CheckScriptTests(root string, out, errOut io.Writer) int {
 	}
 
 	scripts := scriptFiles(root)
-	for _, script := range scripts {
-		entry, ok := mapping.Scripts[script]
-		if !ok {
-			errors = append(errors, fmt.Sprintf("%s: missing representative test", script))
-			continue
-		}
-		errors = append(errors, evidenceErrors(root, script, entry)...)
-	}
-	for _, script := range sortedEntryKeys(mapping.Scripts) {
-		if !containsCommand(scripts, script) {
-			errors = append(errors, fmt.Sprintf("%s: mapping has no repository script", script))
-		}
-	}
+	errors = append(errors, checkMappedFiles(root, scripts, mapping.Scripts, "repository script")...)
+	skillScripts := skillScriptFiles(root)
+	errors = append(errors, checkMappedFiles(root, skillScripts, mapping.SkillScripts, "skill script")...)
 
 	if len(errors) > 0 {
 		fmt.Fprintln(errOut, "Script-test mapping check failed:")
@@ -173,7 +218,7 @@ func CheckScriptTests(root string, out, errOut io.Writer) int {
 		}
 		return 1
 	}
-	fmt.Fprintf(out, "Script-test mapping check passed: %d command(s) and %d script(s) mapped.\n", len(commands), len(scripts))
+	fmt.Fprintf(out, "Script-test mapping check passed: %d command(s), %d script(s), and %d skill script(s) mapped.\n", len(commands), len(scripts), len(skillScripts))
 	return 0
 }
 
