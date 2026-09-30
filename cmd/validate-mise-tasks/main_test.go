@@ -105,6 +105,23 @@ func TestValidateRejectsInventoryTaskUnderAnotherCategory(t *testing.T) {
 	}
 }
 
+// A task left in its old row after moving to its own row must still fail,
+// whichever row comes first.
+func TestValidateRejectsTaskListedUnderAWrongRowAndItsOwnRow(t *testing.T) {
+	for name, rows := range map[string]string{
+		"wrong row first": "| check | `check:all`, `lint:go` |\n| lint | `lint:go` |\n",
+		"own row first":   "| lint | `lint:go` |\n| check | `check:all`, `lint:go` |\n",
+	} {
+		root := writeFixture(t, inventoryMise, map[string]string{
+			inventoryPath: inventoryHeading + "\n\n| Category | Task names |\n| --- | --- |\n" + rows,
+		})
+		joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+		if !strings.Contains(joined, `task "lint:go" is listed under category "check" in docs/mise-tasks.md instead of "lint"`) {
+			t.Errorf("%s: expected the stale listing to fail, got %s", name, joined)
+		}
+	}
+}
+
 func TestValidateRejectsMissingTaskInventory(t *testing.T) {
 	for name, files := range map[string]map[string]string{
 		"missing file":    {"README.md": "mise run check:all\n"},
