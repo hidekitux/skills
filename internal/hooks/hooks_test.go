@@ -313,13 +313,6 @@ func TestRegisterLocalSkillsDiscoversNestedSkillsRecursively(t *testing.T) {
 	}
 }
 
-func TestSetupLocalSkillsEnablesHooks(t *testing.T) {
-	script := readRepoFile(t, "scripts/setup/setup-local-skills.sh")
-	if !strings.Contains(script, "setup-refresh.sh") {
-		t.Fatalf("setup-local-skills must route compatibility setup through refresh: %q", script)
-	}
-}
-
 func writeTestFile(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -406,7 +399,6 @@ func newSetupRepository(t *testing.T) (string, string) {
 		"scripts/setup/setup-bootstrap.sh",
 		"scripts/setup/setup-commitlint.sh",
 		"scripts/setup/setup-environment.sh",
-		"scripts/setup/setup-local-skills.sh",
 		"scripts/setup/setup-refresh.sh",
 		"scripts/setup/setup-state.sh",
 		"scripts/setup/setup-validator.sh",
