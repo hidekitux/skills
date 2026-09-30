@@ -12,7 +12,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [create-issue, implement-issue]
   - name: create-pr
@@ -21,7 +21,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [implement-issue, review-pr]
   - name: merge-pr
@@ -30,7 +30,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [create-pr, review-pr]
   - name: create-issue
@@ -39,7 +39,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [plan-issue]
   - name: bootstrap-project
@@ -49,7 +49,7 @@ skills:
     agents: [codex, claude-code]
     host_adapters: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: govern
     related: [audit-workflow-enforcement]
   - name: audit-workflow-enforcement
@@ -59,7 +59,7 @@ skills:
     agents: [codex, claude-code]
     host_adapters: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: govern
     related: [bootstrap-project]
   - name: implement-issue
@@ -68,7 +68,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [plan-issue, create-pr]
   - name: debug-code
@@ -77,7 +77,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: fix
     related: [implement-issue, write-tests, refactor-code]
   - name: fix-pr
@@ -86,7 +86,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [review-pr, create-pr, merge-pr]
   - name: review-pr
@@ -95,7 +95,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [create-pr, fix-pr]
   - name: analyze-project
@@ -104,7 +104,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: analyze
     related: [create-issue]
   - name: analyze-codebase
@@ -113,7 +113,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: analyze
     related: [analyze-project, create-issue, debug-code, write-tests, refactor-code]
   - name: propose-improvements
@@ -122,7 +122,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: analyze
     related: [analyze-codebase, analyze-project, refactor-code, create-issue, plan-issue]
   - name: triage-issues
@@ -131,7 +131,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: analyze
     related: [analyze-project, create-issue]
   - name: retrospect-work
@@ -140,7 +140,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: analyze
     related: [analyze-project, triage-issues, create-issue]
   - name: refactor-code
@@ -149,7 +149,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: fix
     related: [debug-code, write-tests, implement-issue]
   - name: write-tests
@@ -158,7 +158,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: fix
     related: [debug-code, implement-issue, refactor-code]
   - name: improve-project
@@ -167,7 +167,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [analyze-project, create-issue, plan-issue, implement-issue, create-pr, review-pr]
   - name: deliver-change
@@ -176,7 +176,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: process
     related: [plan-issue, implement-issue, create-pr, review-pr]
   - name: resolve-defect
@@ -185,7 +185,7 @@ skills:
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
-    version: 0.1.0
+    version: 0.1.1
     layer: fix
     related: [debug-code, write-tests, create-issue, plan-issue, implement-issue]
 
