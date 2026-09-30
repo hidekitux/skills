@@ -145,15 +145,15 @@ The evaluated entry points coordinate the primitive skills from a user request t
 
 Every cataloged skill is `experimental` until behavioral and release evidence qualify promotion ([docs/evaluation.md](docs/evaluation.md)).
 
-Verified release: `v0.1.0` ([GitHub Release](https://github.com/hidekitux/skills/releases/tag/v0.1.0), commit `746ad8e3ab92a5591e34a5146cfd7d06b96e883a`).
+Verified release: `v0.1.1` ([GitHub Release](https://github.com/hidekitux/skills/releases/tag/v0.1.1), commit `f78f0c97d1edf88185018a41a7a762549a03e035`).
 
 ### Pinned installation
 
-The verified preview release is `v0.1.0` (commit `746ad8e3ab92a5591e34a5146cfd7d06b96e883a`). Pin any cataloged skill or entry point for Codex and Claude Code, for example:
+The verified preview release is `v0.1.1` (commit `f78f0c97d1edf88185018a41a7a762549a03e035`). Pin any cataloged skill or entry point for Codex and Claude Code, for example:
 
 ```bash
-gh skill install hidekitux/skills <skill> --pin v0.1.0 --agent codex --scope user
-gh skill install hidekitux/skills <skill> --pin v0.1.0 --agent claude-code --scope user
+gh skill install hidekitux/skills <skill> --pin v0.1.1 --agent codex --scope user
+gh skill install hidekitux/skills <skill> --pin v0.1.1 --agent claude-code --scope user
 ```
 <!-- END generated: public-status -->
 
