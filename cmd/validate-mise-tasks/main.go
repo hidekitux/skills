@@ -1,5 +1,6 @@
 // Command validate-mise-tasks validates the repository's canonical mise task
-// names and rejects references to retired task names.
+// names, rejects references to retired task names, and requires the canonical
+// task inventory in docs/mise-tasks.md to list exactly the declared tasks.
 package main
 
 import (
@@ -21,6 +22,14 @@ var gitPort = provider.NewGit(provider.OSRunner{})
 
 var taskHeader = regexp.MustCompile(`^\[tasks\.(?:"([^"]+)"|([^]]+))\]$`)
 var taskName = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9-]*$`)
+var inventoryTaskName = regexp.MustCompile("`([^`]+)`")
+
+// inventoryPath is the document, relative to the repository root, whose
+// canonical task inventory must list every task that mise.toml declares.
+const inventoryPath = "docs/mise-tasks.md"
+
+// inventoryHeading starts the canonical task inventory table in inventoryPath.
+const inventoryHeading = "## Canonical task inventory"
 
 var allowedVerbs = map[string]bool{
 	"check": true, "evaluate": true, "format": true, "generate": true,
@@ -49,7 +58,7 @@ func main() {
 	if len(errs) > 0 {
 		os.Exit(1)
 	}
-	fmt.Println("mise task names and references are valid")
+	fmt.Println("mise task names, references, and the canonical task inventory are valid")
 }
 
 func validate(root, misePath string) []error {
@@ -64,6 +73,7 @@ func validate(root, misePath string) []error {
 			errs = append(errs, fmt.Errorf("task %q must use a one-word verb category and hyphenated task name", task))
 		}
 	}
+	errs = append(errs, inventoryErrors(root, tasks)...)
 	candidates := candidateFiles(root)
 	for _, retired := range retiredTasks {
 		if found, path := findReference(root, candidates, retired); found {
@@ -71,6 +81,74 @@ func validate(root, misePath string) []error {
 		}
 	}
 	sort.Slice(errs, func(i, j int) bool { return errs[i].Error() < errs[j].Error() })
+	return errs
+}
+
+// inventoryTasks reads the canonical task inventory table and returns the
+// category of each listed task. It fails when the document or its inventory
+// heading is missing, so the comparison cannot pass by skipping the table.
+func inventoryTasks(root string) (map[string]string, error) {
+	data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(inventoryPath)))
+	if err != nil {
+		return nil, fmt.Errorf("read task inventory %s: %w", inventoryPath, err)
+	}
+	listed := map[string]string{}
+	inSection := false
+	found := false
+	for _, line := range strings.Split(string(data), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "## ") {
+			inSection = trimmed == inventoryHeading
+			found = found || inSection
+			continue
+		}
+		if !inSection || !strings.HasPrefix(trimmed, "|") {
+			continue
+		}
+		cells := strings.Split(strings.Trim(trimmed, "|"), "|")
+		if len(cells) < 2 {
+			continue
+		}
+		category := strings.TrimSpace(cells[0])
+		if category == "Category" || strings.Trim(category, "-: ") == "" {
+			continue
+		}
+		for _, match := range inventoryTaskName.FindAllStringSubmatch(cells[1], -1) {
+			listed[match[1]] = category
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("%s has no %q section", inventoryPath, inventoryHeading)
+	}
+	return listed, nil
+}
+
+// inventoryErrors reports each declared task missing from the canonical task
+// inventory, each listed task that mise.toml does not declare, and each listed
+// task whose row category differs from its verb.
+func inventoryErrors(root string, tasks []string) []error {
+	listed, err := inventoryTasks(root)
+	if err != nil {
+		return []error{err}
+	}
+	var errs []error
+	declared := map[string]bool{}
+	for _, task := range tasks {
+		declared[task] = true
+		category, ok := listed[task]
+		if !ok {
+			errs = append(errs, fmt.Errorf("task %q is declared in mise.toml but missing from the canonical task inventory in %s", task, inventoryPath))
+			continue
+		}
+		if verb, _, _ := strings.Cut(task, ":"); category != verb {
+			errs = append(errs, fmt.Errorf("task %q is listed under category %q in %s instead of %q", task, category, inventoryPath, verb))
+		}
+	}
+	for task := range listed {
+		if !declared[task] {
+			errs = append(errs, fmt.Errorf("task %q is listed in the canonical task inventory in %s but not declared in mise.toml", task, inventoryPath))
+		}
+	}
 	return errs
 }
 
