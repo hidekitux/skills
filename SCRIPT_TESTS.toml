@@ -56,7 +56,6 @@
 "scripts/setup/environment-state.sh" = { package = "./internal/fsl", tests = ["TestBinPathReadsEnvironmentState"] }
 "scripts/setup/register-local-skills.sh" = { package = "./internal/hooks", tests = ["TestRegisterLocalSkillsDiscoversNestedSkillsRecursively"] }
 "scripts/setup/setup-commitlint.sh" = { package = "./internal/hooks", tests = ["TestSetupCommitlintPreparesOnlyTheLocalCommitlint"] }
-"scripts/setup/setup-local-skills.sh" = { package = "./internal/hooks", tests = ["TestSetupLocalSkillsEnablesHooks"] }
 "scripts/setup/setup-all.sh" = { package = "./internal/hooks", tests = ["TestSetupAllRunsBootstrapBeforeRefresh"] }
 "scripts/setup/setup-bootstrap.sh" = { package = "./internal/hooks", tests = ["TestSetupAllRunsBootstrapBeforeRefresh"] }
 "scripts/setup/setup-environment.sh" = { package = "./internal/hooks", tests = ["TestSetupEnvironmentExportsCIPathsWithoutGeneratingMiseConfig"] }
