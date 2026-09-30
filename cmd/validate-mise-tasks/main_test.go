@@ -8,11 +8,22 @@ import (
 	"testing"
 )
 
+// writeFixture writes mise.toml and files below a temporary root. Unless files
+// supplies docs/mise-tasks.md, it also writes a canonical task inventory that
+// lists every declared task under its verb, so a test sees only the errors it
+// provokes.
 func writeFixture(t *testing.T, mise string, files map[string]string) string {
 	t.Helper()
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "mise.toml"), []byte(mise), 0o644); err != nil {
 		t.Fatal(err)
+	}
+	if _, ok := files[inventoryPath]; !ok {
+		tasks, err := declaredTasks(filepath.Join(root, "mise.toml"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		files = withFile(files, inventoryPath, inventoryFor(tasks))
 	}
 	for name, content := range files {
 		path := filepath.Join(root, name)
@@ -24,6 +35,92 @@ func writeFixture(t *testing.T, mise string, files map[string]string) string {
 		}
 	}
 	return root
+}
+
+// withFile returns a copy of files with name set to content.
+func withFile(files map[string]string, name, content string) map[string]string {
+	result := map[string]string{name: content}
+	for key, value := range files {
+		if key != name {
+			result[key] = value
+		}
+	}
+	return result
+}
+
+// inventoryFor renders a canonical task inventory that lists tasks under their
+// verbs.
+func inventoryFor(tasks []string) string {
+	rows := map[string][]string{}
+	var verbs []string
+	for _, task := range tasks {
+		verb, _, _ := strings.Cut(task, ":")
+		if _, ok := rows[verb]; !ok {
+			verbs = append(verbs, verb)
+		}
+		rows[verb] = append(rows[verb], "`"+task+"`")
+	}
+	var b strings.Builder
+	b.WriteString("# Mise task naming\n\n" + inventoryHeading + "\n\n| Category | Task names |\n| --- | --- |\n")
+	for _, verb := range verbs {
+		b.WriteString("| " + verb + " | " + strings.Join(rows[verb], ", ") + " |\n")
+	}
+	return b.String()
+}
+
+const inventoryMise = "[tasks.\"check:all\"]\nrun = \"true\"\n[tasks.\"lint:go\"]\nrun = \"true\"\n"
+
+func TestValidateAcceptsMatchingTaskInventory(t *testing.T) {
+	root := writeFixture(t, inventoryMise, map[string]string{
+		inventoryPath: "# Mise task naming\n\n" + inventoryHeading + "\n\n| Category | Task names |\n| --- | --- |\n| check | `check:all` |\n| lint | `lint:go` |\n\n## Other section\n\n| Category | Task names |\n| --- | --- |\n| test | `test:ignored` |\n",
+	})
+	if errs := validate(root, filepath.Join(root, "mise.toml")); len(errs) != 0 {
+		t.Fatalf("expected a matching inventory to pass, got %v", errs)
+	}
+}
+
+func TestValidateRejectsTaskMissingFromInventory(t *testing.T) {
+	root := writeFixture(t, inventoryMise, map[string]string{inventoryPath: inventoryFor([]string{"check:all"})})
+	joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+	if !strings.Contains(joined, `task "lint:go" is declared in mise.toml but missing from the canonical task inventory in docs/mise-tasks.md`) {
+		t.Fatalf("expected the missing task to be named, got %s", joined)
+	}
+}
+
+func TestValidateRejectsInventoryTaskThatMiseDoesNotDeclare(t *testing.T) {
+	root := writeFixture(t, inventoryMise, map[string]string{inventoryPath: inventoryFor([]string{"check:all", "lint:go", "check:gone"})})
+	joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+	if !strings.Contains(joined, `task "check:gone" is listed in the canonical task inventory in docs/mise-tasks.md but not declared in mise.toml`) {
+		t.Fatalf("expected the extra task to be named, got %s", joined)
+	}
+}
+
+func TestValidateRejectsInventoryTaskUnderAnotherCategory(t *testing.T) {
+	root := writeFixture(t, inventoryMise, map[string]string{
+		inventoryPath: inventoryHeading + "\n\n| Category | Task names |\n| --- | --- |\n| check | `check:all`, `lint:go` |\n",
+	})
+	joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+	if !strings.Contains(joined, `task "lint:go" is listed under category "check" in docs/mise-tasks.md instead of "lint"`) {
+		t.Fatalf("expected the misplaced task to be named, got %s", joined)
+	}
+}
+
+func TestValidateRejectsMissingTaskInventory(t *testing.T) {
+	for name, files := range map[string]map[string]string{
+		"missing file":    {"README.md": "mise run check:all\n"},
+		"missing heading": {inventoryPath: "# Mise task naming\n\n| Category | Task names |\n| --- | --- |\n| check | `check:all` |\n"},
+	} {
+		root := writeFixture(t, inventoryMise, files)
+		if name == "missing file" {
+			if err := os.Remove(filepath.Join(root, inventoryPath)); err != nil {
+				t.Fatal(err)
+			}
+		}
+		joined := strings.Join(errorStrings(validate(root, filepath.Join(root, "mise.toml"))), "\n")
+		if !strings.Contains(joined, inventoryPath) {
+			t.Errorf("%s: expected an error that names %s, got %s", name, inventoryPath, joined)
+		}
+	}
 }
 
 func TestValidateAcceptsCanonicalTasks(t *testing.T) {
