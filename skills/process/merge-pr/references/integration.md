@@ -16,7 +16,17 @@ Read this reference when a Pull Request conflicts or after the merge gate passes
 
 ## Reconcile linked work
 
-- For a change Pull Request using `Closes`, verify GitHub closed the Issue and the Project item reached `Done`; report automation delay instead of manually forcing it.
-- For a release Pull Request using `Tracks`, verify the Release Issue remains open and its Project Status remains non-terminal until publication.
+- For a change Pull Request using `Closes`, verify GitHub closed the Issue and the Project item reached `Done`.
+- For a release Pull Request using `Tracks`, verify the Release Issue remains open and its Project Status remains non-terminal until publication. Never close it.
 - For a release Pull Request using `Closes` after publication, verify GitHub closed the Release Issue and the Project item reached `Done`.
 - Verify each linked Issue independently and report mismatches as follow-up work.
+
+## Fallback close
+
+GitHub sometimes leaves a `Closes` Issue open after the merge. Apply this rule to each Issue in a `Closes` line, for a change Pull Request or a release Pull Request merged after publication:
+
+- Read the Issue state again 60 seconds after the merge is verified. A working automatic close takes seconds, so an Issue still `open` then was not closed by GitHub.
+- Close it with `gh issue close <number> --reason completed --comment "Completed by #<pull request> (merged as <short merge commit>)."`. The comment is the closing record.
+- If `gh issue close` reports that the Issue is already closed, GitHub closed it in the meantime; report an automatic close.
+- Then verify that the Project item reached `Done`, and report any delay instead of setting the Status by hand.
+- Report each `Closes` Issue as `closed automatically` or `closed by merge-pr fallback`.
