@@ -317,7 +317,7 @@ contracts:
       behind an unchanged scenario format, so every committed scenario still
       parses and asserts as before.
     check: >-
-      check-evaluation reports 77 scenarios for 20 cataloged skills and checks
+      check-evaluation reports 78 scenarios for 20 cataloged skills and checks
       that every scenario directory, skill field, and cataloged skill resolves
       to a skill under skills/.
 
