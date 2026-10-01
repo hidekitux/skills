@@ -25,7 +25,7 @@ Keep exactly one item in progress. Mark an item complete only after its stated e
 - Resolve the repository's review mode from explicit requester input, repository review policy, or the live Ruleset before applying the approval gate. In team mode, require approval from an eligible reviewer other than the PR author. In solo mode, require a completed self-review artifact while continuing to enforce the live Ruleset and every required check.
 - Do not infer solo mode merely because no reviewer is available. If the live Ruleset requires an approval that cannot be satisfied, stop and report the exact blocker; never use an administrative bypass.
 - Do not merge a Pull Request that is missing its governing Issue, has scope drift, has unresolved review findings, lacks the required review evidence or approval for its mode, or is still awaiting required checks. Route unresolved review findings to `fix-pr`, and missing implementation or review work to `implement-issue`, `create-pr`, or `review-pr`, instead of compensating here.
-- Preserve unrelated work. Do not modify unrelated files, create substantive feature fixes, close Issues manually, or delete branches. Conflict resolution is allowed only after the requester explicitly authorizes it for this merge; if authorization is absent, stop and ask before rewriting the Pull Request branch.
+- Preserve unrelated work. Do not modify unrelated files, create substantive feature fixes, close Issues by hand except through the fallback close in [integration and post-merge rules](references/integration.md), or delete branches. Conflict resolution is allowed only after the requester explicitly authorizes it for this merge; if authorization is absent, stop and ask before rewriting the Pull Request branch.
 
 ## Merge Gate
 
@@ -46,11 +46,11 @@ After the merge gate passes, read [integration and post-merge rules](references/
 
 ## Linked Work and Project State
 
-After merging, follow the linked-work rules in [integration and post-merge rules](references/integration.md).
+After merging, follow the linked-work and fallback-close rules in [integration and post-merge rules](references/integration.md). Close a `Closes` Issue only when GitHub left it open, and never close a Release Issue linked with `Tracks`.
 
 ## Handoff
 
-Report the Pull Request URL and number. Report the repository, head and base branches, and resolved review mode. Report whether conflict resolution was performed. Report the pre-rewrite and pre-merge head SHAs and the resulting merge commit SHA. Report conflict files and resolution evidence. Report self-review or external approval evidence, required-check evidence, linked Issue outcomes, Project Status evidence, and any release publication or automation follow-up. State clearly whether the merge completed, was blocked, or has an ambiguous result. The next owner for a merged change is the repository's post-merge verification or release workflow. The next owner for a tracked release Pull Request is the release publication process. Do not apply substantive review fixes or publish a release in this skill.
+Report the Pull Request URL and number. Report the repository, head and base branches, and resolved review mode. Report whether conflict resolution was performed. Report the pre-rewrite and pre-merge head SHAs and the resulting merge commit SHA. Report conflict files and resolution evidence. Report self-review or external approval evidence, required-check evidence, linked Issue outcomes with each `Closes` Issue reported as `closed automatically` or `closed by merge-pr fallback`, Project Status evidence, and any release publication or automation follow-up. State clearly whether the merge completed, was blocked, or has an ambiguous result. The next owner for a merged change is the repository's post-merge verification or release workflow. The next owner for a tracked release Pull Request is the release publication process. Do not apply substantive review fixes or publish a release in this skill.
 
 ## Writing quality
 
