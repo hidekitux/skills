@@ -49,7 +49,7 @@ Run the steps in order. A step is complete only when its primitive's artifact ex
 
 ## Validate and Handoff
 
-- Run the repository-prescribed checks after the fix and tests (`mise run validate:all`, plus `mise run validate:skill-creator` when available) and record every command and result; never describe an unrun check as passing.
+- Run the target repository's prescribed checks after the fix and tests and record every command and result; never describe an unrun check as passing. When the repository prescribes none, run its documented test and lint commands and report that no aggregate check exists. In the `hidekitux/skills` repository, run `mise run validate:all`, plus `mise run validate:skill-creator` when available.
 - Deliver one cohesive final report: reproduction, root cause, fix, verification results, test results, and, when the fix is governed, the Issue and Pull Request URLs with the governing Issue's Project Status.
 - Hand off follow-ups as the flow directs. Do not merge, release, or expand scope unless the user separately requests it.
 
