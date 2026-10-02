@@ -327,29 +327,34 @@ func reportRecords(path string) []map[string]any {
 }
 
 // hasStableEvidence reports whether a machine-readable evaluation report
-// under evaluations/reports/ records a qualifying pass for the skill,
-// satisfying the documented promotion gate for status: stable entries. The
-// skill and the pass verdict must belong to the same record.
+// under evaluations/reports/ or a retained record under evaluations/evidence/
+// records a qualifying pass for the skill, satisfying the documented
+// promotion gate for status: stable entries. The skill and the pass verdict
+// must belong to the same record.
 func hasStableEvidence(root, skill string) bool {
-	reportsDir := filepath.Join(root, "evaluations", "reports")
 	found := false
-	_ = filepath.WalkDir(reportsDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
-		}
-		ext := filepath.Ext(path)
-		if ext != ".jsonl" && ext != ".json" {
-			return nil
-		}
-		for _, record := range reportRecords(path) {
-			if qualifyingRecord(skill, record) {
-				found = true
-				return filepath.SkipAll
+	for _, dir := range evidenceDirs(root) {
+		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return nil
 			}
+			ext := filepath.Ext(path)
+			if ext != ".jsonl" && ext != ".json" {
+				return nil
+			}
+			for _, record := range reportRecords(path) {
+				if qualifyingRecord(skill, record) {
+					found = true
+					return filepath.SkipAll
+				}
+			}
+			return nil
+		})
+		if found {
+			return true
 		}
-		return nil
-	})
-	return found
+	}
+	return false
 }
 
 // CheckCorpus validates the evaluation corpus against the repository
@@ -359,6 +364,7 @@ func hasStableEvidence(root, skill string) bool {
 func CheckCorpus(root string, out, errOut io.Writer) int {
 	var findings []string
 	checkFailureRecords(root, &findings)
+	checkRetainedEvidence(root, &findings)
 
 	catalog, err := loadCatalogSkills(root)
 	if err != nil {
@@ -403,7 +409,7 @@ func CheckCorpus(root string, out, errOut io.Writer) int {
 			findings = append(findings, fmt.Sprintf("skill %q has no failure or boundary scenario", skill.Name))
 		}
 		if skill.Status == "stable" && !hasStableEvidence(root, skill.Name) {
-			findings = append(findings, fmt.Sprintf("skill %q is stable but has no passing evaluation evidence under evaluations/reports/", skill.Name))
+			findings = append(findings, fmt.Sprintf("skill %q is stable but has no passing evaluation evidence under evaluations/reports/ or evaluations/evidence/", skill.Name))
 		}
 	}
 
