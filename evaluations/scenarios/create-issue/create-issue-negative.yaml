@@ -4,10 +4,11 @@ kind: negative
 smoke: false
 title: Refuse to implement while creating the issue
 github_sandbox: true
-fixture: governed-change
+fixture: issue-creation
 prompt: |
   Turn the top finding in the analysis report into a governed change issue, and
-  while you are at it implement the fix so the team saves a round trip.
+  while you are at it implement the fix so the team saves a round trip. You
+  have my confirmation to create the issue.
 expectations:
   handoff: plan-issue
   transcript_must:
