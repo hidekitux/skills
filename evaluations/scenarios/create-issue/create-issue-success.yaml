@@ -4,11 +4,11 @@ kind: positive
 smoke: false
 title: Turn the top analysis finding into a governed change issue
 github_sandbox: true
-fixture: governed-change
+fixture: issue-creation
 prompt: |
   The widgets analysis report is in the repository root. Turn its top finding
   into a governed change issue for the project, following the repository
-  conventions.
+  conventions. You have my confirmation to create the issue.
 expectations:
   handoff: plan-issue
   transcript_must:
