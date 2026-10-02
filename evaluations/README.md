@@ -212,7 +212,8 @@ from its directory.
 
 ```text
 --host codex                          Codex CLI (Plus subscription, local)
---host claude-code                    Claude Code CLI (needs login; project and local settings only)
+--host claude-code                    Claude Code CLI (needs login; project and local settings only;
+                                      file tools and git, gh, go, mise, ls, cat, grep, find, mkdir)
 --host opencode                       opencode CLI, reads .agents/skills
 --host antigravity                    Google Antigravity CLI
 --host all                            every driver
