@@ -274,6 +274,21 @@ func runOneSingle(ctx context.Context, sc *Scenario, host provider.HostCLI, opts
 		return record
 	}
 
+	if repo := os.Getenv("EVAL_GITHUB_REPO"); sc.GithubSandbox && repo != "" {
+		openBefore, err := openSandboxIssues(ctx, repo)
+		if err != nil {
+			record.Verdict, record.InfraError = classifyHostError(ctx, "sandbox issue listing", err)
+			return record
+		}
+		// Close the issues this scenario creates so the next scenario does
+		// not find them; issues open before the scenario stay open.
+		defer func() {
+			if err := closeNewSandboxIssues(context.WithoutCancel(ctx), repo, sc.ID, openBefore); err != nil {
+				fmt.Fprintf(errOut, "evaluate: %v\n", err)
+			}
+		}()
+	}
+
 	var transcript strings.Builder
 	prompts := sc.prompts()
 	for index, prompt := range prompts {
