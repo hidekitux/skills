@@ -101,10 +101,15 @@ var driverConfigs = map[string]driverConfig{
 		fixedArgs: []string{"exec"},
 	},
 	HostClaudeCode: {
-		binary:    "claude",
-		envVar:    "EVAL_CLAUDE_CMD",
-		agent:     "claude-code",
-		fixedArgs: []string{"-p"},
+		binary: "claude",
+		envVar: "EVAL_CLAUDE_CMD",
+		agent:  "claude-code",
+		// Exclude the developer's user-level settings so a run does not
+		// depend on who runs it; the sandbox's project settings stay. Print
+		// mode denies every tool that needs approval, so allow the file tools
+		// and the commands the scenarios need, and nothing else. The stream
+		// format records the whole run; Run keeps only the agent's output.
+		fixedArgs: []string{"-p", "--setting-sources", "project,local", "--output-format", "stream-json", "--verbose", "--allowedTools", claudeAllowedTools},
 	},
 	HostOpenCode: {
 		binary:    "opencode",
@@ -120,6 +125,12 @@ var driverConfigs = map[string]driverConfig{
 		fixedArgs: []string{"--print-timeout", "5m", "--output-format", "text", "--dangerously-skip-permissions"},
 	},
 }
+
+// claudeAllowedTools lists the tools the claude-code driver may use without
+// approval: the file tools, the git, gh, go, and mise commands, and read-only
+// inspection commands. --allowedTools takes a variadic value, so Run must keep
+// --model between it and the prompt.
+const claudeAllowedTools = "Read,Edit,Write,Glob,Grep,Bash(git *),Bash(gh *),Bash(go *),Bash(mise *),Bash(ls *),Bash(cat *),Bash(grep *),Bash(find *),Bash(mkdir *)"
 
 // modelEnvVars maps every driver to its model override variable. Model
 // selection is always explicit (Issue 173 decision record): a driver never
@@ -357,6 +368,12 @@ func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Wri
 	} else {
 		args = append(args, prompt)
 	}
+	stdout := out
+	var stream *claudeStreamWriter
+	if h.name == HostClaudeCode && os.Getenv(h.config.envVar) == "" {
+		stream = newClaudeStreamWriter(out)
+		stdout = stream
+	}
 	_, err := h.runner.Run(ctx, Command{
 		Port:      PortHost,
 		Operation: h.name,
@@ -364,10 +381,15 @@ func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Wri
 		Args:      args,
 		Dir:       sandboxDir,
 		Env:       h.runEnv(sandboxDir),
-		Stdout:    out,
+		Stdout:    stdout,
 		Stderr:    out,
 		Timeout:   StageTimeout,
 	})
+	if stream != nil {
+		if closeErr := stream.Close(); err == nil {
+			err = closeErr
+		}
+	}
 	return err
 }
 

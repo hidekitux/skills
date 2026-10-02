@@ -191,6 +191,20 @@ func TestModelFlagPinsModelForEveryDriver(t *testing.T) {
 	}
 }
 
+func TestClaudeCodeCommandLineLimitsSettingsAndTools(t *testing.T) {
+	t.Setenv("EVAL_CLAUDE_CMD", "")
+	host := &cliHost{name: HostClaudeCode, config: driverConfigs[HostClaudeCode]}
+	binary, args := host.commandLine()
+	if binary != "claude" {
+		t.Fatalf("binary = %q, want claude", binary)
+	}
+	want := []string{"-p", "--setting-sources", "project,local", "--output-format", "stream-json", "--verbose", "--allowedTools",
+		"Read,Edit,Write,Glob,Grep,Bash(git *),Bash(gh *),Bash(go *),Bash(mise *),Bash(ls *),Bash(cat *),Bash(grep *),Bash(find *),Bash(mkdir *)"}
+	if strings.Join(args, "\x00") != strings.Join(want, "\x00") {
+		t.Fatalf("args = %v, want %v", args, want)
+	}
+}
+
 func TestModelFlagHonorsEnvOverride(t *testing.T) {
 	t.Setenv("EVAL_CODEX_MODEL", "gpt-5.1-codex")
 	if got := modelFlag(HostCodex); got[1] != "gpt-5.1-codex" {
