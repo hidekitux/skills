@@ -93,9 +93,18 @@ func CheckPromotion(root string, out, errOut io.Writer) int {
 
 func loadPromotionReports(root string) (map[string][]Record, []string) {
 	runs := map[string][]Record{}
-	reportsDir := filepath.Join(root, "evaluations", "reports")
 	var findings []string
-	err := filepath.WalkDir(reportsDir, func(path string, entry fs.DirEntry, err error) error {
+	for _, dir := range evidenceDirs(root) {
+		findings = append(findings, loadPromotionDir(root, dir, runs)...)
+	}
+	return runs, findings
+}
+
+// loadPromotionDir adds the records of every report under dir to runs and
+// returns a finding for each invalid report.
+func loadPromotionDir(root, dir string, runs map[string][]Record) []string {
+	var findings []string
+	err := filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -120,11 +129,11 @@ func loadPromotionReports(root string) (map[string][]Record, []string) {
 	})
 	if err != nil {
 		if os.IsNotExist(err) {
-			return runs, findings
+			return findings
 		}
 		findings = append(findings, fmt.Sprintf("cannot read evaluation reports: %v", err))
 	}
-	return runs, findings
+	return findings
 }
 
 func decodePromotionReport(path string) ([]Record, error) {
