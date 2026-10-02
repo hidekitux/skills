@@ -12,6 +12,6 @@ Read this reference when unpushed history needs cleanup or after a fix passes va
 
 - Push the resolved head with `--force-with-lease` when tidying rewrote unpushed commits; never use plain `--force` or push a protected base branch.
 - After pushing, synchronize the Pull Request body so it describes the published head. Keep the opening Issue-reference block unchanged and first.
-- Validate the exact body with `go run ./cmd/validate-branch-policy --base <base> --head <head> --body "$final_body"` before the API call.
+- Validate the exact body against any repository-provided Pull Request-body or branch-policy validator before the API call. When the repository provides none, check the body against its documented conventions and report that no validator ran. In the `hidekitux/skills` repository, run `go run ./cmd/validate-branch-policy --base <base> --head <head> --body "$final_body"`.
 - Do not update Project Status; the trusted `Policy (Project)` workflow owns Pull Request-observable transitions.
 - Verify `git rev-parse HEAD` equals `gh pr view <number> --json headRefOid --jq .headRefOid` before handoff. The next owner is `review-pr`.
