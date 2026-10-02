@@ -51,6 +51,9 @@ type Options struct {
 	ContextMode    string
 	Context        *skillcontext.Manifest
 	DryRun         bool
+	// RetainEvidence also writes the retained promotion records of the run
+	// to evaluations/evidence/<skill>/<run_id>.jsonl under Root.
+	RetainEvidence bool
 	Model          string
 	Commit         string
 	// RunnerFor substitutes host runners (tests). When nil, runnerFor(name)
@@ -560,6 +563,13 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			return ExitInfra
 		}
 		fmt.Fprintf(out, "reports written to %s\n", opts.OutputDir)
+	}
+	if opts.RetainEvidence {
+		if err := writeRetainedEvidence(opts.Root, runID, records); err != nil {
+			fmt.Fprintf(errOut, "evaluate: cannot write retained evidence: %v\n", err)
+			return ExitInfra
+		}
+		fmt.Fprintf(out, "retained evidence written to %s\n", filepath.Join(opts.Root, "evaluations", "evidence"))
 	}
 	if opts.TraceOutputDir != "" {
 		traces := make([]trace.Trace, 0, len(records))

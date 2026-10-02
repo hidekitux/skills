@@ -31,6 +31,7 @@ func main() {
 	outputFlag := fs.String("output", "", "report output directory (default: evaluations/reports)")
 	traceOutputFlag := fs.String("trace-output", "", "opt-in structured trace output directory")
 	dryRun := fs.Bool("dry-run", false, "record skipped runs without executing host CLIs")
+	retain := fs.Bool("retain", false, "also write the retained promotion records to evaluations/evidence/<skill>/<run_id>.jsonl")
 	modelFlag := fs.String("model", "", "model provenance override (default: agent.low.model from opencode.json)")
 	reviewerCmd := fs.String("reviewer-cmd", "", "external rubric reviewer command; receives scenario JSON on stdin, returns scores JSON")
 	if err := fs.Parse(os.Args[1:]); err != nil {
@@ -64,6 +65,7 @@ func main() {
 		OutputDir:          outputDir,
 		TraceOutputDir:     *traceOutputFlag,
 		DryRun:             *dryRun,
+		RetainEvidence:     *retain,
 		Model:              *modelFlag,
 	}
 	if *reviewerCmd != "" {
