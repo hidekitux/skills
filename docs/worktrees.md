@@ -5,6 +5,8 @@ policy for creating, using, and removing them.
 
 ## Policy
 
+- Git checks out a branch in at most one worktree, so each Codex or Claude Code
+  session needs its own branch.
 - The primary worktree owns `main`. Git refuses to check out `main` in a second
   worktree; never use `--force` to work around that.
 - Changes go on an `issue/<number>` branch created from an existing Issue.
@@ -52,7 +54,9 @@ Use `wt list --format=json` for automation. The structured output reports the
 branch, path, detached state, prunable state, conflict state, operation in
 progress, and path or duplicate-branch mismatch. The environment Provisioner
 accepts schema 2 and the supported legacy array form, and it stops when the
-output lacks a verifiable worktree identity.
+output lacks a verifiable worktree identity. A local host opts into the
+worktrunk provider with `Provisioner.WithLocalWorktree()`; continuous
+integration leaves the opt-in unset and uses native Git.
 
 `wt remove` fails when the worktree has uncommitted changes, and it removes the
 branch only when the branch is merged. Do not reach for `wt remove --force`
@@ -71,7 +75,8 @@ reason.
 
 The tracked `post-checkout` hook runs `scripts/setup/run-mise.sh run setup:refresh` whenever Git
 creates or switches a branch, including a manual `wt switch --create`, so a new
-worktree is normally ready to use. A controlled environment Provisioner
+worktree is normally ready to use. Refresh registers skills for the
+checked-out snapshot and reuses ready bootstrap and validator state. A controlled environment Provisioner
 operation passes `--no-hooks --no-cd` to worktrunk, then runs the refresh path
 once synchronously before execution. Run the full bootstrap path once in a new
 worktree, or run refresh by hand when the hook was skipped or reported a
@@ -89,9 +94,10 @@ bash scripts/setup/run-mise.sh run validate:all
 ```
 
 The wrapper sets the repository-only `MISE_GLOBAL_CONFIG_ROOT` and the mise,
-Go, Ruff, and FSL paths before mise starts. A Worktree owns its mutable
-`MISE_DATA_DIR`, `MISE_INSTALLS_DIR`, `MISE_STATE_DIR`, shims, Go build cache,
-Go path, and FSL verifier. Compatible immutable installs, mise download
+Go, Ruff, and FSL paths before mise starts. A local Worktree keeps its mutable
+state under its ignored `.mise/` directory: `MISE_DATA_DIR`,
+`MISE_INSTALLS_DIR`, `MISE_STATE_DIR`, shims, Go build cache, Go path, and FSL
+verifier. Compatible immutable installs, mise download
 metadata, Go module cache, and Ruff cache use the shared cache root through
 `MISE_SHARED_INSTALL_DIRS`, `MISE_CACHE_DIR`, `GOMODCACHE`, and
 `RUFF_CACHE_DIR`; a cache key never becomes Worktree state. CI maps these roots
