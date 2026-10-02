@@ -135,7 +135,7 @@ Contract rules enforced by `cmd/check-evaluation` (wired into
   (for example a boundary stop condition such as `blocked-ask`) are asserted
   through `transcript_must` / `transcript_must_any` instead.
 - A catalog entry with `status: stable` requires machine-readable evaluation
-  evidence under `evaluations/reports/`: a same-record `pass` verdict for that
+  evidence under `evaluations/reports/` or `evaluations/evidence/`: a same-record `pass` verdict for that
   skill and a completed seven-dimension rubric review (`rubric_review:
   complete` with all `rubric_scores` present). A passing verdict for another
   skill in the same file does not count. `check-evaluation` checks this static
@@ -190,6 +190,23 @@ tiers in `../opencode.json`), prompt SHA-256, repository commit, fixture IDs,
 and the driver CLI command. Reports are machine-readable JSONL plus a
 human-readable Markdown summary, written under `--output` (default
 `evaluations/reports/`).
+
+`evaluations/reports/` is ignored by Git, so continuous integration never
+sees it. Add `--retain` to a run whose records should support a promotion:
+
+```text
+mise run evaluate:all -- --host claude-code --skills create-issue --retain
+```
+
+`--retain` also writes `evaluations/evidence/<skill>/<run_id>.jsonl` for each
+evaluated skill. Each retained record keeps only `run_id`, `scenario`,
+`skill`, `kind`, `host`, `model`, `repo_commit`, `skill_source_commit`,
+`input_digest`, `prompt_sha256`, `verdict`, `rubric_review`,
+`rubric_scores`, `started_at`, and `finished_at`. Failures, transcripts, and
+context stay in the local report. Commit the retained files with the catalog
+change that promotes the skill. `check-evaluation` rejects a retained file
+with any other field, a missing required field, or a `skill` that differs
+from its directory.
 
 ### Drivers
 

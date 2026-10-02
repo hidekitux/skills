@@ -190,6 +190,16 @@ flow must satisfy. `specs/evaluation-gate.fsl` models status consistency,
 the existence of promotion evidence, and its freshness; `check:promotion`
 verifies the actual retained reports.
 
+Promotion evidence is retained in `evaluations/evidence/<skill>/<run_id>.jsonl`,
+which `mise run evaluate:all -- --retain` writes and the promoting Pull
+Request commits. A retained record keeps only the fields the promotion checks
+read; the full report stays in the ignored `evaluations/reports/`.
+`check-evaluation` and `check:promotion` read both locations. In continuous
+integration, `check-evaluation` checks the shape of every retained record and
+requires a qualifying pass for each `stable` entry; `check:promotion` applies
+the full threshold, including the input digest, during release verification.
+Neither check can recompute a retained verdict or rubric score.
+
 ## Evidence freshness
 
 A retained record stays valid for promotion across commits that cannot
