@@ -191,15 +191,16 @@ func TestModelFlagPinsModelForEveryDriver(t *testing.T) {
 	}
 }
 
-func TestClaudeCodeCommandExcludesUserSettings(t *testing.T) {
+func TestClaudeCodeCommandLineLimitsSettingsAndTools(t *testing.T) {
 	t.Setenv("EVAL_CLAUDE_CMD", "")
 	host := &cliHost{name: HostClaudeCode, config: driverConfigs[HostClaudeCode]}
 	binary, args := host.commandLine()
 	if binary != "claude" {
 		t.Fatalf("binary = %q, want claude", binary)
 	}
-	want := []string{"-p", "--setting-sources", "project,local"}
-	if strings.Join(args, " ") != strings.Join(want, " ") {
+	want := []string{"-p", "--setting-sources", "project,local", "--allowedTools",
+		"Read,Edit,Write,Glob,Grep,Bash(git *),Bash(gh *),Bash(go *),Bash(mise *),Bash(ls *),Bash(cat *),Bash(grep *),Bash(find *),Bash(mkdir *)"}
+	if strings.Join(args, "\x00") != strings.Join(want, "\x00") {
 		t.Fatalf("args = %v, want %v", args, want)
 	}
 }
