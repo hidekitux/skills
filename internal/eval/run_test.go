@@ -302,6 +302,30 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 		}
 	})
 
+	t.Run("retained evidence written on request", func(t *testing.T) {
+		retainRoot := scaffoldEval(t,
+			[]map[string]string{skillEntry("plan-issue", "experimental")},
+			[]*Scenario{sc},
+			nil,
+		)
+		opts := &Options{Root: retainRoot, Hosts: []string{"codex"}, RunID: "retain-run", RetainEvidence: true,
+			RunnerFor: func(name string) provider.HostCLI {
+				return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
+			}}
+		var out, errOut bytes.Buffer
+		if code := Run(context.Background(), opts, &out, &errOut); code != ExitOK {
+			t.Fatalf("exit = %d, want 0\n%s%s", code, out.String(), errOut.String())
+		}
+		if _, err := os.Stat(filepath.Join(retainRoot, "evaluations", "evidence", "plan-issue", "retain-run.jsonl")); err != nil {
+			t.Fatalf("retained evidence was not written: %v", err)
+		}
+		var findings []string
+		checkRetainedEvidence(retainRoot, &findings)
+		if len(findings) != 0 {
+			t.Fatalf("retained evidence findings = %v, want none", findings)
+		}
+	})
+
 	t.Run("uses a supplied run ID", func(t *testing.T) {
 		outputDir := t.TempDir()
 		const runID = "explicit-run"
