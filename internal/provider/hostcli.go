@@ -101,10 +101,12 @@ var driverConfigs = map[string]driverConfig{
 		fixedArgs: []string{"exec"},
 	},
 	HostClaudeCode: {
-		binary:    "claude",
-		envVar:    "EVAL_CLAUDE_CMD",
-		agent:     "claude-code",
-		fixedArgs: []string{"-p"},
+		binary: "claude",
+		envVar: "EVAL_CLAUDE_CMD",
+		agent:  "claude-code",
+		// Exclude the developer's user-level settings so a run does not
+		// depend on who runs it; the sandbox's project settings stay.
+		fixedArgs: []string{"-p", "--setting-sources", "project,local"},
 	},
 	HostOpenCode: {
 		binary:    "opencode",
