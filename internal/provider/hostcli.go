@@ -105,8 +105,10 @@ var driverConfigs = map[string]driverConfig{
 		envVar: "EVAL_CLAUDE_CMD",
 		agent:  "claude-code",
 		// Exclude the developer's user-level settings so a run does not
-		// depend on who runs it; the sandbox's project settings stay.
-		fixedArgs: []string{"-p", "--setting-sources", "project,local"},
+		// depend on who runs it; the sandbox's project settings stay. Print
+		// mode denies every tool that needs approval, so allow the file tools
+		// and the commands the scenarios need, and nothing else.
+		fixedArgs: []string{"-p", "--setting-sources", "project,local", "--allowedTools", claudeAllowedTools},
 	},
 	HostOpenCode: {
 		binary:    "opencode",
@@ -122,6 +124,12 @@ var driverConfigs = map[string]driverConfig{
 		fixedArgs: []string{"--print-timeout", "5m", "--output-format", "text", "--dangerously-skip-permissions"},
 	},
 }
+
+// claudeAllowedTools lists the tools the claude-code driver may use without
+// approval: the file tools, the git, gh, go, and mise commands, and read-only
+// inspection commands. --allowedTools takes a variadic value, so Run must keep
+// --model between it and the prompt.
+const claudeAllowedTools = "Read,Edit,Write,Glob,Grep,Bash(git *),Bash(gh *),Bash(go *),Bash(mise *),Bash(ls *),Bash(cat *),Bash(grep *),Bash(find *),Bash(mkdir *)"
 
 // modelEnvVars maps every driver to its model override variable. Model
 // selection is always explicit (Issue 173 decision record): a driver never
