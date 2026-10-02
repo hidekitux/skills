@@ -195,7 +195,7 @@ human-readable Markdown summary, written under `--output` (default
 
 ```text
 --host codex                          Codex CLI (Plus subscription, local)
---host claude-code                    Claude Code CLI (needs login)
+--host claude-code                    Claude Code CLI (needs login; project and local settings only)
 --host opencode                       opencode CLI, reads .agents/skills
 --host antigravity                    Google Antigravity CLI
 --host all                            every driver

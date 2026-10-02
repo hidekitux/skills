@@ -253,7 +253,9 @@ evidence; it exits inconclusive when either required host cannot produce usable
 evidence.
 
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
-`claude-code` (needs login; default `claude-sonnet-5`), `opencode` (reads
+`claude-code` (needs login; default `claude-sonnet-5`; loads only project and
+local settings through `--setting-sources project,local`, so the developer's
+user-level settings do not reach the run), `opencode` (reads
 `.agents/skills`; default tier model `opencode-go/deepseek-v4-flash`, which
 needs an OpenCode Go credential from `opencode auth login`; without it every
 scenario returns `UnknownError`, and `--print-logs` shows
