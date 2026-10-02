@@ -272,6 +272,14 @@ stays a throwaway local clone of the fixtures; skills and their prompts
 never receive credentials, and the harness's own `gh` calls keep the
 developer's authentication.
 
+Before a GitHub-dependent scenario runs, the harness records the open issues
+of the sandbox repository. When the scenario finishes, it closes every issue
+that became open during the scenario, with a comment that names the
+scenario, so the next scenario does not find it. Issues that were open before
+the scenario stay open. A failure to list the issues makes the scenario an
+`infrastructure_error`; a failure to close one is printed on the error stream.
+Close issues left by runs before this behavior by hand once.
+
 ## Deterministic versus rubric
 
 Deterministic assertions (`expectations`) are machine-checked and gate the
