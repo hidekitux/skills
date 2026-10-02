@@ -175,7 +175,7 @@ contracts:
     reason: >-
       No specification source, state, or transition changed. The redesign
       changed how the verifier is started, not what it verifies.
-    check: verify:fsl verifies 9 specifications.
+    check: verify:fsl checks and verifies every FSL specification under specs/.
 
   - id: fsl-verifier-failure-classification
     surface: >-
@@ -224,7 +224,7 @@ contracts:
     reason: >-
       The graph package gained a module comment only. Its nodes, edges, and
       schema version are unchanged.
-    check: validate-skill-graph inside check:repository validates 20 skills at schema version 1.
+    check: validate-skill-graph inside check:repository validates every skill in the graph at schema version 1.
 
   - id: replay-fixtures
     surface: The replay fixture files and the outcome each one asserts.
@@ -235,7 +235,7 @@ contracts:
     reason: >-
       No fixture was added, removed, or re-recorded, and each one still reports
       the outcome it recorded at the baseline.
-    check: validate-replay-fixtures inside check:repository checks all 10 fixtures.
+    check: validate-replay-fixtures inside check:repository checks every fixture under workflow/replay-fixtures.
 
   - id: evidence-fixtures
     surface: >-
@@ -317,9 +317,8 @@ contracts:
       behind an unchanged scenario format, so every committed scenario still
       parses and asserts as before.
     check: >-
-      check-evaluation reports 78 scenarios for 20 cataloged skills and checks
-      that every scenario directory, skill field, and cataloged skill resolves
-      to a skill under skills/.
+      check-evaluation checks that every scenario directory, skill field, and
+      cataloged skill resolves to a skill under skills/.
 
   - id: execution-policy-files
     surface: >-
