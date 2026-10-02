@@ -341,7 +341,8 @@ files this redesign adds.
 
 `cmd/check-repository` ran 21 checks at the baseline and printed
 `check:repository: all 21 repository checks passed.` on its final line. It now
-runs 26 and prints the matching total. Issue #328 added
+runs the checks that the `repository-check-list` record in
+`workflow/contract-decisions.yml` names, and prints their total. Issue #328 added
 `check-module-boundaries` so the recorded dependency direction is enforced,
 Issue #331 added `check-contract-decisions` so this table is enforced the same
 way, and Issue #332 added `check-cutover-record` so the cutover record is too.
@@ -362,7 +363,7 @@ list by name keeps working, because the list grows and no existing name was
 removed or renamed; a consumer that asserts an exact total updates that total
 once. The exit status contract is unchanged: zero when every check passes and
 one when any check fails. `go run ./cmd/check-repository`
-prints the 26 named checks and the matching total, and
+prints every named check and the matching total, and
 `cmd/check-repository/main_test.go` covers the aggregate result.
 
 ### Changed: the FSL verifier failure classification
@@ -761,11 +762,13 @@ at this record instead of restating it: `docs/skill-contract.md`,
 `docs/validation-tiers.md`, and `CONTRIBUTING.md`. One record holds the
 boundary; a second copy would drift.
 
-The three `21 repository checks` figures in this document are baseline figures
+The `21 repository checks` figures in this document are baseline figures
 and stay as they are. The `Measured baseline` section and the revert rehearsal
 describe commit `4cce0641bbc9bc28c9bba47522a6071b0acded69`, where the total was
-21, and the `Changed: the repository check list` section states both the
-baseline 21 and the current 24.
+21. The `Changed: the repository check list` section states the baseline 21
+and leaves the current total to the `repository-check-list` record in
+`workflow/contract-decisions.yml`. The 24 in `Post-cutover observations` and
+`Final validation` is the total when those checks ran.
 
 ## Remaining risks
 
