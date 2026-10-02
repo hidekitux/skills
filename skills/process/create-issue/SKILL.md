@@ -48,7 +48,7 @@ When creating a Release Issue, read [Release Issue rules](references/release-iss
 ## Handoff
 
 - Report the Issue URL, the Project Status, Scope, and Priority, and the next owner. For a Change Issue, the next owner is `plan-issue`, which plans it before `implement-issue` creates the branch.
-- Create only the Issue. When the request also asks to plan, create a branch, or implement, say that this work is out of scope for `create-issue`, do not do it, and leave it to `plan-issue` and `implement-issue`.
+- Create only the Issue. When the request also asks to plan, create a branch, or implement, state in the words "out of scope" that this work is out of scope for `create-issue`, do not do it, and leave it to `plan-issue` and `implement-issue`.
 - End the turn with this handoff after the Issue exists. Do not start `plan-issue` or another skill in the same turn, even when the request asks to continue; the next phase starts on a new request.
 
 ## Writing quality
