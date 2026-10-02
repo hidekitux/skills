@@ -294,7 +294,9 @@ run. GitHub-dependent scenarios require a sandbox repository via
 `EVAL_GITHUB_REPO`; without it they record `skipped` with reason
 `sandbox_repo_not_configured`. When set, the harness registers the repository
 as the sandbox Git origin and passes `GH_REPO` to the driver children so `git`
-and `gh` resolve the same target. Driver processes never inherit
+and `gh` resolve the same target. After each GitHub-dependent scenario, the
+harness closes the sandbox issues that became open during it and leaves
+earlier issues open. Driver processes never inherit
 credential-like environment variables (`*KEY*`, `*TOKEN*`, `*SECRET*`,
 `*PASSWORD*`, `*CREDENTIAL*`): the evaluated model can read its own
 environment, and only the antigravity key-mode process receives
