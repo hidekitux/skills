@@ -198,7 +198,7 @@ func TestClaudeCodeCommandLineLimitsSettingsAndTools(t *testing.T) {
 	if binary != "claude" {
 		t.Fatalf("binary = %q, want claude", binary)
 	}
-	want := []string{"-p", "--setting-sources", "project,local", "--allowedTools",
+	want := []string{"-p", "--setting-sources", "project,local", "--output-format", "stream-json", "--verbose", "--allowedTools",
 		"Read,Edit,Write,Glob,Grep,Bash(git *),Bash(gh *),Bash(go *),Bash(mise *),Bash(ls *),Bash(cat *),Bash(grep *),Bash(find *),Bash(mkdir *)"}
 	if strings.Join(args, "\x00") != strings.Join(want, "\x00") {
 		t.Fatalf("args = %v, want %v", args, want)

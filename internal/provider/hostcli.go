@@ -107,8 +107,9 @@ var driverConfigs = map[string]driverConfig{
 		// Exclude the developer's user-level settings so a run does not
 		// depend on who runs it; the sandbox's project settings stay. Print
 		// mode denies every tool that needs approval, so allow the file tools
-		// and the commands the scenarios need, and nothing else.
-		fixedArgs: []string{"-p", "--setting-sources", "project,local", "--allowedTools", claudeAllowedTools},
+		// and the commands the scenarios need, and nothing else. The stream
+		// format records the whole run; Run keeps only the agent's output.
+		fixedArgs: []string{"-p", "--setting-sources", "project,local", "--output-format", "stream-json", "--verbose", "--allowedTools", claudeAllowedTools},
 	},
 	HostOpenCode: {
 		binary:    "opencode",
@@ -367,6 +368,12 @@ func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Wri
 	} else {
 		args = append(args, prompt)
 	}
+	stdout := out
+	var stream *claudeStreamWriter
+	if h.name == HostClaudeCode && os.Getenv(h.config.envVar) == "" {
+		stream = newClaudeStreamWriter(out)
+		stdout = stream
+	}
 	_, err := h.runner.Run(ctx, Command{
 		Port:      PortHost,
 		Operation: h.name,
@@ -374,10 +381,15 @@ func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Wri
 		Args:      args,
 		Dir:       sandboxDir,
 		Env:       h.runEnv(sandboxDir),
-		Stdout:    out,
+		Stdout:    stdout,
 		Stderr:    out,
 		Timeout:   StageTimeout,
 	})
+	if stream != nil {
+		if closeErr := stream.Close(); err == nil {
+			err = closeErr
+		}
+	}
 	return err
 }
 
