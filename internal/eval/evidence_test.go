@@ -99,6 +99,26 @@ func TestCheckRetainedEvidenceAcceptsWrittenEvidence(t *testing.T) {
 	}
 }
 
+func TestLoadPromotionReportsCountsARetainedCopyOnce(t *testing.T) {
+	root := t.TempDir()
+	record := retainedTestRecord()
+	if err := writeRetainedEvidence(root, record.RunID, []Record{record}); err != nil {
+		t.Fatal(err)
+	}
+	content, err := json.Marshal(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, root, "evaluations/reports/run-1.jsonl", string(content)+"\n")
+	runs, findings := loadPromotionReports(root)
+	if len(findings) != 0 {
+		t.Fatalf("findings = %v, want none", findings)
+	}
+	if len(runs["plan-issue"]) != 1 {
+		t.Fatalf("records = %d, want the report and its retained copy counted once", len(runs["plan-issue"]))
+	}
+}
+
 func TestLoadPromotionReportsReadsRetainedEvidence(t *testing.T) {
 	root := t.TempDir()
 	if err := writeRetainedEvidence(root, "run-1", []Record{retainedTestRecord()}); err != nil {

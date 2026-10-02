@@ -95,9 +95,32 @@ func loadPromotionReports(root string) (map[string][]Record, []string) {
 	runs := map[string][]Record{}
 	var findings []string
 	for _, dir := range evidenceDirs(root) {
-		findings = append(findings, loadPromotionDir(root, dir, runs)...)
+		dirRuns := map[string][]Record{}
+		findings = append(findings, loadPromotionDir(root, dir, dirRuns)...)
+		mergeRetainedRuns(runs, dirRuns)
 	}
 	return runs, findings
+}
+
+// mergeRetainedRuns adds the records of one evidence directory to runs. A
+// record whose run, scenario, and host already came from an earlier directory
+// is the retained copy of a local report record, so it is not added again;
+// duplicates inside one directory stay and fail the promotion check.
+func mergeRetainedRuns(runs, dirRuns map[string][]Record) {
+	seen := map[string]bool{}
+	for skill, records := range runs {
+		for _, record := range records {
+			seen[skill+"\x00"+record.RunID+"\x00"+record.Scenario+"\x00"+record.Host] = true
+		}
+	}
+	for skill, records := range dirRuns {
+		for _, record := range records {
+			if seen[skill+"\x00"+record.RunID+"\x00"+record.Scenario+"\x00"+record.Host] {
+				continue
+			}
+			runs[skill] = append(runs[skill], record)
+		}
+	}
 }
 
 // loadPromotionDir adds the records of every report under dir to runs and
