@@ -265,7 +265,9 @@ evidence.
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
 `claude-code` (needs login; default `claude-sonnet-5`; loads only project and
 local settings through `--setting-sources project,local`, so the developer's
-user-level settings do not reach the run), `opencode` (reads
+user-level settings do not reach the run; `--allowedTools` permits only
+`Read`, `Edit`, `Write`, `Glob`, `Grep`, and the `git`, `gh`, `go`, `mise`,
+`ls`, `cat`, `grep`, `find`, and `mkdir` commands), `opencode` (reads
 `.agents/skills`; default tier model `opencode-go/deepseek-v4-flash`, which
 needs an OpenCode Go credential from `opencode auth login`; without it every
 scenario returns `UnknownError`, and `--print-logs` shows
