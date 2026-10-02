@@ -11,6 +11,26 @@
 
 This repository is the source of reusable Agent Skills for individuals and teams. Skills follow the [Agent Skills](https://agentskills.io/specification) format and are published and installed with `gh skill`.
 
+## Installation and compatibility
+
+`gh skill` supports Codex and Claude Code. Install the latest catalog snapshot for both hosts:
+
+```bash
+gh skill install hidekitux/skills --all --agent codex --scope user
+gh skill install hidekitux/skills --all --agent claude-code --scope user
+```
+
+Use `--scope project` for a project install and `skill-name --pin vX.Y.Z` to pin a release. `--agent` selects one host, so run each command to install for both.
+
+Pinning changes how an install resolves:
+
+- **Unpinned** (`hidekitux/skills`) resolves to the default branch head, so it tracks the latest unreleased catalog snapshot.
+- **Pinned** (`skill-name --pin vX.Y.Z`) resolves to the immutable release tag, so it is reproducible and stable. `gh skill update` skips a pinned skill.
+
+Each released tag matches a GitHub Release at `https://github.com/hidekitux/skills/releases` and the `CATALOG.yml` versions for that release. Published `v` release tags are immutable: the repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving them, so a released version always points at the same verified commit. To correct a bad release, publish a new patch release; never replace or reuse an existing tag. See [docs/releasing.md](docs/releasing.md) for the release procedure.
+
+Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` content for a host. When a material execution difference exists, add `references/hosts/<host>.md` that states the available capability, preferred path, fallback, and verification method. `agents/openai.yaml` is Codex UI metadata only. The tracked `hosts/` directory contains repository-level examples; `.codex/`, `.claude/`, and `.agents/` are generated local state and are not tracked.
+
 ## License
 
 The repository and published skills use the [Apache License 2.0](LICENSE). The `license: Apache-2.0` field in each `SKILL.md` and the root `LICENSE` are authoritative. [NOTICE](NOTICE) records the copyright owner and covered years. Keep the standard `LICENSE` text unchanged; update `NOTICE` only when copyrightable material is added or materially updated.
@@ -42,32 +62,9 @@ mise tasks ls
 
 `bash scripts/setup/run-mise.sh run setup:all` enables `.githooks` and writes the ignored `.agents/setup-state` marker only after bootstrap and refresh succeed. The wrapper selects the setup prerequisite, reuses compatible shared downloads and immutable installs, and keeps mutable state in the current Worktree. Use `bash scripts/setup/run-mise.sh run <task>` for repository tasks. The wrapper runs local checks before commits and full validation before pushes. A failed refresh prints the stage that needs attention and leaves the previous ready marker unchanged.
 
-## Worktrees
-
-Codex and Claude Code worktrees cannot check out the same branch more than once. The primary worktree owns `main`, so creating another worktree on `main` fails. The wrapper performs the full bootstrap and refresh once, while its refresh task registers skills for the checked-out snapshot and reuses ready bootstrap and validator state. The tracked `post-checkout` hook runs refresh for every new worktree through the pre-launch mise wrapper. Mutable mise state stays under the current Worktree's ignored `.mise/` directory; compatible immutable installs and download metadata are reused through the shared cache root.
-
-The repository supports [`worktrunk`](https://github.com/max-sixty/worktrunk) (`wt`) as the local worktree lifecycle interface. Install it once per machine with `mise use -g worktrunk` and run `wt config shell install`. The environment Provisioner uses the structured `wt` interface when it is selected for local use; continuous integration keeps native Git as its explicit provider.
-
-```bash
-wt switch --create issue/<number>   # create the Issue branch and its worktree
-wt list                             # show which worktree owns which branch
-wt remove issue/<number>            # remove an inspected, inactive worktree
-```
-
-No worktree is removed automatically. Inspect changes with `git status` first, and remove one only after deciding it is no longer active. `wt remove` refuses a worktree with uncommitted changes and keeps an unmerged branch; never reach for `wt remove --force` or `wt remove -D` to work around either. Do not run development commands from a bare repository entry point; use a registered non-bare worktree from `wt list`.
-
-Use `wt list --format=json` when a script or the environment Provisioner needs structured state. A local host opts into the worktrunk provider with `Provisioner.WithLocalWorktree()`; continuous integration leaves the opt-in unset. The output reports each worktree's branch and path, plus detached, prunable, conflict, operation, and path-mismatch states. A controlled Provisioner operation uses `--no-hooks --no-cd`, verifies the returned branch-owned path, and runs `bash scripts/setup/run-mise.sh run setup:refresh` once before execution.
-
-Native `git worktree` remains supported when `worktrunk` is unavailable. The local provider selects this fallback, and continuous integration uses it directly. Use a detached worktree for a read-only `main` snapshot. For changes, create a branch from an existing Issue instead of checking out `main` again.
-
-```bash
-git worktree add --detach <path> origin/main
-git worktree add -b issue/<number> <path> origin/main
-```
-
-Never use `--force` to check out `main` in multiple worktrees.
-
 `mise run validate:all` validates temporary installation for both Codex and Claude Code. When `skill-creator` is available in Codex, also run `mise run validate:skill-creator`. Linux x64 and macOS Apple Silicon are supported for full validation because it includes FSL verification.
+
+Each Codex or Claude Code session works in its own worktree on its own branch. See [docs/worktrees.md](docs/worktrees.md) for the worktree policy, the `worktrunk` setup, and the native Git fallback.
 
 ## Layout and skill contract
 
@@ -166,26 +163,6 @@ gh skill install hidekitux/skills <skill> --pin v0.1.1 --agent claude-code --sco
 5. Follow the [release procedure](docs/releasing.md) after review.
 
 `mise run check:repository` checks catalog entries, Apache-2.0 metadata, host adapters, the Todo List contract, known secrets, private URLs, user paths, tool-license evidence, the script-to-test mapping, catalog-versus-documentation drift, writing thresholds, and canonical task commands. Use `skill-creator` for new or substantially updated skills when available; otherwise complete the [skill creation brief](docs/skill-brief-template.md) and run the common validation.
-
-## Installation and compatibility
-
-`gh skill` supports Codex and Claude Code. Install the latest catalog snapshot for both hosts:
-
-```bash
-gh skill install hidekitux/skills --all --agent codex --scope user
-gh skill install hidekitux/skills --all --agent claude-code --scope user
-```
-
-Use `--scope project` for a project install and `skill-name --pin vX.Y.Z` to pin a release. `--agent` selects one host, so run each command to install for both.
-
-Pinning changes how an install resolves:
-
-- **Unpinned** (`hidekitux/skills`) resolves to the default branch head, so it tracks the latest unreleased catalog snapshot.
-- **Pinned** (`skill-name --pin vX.Y.Z`) resolves to the immutable release tag, so it is reproducible and stable. `gh skill update` skips a pinned skill.
-
-Each released tag matches a GitHub Release at `https://github.com/hidekitux/skills/releases` and the `CATALOG.yml` versions for that release. Published `v` release tags are immutable: the repository's active `Protect release tags` tag-target Ruleset blocks deleting or force-moving them, so a released version always points at the same verified commit. To correct a bad release, publish a new patch release; never replace or reuse an existing tag. See [docs/releasing.md](docs/releasing.md) for the release procedure.
-
-Keep one canonical skill under `skills/`. Do not duplicate shared `SKILL.md` content for a host. When a material execution difference exists, add `references/hosts/<host>.md` that states the available capability, preferred path, fallback, and verification method. `agents/openai.yaml` is Codex UI metadata only. The tracked `hosts/` directory contains repository-level examples; `.codex/`, `.claude/`, and `.agents/` are generated local state and are not tracked.
 
 ## FSL
 
