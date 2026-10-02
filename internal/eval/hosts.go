@@ -22,6 +22,11 @@ var gitPort = provider.NewGit(provider.OSRunner{})
 // assertion command and an external rubric reviewer.
 var shellPort = provider.NewShell(provider.OSRunner{})
 
+// githubPort lists and closes the issues a GitHub-dependent scenario creates
+// in the sandbox repository. A test substitutes it with a GitHub built on a
+// provider.Stub runner.
+var githubPort = provider.NewGitHub(provider.OSRunner{})
+
 // runnerFor returns the production host command line adapter for a driver.
 func runnerFor(name string) provider.HostCLI {
 	return provider.NewHostCLI(name, provider.OSRunner{})
