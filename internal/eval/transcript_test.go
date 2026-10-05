@@ -56,7 +56,7 @@ func TestRunWritesTranscriptsNextToTheReport(t *testing.T) {
 				}}
 			var out, errOut bytes.Buffer
 			Run(context.Background(), opts, &out, &errOut)
-			got := readTranscript(t, filepath.Join(outputDir, "run-x", "transcripts", "plan-issue-success@codex.txt"))
+			got := readTranscript(t, filepath.Join(outputDir, "run-x", "transcripts", "codex", "plan-issue-success.txt"))
 			if !strings.Contains(got, tc.want) {
 				t.Fatalf("transcript = %q, want it to contain %q", got, tc.want)
 			}
@@ -74,7 +74,7 @@ func TestRunOneWritesPartialTranscriptOnFailedHostStage(t *testing.T) {
 	if record.Verdict != VerdictInfra {
 		t.Fatalf("verdict = %s, want %s", record.Verdict, VerdictInfra)
 	}
-	got := readTranscript(t, filepath.Join(dir, "plan-issue-success@codex.txt"))
+	got := readTranscript(t, filepath.Join(dir, "codex", "plan-issue-success.txt"))
 	if !strings.Contains(got, "partial output before the failure") {
 		t.Fatalf("transcript = %q, want the partial output", got)
 	}
@@ -102,8 +102,8 @@ func TestDeliberationWritesOneTranscriptPerRole(t *testing.T) {
 		Expectations: Expectations{Handoff: "write-tests", TranscriptMust: []string{"write-tests"}},
 	}
 	runOneForTest(t, scenario, &recordingHost{name: "codex", available: true}, &Options{Commit: "test-commit", TranscriptDir: dir})
-	for _, name := range []string{"deliberation@codex.baseline.txt", "deliberation@codex.candidate-1.txt", "deliberation@codex.candidate-2.txt"} {
-		readTranscript(t, filepath.Join(dir, name))
+	for _, name := range []string{"deliberation.baseline.txt", "deliberation.candidate-1.txt", "deliberation.candidate-2.txt"} {
+		readTranscript(t, filepath.Join(dir, "codex", name))
 	}
 }
 
