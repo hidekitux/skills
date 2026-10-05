@@ -10,7 +10,7 @@ license: Apache-2.0
 
 1. **in progress:** Confirm repository, outcome, and whether the Issue is a change or release.
 2. Draft the title and body from the matching repository template.
-3. After user confirmation, create the Issue; when the repository declares a GitHub Project, add the Issue to it with Status, Scope, and Priority.
+3. After user confirmation, create the Issue; when the repository declares a Project, add the Issue to it with Status, Scope, and Priority.
 4. Complete the list only when the Issue URL is available, and its Project item too when the repository declares a Project; report the Project Status, Scope, and Priority in the handoff, or that the repository declares no Project.
 
 Keep exactly one item in progress. Do not complete an item without its observable result.
@@ -36,7 +36,7 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 
 ## Project Triage
 
-When the repository declares a Project in `.github/issue-project.toml`, read [Project triage](references/project-triage.md) before creating the Issue. When that file does not exist, the repository uses no Project: create the Issue without Project triage and report that no Project is declared. A missing file is not a reason to stop or to ask again.
+When the repository declares a Project in `.github/issue-project.toml`, read [Project triage](references/project-triage.md) before creating the Issue. When that file does not exist, the repository declares no Project: create the Issue without Project triage and report that the repository declares no Project. A missing file is not a reason to stop or to ask again.
 
 ## Change Issues
 
@@ -48,7 +48,7 @@ When creating a Release Issue, read [Release Issue rules](references/release-iss
 
 ## Handoff
 
-- Report the Issue URL, the Project Status, Scope, and Priority or that no Project is declared, and the next owner. For a Change Issue, the next owner is `plan-issue`, which plans it before `implement-issue` creates the branch.
+- Report the Issue URL, the Project Status, Scope, and Priority or that the repository declares no Project, and the next owner. For a Change Issue, the next owner is `plan-issue`, which plans it before `implement-issue` creates the branch.
 - Create only the Issue. On a direct request that also asks to plan, create a branch, or implement, state in the words "out of scope" that this work is out of scope for `create-issue`, do not do it, and leave it to `plan-issue` and `implement-issue`.
 - On a direct request, end the turn with this handoff after the Issue exists. Do not start `plan-issue` or another skill in the same turn, even when the request asks to continue; the next phase starts on a new request.
 - When an entry point such as `improve-project` or `resolve-defect` runs `create-issue` as one phase of its route, return this handoff to that entry point. The entry point owns the next phase and continues with `plan-issue`; the two rules above do not stop it.
