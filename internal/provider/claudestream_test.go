@@ -2,6 +2,8 @@ package provider
 
 import (
 	"bytes"
+	"context"
+	"io"
 	"strings"
 	"testing"
 )
@@ -54,6 +56,23 @@ func TestClaudeStreamWriterKeepsErrorResultWithSuccessSubtype(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "Failed to authenticate") {
 		t.Fatalf("transcript = %q, want the error result text", out.String())
+	}
+}
+
+func TestClaudeCodeRunConvertsStreamUnderCommandOverride(t *testing.T) {
+	for _, override := range []string{"", "wrapper claude -p --output-format stream-json --verbose"} {
+		t.Setenv("EVAL_CLAUDE_CMD", override)
+		var stdout io.Writer
+		stub := &Stub{Handler: func(command Command) (Result, error) {
+			stdout = command.Stdout
+			return Result{}, nil
+		}}
+		if err := NewHostCLI(HostClaudeCode, stub).Run(context.Background(), t.TempDir(), "prompt", io.Discard); err != nil {
+			t.Fatal(err)
+		}
+		if _, ok := stdout.(*claudeStreamWriter); !ok {
+			t.Fatalf("EVAL_CLAUDE_CMD=%q: stdout = %T, want the stream writer", override, stdout)
+		}
 	}
 }
 

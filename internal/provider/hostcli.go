@@ -370,7 +370,11 @@ func (h *cliHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Wri
 	}
 	stdout := out
 	var stream *claudeStreamWriter
-	if h.name == HostClaudeCode && os.Getenv(h.config.envVar) == "" {
+	// Convert claude-code output even when EVAL_CLAUDE_CMD replaces the
+	// command line: an override that keeps the stream format would otherwise
+	// put the raw system event, which lists every installed skill, into the
+	// transcript. The writer passes lines that are not stream events through.
+	if h.name == HostClaudeCode {
 		stream = newClaudeStreamWriter(out)
 		stdout = stream
 	}
