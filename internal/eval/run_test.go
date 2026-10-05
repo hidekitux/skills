@@ -289,8 +289,12 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		names := []string{}
+		names, dirs := []string{}, []string{}
 		for _, entry := range entries {
+			if entry.IsDir() {
+				dirs = append(dirs, entry.Name())
+				continue
+			}
 			names = append(names, entry.Name())
 		}
 		sort.Strings(names)
@@ -299,6 +303,10 @@ func TestRunAggregateReturnsExpectedExitCodes(t *testing.T) {
 		}
 		if !strings.HasSuffix(names[0], ".jsonl") || !strings.HasSuffix(names[1], ".md") {
 			t.Fatalf("unexpected report names: %v", names)
+		}
+		// The run directory holds the transcripts and shares the report's run ID.
+		if len(dirs) != 1 || dirs[0]+".jsonl" != names[0] {
+			t.Fatalf("expected one run directory matching %s, got %v", names[0], dirs)
 		}
 	})
 
