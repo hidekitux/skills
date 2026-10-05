@@ -11,9 +11,9 @@ policy for creating, using, and removing them.
   worktree; never use `--force` to work around that.
 - Changes go on an `issue/<number>` branch created from an existing Issue.
 - `scripts/setup/run-mise.sh` is the entry point for repository commands that need the Worktree environment.
-- No worktree is removed without inspecting it first. Never force-remove a
-  worktree that holds uncommitted work, and never delete an unmerged branch to
-  make a removal succeed.
+- No worktree is removed without inspecting it first with `git status`. Never
+  force-remove a worktree that holds uncommitted work, and never delete an
+  unmerged branch to make a removal succeed.
 - CI drives Git natively. No workflow or `mise` task depends on the worktree
   tool.
 
