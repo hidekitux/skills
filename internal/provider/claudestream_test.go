@@ -45,6 +45,18 @@ func TestClaudeStreamWriterKeepsOnlyAgentOutput(t *testing.T) {
 	}
 }
 
+func TestClaudeStreamWriterKeepsErrorResultWithSuccessSubtype(t *testing.T) {
+	var out bytes.Buffer
+	writer := newClaudeStreamWriter(&out)
+	line := `{"type":"result","subtype":"success","is_error":true,"result":"Failed to authenticate: OAuth session expired"}` + "\n"
+	if _, err := writer.Write([]byte(line)); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Failed to authenticate") {
+		t.Fatalf("transcript = %q, want the error result text", out.String())
+	}
+}
+
 func TestClaudeStreamWriterKeepsFailedResult(t *testing.T) {
 	var out bytes.Buffer
 	writer := newClaudeStreamWriter(&out)
