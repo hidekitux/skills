@@ -19,7 +19,7 @@ Keep exactly one item in progress. Mark an item complete only after its evidence
 ## Workflow
 
 1. Read `AGENTS.md`, contributor guidance, Skills, workflow files, hooks, tasks, and validators. Treat server-side GitHub controls as separate evidence from local hooks.
-2. Run the repository's documented full validation task. For release work, use the repository's documented release task; do not replace its gate sequence with a direct publish command. When the repository documents neither, report the gap instead of choosing a command. In the `hidekitux/skills` repository, run `mise run validate:all`, and use `mise run publish:release -- vX.Y.Z` instead of direct `gh skill publish`.
+2. Run the repository's documented full validation task. For release work, use the repository's documented release task; do not replace its gate sequence with a direct publish command. When the repository does not document one of these tasks, report each missing task as a gap instead of choosing a command. In the `hidekitux/skills` repository, run `mise run validate:all`, and use `mise run publish:release -- vX.Y.Z` instead of direct `gh skill publish`.
 3. Do not ask subagents to rerun deterministic checks or edit files. Give each a distinct, read-only question and require file/line or command-output evidence.
 4. Combine the results in a matrix: rule, source, enforcement, status, remaining gap, and recommendation. `Enforced` means the control blocks or rejects violations; a checklist or prose instruction is `documented-only`.
 
