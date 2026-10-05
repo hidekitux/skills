@@ -100,7 +100,7 @@ missing; they do not implement the audited rules themselves.
 
 | Layer | Skill | Status |
 | --- | --- | --- |
-| process | create-issue | experimental |
+| process | create-issue | stable |
 | process | plan-issue | experimental |
 | process | implement-issue | experimental |
 | process | create-pr | experimental |
