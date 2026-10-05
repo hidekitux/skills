@@ -85,7 +85,7 @@ The repository publishes 20 skills today and tracks 0 planned next-generation sk
 
 | Skill | Layer | Status |
 | --- | --- | --- |
-| create-issue | process | experimental |
+| create-issue | process | stable |
 | plan-issue | process | experimental |
 | implement-issue | process | experimental |
 | create-pr | process | experimental |
@@ -140,7 +140,7 @@ The evaluated entry points coordinate the primitive skills from a user request t
 
 ### Preview stability
 
-Every cataloged skill is `experimental` until behavioral and release evidence qualify promotion ([docs/evaluation.md](docs/evaluation.md)).
+Cataloged skills are `experimental` and `stable` as recorded in `CATALOG.yml`; `stable` requires retained behavioral-evaluation evidence ([docs/evaluation.md](docs/evaluation.md)).
 
 Verified release: `v0.1.1` ([GitHub Release](https://github.com/hidekitux/skills/releases/tag/v0.1.1), commit `f78f0c97d1edf88185018a41a7a762549a03e035`).
 
