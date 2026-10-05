@@ -47,6 +47,18 @@ func TestClaudeStreamWriterKeepsOnlyAgentOutput(t *testing.T) {
 	}
 }
 
+func TestClaudeStreamWriterPassesJSONTextWithOtherTypes(t *testing.T) {
+	var out bytes.Buffer
+	writer := newClaudeStreamWriter(&out)
+	text := "Plan text\n{\"type\": \"feature\", \"next\": \"create-issue\"}\nend\n"
+	if _, err := writer.Write([]byte(text)); err != nil {
+		t.Fatal(err)
+	}
+	if out.String() != text {
+		t.Fatalf("transcript = %q, want the text unchanged %q", out.String(), text)
+	}
+}
+
 func TestClaudeStreamWriterKeepsErrorResultWithSuccessSubtype(t *testing.T) {
 	var out bytes.Buffer
 	writer := newClaudeStreamWriter(&out)
