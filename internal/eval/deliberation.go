@@ -2,6 +2,7 @@ package eval
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -22,7 +23,9 @@ func runOneDeliberation(ctx context.Context, sc *Scenario, host provider.HostCLI
 
 	boundedCtx, cancel := context.WithTimeout(ctx, time.Duration(sc.Deliberation.Bounds.MaxElapsedMillis)*time.Millisecond)
 	defer cancel()
-	baseline := runOneSingle(boundedCtx, &baselineScenario, host, opts, out, errOut)
+	baselineOpts := *opts
+	baselineOpts.TranscriptRole = "baseline"
+	baseline := runOneSingle(boundedCtx, &baselineScenario, host, &baselineOpts, out, errOut)
 	if baseline.Verdict != VerdictPass && baseline.Verdict != VerdictFail {
 		return baseline
 	}
@@ -37,7 +40,9 @@ func runOneDeliberation(ctx context.Context, sc *Scenario, host provider.HostCLI
 		waitGroup.Add(1)
 		go func(index int, scenario Scenario) {
 			defer waitGroup.Done()
-			candidates[index] = runOneSingle(boundedCtx, &scenario, host, opts, out, errOut)
+			candidateOpts := *opts
+			candidateOpts.TranscriptRole = fmt.Sprintf("candidate-%d", index+1)
+			candidates[index] = runOneSingle(boundedCtx, &scenario, host, &candidateOpts, out, errOut)
 		}(index, candidateScenario)
 	}
 	waitGroup.Wait()
