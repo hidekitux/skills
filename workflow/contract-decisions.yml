@@ -175,7 +175,7 @@ contracts:
     reason: >-
       No specification source, state, or transition changed. The redesign
       changed how the verifier is started, not what it verifies.
-    check: verify:fsl checks and verifies every FSL specification under specs/ and skills/*/specs/.
+    check: verify:fsl checks and verifies every FSL specification under specs/ and skills/**/specs/.
 
   - id: fsl-verifier-failure-classification
     surface: >-
