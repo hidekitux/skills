@@ -55,11 +55,13 @@ before pushing or creating or updating the Pull Request.
 - Review the rendered body and confirm the Issue-reference block is first, complete, and uses the correct closing behavior.
 - Before creating or updating an Issue-backed Pull Request, validate the exact
   finalized body against any repository-provided Pull Request-body or
-  branch-policy validator, using the resolved base and head branches. For this
-  repository, run `go run ./cmd/validate-branch-policy --base <base>
-  --head <head> --body "$final_body"` before the GitHub API call.
+  branch-policy validator, using the resolved base and head branches. When the
+  repository provides none, check the body against its documented conventions
+  and report that no validator ran. In the `hidekitux/skills` repository, run
+  `go run ./cmd/validate-branch-policy --base <base> --head <head>
+  --body "$final_body"` before the GitHub API call.
 - Validate the exact finalized title against the repository title convention
-  before the GitHub API call. For this repository, run
+  before the GitHub API call. In the `hidekitux/skills` repository, run
   `go run ./cmd/validate-work-item-title --title "$final_title"`; do not open a
   ready Pull Request whose title fails preflight.
 - If a preflight fails, do not publish a ready Pull Request or diagnose the
