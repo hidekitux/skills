@@ -265,9 +265,12 @@ evidence.
 Drivers: `codex` (OpenAI ChatGPT tier via Plus; default model `gpt-5.6-luna`),
 `claude-code` (needs login; default `claude-sonnet-5`; loads only project and
 local settings through `--setting-sources project,local`, so the developer's
-user-level settings do not reach the run; `--allowedTools` permits only
+user-level settings do not reach the run; `--allowedTools` lets the agent use
 `Read`, `Edit`, `Write`, `Glob`, `Grep`, and the `git`, `gh`, `go`, `mise`,
-`ls`, `cat`, `grep`, `find`, and `mkdir` commands; it runs with
+`ls`, `cat`, `grep`, `find`, and `mkdir` commands without approval. The list
+is not a sandbox: `mise exec` and `go run` start any program, and `gh` reaches
+every repository the developer's `gh` login can reach, so run `claude-code`
+evaluations only on a machine and login where that is acceptable; it runs with
 `--output-format stream-json --verbose`, and the transcript keeps the text of
 every assistant message and the input of every tool call, but not system
 events or tool results), `opencode` (reads
