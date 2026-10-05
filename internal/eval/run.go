@@ -48,6 +48,12 @@ type Options struct {
 	// callers.
 	RunID          string
 	TraceOutputDir string
+	// TranscriptDir receives one transcript file per scenario and driver. Run
+	// sets it to <OutputDir>/<run_id>/transcripts when OutputDir is set.
+	TranscriptDir string
+	// TranscriptRole distinguishes the deliberation baseline and candidates,
+	// which run the same scenario on the same driver.
+	TranscriptRole string
 	ContextMode    string
 	Context        *skillcontext.Manifest
 	DryRun         bool
@@ -290,6 +296,11 @@ func runOneSingle(ctx context.Context, sc *Scenario, host provider.HostCLI, opts
 	}
 
 	var transcript strings.Builder
+	// Keep the transcript of every run that reached a host stage, whatever
+	// its verdict, so a failure can be diagnosed from the run that produced it.
+	defer func() {
+		writeTranscript(opts.TranscriptDir, sc.ID, host.Name(), opts.TranscriptRole, transcript.String(), errOut)
+	}()
 	prompts := sc.prompts()
 	for index, prompt := range prompts {
 		if err := host.Run(ctx, sandboxDir, prompt, &transcript); err != nil {
@@ -528,6 +539,10 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	if runID == "" {
 		runID = time.Now().UTC().Format("20060102T150405Z")
 	}
+	transcriptDir := ""
+	if opts.OutputDir != "" {
+		transcriptDir = filepath.Join(opts.OutputDir, runID, "transcripts")
+	}
 	var records []Record
 	gates := map[string]string{}
 	for _, sc := range scenarios {
@@ -547,6 +562,7 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			optsCopy := *opts
 			optsCopy.Model = provider.EffectiveModel(hostName, opts.Model)
 			optsCopy.Context = contextByScenario[sc.ID]
+			optsCopy.TranscriptDir = transcriptDir
 			if sharedSandbox {
 				results[index] = runOne(ctx, sc, host, &optsCopy, out, errOut)
 				continue
