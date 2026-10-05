@@ -50,17 +50,13 @@ func (w *claudeStreamWriter) Close() error {
 	return w.convert(line)
 }
 
-// claudeStreamEventTypes lists the event types Claude Code writes in
-// stream-json output. A JSON line with any other type is ordinary text, such
-// as an agent message printed by a text-output EVAL_CLAUDE_CMD override.
-var claudeStreamEventTypes = map[string]bool{"system": true, "user": true, "assistant": true, "result": true}
-
 type claudeStreamEvent struct {
-	Type    string `json:"type"`
-	Subtype string `json:"subtype"`
-	IsError bool   `json:"is_error"`
-	Result  string `json:"result"`
-	Message *struct {
+	Type      string `json:"type"`
+	SessionID string `json:"session_id"`
+	Subtype   string `json:"subtype"`
+	IsError   bool   `json:"is_error"`
+	Result    string `json:"result"`
+	Message   *struct {
 		Content []struct {
 			Type  string          `json:"type"`
 			Text  string          `json:"text"`
@@ -76,7 +72,10 @@ func (w *claudeStreamWriter) convert(line []byte) error {
 		return nil
 	}
 	var event claudeStreamEvent
-	if trimmed[0] != '{' || json.Unmarshal(trimmed, &event) != nil || !claudeStreamEventTypes[event.Type] {
+	// Every Claude Code stream event carries a type and a session_id. A JSON
+	// line without them is ordinary text, such as an agent message printed by
+	// a text-output EVAL_CLAUDE_CMD override, and passes through.
+	if trimmed[0] != '{' || json.Unmarshal(trimmed, &event) != nil || event.Type == "" || event.SessionID == "" {
 		_, err := w.out.Write(append(append([]byte{}, line...), '\n'))
 		return err
 	}
