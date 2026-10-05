@@ -235,7 +235,7 @@ contracts:
     reason: >-
       No fixture was added, removed, or re-recorded, and each one still reports
       the outcome it recorded at the baseline.
-    check: validate-replay-fixtures inside check:repository checks every fixture under workflow/replay-fixtures.
+    check: validate-replay-fixtures inside check:repository replays every fixture listed in workflow/replay-fixtures/manifest.json.
 
   - id: evidence-fixtures
     surface: >-
