@@ -191,6 +191,14 @@ and the driver CLI command. Reports are machine-readable JSONL plus a
 human-readable Markdown summary, written under `--output` (default
 `evaluations/reports/`).
 
+Each run that writes a report also writes the transcript of every scenario and
+driver that reached a host stage to
+`<output>/<run_id>/transcripts/<host>/<scenario>.txt`, for passing, failing,
+and interrupted runs alike. Deliberation adds `.baseline` or `.candidate-<n>`
+to the file name. Read a failure's transcript there instead of rerunning it.
+Transcripts stay local: they can hold repository content and model output, and
+nothing removes old ones.
+
 `evaluations/reports/` is ignored by Git, so continuous integration never
 sees it. Add `--retain` to a run whose records should support a promotion:
 
