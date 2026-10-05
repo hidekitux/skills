@@ -12,7 +12,8 @@ import (
 // of every tool call. System events, tool results, and a successful final
 // result are dropped, because the agent did not write them or they repeat the
 // last message; the system init event alone lists every installed skill name
-// and would satisfy any handoff assertion. A line that is not a stream event,
+// and would satisfy any handoff assertion. A result marked is_error is kept
+// even when its subtype is success, as an expired login reports it. A line that is not a stream event,
 // such as a CLI error, passes through unchanged.
 type claudeStreamWriter struct {
 	out     io.Writer
@@ -52,6 +53,7 @@ func (w *claudeStreamWriter) Close() error {
 type claudeStreamEvent struct {
 	Type    string `json:"type"`
 	Subtype string `json:"subtype"`
+	IsError bool   `json:"is_error"`
 	Result  string `json:"result"`
 	Message *struct {
 		Content []struct {
@@ -91,7 +93,7 @@ func (w *claudeStreamWriter) convert(line []byte) error {
 			}
 		}
 	case "result":
-		if event.Subtype != "success" {
+		if event.Subtype != "success" || event.IsError {
 			text.WriteString(event.Result)
 			text.WriteByte('\n')
 		}
