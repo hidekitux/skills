@@ -1,7 +1,9 @@
 package eval
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"strings"
 	"testing"
 
@@ -13,6 +15,13 @@ import (
 // every `gh issue close` call.
 func stubSandboxIssues(t *testing.T, listings ...string) *provider.Stub {
 	t.Helper()
+	return stubSandboxIssuesWith(t, false, listings...)
+}
+
+// stubSandboxIssuesWith is stubSandboxIssues with every `gh issue close`
+// failing when failClose is true.
+func stubSandboxIssuesWith(t *testing.T, failClose bool, listings ...string) *provider.Stub {
+	t.Helper()
 	calls := 0
 	stub := &provider.Stub{Handler: func(command provider.Command) (provider.Result, error) {
 		if len(command.Args) >= 2 && command.Args[0] == "issue" && command.Args[1] == "list" {
@@ -22,6 +31,9 @@ func stubSandboxIssues(t *testing.T, listings ...string) *provider.Stub {
 			listing := listings[calls]
 			calls++
 			return provider.Result{Combined: listing}, nil
+		}
+		if failClose && len(command.Args) >= 2 && command.Args[0] == "issue" && command.Args[1] == "close" {
+			return provider.Fail(command, provider.KindFailure, 1, "close refused")
 		}
 		return provider.Result{}, nil
 	}}
@@ -88,5 +100,16 @@ func TestRunOneReportsSandboxListingFailure(t *testing.T) {
 	}
 	if host.CallCount() != 0 {
 		t.Fatalf("host ran %d times, want none after a listing failure", host.CallCount())
+	}
+}
+
+func TestRunOneReportsSandboxCloseFailure(t *testing.T) {
+	t.Setenv("EVAL_GITHUB_REPO", "owner/sandbox")
+	stubSandboxIssuesWith(t, true, "1\n", "1\n2\n")
+	sc := &Scenario{ID: "create-issue-success", Skill: "create-issue", Kind: KindPositive, GithubSandbox: true, Prompt: "p"}
+	var errOut bytes.Buffer
+	runOne(context.Background(), sc, passingFake("codex"), &Options{}, io.Discard, &errOut)
+	if !strings.Contains(errOut.String(), "cannot close sandbox issues") || !strings.Contains(errOut.String(), "#2") {
+		t.Fatalf("errOut = %q, want the close failure for #2", errOut.String())
 	}
 }
