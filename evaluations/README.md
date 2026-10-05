@@ -299,6 +299,11 @@ the scenario stay open. A failure to list the issues makes the scenario an
 `infrastructure_error`; a failure to close one is printed on the error stream.
 Close issues left by runs before this behavior by hand once.
 
+The drivers of a GitHub-dependent scenario run one at a time when
+`EVAL_GITHUB_REPO` is set, because they share the sandbox repository: a
+concurrent driver would find another driver's issue, and the cleanup would
+close it. Other scenarios still run their drivers at the same time.
+
 ## Deterministic versus rubric
 
 Deterministic assertions (`expectations`) are machine-checked and gate the
