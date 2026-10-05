@@ -30,6 +30,7 @@ Keep exactly one item in progress. Do not complete an item without its observabl
 ## User Confirmation
 
 - Create the Issue only with user confirmation. User confirmation is an explicit instruction from the user that covers creating this Issue, given in the request or in reply to the finalized title and body.
+- When the request already confirms the creation, create the Issue after the body review below. Do not present the draft and ask again; the request's confirmation covers the body you draft for it.
 - When no instruction covers the creation, such as when the user approved only an investigation, present the finalized title and body and wait for an explicit answer.
 - Treat no answer or an ambiguous answer as no confirmation. Do not create the Issue.
 
