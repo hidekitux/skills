@@ -5,7 +5,9 @@ import (
 	"context"
 	"io"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/hidekitux/skills/internal/provider"
 )
@@ -111,5 +113,63 @@ func TestRunOneReportsSandboxCloseFailure(t *testing.T) {
 	runOne(context.Background(), sc, passingFake("codex"), &Options{}, io.Discard, &errOut)
 	if !strings.Contains(errOut.String(), "cannot close sandbox issues") || !strings.Contains(errOut.String(), "#2") {
 		t.Fatalf("errOut = %q, want the close failure for #2", errOut.String())
+	}
+}
+
+// concurrencyHost wraps a fakeHost and records the largest number of drivers
+// running a stage at the same time.
+type concurrencyHost struct {
+	*fakeHost
+	mu      *sync.Mutex
+	active  *int
+	maximum *int
+}
+
+func (h *concurrencyHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Writer) error {
+	h.mu.Lock()
+	*h.active++
+	if *h.active > *h.maximum {
+		*h.maximum = *h.active
+	}
+	h.mu.Unlock()
+	time.Sleep(50 * time.Millisecond)
+	h.mu.Lock()
+	*h.active--
+	h.mu.Unlock()
+	return h.fakeHost.Run(ctx, sandboxDir, prompt, out)
+}
+
+func TestRunRunsSharedSandboxDriversOneAtATime(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		repo    string
+		sandbox bool
+		want    int
+	}{
+		{"shared sandbox", "owner/sandbox", true, 1},
+		{"local scenario", "owner/sandbox", false, 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("EVAL_GITHUB_REPO", tc.repo)
+			stubSandboxIssues(t, "", "", "", "")
+			sc := &Scenario{
+				ID: "plan-issue-success", Skill: "plan-issue", Kind: KindPositive, GithubSandbox: tc.sandbox,
+				Title: "Plan a ready issue", Prompt: "Produce an ordered plan for the ready issue before coding.",
+				Expectations: Expectations{Handoff: "implement-issue", TranscriptMust: []string{"implement-issue"}},
+				Rubric:       fullRubric(),
+			}
+			root := scaffoldEval(t, []map[string]string{skillEntry("plan-issue", "experimental")}, []*Scenario{sc}, nil)
+			var mu sync.Mutex
+			active, maximum := 0, 0
+			opts := &Options{Root: root, Hosts: []string{"codex", "claude-code"},
+				RunnerFor: func(name string) provider.HostCLI {
+					return &concurrencyHost{fakeHost: &fakeHost{name: name, available: true, line: "handing to implement-issue"}, mu: &mu, active: &active, maximum: &maximum}
+				}}
+			var out, errOut bytes.Buffer
+			Run(context.Background(), opts, &out, &errOut)
+			if maximum != tc.want {
+				t.Fatalf("largest number of concurrent drivers = %d, want %d\n%s%s", maximum, tc.want, out.String(), errOut.String())
+			}
+		})
 	}
 }

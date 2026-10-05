@@ -533,6 +533,10 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	for _, sc := range scenarios {
 		results := make([]Record, len(opts.Hosts))
 		var wg sync.WaitGroup
+		// Drivers of a GitHub-dependent scenario share one sandbox repository,
+		// so they run one at a time: a concurrent driver would see another
+		// driver's issues, and the issue cleanup would close them.
+		sharedSandbox := sc.GithubSandbox && os.Getenv("EVAL_GITHUB_REPO") != ""
 		for index, hostName := range opts.Hosts {
 			host := runnerFor(hostName)
 			if opts.RunnerFor != nil {
@@ -543,6 +547,10 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 			optsCopy := *opts
 			optsCopy.Model = provider.EffectiveModel(hostName, opts.Model)
 			optsCopy.Context = contextByScenario[sc.ID]
+			if sharedSandbox {
+				results[index] = runOne(ctx, sc, host, &optsCopy, out, errOut)
+				continue
+			}
 			wg.Add(1)
 			go func(host provider.HostCLI) {
 				defer wg.Done()
