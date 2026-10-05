@@ -80,6 +80,33 @@ func TestRunOneWritesPartialTranscriptOnFailedHostStage(t *testing.T) {
 	}
 }
 
+// cancelingHost writes part of a transcript, then interrupts the run.
+type cancelingHost struct {
+	*fakeHost
+	cancel context.CancelFunc
+}
+
+func (h *cancelingHost) Run(ctx context.Context, sandboxDir, prompt string, out io.Writer) error {
+	io.WriteString(out, "partial output before the interruption")
+	h.cancel()
+	return ctx.Err()
+}
+
+func TestRunOneWritesPartialTranscriptOnInterruption(t *testing.T) {
+	dir := t.TempDir()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	host := &cancelingHost{fakeHost: &fakeHost{name: "codex", available: true}, cancel: cancel}
+	record := runOne(ctx, transcriptScenario(), host, &Options{TranscriptDir: dir}, io.Discard, io.Discard)
+	if record.Verdict != VerdictInterrupted {
+		t.Fatalf("verdict = %s, want %s", record.Verdict, VerdictInterrupted)
+	}
+	got := readTranscript(t, filepath.Join(dir, "codex", "plan-issue-success.txt"))
+	if !strings.Contains(got, "partial output before the interruption") {
+		t.Fatalf("transcript = %q, want the partial output", got)
+	}
+}
+
 func TestRunOneWritesNoTranscriptWithoutDirectory(t *testing.T) {
 	cwd := t.TempDir()
 	t.Chdir(cwd)
