@@ -38,6 +38,14 @@ manifest, so any result can be
 reproduced from its documented inputs. Reports are machine-readable JSONL plus
 a human-readable Markdown summary under `evaluations/reports/`.
 
+Every run that writes a report also keeps the transcript of each scenario and
+driver that reached a host stage, whatever its verdict, at
+`<output>/<run_id>/transcripts/<host>/<scenario>.txt`; a deliberation baseline
+or candidate adds `.baseline` or `.candidate-<n>` before `.txt`. A transcript
+can hold repository content and model output, so it stays in the ignored report
+directory. It never goes into the JSONL report or the retained evidence under
+`evaluations/evidence/`.
+
 ## Execution strategy comparison
 
 Issue 204 adds optional `execution_strategy` inputs to scenarios. The evaluator
