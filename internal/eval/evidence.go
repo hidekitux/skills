@@ -160,6 +160,9 @@ func checkRetainedEvidence(root string, findings *[]string) {
 			if skill, _ := record["skill"].(string); skill != "" && skill != parts[0] {
 				*findings = append(*findings, fmt.Sprintf("retained evidence %s line %d records skill %q under directory %q", relative, index+1, skill, parts[0]))
 			}
+			if runID, _ := record["run_id"].(string); runID != "" && runID+".jsonl" != parts[1] {
+				*findings = append(*findings, fmt.Sprintf("retained evidence %s line %d records run %q in file %q", relative, index+1, runID, parts[1]))
+			}
 		}
 		return nil
 	})
