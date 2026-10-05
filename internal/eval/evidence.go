@@ -153,7 +153,7 @@ func checkRetainedEvidence(root string, findings *[]string) {
 				*findings = append(*findings, fmt.Sprintf("retained evidence %s line %d carries field %q outside the retained set", relative, index+1, field))
 			}
 			for _, field := range requiredRetainedFields {
-				if value, ok := record[field]; !ok || value == "" {
+				if value, ok := record[field]; !ok || value == nil || value == "" {
 					*findings = append(*findings, fmt.Sprintf("retained evidence %s line %d is missing required field %q", relative, index+1, field))
 				}
 			}
