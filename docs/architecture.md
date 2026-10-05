@@ -341,8 +341,9 @@ files this redesign adds.
 
 `cmd/check-repository` ran 21 checks at the baseline and printed
 `check:repository: all 21 repository checks passed.` on its final line. It now
-runs the checks that the `repository-check-list` record in
-`workflow/contract-decisions.yml` names, and prints their total. Issue #328 added
+runs the checks that `cmd/check-repository/main.go` lists and prints their
+total. The `repository-check-list` record in `workflow/contract-decisions.yml`
+states that total and names the checks added since the baseline. Issue #328 added
 `check-module-boundaries` so the recorded dependency direction is enforced,
 Issue #331 added `check-contract-decisions` so this table is enforced the same
 way, and Issue #332 added `check-cutover-record` so the cutover record is too.
