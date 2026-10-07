@@ -8,7 +8,7 @@ different inputs, and have different failure policies.
 
 | Surface | Tool / command | Covers | Where it runs | Failure policy |
 | --- | --- | --- | --- | --- |
-| Workflow security | `zizmor` (`security.yml`, job `Audit workflow security`) | GitHub Actions workflow files (`.github/workflows/**`) for unsafe constructs | Every pull request and `main` push; the step runs only when workflow files changed | Blocking: findings fail the required `Audit workflow security` check |
+| Workflow security | `zizmor` (`security.yml`, job `Audit workflow security`) | GitHub Actions workflows (`.github/workflows/**`), composite actions (`.github/actions/**`), and `.github/dependabot.yml` for unsafe constructs | Every pull request and `main` push; the step runs only when a file under `.github/` changed | Blocking: findings fail the required `Audit workflow security` check |
 | Go dependency security | `govulncheck` (`check:go-vuln`; `targeted.yml` job `Audit Go dependency security`) | The Go module graph and Go sources for known vulnerabilities in dependencies and the standard library | Tier 2: every pull request, step runs only when Go sources or module files changed; Tier 4: run before release per `docs/releasing.md` | Reachable findings fail; non-reachable findings are reported; infrastructure errors fail |
 
 `zizmor` never scans Go code or modules, and the Go dependency scan never
@@ -46,9 +46,10 @@ audits workflow files. Check each surface with its own command.
 
 ## Local workflow audit (`lint:workflow-security`)
 
-- **Command.** Run `mise run lint:workflow-security` before pushing a change to
-  `.github/workflows/**`. It runs `zizmor .github/workflows` with the default
-  persona, as the CI job does. `validate:all` does not run it, and no CI job
+- **Command.** Run `mise run lint:workflow-security` before pushing a change
+  under `.github/`. It runs `zizmor .github` with the default persona, so it
+  audits the workflows, composite actions, and Dependabot configuration that
+  the CI job audits. `validate:all` does not run it, and no CI job
   calls the task.
 - **Pinned tool.** zizmor 1.30.1 is pinned in `mise.toml`
   (`aqua:zizmorcore/zizmor`) with its license attested in `TOOL_LICENSES.toml`.
