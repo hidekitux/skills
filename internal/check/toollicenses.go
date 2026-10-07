@@ -11,10 +11,13 @@ import (
 	"github.com/hidekitux/skills/internal/support"
 )
 
-// attestation is a reviewed license entry in TOOL_LICENSES.toml.
+// attestation is a reviewed license entry in TOOL_LICENSES.toml. PinnedIn
+// optionally names files outside mise.toml that pin the same mise tool version,
+// so a bump on one side only fails the check.
 type attestation struct {
-	License string `toml:"license"`
-	Source  string `toml:"source"`
+	License  string   `toml:"license"`
+	Source   string   `toml:"source"`
+	PinnedIn []string `toml:"pinned_in"`
 }
 
 // scriptAttestation is a reviewed license entry for a tool that a repository
@@ -157,6 +160,7 @@ func CheckToolLicenses(root string, out, errOut io.Writer) int {
 		"source must be a public https URL",
 		"attestation has no go.mod direct dependency",
 	)
+	errors = append(errors, checkMisePins(root, mise.Tools, registry.Tools)...)
 	errors = append(errors, checkScriptAttestations(root, registry.ScriptTools)...)
 
 	if len(errors) > 0 {
@@ -168,6 +172,34 @@ func CheckToolLicenses(root string, out, errOut io.Writer) int {
 	}
 	fmt.Fprintf(out, "Tool-license check passed: %d tool(s), %d script-pinned tool(s), and %d Go module(s) attested.\n", len(tools), len(registry.ScriptTools), len(modules))
 	return 0
+}
+
+// checkMisePins checks that every pinned_in file of a mise tool attestation
+// exists and contains the version mise.toml pins for that tool.
+func checkMisePins(root string, versions map[string]string, attestations map[string]attestation) []string {
+	names := make([]string, 0, len(attestations))
+	for name := range attestations {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	var errors []string
+	for _, name := range names {
+		version, ok := versions[name]
+		if !ok {
+			continue
+		}
+		for _, file := range attestations[name].PinnedIn {
+			data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(file)))
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("%s: pinned_in file %s cannot be read", name, file))
+				continue
+			}
+			if !strings.Contains(string(data), version) {
+				errors = append(errors, fmt.Sprintf("%s: pinned_in file %s does not contain mise version %s", name, file, version))
+			}
+		}
+	}
+	return errors
 }
 
 // checkScriptAttestations validates every script_tools entry: it needs a
