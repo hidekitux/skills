@@ -1,3 +1,9 @@
+# The review-mechanism fixture stages a finished but uncommitted change: the
+# policy guard in internal/policy/ledger_guard.go is far larger than the
+# 10-line src/ledger.go it guards, and its loop stops before the last entry.
+# The review stage must report both the disproportion and the boundary defect.
+# This description stays here, outside the fixture, because the fixture is
+# copied into the sandbox the evaluated agent reads.
 id: e2e-review-mechanism-flow
 skill: e2e
 kind: positive
