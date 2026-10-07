@@ -16,7 +16,8 @@ stages:
       The validated ledger policy change for the change issue is in the
       working tree and not yet committed. Put it on the Issue branch and open
       the pull request following the repository policy, without duplicating
-      an existing pull request.
+      an existing pull request. You have my confirmation to push the Issue
+      branch and open the pull request.
   - skill: review-pr
     prompt: |
       The ledger pull request is ready. Review it before merge and report only
