@@ -286,10 +286,20 @@ func runOneSingle(ctx context.Context, sc *Scenario, host provider.HostCLI, opts
 			record.Verdict, record.InfraError = classifyHostError(ctx, "sandbox issue listing", err)
 			return record
 		}
-		// Close the issues this scenario creates so the next scenario does
-		// not find them; issues open before the scenario stay open.
+		refsBefore, err := snapshotSandboxRefs(ctx, repo)
+		if err != nil {
+			record.Verdict, record.InfraError = classifyHostError(ctx, "sandbox pull request and branch listing", err)
+			return record
+		}
+		// Close the issues and pull requests this scenario opens and delete
+		// the branches it pushes, so the next scenario does not find them;
+		// anything that existed before the scenario stays.
 		defer func() {
-			if err := closeNewSandboxIssues(context.WithoutCancel(ctx), repo, sc.ID, openBefore); err != nil {
+			cleanupCtx := context.WithoutCancel(ctx)
+			if err := closeNewSandboxIssues(cleanupCtx, repo, sc.ID, openBefore); err != nil {
+				fmt.Fprintf(errOut, "evaluate: %v\n", err)
+			}
+			if err := cleanNewSandboxRefs(cleanupCtx, repo, sc.ID, refsBefore); err != nil {
 				fmt.Fprintf(errOut, "evaluate: %v\n", err)
 			}
 		}()
