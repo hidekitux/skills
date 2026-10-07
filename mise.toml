@@ -86,8 +86,8 @@ description = "Lint GitHub Actions workflows"
 run = "actionlint"
 
 [tasks."lint:workflow-security"]
-description = "Audit GitHub Actions workflows with the pinned zizmor"
-run = "zizmor .github/workflows"
+description = "Audit GitHub Actions workflows, composite actions, and Dependabot configuration with the pinned zizmor"
+run = "zizmor .github"
 
 [tasks."lint:go"]
 description = "Format-check and vet Go sources"
