@@ -19,9 +19,9 @@ stages:
       recommend; this message is my confirmation.
   - skill: implement-issue
     prompt: |
-      The verified plan is committed under issues/. Execute it: implement only
-      the in-scope tasks with per-task evidence, and stop before opening a
-      pull request.
+      The verified plan is posted on the change issue. Execute it: implement
+      only the in-scope tasks with per-task evidence, and stop before opening
+      a pull request.
   - skill: create-pr
     prompt: |
       The implementation branch is validated. Open the pull request for the
