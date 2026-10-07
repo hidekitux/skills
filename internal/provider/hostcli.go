@@ -26,8 +26,9 @@ const (
 )
 
 // StageTimeout bounds one host stage run so a stuck agent cannot stall the
-// whole evaluation run.
-const StageTimeout = 5 * time.Minute
+// whole evaluation run. A create-pr stage that branches, commits, pushes, and
+// opens a pull request needs more than 5 minutes (Issue #456).
+const StageTimeout = 10 * time.Minute
 
 // defaultTierModel is the fallback model provenance and explicit -m value
 // for the opencode driver when the repository's opencode.json role tiers
