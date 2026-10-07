@@ -24,19 +24,21 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Determine changed workflow files
+      # zizmor audits workflows, composite actions, and dependabot.yml, so
+      # any change under .github/ starts the audit.
+      - name: Determine changed GitHub configuration files
         id: changed
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           set -euo pipefail
-          if git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- .github/workflows | grep -q .; then
-            echo "workflows-changed=true" >> "${GITHUB_OUTPUT}"
+          if git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- .github | grep -q .; then
+            echo "github-changed=true" >> "${GITHUB_OUTPUT}"
           else
-            echo "workflows-changed=false" >> "${GITHUB_OUTPUT}"
+            echo "github-changed=false" >> "${GITHUB_OUTPUT}"
           fi
-      - name: Audit GitHub Actions workflows
-        if: steps.changed.outputs.workflows-changed == 'true'
+      - name: Audit GitHub Actions workflows and actions
+        if: steps.changed.outputs.github-changed == 'true'
         uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
         with:
           # advanced-security: true uploads SARIF to GitHub Code Scanning,
