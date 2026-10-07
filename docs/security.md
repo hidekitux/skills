@@ -54,11 +54,13 @@ audits workflow files. Check each surface with its own command.
 - **Pinned tool.** zizmor 1.30.1 is pinned in `mise.toml`
   (`aqua:zizmorcore/zizmor`) with its license attested in `TOOL_LICENSES.toml`.
   Updates follow `docs/tool-update-policy.md`.
-- **Difference from CI.** The `Audit workflow security` job runs
-  `zizmorcore/zizmor-action` without a `version` input, so it uses the latest
-  zizmor release. After an upstream release and before the pin is bumped, the
-  two runs can report different findings. The job also passes a GitHub token,
-  which lets zizmor run its online audits. zizmor reads a token from
+- **Same version as CI.** The `Audit workflow security` job passes the same
+  version to `zizmorcore/zizmor-action` through its `version` input. The
+  zizmor entry in `TOOL_LICENSES.toml` lists `.github/workflows/security.yml`
+  under `pinned_in`, so `check:repository` fails when a change bumps only one
+  of the two.
+- **Difference from CI.** The job passes a GitHub token, which lets zizmor run
+  its online audits. zizmor reads a token from
   `GH_TOKEN`, `GITHUB_TOKEN`, or `ZIZMOR_GITHUB_TOKEN`; a local run without one
   runs only the offline audits. The CI job stays the blocking check.
 
