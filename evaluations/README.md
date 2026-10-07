@@ -183,7 +183,8 @@ result is recorded as exactly one of:
 - `skipped` — scenario not selected, driver binary unavailable, or a
 documented sandbox requirement was not configured;
 - `infrastructure_error` — the run itself could not start (fixture staging,
-  missing driver, usage-limit or billing rejection, timeout).
+  missing driver, usage-limit or billing rejection, timeout). A driver stage
+  that runs longer than 10 minutes times out.
 
 Provenance recorded per scenario: driver, model (from the `opencode.json` role
 tiers in `../opencode.json`), prompt SHA-256, repository commit, fixture IDs,
