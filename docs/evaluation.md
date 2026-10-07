@@ -30,8 +30,8 @@ A scenario run records, for each result, exactly one verdict:
 - `skipped` — not selected, host CLI unavailable, or a documented sandbox
   requirement was not configured;
 - `infrastructure_error` — the run itself could not start (fixture staging,
-  missing host, auth failure, timeout). A driver stage that runs longer than
-  10 minutes times out.
+  missing host, auth failure, timeout). The harness stops a driver stage after
+  10 minutes; the antigravity CLI ends its own stage after 5 minutes.
 
 Provenance is recorded with every result: host, model (from `opencode.json`),
 prompt SHA-256, repository commit, fixture IDs, and optional compiled-context
