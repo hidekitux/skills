@@ -42,8 +42,8 @@ failure blocks a pull request. The static `check-evaluation` check remains the
 CI-bound evaluation check.
 
 The local workflow audit also sits outside the CI tiers. Run
-`mise run lint:workflow-security` before pushing a change to
-`.github/workflows/**`. It runs the zizmor version pinned in `mise.toml`, and
+`mise run lint:workflow-security` before pushing a change under
+`.github/`. It runs the zizmor version pinned in `mise.toml`, and
 `validate:all` does not run it. The blocking check stays the Tier 1
 `Audit workflow security` job, described in [docs/security.md](security.md).
 

@@ -141,8 +141,9 @@ reasons:
   GitHub's documentation, a required workflow skipped by path filtering leaves
   its checks "pending" and blocks merging.
 - Irrelevant-work avoidance happens inside the job instead:
-  `security.yml` gates the zizmor step on a `git diff` of
-  `.github/workflows/**`, so unrelated pull requests skip the audit while the
+  `security.yml` gates the zizmor step on a `git diff` of `.github/**`, the
+  workflows, composite actions, and Dependabot configuration that zizmor
+  audits, so unrelated pull requests skip the audit while the
   required check still reports success (a job whose step is conditional
   reports success).
 - `targeted.yml` follows the same rule for Tier 2: its jobs always run, and
