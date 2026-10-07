@@ -232,6 +232,37 @@ func TestToolLicensesRejectsScriptToolWithoutLicense(t *testing.T) {
 	}
 }
 
+const miseToolPinnedEntry = "[tools.zizmor]\nlicense = \"MIT\"\nsource = \"https://github.com/zizmorcore/zizmor\"\npinned_in = [\"security.yml\"]\n"
+
+func TestToolLicensesAcceptsMiseToolPinnedInFileAtMiseVersion(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\nzizmor = \"1.30.1\"\n")
+	writeFile(t, root, "security.yml", "version: \"1.30.1\"\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", miseToolPinnedEntry)
+	if code := runCheck(t, CheckToolLicenses, root); code != 0 {
+		t.Fatalf("expected pass, got exit %d", code)
+	}
+}
+
+func TestToolLicensesRejectsMiseToolPinnedInFileAtOtherVersion(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\nzizmor = \"1.31.0\"\n")
+	writeFile(t, root, "security.yml", "version: \"1.30.1\"\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", miseToolPinnedEntry)
+	if code := runCheck(t, CheckToolLicenses, root); code != 1 {
+		t.Fatalf("expected failure for a one-sided mise bump, got exit %d", code)
+	}
+}
+
+func TestToolLicensesRejectsMissingMiseToolPinFile(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\nzizmor = \"1.30.1\"\n")
+	writeFile(t, root, "TOOL_LICENSES.toml", miseToolPinnedEntry)
+	if code := runCheck(t, CheckToolLicenses, root); code != 1 {
+		t.Fatalf("expected failure for a missing pinned_in file, got exit %d", code)
+	}
+}
+
 func writeFile(t *testing.T, root, name, content string) {
 	t.Helper()
 	if err := os.WriteFile(filepath.Join(root, name), []byte(content), 0o644); err != nil {
