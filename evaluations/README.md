@@ -301,13 +301,16 @@ stays a throwaway local clone of the fixtures; skills and their prompts
 never receive credentials, and the harness's own `gh` calls keep the
 developer's authentication.
 
-Before a GitHub-dependent scenario runs, the harness records the open issues
-of the sandbox repository. When the scenario finishes, it closes every issue
-that became open during the scenario, with a comment that names the
-scenario, so the next scenario does not find it. Issues that were open before
-the scenario stay open. A failure to list the issues makes the scenario an
-`infrastructure_error`; a failure to close one is printed on the error stream.
-Close issues left by runs before this behavior by hand once.
+Before a GitHub-dependent scenario runs, the harness records the open issues,
+the open pull requests, and the branch names of the sandbox repository. When
+the scenario finishes, it closes every issue and pull request that became
+open during the scenario, with a comment that names the scenario, and
+deletes every branch the scenario pushed, never the default branch. The next
+scenario then does not find them. Issues, pull requests, and branches that
+existed before the scenario stay as they were. A failure to list them makes
+the scenario an `infrastructure_error`; a failure to close or delete one is
+printed on the error stream. Remove what runs before this behavior left by
+hand once.
 
 The drivers of a GitHub-dependent scenario run one at a time when
 `EVAL_GITHUB_REPO` is set, because they share the sandbox repository: a
