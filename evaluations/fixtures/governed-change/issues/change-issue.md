@@ -10,7 +10,7 @@ Apply the configured VAT rate to every checkout total so reported totals match w
 
 ## Scope
 
-- In: update `src/currency.go` to include VAT at the configured rate; add boundary tests; keep the module green.
+- In: update `src/currency.go` to include VAT at the configured rate of 20%; add boundary tests; keep the module green.
 - Out: pricing documentation, refund flow, and release work.
 
 ## Acceptance criteria

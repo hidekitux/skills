@@ -2,7 +2,7 @@
 
 Prioritized findings for the widgets project (read-only investigation).
 
-1. High: `src/currency.go` computes checkout totals without VAT, so orders are undercharged.
+1. High: `src/currency.go` computes checkout totals without VAT, so orders are undercharged. The configured VAT rate is 20%.
    Evidence: the VAT case added below fails under `go test ./...`.
 2. Medium: `docs/roadmap.md` still describes the legacy pricing model and contradicts `src/currency.go`.
 3. Low: no regression tests cover the VAT boundary.
