@@ -91,8 +91,10 @@ reasons:
   fails on a pinned `uses:` line without the tag and on any comment that
   repeats a SHA, because Dependabot leaves such a comment stale.
 - Go-based policy checks use `.github/actions/setup-go`, which centralizes
-  `actions/setup-go` (`go-version: 1.26.6` matching `go.mod` and `mise.toml`,
-  caching on, `go.sum` cache key). Workflows reference it through the
+  `actions/setup-go` (`go-version-file: go.mod`, caching on, `go.sum` cache
+  key). The inline `actions/setup-go` steps in `policy-signatures.yml` and
+  `pr-project-status.yml` read `go.mod` the same way, and `check:repository`
+  holds the `mise.toml` Go version and `go.mod` together. Workflows reference it through the
   self-repository syntax, `uses: $/.github/actions/setup-go`, which resolves
   to the running commit without a checkout. Checkout still runs as a separate
   named step before it, because the cache key reads `go.sum` from the
