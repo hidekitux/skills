@@ -33,7 +33,8 @@ stages:
       findings the change introduces, ordered by severity.
 expectations:
   handoff: review-pr
-  transcript_must: []
+  transcript_must:
+    - "skills:plan-issue issue="
   transcript_must_not:
     - "delv"
     - "Delv"
