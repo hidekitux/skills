@@ -47,3 +47,6 @@ jobs:
           # an accepted informational side effect — never a required context;
           # the named job stays the required check identity.
           advanced-security: true
+          # Keep in step with the aqua:zizmorcore/zizmor pin in mise.toml;
+          # check:repository fails when the two differ.
+          version: "1.30.1"
