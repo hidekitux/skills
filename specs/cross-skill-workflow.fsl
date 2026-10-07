@@ -20,6 +20,13 @@
 // ASSUME-6: a successful final review or merge outcome is represented by the
 //           Completed state. This model does not prove the GitHub API result or
 //           the quality of the implementation.
+// ASSUME-7: when a trace uses a tool that the running skill does not own, the
+//           replay adapter observes it and stops with a violation. The
+//           observe_unowned_tool action represents that observation from any
+//           non-terminal status, and Violated is its terminal status, distinct
+//           from Completed. ReadOnlyPhaseHasNoMutation keeps the name of the
+//           replay finding and means that an unowned tool use ends only in
+//           Violated.
 spec CrossSkillWorkflow {
   enum Status {
     Start,
@@ -34,7 +41,8 @@ spec CrossSkillWorkflow {
     Blocked,
     Incomplete,
     Interrupted,
-    RetryExhausted
+    RetryExhausted,
+    Violated
   }
 
   state {
@@ -172,6 +180,15 @@ spec CrossSkillWorkflow {
     status = Interrupted
   }
 
+  action observe_unowned_tool() {
+    requires status == Start or status == IssueReady or
+      status == PlanReady or status == ImplementationReady or
+      status == Validated or status == PullRequestReady or
+      status == PullRequestReadySecond or status == PullRequestReadyThird
+    read_only_clean = false
+    status = Violated
+  }
+
   invariant PlanRequiresIssue {
     plan_evidence => issue_evidence
   }
@@ -193,7 +210,7 @@ spec CrossSkillWorkflow {
   }
 
   invariant ReadOnlyPhaseHasNoMutation {
-    read_only_clean
+    not read_only_clean => status == Violated
   }
 
   invariant ReviewLoopBounded {
@@ -214,7 +231,8 @@ spec CrossSkillWorkflow {
 
   terminal {
     status == Completed or status == Blocked or status == Incomplete or
-      status == Interrupted or status == RetryExhausted
+      status == Interrupted or status == RetryExhausted or
+      status == Violated
   }
 
   reachable SuccessfulReview { status == Completed }
@@ -222,4 +240,5 @@ spec CrossSkillWorkflow {
   reachable IncompleteWorkflow { status == Incomplete }
   reachable InterruptedWorkflow { status == Interrupted }
   reachable ReviewLoopExhausted { status == RetryExhausted }
+  reachable UnownedToolViolation { status == Violated and not read_only_clean }
 }
