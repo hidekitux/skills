@@ -1,9 +1,12 @@
 # Development and CI tools used through mise. Each entry is reviewed when the
 # corresponding tool is added or updated. Tools pinned by scripts or workflows
-# are listed under script_tools below.
+# are listed under script_tools below. An optional pinned_in list names other
+# files that repeat a mise tool's version; check:repository fails when one of
+# them no longer contains the version mise.toml pins.
 [tools.go]
 license = "BSD-3-Clause"
 source = "https://go.dev/LICENSE"
+pinned_in = ["go.mod"]
 
 [tools."aqua:astral-sh/ruff"]
 license = "MIT"
