@@ -15,7 +15,8 @@ stages:
     prompt: |
       The change issue is ready. Produce a verified, ordered implementation
       plan before anyone starts coding, and post it where the team can review
-      it.
+      it. For each design decision the plan needs, take the option you
+      recommend; this message is my confirmation.
   - skill: implement-issue
     prompt: |
       The verified plan is committed under issues/. Execute it: implement only
