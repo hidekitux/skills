@@ -29,6 +29,8 @@ artifacts:
     description: Focused regression tests with failure evidence.
   - id: refactor-result
     description: Behavior-preserving refactor with a passing baseline.
+  - id: dependency-update
+    description: Verified dependency and version-pin changes with per-version evidence and held-back updates.
   - id: blocked-report
     description: Actionable evidence explaining why the path stopped.
 
@@ -351,6 +353,10 @@ context:
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
     write-tests:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    update-dependencies:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
@@ -750,6 +756,26 @@ skills:
         artifact: focused-tests
         destination: {skill: implement-issue}
       - id: stop-with-test-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: update-dependencies
+    path: skills/maintain/update-dependencies/SKILL.md
+    layer: maintain
+    capabilities: [inventory-outdated-dependencies, update-dependency-groups, record-update-evidence]
+    inputs: [repository-context]
+    outputs: [dependency-update, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-governed-implementation
+        outcome: success
+        artifact: dependency-update
+        destination: {skill: implement-issue}
+      - id: stop-with-update-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}

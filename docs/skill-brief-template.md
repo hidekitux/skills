@@ -23,7 +23,7 @@ validation workflow.
 - Copyright attribution: use the confirmed repository owner in `NOTICE`; update covered years only when copyrightable material changes.
 
 ## Layer, boundaries, and handoff
-- Layer (process, analyze, fix, or govern) per the skill-set map in README:
+- Layer (process, analyze, fix, maintain, or govern) for a workflow skill, or a technology category for a technology skill, per the skill-set map in README:
 - Related skills in the same or adjacent layers, and how they share or hand off state:
 - Intentional boundaries — work this skill must not do, and the adjacent skill that owns that work:
 - Handoff target — next-owner skill that receives this skill's output, and what the handoff must contain:
