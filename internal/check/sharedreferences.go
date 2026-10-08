@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/hidekitux/skills/internal/discover"
 )
@@ -17,10 +17,21 @@ import (
 // consuming skill keeps a byte-identical copy below its references/.
 const sharedReferenceDir = "shared/references"
 
+// linksReference reports whether SKILL.md text links references/<name>, as an
+// inline link target (optionally prefixed with ./ and followed by an anchor or
+// a title) or as a reference-style link definition.
+func linksReference(text, name string) bool {
+	target := `(?:\./)?references/` + regexp.QuoteMeta(name) + `(?:#[^)\s]*)?`
+	inline := regexp.MustCompile(`\]\(\s*<?` + target + `>?(?:\s+"[^"]*")?\s*\)`)
+	definition := regexp.MustCompile(`(?m)^\s*\[[^\]]+\]:\s*<?` + target + `>?(?:\s|$)`)
+	return inline.MatchString(text) || definition.MatchString(text)
+}
+
 // CheckSharedReferences compares every skill's copy of a shared reference
 // with its source. A skill consumes a shared reference when its SKILL.md
 // links references/<name>. A drifted or missing copy fails the check with the
-// cp command that repairs it. It returns 0 on success.
+// cp command that repairs it, and so does a copy that no SKILL.md link uses,
+// because it would ship unchecked. It returns 0 on success.
 func CheckSharedReferences(root string, out, errOut io.Writer) int {
 	entries, err := os.ReadDir(filepath.Join(root, filepath.FromSlash(sharedReferenceDir)))
 	if os.IsNotExist(err) {
@@ -53,10 +64,13 @@ func CheckSharedReferences(root string, out, errOut io.Writer) int {
 			continue
 		}
 		for name, source := range sources {
-			if !strings.Contains(string(instructions), "(references/"+name+")") {
+			copyPath := skill.Dir + "/references/" + name
+			if !linksReference(string(instructions), name) {
+				if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(copyPath))); err == nil {
+					findings = append(findings, fmt.Sprintf("%s is not linked from %s/SKILL.md; link it or remove the copy", copyPath, skill.Dir))
+				}
 				continue
 			}
-			copyPath := skill.Dir + "/references/" + name
 			repair := fmt.Sprintf("cp %s/%s %s", sharedReferenceDir, name, copyPath)
 			content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(copyPath)))
 			switch {
