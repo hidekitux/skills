@@ -2,7 +2,7 @@
 
 Read this reference before writing text that outlives the conversation: an
 Issue or Pull Request body, a comment or review, a plan or decision record, a
-commit message, or a file added to the project.
+commit message, or a file added to or changed in the project.
 
 - Use plain, active prose and name the actor.
 - Choose the plain word over an inflated or Latinate one: write `use` rather
