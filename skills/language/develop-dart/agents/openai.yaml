@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Dart"
+  short_description: "Apply a Dart project's conventions and checks"
+  default_prompt: "Use $develop-dart to follow this package's conventions, run its formatter, analyzer, and tests, and report each command and result."

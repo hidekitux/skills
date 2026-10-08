@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Java"
+  short_description: "Apply a Java project's conventions and build checks"
+  default_prompt: "Use $develop-java to follow this project's Java conventions, run its checks through the Gradle or Maven wrapper, and report each command and result."
