@@ -1,6 +1,6 @@
 # Inventory of skills published from this repository.
 # Add one entry when adding a skill; keep the version aligned with its release.
-# layer is one of: process, analyze, fix, govern (see docs/skill-layers.md).
+# layer is one of: process, analyze, fix, maintain, govern (see docs/skill-layers.md).
 # kind is workflow (the default when absent) or stack. A stack entry is a
 # technology skill: it declares no layer and lives under skills/language/,
 # skills/mobile/, skills/web/, or skills/game/.
@@ -171,6 +171,15 @@ skills:
     version: 0.1.1
     layer: fix
     related: [debug-code, write-tests, implement-issue]
+  - name: update-dependencies
+    summary: Update dependencies, toolchains, and version pins in verified groups with evidence for every version change.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: maintain
+    related: [implement-issue, develop-go, develop-kotlin]
   - name: bootstrap-project
     summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
     owner: hidekitux
@@ -217,6 +226,6 @@ skills:
 #   status: experimental # experimental | stable | deprecated
 #   agents: [codex, github-copilot]
 #   host_adapters: [codex, claude-code] # Omit when the core skill is sufficient.
-#   layer: process # process | analyze | fix | govern
+#   layer: process # process | analyze | fix | maintain | govern
 #   related: [implement-issue] # Related skills, published or planned.
 #   version: 0.1.0

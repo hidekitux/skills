@@ -312,3 +312,16 @@ skills:
       - {heading: Run and record, classification: task-procedure}
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
+  - name: update-dependencies
+    path: skills/maintain/update-dependencies/SKILL.md
+    before_tokens: 956
+    after_tokens: 956
+    before_commit: 36916f02fbb34bdc564ca15edb188cf6215b1688
+    after_commit: 36916f02fbb34bdc564ca15edb188cf6215b1688
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Inventory and group, classification: task-procedure}
+      - {heading: Apply and verify each group, classification: task-procedure}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}

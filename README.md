@@ -77,17 +77,17 @@ Every published skill uses a category directory and requires `SKILL.md`; its `na
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
-Every workflow skill belongs to one of four layers — process, analyze, fix, or govern. A technology skill (`kind: stack` in `CATALOG.yml`) gives one technology's conventions and commands instead, and lives under a technology category: `language`, `mobile`, `web`, or `game`. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design. Outcome-oriented entry points (`improve-project`, `deliver-change`, `resolve-defect`) coordinate the primitives from a user outcome to a complete result; direct primitive invocation remains available for advanced or partial workflows.
+Every workflow skill belongs to one of five layers — process, analyze, fix, maintain, or govern. A technology skill (`kind: stack` in `CATALOG.yml`) gives one technology's conventions and commands instead, and lives under a technology category: `language`, `mobile`, `web`, or `game`. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design. Outcome-oriented entry points (`improve-project`, `deliver-change`, `resolve-defect`) coordinate the primitives from a user outcome to a complete result; direct primitive invocation remains available for advanced or partial workflows.
 
 ## Skill-set map
 
-Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer`, `kind`, and `status` fields drive the list below and the same list in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the feature Issues. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief. The repository tracks 0 planned next-generation skills.
+Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer`, `kind`, and `status` fields drive the list below and the same list in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the feature Issues. Use the layer vocabulary — process, analyze, fix, maintain, and govern — consistently in Issues, docs, and the authoring brief. The repository tracks 0 planned next-generation skills.
 
 <!-- BEGIN generated: skill-list -->
 
 This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
 
-The repository publishes 22 skills: 20 workflow skills and 2 technology skills.
+The repository publishes 23 skills: 21 workflow skills and 2 technology skills.
 
 | Skill | Layer or technology category | Status |
 | --- | --- | --- |
@@ -109,6 +109,7 @@ The repository publishes 22 skills: 20 workflow skills and 2 technology skills.
 | `resolve-defect` | fix | experimental |
 | `write-tests` | fix | experimental |
 | `refactor-code` | fix | experimental |
+| `update-dependencies` | maintain | experimental |
 | `bootstrap-project` | govern | experimental |
 | `audit-workflow-enforcement` | govern | experimental |
 | `develop-go` | language | experimental |
