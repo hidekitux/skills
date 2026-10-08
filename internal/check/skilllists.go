@@ -22,7 +22,7 @@ var skillListDocuments = []string{"README.md", filepath.Join("docs", "skill-laye
 
 // skillListGroups is the order of the groups in the generated table: the
 // workflow layers, then the technology categories.
-var skillListGroups = append([]string{"process", "analyze", "fix", "govern"}, discover.TechnologyCategories...)
+var skillListGroups = append(append([]string{}, discover.WorkflowLayers...), discover.TechnologyCategories...)
 
 type skillListEntry struct {
 	name   string
