@@ -10,16 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hidekitux/skills/internal/discover"
 	"gopkg.in/yaml.v3"
 )
 
 // catalogSkill is one authoritative entry in CATALOG.yml.
 type catalogSkill struct {
-	Name   string
-	Layer  string
-	Kind   string
-	Status string
+	Name string
 }
 
 // docClaim is one documented inventory claim parsed from a table row in a
@@ -27,15 +23,11 @@ type catalogSkill struct {
 type docClaim struct {
 	line    int
 	skill   string
-	layer   string
 	status  string
 	planned bool
 }
 
 var (
-	// publishedCountRE matches the README's machine-readable published-skill
-	// count, e.g. "The repository publishes 11 skills today".
-	publishedCountRE = regexp.MustCompile(`publishes\s+(\d+)\s+skills?`)
 	// plannedCountRE matches the README's tracked planned-skill count, e.g.
 	// "and tracks 0 planned next-generation skills".
 	plannedCountRE = regexp.MustCompile(`tracks?\s+(\d+)\s+planned`)
@@ -57,10 +49,7 @@ func readCatalog(path string) (map[string]catalogSkill, error) {
 	}
 	var doc struct {
 		Skills []struct {
-			Name   string `yaml:"name"`
-			Layer  string `yaml:"layer"`
-			Kind   string `yaml:"kind"`
-			Status string `yaml:"status"`
+			Name string `yaml:"name"`
 		} `yaml:"skills"`
 	}
 	if err := yaml.Unmarshal(content, &doc); err != nil {
@@ -71,7 +60,7 @@ func readCatalog(path string) (map[string]catalogSkill, error) {
 		if entry.Name == "" {
 			continue
 		}
-		catalog[entry.Name] = catalogSkill{Name: entry.Name, Layer: entry.Layer, Kind: entry.Kind, Status: entry.Status}
+		catalog[entry.Name] = catalogSkill{Name: entry.Name}
 	}
 	return catalog, nil
 }
@@ -149,7 +138,6 @@ func tableClaims(lines []string) []docClaim {
 		if skillIdx < 0 {
 			continue
 		}
-		layerIdx := columnIndex(header, "layer")
 		statusIdx := columnIndex(header, "status")
 		i++
 		for i < len(lines) && isTableRow(lines[i]) {
@@ -162,9 +150,6 @@ func tableClaims(lines []string) []docClaim {
 				skill, planned := parseSkillCell(cells[skillIdx])
 				if skill != "" {
 					claim := docClaim{line: i + 1, skill: skill, planned: planned}
-					if layerIdx >= 0 && layerIdx < len(cells) {
-						claim.layer = cells[layerIdx]
-					}
 					if statusIdx >= 0 && statusIdx < len(cells) {
 						claim.status = cells[statusIdx]
 						if strings.EqualFold(cells[statusIdx], "planned") {
@@ -208,51 +193,21 @@ func plannedBulletSubjects(line string) []string {
 	return subjects
 }
 
-// checkDocTables verifies the documented claims of one contributor-facing
-// document against the catalog. mapping reports whether the document's table
-// is a current-inventory mapping table (with layer and status columns) that
-// must list every catalog skill; otherwise only planned markers are checked.
-func checkDocTables(docName, tableLabel, text string, mapping bool, catalog map[string]catalogSkill, findings *[]string, plannedAbsent map[string]bool) {
-	claims := tableClaims(strings.Split(text, "\n"))
-	present := map[string]bool{}
-	for _, claim := range claims {
-		cat, ok := catalog[claim.skill]
-		if !ok {
-			if mapping {
-				*findings = append(*findings, fmt.Sprintf("%s:%d: %s is not a current skill in CATALOG.yml", docName, claim.line, claim.skill))
-			} else if claim.planned {
-				plannedAbsent[claim.skill] = true
-			}
+// checkDocTables checks the planned markers in the skill tables of one
+// contributor-facing document: a cataloged skill must not be marked planned,
+// and every planned skill outside the catalog is recorded for the README
+// planned count. The generated skill list (check-skill-lists) owns the
+// current inventory, layers, and statuses.
+func checkDocTables(docName, text string, catalog map[string]catalogSkill, findings *[]string, plannedAbsent map[string]bool) {
+	for _, claim := range tableClaims(strings.Split(text, "\n")) {
+		if !claim.planned {
 			continue
 		}
-		if claim.planned {
+		if _, ok := catalog[claim.skill]; ok {
 			*findings = append(*findings, fmt.Sprintf("%s:%d: %s is described as planned, but it exists in CATALOG.yml", docName, claim.line, claim.skill))
+		} else {
+			plannedAbsent[claim.skill] = true
 		}
-		if !mapping {
-			continue
-		}
-		present[claim.skill] = true
-		if claim.layer != "" && cat.Kind == discover.KindStack && claim.layer != cat.Layer {
-			*findings = append(*findings, fmt.Sprintf("%s:%d: %s is listed in layer %q, but its technology category is %q", docName, claim.line, claim.skill, claim.layer, cat.Layer))
-		} else if claim.layer != "" && claim.layer != cat.Layer {
-			*findings = append(*findings, fmt.Sprintf("%s:%d: %s is listed in layer %q, but CATALOG.yml declares layer %q", docName, claim.line, claim.skill, claim.layer, cat.Layer))
-		}
-		if claim.status != "" && claim.status != cat.Status {
-			*findings = append(*findings, fmt.Sprintf("%s:%d: %s is listed with status %q, but CATALOG.yml declares status %q", docName, claim.line, claim.skill, claim.status, cat.Status))
-		}
-	}
-	if !mapping {
-		return
-	}
-	missing := make([]string, 0, len(catalog))
-	for name := range catalog {
-		if !present[name] {
-			missing = append(missing, name)
-		}
-	}
-	sort.Strings(missing)
-	for _, name := range missing {
-		*findings = append(*findings, fmt.Sprintf("%s: %s is missing from %s", docName, name, tableLabel))
 	}
 }
 
@@ -290,14 +245,10 @@ func checkPlannedText(docName, text string, catalog map[string]catalogSkill, fin
 	}
 }
 
-// checkReadmeCounts verifies the README inventory count sentence against the
-// catalog and the distinct non-catalog skills the documentation marks planned.
-func checkReadmeCounts(readme string, catalog map[string]catalogSkill, plannedAbsent map[string]bool, findings *[]string) {
-	if m := publishedCountRE.FindStringSubmatch(readme); m == nil {
-		*findings = append(*findings, `README.md must state the published skill count as "publishes N skills"`)
-	} else if m[1] != strconv.Itoa(len(catalog)) {
-		*findings = append(*findings, fmt.Sprintf("README.md states %s published skills, but CATALOG.yml lists %d", m[1], len(catalog)))
-	}
+// checkReadmeCounts verifies the README planned count against the distinct
+// non-catalog skills the documentation marks planned. The generated skill
+// list owns the published count.
+func checkReadmeCounts(readme string, plannedAbsent map[string]bool, findings *[]string) {
 	if p := plannedCountRE.FindStringSubmatch(readme); p == nil {
 		*findings = append(*findings, `README.md must state the tracked planned count as "tracks N planned"`)
 	} else if n, err := strconv.Atoi(p[1]); err != nil || n != len(plannedAbsent) {
@@ -305,11 +256,11 @@ func checkReadmeCounts(readme string, catalog map[string]catalogSkill, plannedAb
 	}
 }
 
-// CheckCatalogDocs enforces CATALOG.yml as the source of truth for the
-// current publishable-skill inventory described in contributor-facing
-// documentation: the README skill-set map, the skill-layers skill-set mapping,
-// and the skill-contract ownership boundary. It rejects stale counts, layers,
-// and statuses. It returns 0 on success or 1 when documentation drifts.
+// CheckCatalogDocs checks the planned-skill claims in README.md,
+// docs/skill-layers.md, and docs/skill-contract.md against CATALOG.yml: a
+// cataloged skill must not be described as planned, and the README planned
+// count must match the planned skills the documents name. It returns 0 on
+// success or 1 when documentation drifts.
 func CheckCatalogDocs(root string, out, errOut io.Writer) int {
 	catalog, err := readCatalog(filepath.Join(root, "CATALOG.yml"))
 	if err != nil {
@@ -328,16 +279,6 @@ func CheckCatalogDocs(root string, out, errOut io.Writer) int {
 	layers := readDoc(filepath.Join("docs", "skill-layers.md"))
 	contract := readDoc(filepath.Join("docs", "skill-contract.md"))
 
-	// A technology skill declares no layer; its documented layer column holds
-	// the technology category directory it lives under.
-	byName := discover.ByName(root)
-	for name, cat := range catalog {
-		if cat.Kind == discover.KindStack && len(byName[name]) == 1 {
-			cat.Layer = discover.Category(byName[name][0].Dir)
-			catalog[name] = cat
-		}
-	}
-
 	findings := []string{}
 	if readme == "" {
 		findings = append(findings, "README.md is missing")
@@ -350,13 +291,13 @@ func CheckCatalogDocs(root string, out, errOut io.Writer) int {
 	}
 
 	plannedAbsent := map[string]bool{}
-	checkDocTables("README.md", "the skill-set map table", readme, true, catalog, &findings, plannedAbsent)
-	checkDocTables("docs/skill-layers.md", "the skill-set mapping table", layers, true, catalog, &findings, plannedAbsent)
-	checkDocTables("docs/skill-contract.md", "the ownership boundary table", contract, false, catalog, &findings, plannedAbsent)
+	checkDocTables("README.md", readme, catalog, &findings, plannedAbsent)
+	checkDocTables("docs/skill-layers.md", layers, catalog, &findings, plannedAbsent)
+	checkDocTables("docs/skill-contract.md", contract, catalog, &findings, plannedAbsent)
 	checkPlannedText("README.md", readme, catalog, &findings, plannedAbsent)
 	checkPlannedText("docs/skill-layers.md", layers, catalog, &findings, plannedAbsent)
 	checkPlannedText("docs/skill-contract.md", contract, catalog, &findings, plannedAbsent)
-	checkReadmeCounts(readme, catalog, plannedAbsent, &findings)
+	checkReadmeCounts(readme, plannedAbsent, &findings)
 
 	sort.Strings(findings)
 	if len(findings) > 0 {
