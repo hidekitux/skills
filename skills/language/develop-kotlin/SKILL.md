@@ -101,5 +101,7 @@ the task, return these results to it; that skill owns the next phase.
 
 ## Writing quality
 
-Use plain, active, evidence-backed prose in the handoff. Name the file,
-command, or output behind every claim about the project.
+Use plain, active, evidence-backed prose in the handoff. Choose the plain word
+over an inflated or Latinate one: write `use` rather than `utilize` and `is`
+rather than `serves as`. Name the file, command, or output behind every claim
+about the project.
