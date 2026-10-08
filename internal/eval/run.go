@@ -16,6 +16,7 @@ import (
 	"time"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	"github.com/hidekitux/skills/internal/discover"
 	"github.com/hidekitux/skills/internal/instructions"
 	"github.com/hidekitux/skills/internal/provider"
 	"github.com/hidekitux/skills/internal/trace"
@@ -445,6 +446,17 @@ func gateVerdict(records []Record) (string, string) {
 // machine-readable JSONL and human-readable Markdown reports into the output
 // directory. Drivers run concurrently per scenario; the aggregate gate uses
 // the either-pass policy. It returns the aggregate exit code.
+// compiledContextSkill returns the skill whose compiled context a scenario
+// uses and whether to compile it. A technology skill has no graph node or
+// context profile, so its scenario runs with the full SKILL.md instructions.
+func compiledContextSkill(root string, sc *Scenario) (string, bool) {
+	skillID := sc.Skill
+	if skillID == E2ESkill && len(sc.Stages) > 0 {
+		skillID = sc.Stages[0].Skill
+	}
+	return skillID, !discover.IsTechnologySkill(root, skillID)
+}
+
 func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	scenarios, err := LoadAllScenarios(opts.Root)
 	if err != nil {
@@ -517,9 +529,9 @@ func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 		}
 		compiler := skillcontext.Compiler{Root: opts.Root, Counter: counter}
 		for _, sc := range scenarios {
-			skillID := sc.Skill
-			if skillID == E2ESkill && len(sc.Stages) > 0 {
-				skillID = sc.Stages[0].Skill
+			skillID, compile := compiledContextSkill(opts.Root, sc)
+			if !compile {
+				continue
 			}
 			manifestPackage, compileErr := compiler.Compile(skillID, contextSignalsForScenario(sc))
 			if compileErr != nil && manifestPackage.Manifest.Overflow == nil {

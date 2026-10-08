@@ -590,3 +590,19 @@ func TestResolveHosts(t *testing.T) {
 		t.Fatal("expected empty host to fail")
 	}
 }
+
+func TestCompiledContextSkillSkipsTechnologySkill(t *testing.T) {
+	root := t.TempDir()
+	writeTestFile(t, root, filepath.Join("skills", "process", "plan-issue", "SKILL.md"), "---\nname: plan-issue\n---\n")
+	writeTestFile(t, root, filepath.Join("skills", "language", "develop-go", "SKILL.md"), "---\nname: develop-go\n---\n")
+
+	if skill, compile := compiledContextSkill(root, &Scenario{Skill: "plan-issue"}); skill != "plan-issue" || !compile {
+		t.Fatalf("workflow skill: got (%q, %t), want (plan-issue, true)", skill, compile)
+	}
+	if skill, compile := compiledContextSkill(root, &Scenario{Skill: E2ESkill, Stages: []Stage{{Skill: "plan-issue"}}}); skill != "plan-issue" || !compile {
+		t.Fatalf("e2e scenario: got (%q, %t), want (plan-issue, true)", skill, compile)
+	}
+	if skill, compile := compiledContextSkill(root, &Scenario{Skill: "develop-go"}); skill != "develop-go" || compile {
+		t.Fatalf("technology skill: got (%q, %t), want (develop-go, false)", skill, compile)
+	}
+}

@@ -105,3 +105,11 @@ func IsTechnologyCategory(category string) bool {
 	}
 	return false
 }
+
+// IsTechnologySkill reports whether the skill named name resolves to exactly
+// one directory and that directory is under a technology category. Technology
+// skills have no node in workflow/skill-graph.yml.
+func IsTechnologySkill(root, name string) bool {
+	matches := ByName(root)[name]
+	return len(matches) == 1 && IsTechnologyCategory(Category(matches[0].Dir))
+}
