@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Compose Multiplatform"
+  short_description: "Apply Compose Multiplatform conventions and checks"
+  default_prompt: "Use $develop-compose-multiplatform to follow this project's shared Compose UI conventions, run its Gradle checks per target through the wrapper, and report each command and result."
