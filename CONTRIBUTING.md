@@ -103,6 +103,17 @@ added; below it, the guard is a code comment or a line in the document that
 owns the topic, which is this file for a repository-wide rule, and the
 declined check is recorded in its Issue.
 
+## Commands and tasks
+
+A new command under `cmd/` or a new task in `mise.toml` is added only for a
+named need. Its Issue records the failure or repeated manual step the addition
+removes, citing the failure record, Issue, or command history that shows it,
+and why extending an existing command, adding a flag, or documenting a
+one-line manual step is not enough. Prefer the smallest of those options: a
+command is code the repository maintains, tests, and keeps mapped in
+`SCRIPT_TESTS.toml`. A new repository check also meets the cost threshold in
+`docs/validation-tiers.md`.
+
 ## Issue planning
 
 Every open Issue is tracked in the repository's GitHub Project declared by
