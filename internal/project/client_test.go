@@ -13,14 +13,21 @@ type fakeRunner struct {
 	responses      map[string]string
 	failures       map[string]error
 	failOnceErrors map[string][]error
+	// sequences answers successive calls in order and repeats the last answer.
+	sequences map[string][]string
 }
 
 func newFakeRunner() *fakeRunner {
-	return &fakeRunner{responses: map[string]string{}, failures: map[string]error{}, failOnceErrors: map[string][]error{}}
+	return &fakeRunner{responses: map[string]string{}, failures: map[string]error{}, failOnceErrors: map[string][]error{}, sequences: map[string][]string{}}
 }
 
 func (f *fakeRunner) respond(args []string, output string) *fakeRunner {
 	f.responses[strings.Join(args, " ")] = output
+	return f
+}
+
+func (f *fakeRunner) respondInOrder(args []string, outputs ...string) *fakeRunner {
+	f.sequences[strings.Join(args, " ")] = outputs
 	return f
 }
 
@@ -44,6 +51,12 @@ func (f *fakeRunner) Run(args ...string) (string, error) {
 	}
 	if err, ok := f.failures[key]; ok {
 		return "", err
+	}
+	if outputs := f.sequences[key]; len(outputs) > 0 {
+		if len(outputs) > 1 {
+			f.sequences[key] = outputs[1:]
+		}
+		return outputs[0], nil
 	}
 	if output, ok := f.responses[key]; ok {
 		return output, nil
