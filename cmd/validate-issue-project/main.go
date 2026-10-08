@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/hidekitux/skills/internal/project"
 	"github.com/hidekitux/skills/internal/support"
@@ -18,6 +19,8 @@ func main() {
 	repo := fs.String("repo", "", "repository owner/name")
 	issue := fs.Int64("issue", 0, "Issue number")
 	config := fs.String("config", "", "Project configuration path (default: <root>/.github/issue-project.toml)")
+	wait := fs.Duration("wait", 0, "how long to read the Project again while the Issue has no item or an empty required field (default: read once)")
+	interval := fs.Duration("interval", 30*time.Second, "time between Project reads while waiting")
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		os.Exit(2)
 	}
@@ -42,5 +45,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(2)
 	}
-	os.Exit(project.CheckIssueProject(project.NewGH(), cfg, *repo, *issue, os.Stdout, os.Stderr))
+	policy := project.WaitPolicy{Limit: *wait, Interval: *interval}
+	os.Exit(project.CheckIssueProjectWithin(project.NewGH(), cfg, *repo, *issue, policy, os.Stdout, os.Stderr))
 }
