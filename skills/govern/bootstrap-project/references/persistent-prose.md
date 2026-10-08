@@ -1,7 +1,8 @@
 # Persistent prose
 
-Read this reference before writing contributor documentation, Issue or Pull
-Request text, commit messages, or files that outlive the conversation.
+Read this reference before writing text that outlives the conversation: an
+Issue or Pull Request body, a comment or review, a plan or decision record, a
+commit message, or a file added to the project.
 
 - Use plain, active prose and name the actor.
 - Choose the plain word over an inflated or Latinate one: write `use` rather
@@ -10,6 +11,6 @@ Request text, commit messages, or files that outlive the conversation.
 - State the conclusion before its evidence. Remove sentences that add no fact.
 - Cite the file, command, or output behind every repository claim.
 - Keep headings in sentence case. Use lists only for items a reader counts.
-- Review English sentences for length, inflated wording, repeated structure, and
-  rhetorical em dashes. Review Japanese prose for one idea per sentence,
-  common words, consistent register, and unnecessary loanwords.
+- Review English for short sentences, ordinary words, repeated structure, and
+  rhetorical em dashes. Review Japanese for one idea per sentence, common
+  words, consistent register, and unnecessary loanwords.
