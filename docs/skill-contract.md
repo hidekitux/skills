@@ -102,6 +102,7 @@ Every skill names its result, the next-owner skill, and what it must not do.
 | `debug-code` | Reproduction, root cause, fix, and verification evidence | `write-tests` or `refactor-code`; for a governed fix, `create-issue` without a governing Change Issue or `implement-issue` with one | Fixes only the isolated bug; does not design tests or refactor |
 | `write-tests` | Focused test cases with failure evidence | `implement-issue` | Tests only; does not fix production code |
 | `refactor-code` | Behavior-preserving refactor verified against a test baseline | `implement-issue` | Refactors only; does not change behavior or add features |
+| `write-docs` | Documentation changes with a source for every claim and a list of unverified claims | `implement-issue` | Writes documentation only; does not change code or configuration, commit, or open a Pull Request |
 | `update-dependencies` | Verified dependency and version-pin changes with per-version evidence and held-back updates | `implement-issue` | Updates manifests, lockfiles, and pins only; does not change application code, commit, or open a Pull Request |
 | `bootstrap-project` | Runnable foundation with protected branch flow and FSL adoption plan | The project's governed change flow | Initialization only |
 | `audit-workflow-enforcement` | Bounded subagent audit of enforcement rules | The requester and subsequent governed fixes | Audits only; fixes are governed changes |
@@ -189,20 +190,20 @@ Rules:
 
 Every skill writes prose, and each `SKILL.md` carries its own `Writing quality`
 section so the rules reach an installation that has neither `AGENTS.md` nor
-`docs/`. Two tiers divide the 21 workflow skills by where that prose goes. Tier
+`docs/`. Two tiers divide the 22 workflow skills by where that prose goes. Tier
 A prose outlives the conversation, so its section names every surface it binds.
 Tier B prose is the conversational handoff report and nothing else, so its
 section is one sentence.
 
 | Tier | Skills | Prose that leaves the conversation |
 | --- | --- | --- |
-| A | `create-issue`, `create-pr`, `plan-issue`, `review-pr`, `fix-pr`, `implement-issue`, `bootstrap-project` | Issue body, Pull Request body, plan comment, review comment, commit message body, files written into the target project |
+| A | `create-issue`, `create-pr`, `plan-issue`, `review-pr`, `fix-pr`, `implement-issue`, `bootstrap-project`, `write-docs` | Issue body, Pull Request body, plan comment, review comment, commit message body, files written into the target project |
 | B | `analyze-codebase`, `analyze-project`, `propose-improvements`, `retrospect-work`, `triage-issues`, `audit-workflow-enforcement`, `debug-code`, `write-tests`, `refactor-code`, `update-dependencies`, `merge-pr`, `deliver-change`, `improve-project`, `resolve-defect` | None. The handoff report is the only prose, and it stays in the conversation |
 
 A Tier B skill emits no prose deliverable that outlives the conversation, and
 that is why it carries the shorter section rather than no section at all.
 
-The evidence for a tier is the skill's own artifact. For the 18 skills the
+The evidence for a tier is the skill's own artifact. For the 19 skills the
 ownership boundary table lists, read its `Produces` column. `deliver-change`,
 `improve-project`, and `resolve-defect` are absent from that table because they
 are entry points; each returns one final report and creates no artifact of its

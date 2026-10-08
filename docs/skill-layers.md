@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Every workflow skill in this repository belongs to one of five layers: process,
-analyze, fix, maintain, or govern. A workflow skill is a catalog entry whose `kind` is
+Every workflow skill in this repository belongs to one of six layers: process,
+analyze, fix, maintain, document, or govern. A workflow skill is a catalog entry whose `kind` is
 absent or `workflow`; technology skills have no layer and are described in
 [Technology skills](#technology-skills). The layer states the skill's naming pattern, what it may and may
 not do, and where its results go. Published skills declare their `layer` and
@@ -28,6 +28,7 @@ skill name identifies the exact workflow.
 | `analyze` | You need read-only evidence about a codebase, a project, a completed session, an Issue backlog, or a major redesign. |
 | `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. |
 | `maintain` | You need to keep a project's dependencies, toolchains, and version pins current. |
+| `document` | You need to write or update a project's documentation so it matches the code. |
 | `govern` | You need to establish or audit repository rules and their enforcement. |
 
 Use these representative requests to navigate without repository history:
@@ -50,7 +51,7 @@ Use these representative requests to navigate without repository history:
 the public name as `refactor-code` while placing the skill with the other
 repair workflows.
 
-## The five layers
+## The six layers
 
 ### process
 
@@ -95,6 +96,14 @@ lockfiles, and pins in the working tree, verify each change, and hand the
 verified change to `implement-issue`, which commits it on the Issue branch.
 They change no application code; an update that needs a source change is held
 back and recorded for `implement-issue`.
+
+### document
+
+Skills that write or update a project's documentation. They trace every claim
+to its source in the repository, follow the project's writing rules, verify
+commands, paths, and links, and hand the change to `implement-issue`, which
+commits it on the Issue branch. They change no code or configuration; a
+requested behavior change is recorded and handed to `implement-issue`.
 
 ### govern
 
@@ -145,7 +154,7 @@ copying shared files.
 
 This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
 
-The repository publishes 23 skills: 21 workflow skills and 2 technology skills.
+The repository publishes 24 skills: 22 workflow skills and 2 technology skills.
 
 | Skill | Layer or technology category | Status |
 | --- | --- | --- |
@@ -168,6 +177,7 @@ The repository publishes 23 skills: 21 workflow skills and 2 technology skills.
 | `write-tests` | fix | experimental |
 | `refactor-code` | fix | experimental |
 | `update-dependencies` | maintain | experimental |
+| `write-docs` | document | experimental |
 | `bootstrap-project` | govern | experimental |
 | `audit-workflow-enforcement` | govern | experimental |
 | `develop-go` | language | experimental |
@@ -228,6 +238,7 @@ test writing, or refactoring as `fix`.
 - Process and fix skills use a verb-first name (`create-issue`, `debug-code`,
   `write-tests`).
 - Maintenance skills use a verb-first name (`update-dependencies`).
+- Documentation skills use a verb-first name (`write-docs`).
 - Governance skills name the governed artifact or action (`bootstrap-project`,
   `audit-workflow-enforcement`).
 - Technology skills are named `develop-<technology>` (`develop-go`,
@@ -242,6 +253,8 @@ test writing, or refactoring as `fix`.
   project.
 - `maintain` updates dependencies, toolchains, and pins and hands the change to
   `implement-issue`; it does not change application code.
+- `document` writes documentation and hands the change to `implement-issue`; it
+  does not change code or configuration.
 - `govern` establishes and verifies rules; `analyze` and `fix` do not change
   governance.
 - Every workflow skill states its layer, related skills, and handoff target

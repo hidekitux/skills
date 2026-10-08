@@ -10,6 +10,7 @@ workflow.
 | `analyze` | Read-only codebase, project, session, and backlog investigation, and redesign proposals. |
 | `fix` | Reproduced repairs, focused tests, and behavior-preserving refactors. |
 | `maintain` | Dependency, toolchain, and version-pin updates. |
+| `document` | Project documentation that matches the code. |
 | `govern` | Repository setup and enforcement audits. |
 
 Technology skills give one technology's conventions, build commands, and test
@@ -26,7 +27,7 @@ commands. They live under a technology category instead of a layer:
 
 This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
 
-The repository publishes 23 skills: 21 workflow skills and 2 technology skills.
+The repository publishes 24 skills: 22 workflow skills and 2 technology skills.
 
 | Skill | Layer or technology category | Status |
 | --- | --- | --- |
@@ -49,6 +50,7 @@ The repository publishes 23 skills: 21 workflow skills and 2 technology skills.
 | `write-tests` | fix | experimental |
 | `refactor-code` | fix | experimental |
 | `update-dependencies` | maintain | experimental |
+| `write-docs` | document | experimental |
 | `bootstrap-project` | govern | experimental |
 | `audit-workflow-enforcement` | govern | experimental |
 | `develop-go` | language | experimental |

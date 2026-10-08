@@ -46,6 +46,7 @@ requires every graph node to occur exactly once between the markers.
 - `review-pr`
 - `triage-issues`
 - `update-dependencies`
+- `write-docs`
 - `write-tests`
 <!-- skills:graph-inventory:end -->
 
