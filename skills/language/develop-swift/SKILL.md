@@ -42,8 +42,12 @@ Stop and say that this skill does not apply when the repository has no
   (tools version 6.0 and later) or `swiftLanguageVersions` (earlier), plus any
   per-target `swiftSettings` such as `.swiftLanguageMode(.v5)`. A package with
   tools version 6.0 and no language mode setting builds in the Swift 6 mode,
-  which makes data-race checks errors. In an Xcode project, read the
-  `SWIFT_VERSION` and `SWIFT_STRICT_CONCURRENCY` build settings. Do not change
+  which makes data-race checks errors. Read the default actor isolation too:
+  `.defaultIsolation(MainActor.self)` in `Package.swift`, or the
+  `SWIFT_DEFAULT_ACTOR_ISOLATION` build setting, makes unannotated code run on
+  the main actor and changes what needs `Sendable` or `nonisolated`. In an
+  Xcode project, read the `SWIFT_VERSION`, `SWIFT_STRICT_CONCURRENCY`, and
+  `SWIFT_DEFAULT_ACTOR_ISOLATION` build settings. Do not change
   the tools version, the platforms, or the language mode unless the task asks
   for it, because each change can break every caller and every target.
 - Find the project's own entry point before using raw `swift` or `xcodebuild`
@@ -93,7 +97,7 @@ Run the project's entry point for each check when it has one. Otherwise run:
 | Package build | `swift build` | Exits 0 |
 | Package test | `swift test` | Exits 0 |
 | Xcode schemes | `xcodebuild -list` with `-project <name>.xcodeproj` or `-workspace <name>.xcworkspace` | Lists the scheme to test |
-| Xcode test | `xcodebuild -scheme <scheme> -destination '<destination>' test`, such as `-destination 'platform=macOS'` or `-destination 'platform=iOS Simulator,name=<device>'` from `xcrun simctl list devices available` | Exits 0 |
+| Xcode test | `xcodebuild -project <name>.xcodeproj` or `-workspace <name>.xcworkspace`, then `-scheme <scheme> -destination '<destination>' test`, such as `-destination 'platform=macOS'` or `-destination 'platform=iOS Simulator,name=<device>'` from `xcrun simctl list devices available` | Exits 0 |
 | Lint | `swiftlint lint` when the project has `.swiftlint.yml` | Exits 0 and reports no new violation |
 | Format | `swift format lint --recursive .` when the project has `.swift-format` | Prints no finding |
 

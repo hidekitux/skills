@@ -41,9 +41,11 @@ Stop and say that this skill does not apply when the repository has no
   machine, so the build runs the version that the project pins in
   `gradle/wrapper/gradle-wrapper.properties` or
   `.mvn/wrapper/maven-wrapper.properties`. When the project has no wrapper,
-  say so and report the build checks as not run instead of using another
-  Gradle or Maven, because a different version can pass or fail for reasons
-  the project does not have.
+  use the command its CI workflow or contributor documentation runs, such as
+  `mvn verify`, and name that source in the handoff. When neither exists, say
+  so and report the build checks as not run instead of guessing a version,
+  because a different version can pass or fail for reasons the project does
+  not have.
 - Read the Java level from `java { toolchain { languageVersion } }` or
   `options.release` in a Gradle build, and from `maven.compiler.release` or the
   compiler plugin's `<release>` in a Maven build. Do not raise it unless the
