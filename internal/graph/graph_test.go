@@ -177,3 +177,52 @@ func containsFinding(findings []string, want string) bool {
 	}
 	return false
 }
+
+func appendStackCatalogEntry(t *testing.T, root, name string) {
+	t.Helper()
+	path := filepath.Join(root, "CATALOG.yml")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content = append(content, []byte("  - name: "+name+"\n    kind: stack\n")...)
+	writeFixtureFile(t, root, "CATALOG.yml", content)
+}
+
+func technologySkillGraph() Graph {
+	return Graph{
+		SchemaVersion:    CurrentSchemaVersion,
+		Artifacts:        []Definition{{ID: "result", Description: "A result."}},
+		TerminalOutcomes: []string{"success"},
+		Skills: []Skill{
+			fixtureSkill("a", Transition{
+				ID: "finish", Outcome: "success", Artifact: "result",
+				Destination: Destination{TerminalOutcome: "success"},
+			}),
+		},
+	}
+}
+
+func TestValidateExemptsTechnologySkillFromGraphCoverage(t *testing.T) {
+	root := writeGraphFixture(t, technologySkillGraph())
+	appendStackCatalogEntry(t, root, "develop-go")
+
+	report := Validate(root)
+	if containsFinding(report.Findings, `"develop-go"`) {
+		t.Fatalf("expected no finding for the technology skill, got %v", report.Findings)
+	}
+}
+
+func TestValidateRejectsTechnologySkillGraphNode(t *testing.T) {
+	root := writeGraphFixture(t, technologySkillGraph())
+	content, err := os.ReadFile(filepath.Join(root, "CATALOG.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeFixtureFile(t, root, "CATALOG.yml", []byte(strings.Replace(string(content), "layer: process", "kind: stack", 1)))
+
+	report := Validate(root)
+	if report.Valid || !containsFinding(report.Findings, `skill "a" is a technology skill (kind: stack) and must not appear in the graph`) {
+		t.Fatalf("expected technology skill graph node finding, got valid=%t findings=%v", report.Valid, report.Findings)
+	}
+}
