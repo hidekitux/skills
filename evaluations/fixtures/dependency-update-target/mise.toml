@@ -1,0 +1,9 @@
+# Tools are pinned to exact versions. Update one tool per change and keep the
+# exact-version style.
+[tools]
+go = "1.24.0"
+"aqua:koalaman/shellcheck" = "0.9.0"
+"aqua:rhysd/actionlint" = "1.6.26"
+
+[tasks."test:all"]
+run = "go test ./..."
