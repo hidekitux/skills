@@ -112,7 +112,10 @@ cites from run logs.
   the check reported the empty Status at 08:26:10Z. The Status became
   `Backlog` at 08:26:33Z. No later event re-ran the check. No other workflow
   step runs `validate-issue-project` on Issue events, so the recommendation is
-  to keep the check and fix its timing in a follow-up Issue.
+  to keep the check and fix its timing in a follow-up Issue. Issue #478 fixed
+  it: on Issue events the check now reads the Project again every 30 seconds
+  for up to three minutes while the item is missing or a required field is
+  empty, and fails at once on an undeclared value.
 - `validate-plan-comment`: 25 rejections of comments that carried the plan
   marker, across 21 Issues. Issues #232, #234, #283, and #286 each have two
   rejections, which shows authors posting the plan again after a rejection.
