@@ -14,12 +14,20 @@ expectations:
   transcript_must_not: []
   files_must_exist: []
   files_must_not_exist: []
-  file_contains: []
+  file_contains:
+    - path: "README.md"
+      pattern: "retry.Do("
   unchanged_files:
     - "retry.go"
     - "retry_test.go"
   command_run:
     - run: "go test ./..."
+      dir: ""
+      exit: 0
+    - run: "test \"$(ls *.go | wc -l | tr -d ' ')\" = 2"
+      dir: ""
+      exit: 0
+    - run: "! grep -qiE 'two seconds|2 ?s(econds)?([^a-z]|$)|2 \\* time\\.Second' README.md"
       dir: ""
       exit: 0
 rubric:

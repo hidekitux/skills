@@ -39,6 +39,12 @@ expectations:
     - run: "! grep -q 'make test' README.md"
       dir: ""
       exit: 0
+    - run: "! grep -qi 'by default' README.md"
+      dir: ""
+      exit: 0
+    - run: "grep -qE 'retry\\.Do\\([^,]+,[^,]+,' README.md"
+      dir: ""
+      exit: 0
 rubric:
   trigger_selection: "Uses the documentation workflow for a stale README."
   task_completion: "Documents Do with its delay parameter, removes the false default claim, and names the project's test task."
