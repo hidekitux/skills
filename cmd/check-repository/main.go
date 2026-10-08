@@ -50,6 +50,7 @@ var repoChecks = []repoCheck{
 	{name: "check-guided-paths", fn: check.CheckGuidedPaths},
 	{name: "check-instruction-inventory", fn: check.CheckInstructionInventory},
 	{name: "check-catalog-docs", fn: check.CheckCatalogDocs},
+	{name: "check-skill-lists", fn: check.CheckSkillLists},
 	{name: "check-dependabot-config", fn: check.CheckDependabotConfig},
 	{name: "check-action-pins", fn: check.CheckActionPins},
 	{name: "check-module-boundaries", fn: check.CheckModuleBoundaries},
