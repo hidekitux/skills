@@ -316,8 +316,8 @@ skills:
     path: skills/maintain/update-dependencies/SKILL.md
     before_tokens: 956
     after_tokens: 956
-    before_commit: 36916f02fbb34bdc564ca15edb188cf6215b1688
-    after_commit: 36916f02fbb34bdc564ca15edb188cf6215b1688
+    before_commit: 1e76fd9c913b317ec6c8fd9c11e4db87a237aae7
+    after_commit: 1e76fd9c913b317ec6c8fd9c11e4db87a237aae7
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
