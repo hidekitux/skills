@@ -9,9 +9,9 @@ import (
 )
 
 // CheckInstructionInventory verifies the measured-skill inventory and every
-// conditional reference without downloading tokenizer data. Exact counts are
-// checked by cmd/measure-instructions --check because that check may need the
-// tokenizer's encoding asset.
+// conditional reference without downloading tokenizer data. It does not check
+// token counts: before_tokens and after_tokens record the Issue #197
+// compaction, and cmd/measure-instructions only reports current counts.
 func CheckInstructionInventory(root string, out, errOut io.Writer) int {
 	path := filepath.Join(root, "docs", "skill-instruction-inventory.yml")
 	inventory, err := instructions.Load(path)
