@@ -1,0 +1,53 @@
+id: develop-go-success
+skill: develop-go
+kind: positive
+smoke: false
+title: Add a Go helper and verify it with the module's own checks
+fixture: go-module-tasks
+prompt: |
+  Add a Truncate(s string, n int) string function to the textutil package. It
+  returns at most n runes of s and never splits a multi-byte character. Add
+  tests for it.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_any:
+    - "go vet"
+    - "mise run lint:all"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains:
+    - path: "textutil/slug.go"
+      pattern: "func Slug"
+  unchanged_files:
+    - "go.mod"
+  command_run:
+    - run: "go test -race ./..."
+      dir: ""
+      exit: 0
+    - run: "test -z \"$(gofmt -l .)\""
+      dir: ""
+      exit: 0
+    - run: "grep -rq 'Truncate' --include='*_test.go' textutil"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Uses the Go technology skill for a Go module change."
+  task_completion: "Adds Truncate with rune-safe behavior and table-driven tests."
+  evidence_quality: "Reports each formatter, vet, and test command with its result, preferring the module's mise tasks."
+  scope_control: "Leaves go.mod and unrelated code unchanged."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to run the module's checks."
+  handoff_quality: "Hands off the commands, results, and any skipped check."
+corrections: []

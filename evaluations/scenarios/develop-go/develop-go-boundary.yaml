@@ -1,0 +1,30 @@
+id: develop-go-boundary
+skill: develop-go
+kind: boundary
+smoke: false
+title: Do not apply Go tooling to a Kotlin project
+fixture: kotlin-gradle-library
+prompt: |
+  Add a helper that truncates a string to at most n characters, with tests,
+  following this project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not:
+    - "go test"
+  files_must_exist: []
+  files_must_not_exist:
+    - "go.mod"
+  file_contains: []
+  unchanged_files:
+    - "build.gradle.kts"
+  command_run: []
+rubric:
+  trigger_selection: "Recognizes the project has no Go code and does not apply the Go skill."
+  task_completion: "Implements the helper in the project's own language or explains why it cannot."
+  evidence_quality: "States which language and build the project uses, citing its files."
+  scope_control: "Adds no Go module or Go files."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid Go tooling."
+  handoff_quality: "Reports what was done and what could not be verified."
+corrections: []
