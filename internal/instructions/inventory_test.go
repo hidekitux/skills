@@ -60,3 +60,44 @@ func TestValidateCoverageAndMeasure(t *testing.T) {
 		t.Fatalf("count = %d, want %d", counts["demo"], len("# Demo\n\n## Workflow\n")+7)
 	}
 }
+
+func technologySkillRoot(t *testing.T) (string, Inventory) {
+	t.Helper()
+	root := t.TempDir()
+	for _, rel := range []string{"skills/process/demo/SKILL.md", "skills/language/develop-go/SKILL.md"} {
+		path := filepath.Join(root, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte("# Demo\n\n## Workflow\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	inventory := Inventory{Version: 1}
+	inventory.Skills = []Skill{{
+		Name:     "demo",
+		Path:     "skills/process/demo/SKILL.md",
+		Sections: []Section{{Heading: "Workflow", Classification: TaskProcedure}},
+	}}
+	return root, inventory
+}
+
+func TestValidateCoverageExemptsTechnologySkill(t *testing.T) {
+	root, inventory := technologySkillRoot(t)
+	if err := ValidateCoverage(root, inventory); err != nil {
+		t.Fatalf("expected the technology skill to be exempt, got %v", err)
+	}
+}
+
+func TestValidateCoverageRejectsTechnologySkillEntry(t *testing.T) {
+	root, inventory := technologySkillRoot(t)
+	inventory.Skills = append(inventory.Skills, Skill{
+		Name:     "develop-go",
+		Path:     "skills/language/develop-go/SKILL.md",
+		Sections: []Section{{Heading: "Workflow", Classification: TaskProcedure}},
+	})
+	err := ValidateCoverage(root, inventory)
+	if err == nil || !strings.Contains(err.Error(), "must not list technology skill develop-go") {
+		t.Fatalf("expected a technology skill entry error, got %v", err)
+	}
+}
