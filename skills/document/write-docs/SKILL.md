@@ -1,6 +1,6 @@
 ---
 name: write-docs
-description: Write or update a project's documentation, such as a README, a guide, a how-to, a contributor document, or a reference page, so that every claim matches the code and follows the project's own writing rules, then hand the change to implement-issue. Use it whenever a user asks to write, update, fix, or bring documentation up to date, including when a README or guide no longer matches the code, even if the request does not mention sources or verification. Do not use it to change code, configuration, or behavior.
+description: Write or update a project's documentation, such as a README, a guide, a how-to, a contributor document, or a reference page, with every claim checked against the code and the project's own writing rules applied, then hand the change to implement-issue. Use it whenever a user asks to write, update, fix, or bring documentation up to date, including when a README or guide no longer matches the code, even if the request does not mention sources or verification. Do not use it to change code, configuration, or behavior.
 license: Apache-2.0
 ---
 
@@ -22,19 +22,20 @@ Markdown checklist when no native list is available.
 - This is a document-layer skill. It writes documentation files in the working
   tree and hands the change to `implement-issue`, which commits it on the Issue
   branch. It does not commit, create a branch, an Issue, or a Pull Request.
-- Resolve which document to write or change, who reads it, and what it must
-  cover, from the request or its Issue. Do not widen the scope to other
-  documents.
-- Change documentation only. When the request also asks for a code,
-  configuration, or behavior change, leave it undone, record it, and hand it to
-  `implement-issue`; a document must describe the code as it is.
-- Stop and ask when the document needs a decision that is not about wording,
-  such as describing a feature that does not exist, choosing between two
-  conflicting behaviors, or stating a policy the project has not set.
+- Resolve the target file to write or change, who reads it, and what it must
+  cover, from the request or its Issue. Do not widen the scope to other files.
+- Change documentation only. When the request pairs a documentation change
+  with a code, configuration, or behavior change, write the documentation for
+  the code as it is today, leave the other change undone, record it, and hand
+  it to `implement-issue`. Do not describe the requested behavior as if it
+  existed.
+- Stop and ask only when you cannot write the documentation without a decision
+  that is not about wording, such as choosing between two conflicting
+  behaviors in the code or stating a policy the project has not set.
 - Find the project's writing rules before writing: a style guide, a glossary,
   `CONTRIBUTING.md`, or a linter configuration such as `.markdownlint.yaml` or
-  `.vale.ini`. Follow them. When the project has none, follow
-  [persistent prose](references/persistent-prose.md).
+  `.vale.ini`. They take precedence; see "Writing quality" for the rules that
+  apply when the project has none.
 
 ## Collect sources
 
@@ -74,6 +75,5 @@ documentation. Hand the working-tree change and this record to
 ## Writing quality
 
 These rules bind the documentation files this skill writes into the project
-and the handoff report. Read [persistent prose](references/persistent-prose.md)
-before writing; the project's own writing rules take precedence where they
-exist.
+and the handoff report. Follow the project's own writing rules. Where the
+project states none, follow [persistent prose](references/persistent-prose.md).
