@@ -18,6 +18,7 @@ expectations:
   handoff: implement-issue
   transcript_must:
     - "implement-issue"
+    - "skills:plan-issue issue="
   transcript_must_not:
     - "delv"
     - "Delv"
