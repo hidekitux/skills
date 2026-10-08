@@ -46,6 +46,7 @@ Use these representative requests to navigate without repository history:
 | Add focused tests for a defined target. | `fix` | `write-tests` |
 | Refactor against a passing baseline. | `fix` | `refactor-code` |
 | Update dependencies, toolchains, or version pins. | `maintain` | `update-dependencies` |
+| Write or update project documentation so it matches the code. | `document` | `write-docs` |
 
 `refactor-code` is at `skills/fix/refactor-code`. This category location keeps
 the public name as `refactor-code` while placing the skill with the other

@@ -329,8 +329,8 @@ skills:
     path: skills/document/write-docs/SKILL.md
     before_tokens: 889
     after_tokens: 889
-    before_commit: 4e894a4eff5ae37a201cff6253a7d7de33497403
-    after_commit: 4e894a4eff5ae37a201cff6253a7d7de33497403
+    before_commit: 1aa769f2d0b7af5c3921b1d250116756820c45fe
+    after_commit: 1aa769f2d0b7af5c3921b1d250116756820c45fe
     sections:
       - {heading: Todo List, classification: invariant}
       - {heading: Resolve and Guard, classification: invariant}
