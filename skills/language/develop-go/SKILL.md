@@ -19,7 +19,8 @@ Markdown checklist when no native list is available.
 
 ## Scope
 
-This skill gives Go knowledge to the task that is already running. It does not
+This skill is a technology skill in the `language` category. It gives Go
+knowledge to the task that is already running. It does not
 choose what to change, and it creates no Issue, Pull Request, branch, or
 release. When the task belongs to a workflow skill such as `implement-issue`,
 `write-tests`, or `debug-code`, that skill keeps ownership of the plan, the
@@ -76,7 +77,10 @@ Run the project's entry point for each check when it has one. Otherwise run:
 | Build | `go build ./...` | Exits 0 |
 | Test | `go test ./...` | Exits 0 |
 | Race | `go test -race ./...` when the change touches goroutines or shared state | Exits 0 |
-| Modules | `go mod tidy`, then `git diff --exit-code go.mod go.sum` when the change touches imports | No diff |
+| Modules | `go mod tidy -diff` when the change touches imports | Prints nothing |
+
+`go mod tidy -diff` needs Go 1.23 or later. With an older Go, run
+`go mod tidy` and report the change it makes to `go.mod` and `go.sum`.
 
 Fix a failure the change caused before handoff. Report a failure the change did
 not cause as an existing failure, with the command and its output, instead of
