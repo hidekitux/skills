@@ -118,7 +118,9 @@ func TestRunOptInWritesTraceAndMetrics(t *testing.T) {
 	opts := &Options{
 		Root: root, Hosts: []string{"codex"}, ScenarioID: "plan-issue-success", TraceOutputDir: output,
 		RunnerFor: func(name string) provider.HostCLI {
-			return &fakeHost{name: name, available: true, line: "handing to implement-issue"}
+			// The line must satisfy plan-issue-success, which requires the
+			// posted plan comment marker and the implement-issue handoff.
+			return &fakeHost{name: name, available: true, line: "<!-- skills:plan-issue issue=1 --> handing to implement-issue"}
 		},
 	}
 	if code := Run(context.Background(), opts, &out, &errOut); code != ExitOK {
