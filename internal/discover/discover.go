@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 // Skill is a discovered publishable skill.
@@ -68,4 +69,39 @@ func Names(root string) []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// Catalog kinds. A catalog entry without a kind is a workflow skill.
+const (
+	// KindWorkflow marks a workflow skill, which hands artifacts to other
+	// skills through workflow/skill-graph.yml.
+	KindWorkflow = "workflow"
+	// KindStack marks a technology skill, which gives the conventions, build,
+	// and test commands for one technology and hands off to no skill.
+	KindStack = "stack"
+)
+
+// TechnologyCategories lists the first directories below skills/ that hold
+// technology skills, in lexical order.
+var TechnologyCategories = []string{"game", "language", "mobile", "web"}
+
+// Category returns the first directory below skills/ for a namespaced skill
+// directory such as "skills/language/develop-go", or "" for a flat skill.
+func Category(dir string) string {
+	parts := strings.Split(filepath.ToSlash(dir), "/")
+	if len(parts) < 3 || parts[0] != "skills" {
+		return ""
+	}
+	return parts[1]
+}
+
+// IsTechnologyCategory reports whether category is one of
+// TechnologyCategories.
+func IsTechnologyCategory(category string) bool {
+	for _, candidate := range TechnologyCategories {
+		if candidate == category {
+			return true
+		}
+	}
+	return false
 }

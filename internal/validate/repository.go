@@ -336,8 +336,28 @@ func CheckRepository(root string, out, errOut io.Writer) int {
 		if version, ok := valueString(entry["version"]); !ok || !versionPattern.MatchString(version) {
 			errors = append(errors, prefix+".version must be semantic version text")
 		}
-		if layer, _ := valueString(entry["layer"]); !validLayers[layer] {
-			errors = append(errors, fmt.Sprintf("%s.layer must be one of %v", prefix, sortedKeys(validLayers)))
+		kind := discover.KindWorkflow
+		if rawKind, present := entry["kind"]; present {
+			kind, _ = rawKind.(string)
+		}
+		category := discover.Category(resolvedDir)
+		switch kind {
+		case discover.KindStack:
+			if _, hasLayer := entry["layer"]; hasLayer {
+				errors = append(errors, fmt.Sprintf("%s.layer must be omitted for a technology skill (kind: stack)", prefix))
+			}
+			if resolvedDir != "" && !discover.IsTechnologyCategory(category) {
+				errors = append(errors, fmt.Sprintf("%s: a technology skill (kind: stack) must live under skills/<category>/ with a category in %v", prefix, discover.TechnologyCategories))
+			}
+		case discover.KindWorkflow:
+			if layer, _ := valueString(entry["layer"]); !validLayers[layer] {
+				errors = append(errors, fmt.Sprintf("%s.layer must be one of %v", prefix, sortedKeys(validLayers)))
+			}
+			if resolvedDir != "" && discover.IsTechnologyCategory(category) {
+				errors = append(errors, fmt.Sprintf("%s: a workflow skill must not live under the technology category skills/%s/", prefix, category))
+			}
+		default:
+			errors = append(errors, fmt.Sprintf("%s.kind must be %q or %q", prefix, discover.KindWorkflow, discover.KindStack))
 		}
 
 		related, hasRelated := entry["related"].([]any)
