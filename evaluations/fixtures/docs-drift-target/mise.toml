@@ -1,0 +1,5 @@
+[tools]
+go = "1.26.6"
+
+[tasks."test:all"]
+run = "go test ./..."
