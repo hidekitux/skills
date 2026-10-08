@@ -50,7 +50,12 @@ Stop and say that this skill does not apply when the repository has no `.ts`,
 - Read the module system: the `"type"` field in package.json (`"module"` for
   ESM, missing or `"commonjs"` for CommonJS), the `.mjs` and `.cjs` extensions,
   and `module` and `moduleResolution` in tsconfig.json. Write imports in the
-  form that system needs, such as an explicit file extension under `NodeNext`.
+  form that system needs: under `NodeNext` the import names the emitted `.js`
+  file, and a project that runs `.ts` files directly with Node.js type
+  stripping (`allowImportingTsExtensions`, or `node --test` on `.ts` files)
+  imports the `.ts` file. Type stripping rejects syntax that needs compiling,
+  such as `enum`, `namespace`, and constructor parameter properties, so do not
+  add it to such a project.
 - Read tsconfig.json, including any file it `extends`: `strict` and related
   flags such as `noUncheckedIndexedAccess`, `target`, `lib`, and `noEmit`.
   Read the Node.js version from `engines`, `.nvmrc`, `.node-version`, or
@@ -89,11 +94,15 @@ manager. Otherwise run the tool directly:
 
 | Check | Command | Pass condition |
 | --- | --- | --- |
-| Typecheck | `npm run typecheck`, or `npx tsc --noEmit` | Exits 0 |
-| Lint | `npm run lint`, or the project's linter such as `npx eslint .` or `npx biome lint .` | Exits 0 |
-| Format | `npm run format:check`, or `npx prettier --check .` or `npx biome format .` | Exits 0 |
+| Typecheck | `npm run typecheck`, or `npx --no-install tsc --noEmit` (`tsc -b` for a tsconfig with `references`) | Exits 0 |
+| Lint | `npm run lint`, or the project's installed linter such as `npx --no-install eslint .` or `npx --no-install biome lint .` | Exits 0 |
+| Format | `npm run format:check`, or `npx --no-install prettier --check .` or `npx --no-install biome format .` | Exits 0 |
 | Test | `npm test` | Exits 0 |
 | Build | `npm run build` when the project defines it | Exits 0 |
+
+Use `--no-install` with `npx`, because without a local install `npx tsc`
+downloads an unrelated `tsc` package and `npx biome` an old `biome` package
+instead of TypeScript and `@biomejs/biome`.
 
 Replace `npm run` and `npx` with the detected manager's commands, such as
 `pnpm run` and `pnpm exec`. When `node_modules` is missing, install with the
