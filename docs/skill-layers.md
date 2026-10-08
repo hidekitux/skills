@@ -121,7 +121,7 @@ require:
 - It keeps the Todo List, frontmatter, license, and catalog requirements of
   every published skill, and it needs a positive scenario and a negative or
   boundary scenario under `evaluations/scenarios/<skill-name>/`.
-- Its row in the skill-set mapping tables shows its technology category in the
+- Its row in the generated skill list shows its technology category in the
   layer column.
 
 A workflow skill must not live under a technology category directory. A
