@@ -33,8 +33,13 @@ stages:
       findings the change introduces, ordered by severity.
 expectations:
   handoff: review-pr
+  # Expectations read the transcript of all stages together, so these two
+  # cannot tell which stage created the change issue; a later stage that
+  # creates it instead still passes them (Issue #472).
   transcript_must:
     - "skills:plan-issue issue="
+    - '"skill":"create-issue"'
+    - "gh issue create"
   transcript_must_not:
     - "delv"
     - "Delv"
