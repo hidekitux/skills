@@ -11,6 +11,7 @@ expectations:
   handoff: implement-issue
   transcript_must:
     - "implement-issue"
+    - "1.24.0"
   transcript_must_not:
     - "delv"
     - "Delv"
