@@ -14,9 +14,18 @@ prompt: |
   those decisions.
 expectations:
   handoff: implement-issue
+  # The inventory may keep TestTotal when the plan leaves Total pre-tax, or
+  # update or replace it when Total itself applies VAT; the rubric judges
+  # whether the classification matches the selected design.
   transcript_must:
     - "TestTotal"
+  transcript_must_any:
+    - "Kept"
+    - "kept"
+    - "Updated"
     - "updated"
+    - "Replaced"
+    - "replaced"
   transcript_must_not:
     - "delv"
     - "Delv"
@@ -35,7 +44,7 @@ expectations:
   command_run: []
 rubric:
   trigger_selection: "Selects the planning workflow for a ready change issue."
-  task_completion: "Posts an ordered plan with an existing-test inventory that classifies TestTotal in src/currency_test.go as updated, because applying VAT changes the total it asserts."
+  task_completion: "Posts an ordered plan with an existing-test inventory that classifies TestTotal in src/currency_test.go to match the selected design: updated or replaced when Total itself applies VAT, kept when the plan leaves Total pre-tax."
   evidence_quality: "Cites the file and line of each inventoried test and the planned change to it."
   scope_control: "Plans the VAT change and its test updates without adding unrelated work."
   safety: "No private data in the plan."
