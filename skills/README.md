@@ -4,22 +4,53 @@ The published skill library is organized by the task a user needs to complete.
 Choose a category first, then choose the skill whose name matches the exact
 workflow.
 
-| Category | Use it for | Skills |
-| --- | --- | --- |
-| `process` | Governed Issues, plans, implementations, Pull Requests, and reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` |
-| `analyze` | Read-only codebase, project, session, and backlog investigation, and redesign proposals. | `analyze-codebase`, `analyze-project`, `propose-improvements`, `retrospect-work`, `triage-issues` |
-| `fix` | Reproduced repairs, focused tests, and behavior-preserving refactors. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` |
-| `govern` | Repository setup and enforcement audits. | `bootstrap-project`, `audit-workflow-enforcement` |
+| Category | Use it for |
+| --- | --- |
+| `process` | Governed Issues, plans, implementations, Pull Requests, and reviews. |
+| `analyze` | Read-only codebase, project, session, and backlog investigation, and redesign proposals. |
+| `fix` | Reproduced repairs, focused tests, and behavior-preserving refactors. |
+| `govern` | Repository setup and enforcement audits. |
 
 Technology skills give one technology's conventions, build commands, and test
 commands. They live under a technology category instead of a layer:
 
-| Technology category | Use it for | Skills |
+| Technology category | Use it for |
+| --- | --- |
+| `language` | Programming languages and runtimes such as Go, Python, Kotlin, and Node/TypeScript. |
+| `mobile` | Mobile application frameworks such as Flutter, Android/Compose, and iOS. |
+| `web` | Web front-end frameworks such as React. |
+| `game` | Game and game-mod platforms such as Minecraft Forge and Minecraft Fabric. |
+
+<!-- BEGIN generated: skill-list -->
+
+This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
+
+The repository publishes 20 skills: 20 workflow skills and 0 technology skills.
+
+| Skill | Layer or technology category | Status |
 | --- | --- | --- |
-| `language` | Programming languages and runtimes such as Go, Python, Kotlin, and Node/TypeScript. | None yet |
-| `mobile` | Mobile application frameworks such as Flutter, Android/Compose, and iOS. | None yet |
-| `web` | Web front-end frameworks such as React. | None yet |
-| `game` | Game and game-mod platforms such as Minecraft Forge and Minecraft Fabric. | None yet |
+| `create-issue` | process | stable |
+| `plan-issue` | process | experimental |
+| `implement-issue` | process | experimental |
+| `create-pr` | process | experimental |
+| `review-pr` | process | experimental |
+| `fix-pr` | process | experimental |
+| `merge-pr` | process | experimental |
+| `improve-project` | process | experimental |
+| `deliver-change` | process | experimental |
+| `analyze-codebase` | analyze | experimental |
+| `analyze-project` | analyze | experimental |
+| `propose-improvements` | analyze | experimental |
+| `retrospect-work` | analyze | experimental |
+| `triage-issues` | analyze | experimental |
+| `debug-code` | fix | experimental |
+| `resolve-defect` | fix | experimental |
+| `write-tests` | fix | experimental |
+| `refactor-code` | fix | experimental |
+| `bootstrap-project` | govern | experimental |
+| `audit-workflow-enforcement` | govern | experimental |
+
+<!-- END generated: skill-list -->
 
 The canonical layout is `skills/<category>/<skill-name>/SKILL.md`. The category
 is a path namespace only. Installation and invocation continue to use the bare

@@ -9,33 +9,6 @@
 catalog_version: 1
 license: Apache-2.0
 skills:
-  - name: plan-issue
-    summary: Read a governed change issue and produce a verified implementation plan.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: process
-    related: [create-issue, implement-issue]
-  - name: create-pr
-    summary: Create validated, Issue-backed GitHub Pull Requests without duplicating existing work.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: process
-    related: [implement-issue, review-pr]
-  - name: merge-pr
-    summary: Merge approved, validated Pull Requests through protected-branch policy and verify linked work outcomes.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: process
-    related: [create-pr, review-pr]
   - name: create-issue
     summary: Create compliant GitHub change and release Issues before governed work.
     owner: hidekitux
@@ -45,26 +18,15 @@ skills:
     version: 0.1.1
     layer: process
     related: [plan-issue]
-  - name: bootstrap-project
-    summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
+  - name: plan-issue
+    summary: Read a governed change issue and produce a verified implementation plan.
     owner: hidekitux
     status: experimental
     agents: [codex, claude-code]
-    host_adapters: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.1
-    layer: govern
-    related: [audit-workflow-enforcement]
-  - name: audit-workflow-enforcement
-    summary: Audit mandatory repository rules with deterministic checks and bounded subagent review.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    host_adapters: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: govern
-    related: [bootstrap-project]
+    layer: process
+    related: [create-issue, implement-issue]
   - name: implement-issue
     summary: Implement a governed Change Issue from its verified implementation plan with per-task evidence.
     owner: hidekitux
@@ -74,24 +36,15 @@ skills:
     version: 0.1.1
     layer: process
     related: [plan-issue, create-pr]
-  - name: debug-code
-    summary: Debug failures from reproduction through root cause, fix, and verification with evidence at every step.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: fix
-    related: [implement-issue, write-tests, refactor-code]
-  - name: fix-pr
-    summary: Fix review findings on an existing Pull Request and push the reviewed commit as its head.
+  - name: create-pr
+    summary: Create validated, Issue-backed GitHub Pull Requests without duplicating existing work.
     owner: hidekitux
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.1
     layer: process
-    related: [review-pr, create-pr, merge-pr]
+    related: [implement-issue, review-pr]
   - name: review-pr
     summary: Review pull requests for PR-introduced defects backed by concrete failure scenarios, ordered by severity.
     owner: hidekitux
@@ -101,69 +54,24 @@ skills:
     version: 0.1.1
     layer: process
     related: [create-pr, fix-pr]
-  - name: analyze-project
-    summary: Investigate a repository end to end and report prioritized, evidence-backed findings and improvement opportunities.
+  - name: fix-pr
+    summary: Fix review findings on an existing Pull Request and push the reviewed commit as its head.
     owner: hidekitux
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.1
-    layer: analyze
-    related: [create-issue]
-  - name: analyze-codebase
-    summary: Assess code structure, dependencies, tests, entry points, and technical debt with evidence.
+    layer: process
+    related: [review-pr, create-pr, merge-pr]
+  - name: merge-pr
+    summary: Merge approved, validated Pull Requests through protected-branch policy and verify linked work outcomes.
     owner: hidekitux
     status: experimental
     agents: [codex, claude-code]
     license: Apache-2.0
     version: 0.1.1
-    layer: analyze
-    related: [analyze-project, create-issue, debug-code, write-tests, refactor-code]
-  - name: propose-improvements
-    summary: Investigate project-wide improvement opportunities and propose evidence-backed redesigns when major structural change is warranted.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: analyze
-    related: [analyze-codebase, analyze-project, refactor-code, create-issue, plan-issue]
-  - name: triage-issues
-    summary: Review an Issue backlog for evidence-backed duplicates, stale premises, completion, dependencies, and next work.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: analyze
-    related: [analyze-project, create-issue]
-  - name: retrospect-work
-    summary: Review a development session for recurring workarounds, unresolved causes, duplicate follow-ups, and evidence gaps.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: analyze
-    related: [analyze-project, triage-issues, create-issue]
-  - name: refactor-code
-    summary: Perform small, behavior-preserving code refactorings verified against a test baseline.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: fix
-    related: [debug-code, write-tests, implement-issue]
-  - name: write-tests
-    summary: Design focused, proportionate tests with per-case failure evidence for a defined feature or fix.
-    owner: hidekitux
-    status: experimental
-    agents: [codex, claude-code]
-    license: Apache-2.0
-    version: 0.1.1
-    layer: fix
-    related: [debug-code, implement-issue, refactor-code]
+    layer: process
+    related: [create-pr, review-pr]
   - name: improve-project
     summary: Improve a project end to end from read-only analysis through an Issue-backed, reviewed change.
     owner: hidekitux
@@ -182,6 +90,60 @@ skills:
     version: 0.1.1
     layer: process
     related: [plan-issue, implement-issue, create-pr, review-pr]
+  - name: analyze-codebase
+    summary: Assess code structure, dependencies, tests, entry points, and technical debt with evidence.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: analyze
+    related: [analyze-project, create-issue, debug-code, write-tests, refactor-code]
+  - name: analyze-project
+    summary: Investigate a repository end to end and report prioritized, evidence-backed findings and improvement opportunities.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: analyze
+    related: [create-issue]
+  - name: propose-improvements
+    summary: Investigate project-wide improvement opportunities and propose evidence-backed redesigns when major structural change is warranted.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: analyze
+    related: [analyze-codebase, analyze-project, refactor-code, create-issue, plan-issue]
+  - name: retrospect-work
+    summary: Review a development session for recurring workarounds, unresolved causes, duplicate follow-ups, and evidence gaps.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: analyze
+    related: [analyze-project, triage-issues, create-issue]
+  - name: triage-issues
+    summary: Review an Issue backlog for evidence-backed duplicates, stale premises, completion, dependencies, and next work.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: analyze
+    related: [analyze-project, create-issue]
+  - name: debug-code
+    summary: Debug failures from reproduction through root cause, fix, and verification with evidence at every step.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: fix
+    related: [implement-issue, write-tests, refactor-code]
   - name: resolve-defect
     summary: Resolve a verified defect from reproduction through fix, regression tests, and any required governed change.
     owner: hidekitux
@@ -202,3 +164,41 @@ skills:
 #   layer: process # process | analyze | fix | govern
 #   related: [implement-issue] # Related skills, published or planned.
 #   version: 0.1.0
+  - name: write-tests
+    summary: Design focused, proportionate tests with per-case failure evidence for a defined feature or fix.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: fix
+    related: [debug-code, implement-issue, refactor-code]
+  - name: refactor-code
+    summary: Perform small, behavior-preserving code refactorings verified against a test baseline.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: fix
+    related: [debug-code, write-tests, implement-issue]
+  - name: bootstrap-project
+    summary: Initialize projects with PR-only protected branches, a runnable baseline, and proportionate FSL adoption.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    host_adapters: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: govern
+    related: [audit-workflow-enforcement]
+  - name: audit-workflow-enforcement
+    summary: Audit mandatory repository rules with deterministic checks and bounded subagent review.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    host_adapters: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    layer: govern
+    related: [bootstrap-project]
