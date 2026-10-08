@@ -76,10 +76,14 @@ func TestSharedReferencesRecognizesLinkForms(t *testing.T) {
 		"Read [p](./references/persistent-prose.md).":                 true,
 		"Read [p](references/persistent-prose.md#rules).":             true,
 		`Read [p](references/persistent-prose.md "Rules").`:           true,
+		"Read [p](references/persistent-prose.md 'Rules').":           true,
+		"Read [p](references/persistent-prose.md (Rules)).":           true,
 		"Read [p][rules].\n\n[rules]: references/persistent-prose.md": true,
-		"Read references/persistent-prose.md as plain text.":          false,
+		"Read <references/persistent-prose.md>.":                      true,
+		"Read references/persistent-prose.md.":                        true,
 		"Read [p](references/persistent-prose.md.bak).":               false,
 		"Read [p](other/references/persistent-prose.md).":             false,
+		"Read [p](references/persistent-prose.mdx).":                  false,
 	}
 	for text, want := range cases {
 		if got := linksReference(text, "persistent-prose.md"); got != want {
@@ -94,7 +98,7 @@ func TestSharedReferencesRejectsUnlinkedCopy(t *testing.T) {
 		"skills/process/merge-pr/references/persistent-prose.md":  sharedReferenceSource,
 	})
 	code, _, errOut := runSharedReferences(t, root)
-	if code != 1 || !strings.Contains(errOut, "skills/process/merge-pr/references/persistent-prose.md is not linked from skills/process/merge-pr/SKILL.md") {
+	if code != 1 || !strings.Contains(errOut, "skills/process/merge-pr/references/persistent-prose.md is not named in skills/process/merge-pr/SKILL.md") {
 		t.Fatalf("expected unlinked-copy finding, got %d: %s", code, errOut)
 	}
 }

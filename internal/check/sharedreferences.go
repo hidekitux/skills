@@ -17,21 +17,22 @@ import (
 // consuming skill keeps a byte-identical copy below its references/.
 const sharedReferenceDir = "shared/references"
 
-// linksReference reports whether SKILL.md text links references/<name>, as an
-// inline link target (optionally prefixed with ./ and followed by an anchor or
-// a title) or as a reference-style link definition.
+// linksReference reports whether SKILL.md text names the path
+// references/<name>, optionally prefixed with ./, as a whole path. Any mention
+// counts, whatever Markdown link form surrounds it, so a link is never missed
+// because of its syntax; a longer path such as other/references/<name> or
+// references/<name>.bak does not count.
 func linksReference(text, name string) bool {
-	target := `(?:\./)?references/` + regexp.QuoteMeta(name) + `(?:#[^)\s]*)?`
-	inline := regexp.MustCompile(`\]\(\s*<?` + target + `>?(?:\s+"[^"]*")?\s*\)`)
-	definition := regexp.MustCompile(`(?m)^\s*\[[^\]]+\]:\s*<?` + target + `>?(?:\s|$)`)
-	return inline.MatchString(text) || definition.MatchString(text)
+	path := regexp.MustCompile(`(?:^|[^A-Za-z0-9_./-])(?:\./)?references/` + regexp.QuoteMeta(name) + `(?:$|[^A-Za-z0-9_.-]|\.(?:$|[^A-Za-z0-9_-]))`)
+	return path.MatchString(text)
 }
 
 // CheckSharedReferences compares every skill's copy of a shared reference
 // with its source. A skill consumes a shared reference when its SKILL.md
-// links references/<name>. A drifted or missing copy fails the check with the
-// cp command that repairs it, and so does a copy that no SKILL.md link uses,
-// because it would ship unchecked. It returns 0 on success.
+// names the path references/<name>. A drifted or missing copy fails the check
+// with the cp command that repairs it. A copy that SKILL.md never names fails
+// too, because it would ship unchecked; the fix is to name it or remove it.
+// It returns 0 on success.
 func CheckSharedReferences(root string, out, errOut io.Writer) int {
 	entries, err := os.ReadDir(filepath.Join(root, filepath.FromSlash(sharedReferenceDir)))
 	if os.IsNotExist(err) {
@@ -67,7 +68,7 @@ func CheckSharedReferences(root string, out, errOut io.Writer) int {
 			copyPath := skill.Dir + "/references/" + name
 			if !linksReference(string(instructions), name) {
 				if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(copyPath))); err == nil {
-					findings = append(findings, fmt.Sprintf("%s is not linked from %s/SKILL.md; link it or remove the copy", copyPath, skill.Dir))
+					findings = append(findings, fmt.Sprintf("%s is not named in %s/SKILL.md; name it there or remove the copy", copyPath, skill.Dir))
 				}
 				continue
 			}
