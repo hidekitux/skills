@@ -62,3 +62,20 @@ func TestNamesReturnsSortedUniqueNames(t *testing.T) {
 		t.Fatalf("expected %v, got %v", want, got)
 	}
 }
+
+func TestCategory(t *testing.T) {
+	cases := map[string]string{
+		"skills/language/develop-go": "language",
+		"skills/fix/refactor-code":   "fix",
+		"skills/plan-issue":          "",
+		"other/language/develop-go":  "",
+	}
+	for dir, want := range cases {
+		if got := Category(dir); got != want {
+			t.Errorf("Category(%q) = %q, want %q", dir, got, want)
+		}
+	}
+	if !IsTechnologyCategory("mobile") || IsTechnologyCategory("process") {
+		t.Error("IsTechnologyCategory must accept only the technology categories")
+	}
+}

@@ -176,3 +176,48 @@ func TestSkillNamesIncludesNestedSkill(t *testing.T) {
 		t.Fatalf("unexpected names: %v", names)
 	}
 }
+
+func stackCatalogEntry(name string) map[string]any {
+	entry := catalogEntry(name, "", false)
+	delete(entry, "layer")
+	entry["kind"] = "stack"
+	return entry
+}
+
+func TestCheckRepositoryAcceptsTechnologySkill(t *testing.T) {
+	root := scaffoldRepo(t,
+		[]string{"process/plan-issue", "language/develop-go"},
+		[]map[string]any{catalogEntry("plan-issue", "", false), stackCatalogEntry("develop-go")},
+	)
+	if code, errOut := runRepoCheck(t, root); code != 0 {
+		t.Fatalf("expected pass, got exit %d: %s", code, errOut)
+	}
+}
+
+func TestCheckRepositoryRejectsTechnologySkillContractViolations(t *testing.T) {
+	withLayer := stackCatalogEntry("develop-go")
+	withLayer["layer"] = "fix"
+	unknownKind := catalogEntry("plan-issue", "", false)
+	unknownKind["kind"] = "library"
+	cases := []struct {
+		name  string
+		dirs  []string
+		entry map[string]any
+		want  string
+	}{
+		{"layer on a technology skill", []string{"language/develop-go"}, withLayer, "layer must be omitted for a technology skill"},
+		{"technology skill outside a technology category", []string{"fix/develop-go"}, stackCatalogEntry("develop-go"), "must live under skills/<category>/"},
+		{"flat technology skill", []string{"develop-go"}, stackCatalogEntry("develop-go"), "must live under skills/<category>/"},
+		{"workflow skill in a technology category", []string{"mobile/plan-issue"}, catalogEntry("plan-issue", "", false), "must not live under the technology category skills/mobile/"},
+		{"unknown kind", []string{"process/plan-issue"}, unknownKind, `kind must be "workflow" or "stack"`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			root := scaffoldRepo(t, tc.dirs, []map[string]any{tc.entry})
+			code, errOut := runRepoCheck(t, root)
+			if code != 1 || !strings.Contains(errOut, tc.want) {
+				t.Fatalf("expected failure containing %q, got exit %d: %s", tc.want, code, errOut)
+			}
+		})
+	}
+}
