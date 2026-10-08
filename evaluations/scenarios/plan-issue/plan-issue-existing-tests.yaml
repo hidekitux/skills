@@ -6,10 +6,12 @@ title: Account for existing tests that a planned change alters
 github_sandbox: true
 fixture: governed-change
 prompt: |
-  The change issue for the VAT work is ready. Produce a verified, ordered
+  The VAT change issue is drafted in issues/change-issue.md but is not on
+  GitHub yet; file it as the change issue, then produce a verified, ordered
   implementation plan before anyone starts coding, and post it where the team
   can review it. For each design decision the plan needs, take the option you
-  recommend; this message is my confirmation.
+  recommend; this message is my confirmation for filing the issue and for
+  those decisions.
 expectations:
   handoff: implement-issue
   transcript_must:
