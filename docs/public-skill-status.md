@@ -9,8 +9,9 @@ The repository keeps two documentation views with different owners:
 
 - **Contributor-facing inventory** — how the repository is laid out today:
   current publishable-skill inventory, layers, and repository statuses. It is
-  owned by Issue 182 and driven by `CATALOG.yml` through the `check-catalog-docs`
-  check (the README skill-set map and `docs/skill-layers.md`).
+  owned by Issue 182 and generated from `CATALOG.yml` by
+  `mise run generate:skill-lists` into `README.md`, `docs/skill-layers.md`, and
+  `skills/README.md`; the `check-skill-lists` check fails when a list is stale.
 - **Public release-backed status** — what users can rely on from a verified
   release: the evaluated outcome-oriented entry points, lifecycle status,
   version, preview stability, and pinned installation. This document owns that

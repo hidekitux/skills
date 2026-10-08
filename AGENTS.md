@@ -2,6 +2,7 @@
 
 - Publishable skills belong in `skills/<category>/<skill-name>/`. The repository also supports `skills/<namespace>/<skill-name>/` for arbitrary namespaced discovery tests and compatible sources.
 - Put a technology skill, a catalog entry with `kind: stack` that gives one technology's conventions, build commands, and test commands, in `skills/<technology-category>/develop-<technology>/`, where the technology category is `language`, `mobile`, `web`, or `game`. A technology skill has no layer, no skill graph node, and no instruction inventory entry, and it creates no Issue, Pull Request, branch, or release. See `docs/skill-layers.md`.
+- After adding, removing, or recategorizing a skill in `CATALOG.yml`, run `mise run generate:skill-lists` to rewrite the generated skill list in `README.md`, `docs/skill-layers.md`, and `skills/README.md`; `check:repository` fails while a list is stale.
 - Give every skill a `SKILL.md` with `name` and `description` frontmatter. The `name` must match its directory name.
 - License every published skill as `Apache-2.0`, the repository standard. Do not add a different license or a non-Apache dependency bundled with a published skill without explicit user approval. Development and CI tools are not bundled dependencies; keep them pinned in `mise.toml`, use them only for development or checks, and review their licenses when adding them.
 - Keep `LICENSE` as the unmodified Apache-2.0 legal text and keep the repository copyright attribution in `NOTICE`.
