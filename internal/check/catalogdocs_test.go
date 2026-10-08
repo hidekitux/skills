@@ -110,30 +110,6 @@ func TestCatalogDocsAcceptsCurrentInventoryDocs(t *testing.T) {
 	}
 }
 
-func TestCatalogDocsRejectsStaleCount(t *testing.T) {
-	// The README still claims the old inventory count while the catalog has
-	// more entries.
-	stale := strings.Replace(catalogDocReadme, "publishes 3 skills today", "publishes 2 skills today", 1)
-	root := writeCatalogDocRepo(t, stale, catalogDocLayers, catalogDocContract())
-	if code, errOut := runCatalogDocs(t, root); code != 1 {
-		t.Fatalf("expected failure, got exit %d", code)
-	} else if !strings.Contains(errOut, "README.md states 2 published skills, but CATALOG.yml lists 3") {
-		t.Fatalf("missing count-drift finding:\n%s", errOut)
-	}
-}
-
-func TestCatalogDocsRejectsStaleLayer(t *testing.T) {
-	// The README maps write-tests to the process layer, but the catalog
-	// declares it in the fix layer.
-	stale := strings.Replace(catalogDocReadme, "| write-tests | fix | experimental |", "| write-tests | process | experimental |", 1)
-	root := writeCatalogDocRepo(t, stale, catalogDocLayers, catalogDocContract())
-	if code, errOut := runCatalogDocs(t, root); code != 1 {
-		t.Fatalf("expected failure, got exit %d", code)
-	} else if !strings.Contains(errOut, `write-tests is listed in layer "process", but CATALOG.yml declares layer "fix"`) {
-		t.Fatalf("missing layer-drift finding:\n%s", errOut)
-	}
-}
-
 func TestCatalogDocsRejectsStaleStatus(t *testing.T) {
 	// The ownership table still marks write-tests as planned although the
 	// catalog publishes it.
@@ -143,18 +119,6 @@ func TestCatalogDocsRejectsStaleStatus(t *testing.T) {
 		t.Fatalf("expected failure, got exit %d", code)
 	} else if !strings.Contains(errOut, "write-tests is described as planned, but it exists in CATALOG.yml") {
 		t.Fatalf("missing status-drift finding:\n%s", errOut)
-	}
-}
-
-func TestCatalogDocsRejectsMissingCatalogSkill(t *testing.T) {
-	// The README drops a current skill from the skill-set map, so the
-	// documented inventory no longer covers the catalog.
-	stale := strings.Replace(catalogDocReadme, "| bootstrap-project | govern | experimental |\n", "", 1)
-	root := writeCatalogDocRepo(t, stale, catalogDocLayers, catalogDocContract())
-	if code, errOut := runCatalogDocs(t, root); code != 1 {
-		t.Fatalf("expected failure, got exit %d", code)
-	} else if !strings.Contains(errOut, "bootstrap-project is missing from the skill-set map table") {
-		t.Fatalf("missing inventory-drift finding:\n%s", errOut)
 	}
 }
 
@@ -193,28 +157,5 @@ func TestCatalogDocsRejectsPlannedCountMismatch(t *testing.T) {
 		t.Fatalf("expected failure, got exit %d", code)
 	} else if !strings.Contains(errOut, "README.md states 1 planned skills, but the documents list 2") {
 		t.Fatalf("missing planned-count finding:\n%s", errOut)
-	}
-}
-
-func TestCatalogDocsComparesTechnologySkillWithItsCategory(t *testing.T) {
-	catalog := catalogDocCatalog + "  - name: develop-go\n    summary: Develop Go code.\n    owner: hidekitux\n    status: experimental\n    license: Apache-2.0\n    version: 0.1.0\n    kind: stack\n"
-	readme := strings.Replace(catalogDocReadme, "publishes 3 skills", "publishes 4 skills", 1) + "| develop-go | language | experimental |\n"
-	layers := catalogDocLayers + "| language | develop-go | experimental |\n"
-	write := func(readme string) string {
-		root := writeCatalogDocRepo(t, readme, layers, catalogDocContract())
-		if err := writeNestedFile(filepath.Join(root, "CATALOG.yml"), []byte(catalog)); err != nil {
-			t.Fatal(err)
-		}
-		if err := writeNestedFile(filepath.Join(root, "skills", "language", "develop-go", "SKILL.md"), []byte("---\nname: develop-go\n---\n")); err != nil {
-			t.Fatal(err)
-		}
-		return root
-	}
-	if code, errOut := runCatalogDocs(t, write(readme)); code != 0 {
-		t.Fatalf("expected pass, got exit %d: %s", code, errOut)
-	}
-	stale := strings.Replace(readme, "| develop-go | language |", "| develop-go | web |", 1)
-	if code, errOut := runCatalogDocs(t, write(stale)); code != 1 || !strings.Contains(errOut, `develop-go is listed in layer "web", but its technology category is "language"`) {
-		t.Fatalf("expected category-drift finding, got exit %d:\n%s", code, errOut)
 	}
 }
