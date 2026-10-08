@@ -48,13 +48,34 @@ expectations:
     - "Commenc"
   files_must_exist: []
   files_must_not_exist: []
-  file_contains:
-    - path: "src/currency.go"
-      pattern: "applyTax"
+  file_contains: []
   unchanged_files:
     - "docs/roadmap.md"
   command_run:
     - run: "go test ./..."
+      dir: ""
+      exit: 0
+    # Checks the outcome, not a helper name: Total includes the 20% VAT the
+    # fixture states. The temporary test is removed whatever the result.
+    - run: |
+        cat > src/zz_scenario_vat_test.go <<'EOF'
+        package currency
+
+        import (
+            "math"
+            "testing"
+        )
+
+        func TestScenarioTotalIncludesVAT(t *testing.T) {
+            if got := Total(10, 2); math.Abs(got-24) > 1e-9 {
+                t.Fatalf("Total(10, 2) = %v, want 24 with 20%% VAT", got)
+            }
+        }
+        EOF
+        go test ./src/ -run TestScenarioTotalIncludesVAT
+        status=$?
+        rm -f src/zz_scenario_vat_test.go
+        exit $status
       dir: ""
       exit: 0
 rubric:
