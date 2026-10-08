@@ -50,6 +50,7 @@
 "cmd/select-execution-strategy" = { package = "./internal/strategy", tests = ["TestSelectsDeterministicallyForRepresentativeSignals"] }
 "cmd/validate-execution-strategy" = { package = "./internal/strategy", tests = ["TestCurrentPolicyIsValid"] }
 "cmd/generate-public-status" = { package = "./internal/publicstatus", tests = ["TestWriteInsertsBlockAndIsIdempotent"] }
+"cmd/generate-skill-lists" = { package = "./internal/check", tests = ["TestSkillListsWriteThenCheckIsCurrentAndOrdered"] }
 
 [scripts]
 "scripts/fsl/install-fslc.sh" = { package = "./internal/fsl", tests = ["TestBinPathPrefersFSLCBinDir"] }

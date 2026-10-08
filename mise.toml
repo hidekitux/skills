@@ -180,6 +180,10 @@ run = "go run ./cmd/publish-release \"$@\""
 description = "Regenerate the README public status section from CATALOG.yml and release evidence"
 run = "go run ./cmd/generate-public-status --write"
 
+[tasks."generate:skill-lists"]
+description = "Regenerate the skill lists in README.md, docs/skill-layers.md, and skills/README.md from CATALOG.yml"
+run = "go run ./cmd/generate-skill-lists --write"
+
 [tasks."check:repository"]
 description = "Validate repository policy, sensitive content, licenses, and test evidence"
 run = "go run ./cmd/check-repository"
