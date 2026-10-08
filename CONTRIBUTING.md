@@ -105,13 +105,13 @@ declined check is recorded in its Issue.
 
 ## Commands and tasks
 
-A new command under `cmd/` or a new task in `mise.toml` is added only for a
-named need. Its Issue records the failure or repeated manual step the addition
-removes, citing the failure record, Issue, or command history that shows it,
-and why extending an existing command, adding a flag, or documenting a
-one-line manual step is not enough. Prefer the smallest of those options: a
-command is code the repository maintains, tests, and keeps mapped in
-`SCRIPT_TESTS.toml`. A new repository check also meets the cost threshold in
+Add a command under `cmd/` or a task to `mise.toml` only when its Issue
+records the failure or repeated manual step the addition removes, cites the
+failure record, Issue, or command history that shows it, and explains why
+extending an existing command, adding a flag, or documenting a one-line manual
+step is not enough. Prefer the smallest of those options: a command is code
+the repository maintains, tests, and keeps mapped in `SCRIPT_TESTS.toml`. A new
+repository check must also meet the cost threshold in
 `docs/validation-tiers.md`.
 
 ## Issue planning
