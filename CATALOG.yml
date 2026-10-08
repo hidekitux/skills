@@ -191,6 +191,24 @@ skills:
     version: 0.1.1
     layer: govern
     related: [bootstrap-project]
+  - name: develop-go
+    summary: Apply a Go project's own conventions, build commands, and test commands, and verify Go changes.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [implement-issue, write-tests, debug-code]
+  - name: develop-kotlin
+    summary: Apply a Kotlin Gradle project's own conventions and tasks, and verify Kotlin changes through the Gradle wrapper.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [implement-issue, write-tests, debug-code]
 
 # Example entry:
 # - name: pr-review
