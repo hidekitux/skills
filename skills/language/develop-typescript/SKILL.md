@@ -94,7 +94,7 @@ manager. Otherwise run the tool directly:
 
 | Check | Command | Pass condition |
 | --- | --- | --- |
-| Typecheck | `npm run typecheck`, or `npx --no-install tsc --noEmit` (`tsc -b` for a tsconfig with `references`) | Exits 0 |
+| Typecheck | `npm run typecheck`, or `npx --no-install tsc --noEmit` (`tsc -b --noEmit` for a tsconfig with `references`) | Exits 0 |
 | Lint | `npm run lint`, or the project's installed linter such as `npx --no-install eslint .` or `npx --no-install biome lint .` | Exits 0 |
 | Format | `npm run format:check`, or `npx --no-install prettier --check .` or `npx --no-install biome format .` | Exits 0 |
 | Test | `npm test` | Exits 0 |
@@ -102,7 +102,8 @@ manager. Otherwise run the tool directly:
 
 Use `--no-install` with `npx`, because without a local install `npx tsc`
 downloads an unrelated `tsc` package and `npx biome` an old `biome` package
-instead of TypeScript and `@biomejs/biome`.
+instead of TypeScript and `@biomejs/biome`. The flag belongs to `npx` only;
+`pnpm exec`, `yarn`, and `bunx` already run the local binary, so drop it there.
 
 Replace `npm run` and `npx` with the detected manager's commands, such as
 `pnpm run` and `pnpm exec`. When `node_modules` is missing, install with the
