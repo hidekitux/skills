@@ -1,0 +1,37 @@
+id: develop-java-boundary
+skill: develop-java
+kind: boundary
+smoke: false
+title: Do not apply Java conventions to a Kotlin-only Gradle project
+fixture: kotlin-gradle-library
+prompt: |
+  Add a helper that truncates a string to at most n characters, with tests,
+  following this project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist:
+    - "src/main/java"
+    - "src/test/java"
+  file_contains: []
+  unchanged_files:
+    - "build.gradle.kts"
+    - "settings.gradle.kts"
+  command_run:
+    - run: "test ! -e src/main/java && test ! -e src/test/java"
+      dir: ""
+      exit: 0
+    - run: "test \"$(find . -name '*.java' | wc -l)\" -eq 0"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes the project has no Java code and does not apply the Java skill."
+  task_completion: "Implements the helper in Kotlin with tests."
+  evidence_quality: "States the project's language and build from its files."
+  scope_control: "Adds no Java source directory or Java file and leaves the build files unchanged."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to stay in Kotlin."
+  handoff_quality: "Reports what was done and how it was verified."
+corrections: []

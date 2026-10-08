@@ -1,0 +1,29 @@
+id: develop-dart-boundary
+skill: develop-dart
+kind: boundary
+smoke: false
+title: Do not apply Dart tooling to a Go module
+fixture: go-module-tasks
+prompt: |
+  Add a helper that reverses a string by characters, with tests, following this
+  project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist:
+    - "pubspec.yaml"
+  file_contains: []
+  unchanged_files:
+    - "go.mod"
+  command_run: []
+rubric:
+  trigger_selection: "Recognizes the project has no Dart code and does not apply the Dart skill."
+  task_completion: "Implements the helper in Go with tests or explains why it cannot."
+  evidence_quality: "States the project's language and build from its files."
+  scope_control: "Adds no pubspec.yaml or Dart files."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid Dart tooling."
+  handoff_quality: "Reports what was done and how it was verified."
+corrections: []
