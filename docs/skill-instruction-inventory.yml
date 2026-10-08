@@ -325,3 +325,17 @@ skills:
       - {heading: Apply and verify each group, classification: task-procedure}
       - {heading: Handoff, classification: invariant}
       - {heading: Writing quality, classification: task-procedure}
+  - name: write-docs
+    path: skills/document/write-docs/SKILL.md
+    before_tokens: 889
+    after_tokens: 889
+    before_commit: 4e894a4eff5ae37a201cff6253a7d7de33497403
+    after_commit: 4e894a4eff5ae37a201cff6253a7d7de33497403
+    sections:
+      - {heading: Todo List, classification: invariant}
+      - {heading: Resolve and Guard, classification: invariant}
+      - {heading: Collect sources, classification: task-procedure}
+      - {heading: Write, classification: task-procedure}
+      - {heading: Verify, classification: task-procedure}
+      - {heading: Handoff, classification: invariant}
+      - {heading: Writing quality, classification: task-procedure}

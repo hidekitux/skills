@@ -31,6 +31,8 @@ artifacts:
     description: Behavior-preserving refactor with a passing baseline.
   - id: dependency-update
     description: Verified dependency and version-pin changes with per-version evidence and held-back updates.
+  - id: documentation-change
+    description: Documentation changes with a source for every claim and a list of unverified claims.
   - id: blocked-report
     description: Actionable evidence explaining why the path stopped.
 
@@ -357,6 +359,10 @@ context:
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
     update-dependencies:
+      budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
+      critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
+      modules: []
+    write-docs:
       budgets: {core_instructions: 2500, conditional_references: 2500, repository_evidence: 5000, validator_feedback: 1200}
       critical_invariants: [todo-list-required, scope-authority, safety-privacy, validation-evidence, output-handoff]
       modules: []
@@ -776,6 +782,26 @@ skills:
         artifact: dependency-update
         destination: {skill: implement-issue}
       - id: stop-with-update-blocker
+        outcome: blocked
+        artifact: blocked-report
+        destination: {terminal_outcome: blocked}
+
+  - id: write-docs
+    path: skills/document/write-docs/SKILL.md
+    layer: document
+    capabilities: [trace-claims-to-source, write-documentation, verify-documentation]
+    inputs: [repository-context]
+    outputs: [documentation-change, blocked-report]
+    mutability: repository_write
+    authority: {repository: write, git: read, github: read, external_mutation: none}
+    prerequisites: [repository-context]
+    outcomes: [success, blocked]
+    transitions:
+      - id: handoff-governed-implementation
+        outcome: success
+        artifact: documentation-change
+        destination: {skill: implement-issue}
+      - id: stop-with-documentation-blocker
         outcome: blocked
         artifact: blocked-report
         destination: {terminal_outcome: blocked}
