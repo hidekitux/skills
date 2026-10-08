@@ -227,6 +227,42 @@ skills:
     version: 0.1.1
     kind: stack
     related: [implement-issue, write-tests, debug-code]
+  - name: develop-typescript
+    summary: Apply a TypeScript or JavaScript project's own package manager, scripts, and conventions on Node.js, and verify changes with its checks.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [implement-issue, write-tests, debug-code]
+  - name: develop-java
+    summary: Apply a Java project's own conventions and Gradle or Maven tasks, and verify Java changes through the project's wrapper.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [implement-issue, write-tests, debug-code]
+  - name: develop-dart
+    summary: Apply a Dart or Flutter project's own conventions and analyzer rules, and verify Dart changes with its formatter, analyzer, and tests.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [implement-issue, write-tests, debug-code]
+  - name: develop-swift
+    summary: Apply a Swift package's or Xcode project's own conventions, and verify Swift changes with its build and test commands.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [implement-issue, write-tests, debug-code]
 
 # Example entry:
 # - name: pr-review
