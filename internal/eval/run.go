@@ -442,10 +442,6 @@ func gateVerdict(records []Record) (string, string) {
 	return VerdictSkipped, ""
 }
 
-// Run evaluates the selected scenarios for the configured drivers and writes
-// machine-readable JSONL and human-readable Markdown reports into the output
-// directory. Drivers run concurrently per scenario; the aggregate gate uses
-// the either-pass policy. It returns the aggregate exit code.
 // compiledContextSkill returns the skill whose compiled context a scenario
 // uses and whether to compile it. A technology skill has no graph node or
 // context profile, so its scenario runs with the full SKILL.md instructions.
@@ -457,6 +453,10 @@ func compiledContextSkill(root string, sc *Scenario) (string, bool) {
 	return skillID, !discover.IsTechnologySkill(root, skillID)
 }
 
+// Run evaluates the selected scenarios for the configured drivers and writes
+// machine-readable JSONL and human-readable Markdown reports into the output
+// directory. Drivers run concurrently per scenario; the aggregate gate uses
+// the either-pass policy. It returns the aggregate exit code.
 func Run(ctx context.Context, opts *Options, out, errOut io.Writer) int {
 	scenarios, err := LoadAllScenarios(opts.Root)
 	if err != nil {
