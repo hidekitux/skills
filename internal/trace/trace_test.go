@@ -2,6 +2,7 @@ package trace
 
 import (
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -311,4 +312,33 @@ func contains(values []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func TestValidateRepositoryMetadataAcceptsTechnologySkillWithoutGraphNode(t *testing.T) {
+	root := t.TempDir()
+	files := map[string]string{
+		"workflow/skill-graph.yml":            "schema_version: 1\n",
+		"CATALOG.yml":                         "skills:\n  - name: plan-issue\n    version: 0.1.0\n  - name: develop-go\n    version: 0.1.0\n    kind: stack\n",
+		"skills/process/plan-issue/SKILL.md":  "---\nname: plan-issue\n---\n",
+		"skills/language/develop-go/SKILL.md": "---\nname: develop-go\n---\n",
+	}
+	for name, content := range files {
+		path := filepath.Join(root, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	technology := validTrace()
+	technology.SkillID = "develop-go"
+	if findings := validateRepositoryMetadata(root, technology); len(findings) != 0 {
+		t.Fatalf("expected no findings for a technology skill, got %v", findings)
+	}
+	workflow := validTrace()
+	if findings := validateRepositoryMetadata(root, workflow); !strings.Contains(strings.Join(findings, "\n"), `skill_id "plan-issue" is not in the repository graph`) {
+		t.Fatalf("expected a graph membership finding for a workflow skill, got %v", findings)
+	}
 }
