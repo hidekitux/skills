@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Kotlin"
+  short_description: "Apply a Kotlin project's conventions and Gradle checks"
+  default_prompt: "Use $develop-kotlin to follow this Gradle project's Kotlin conventions, run its checks through the wrapper, and report each command and result."
