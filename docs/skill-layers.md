@@ -44,6 +44,7 @@ Use these representative requests to navigate without repository history:
 | Resolve a verified defect end to end. | `fix` | `resolve-defect` |
 | Add focused tests for a defined target. | `fix` | `write-tests` |
 | Refactor against a passing baseline. | `fix` | `refactor-code` |
+| Update dependencies, toolchains, or version pins. | `maintain` | `update-dependencies` |
 
 `refactor-code` is at `skills/fix/refactor-code`. This category location keeps
 the public name as `refactor-code` while placing the skill with the other
@@ -226,8 +227,7 @@ test writing, or refactoring as `fix`.
   [analysis-skill-common.md](analysis-skill-common.md).
 - Process and fix skills use a verb-first name (`create-issue`, `debug-code`,
   `write-tests`).
-- Maintenance skills use a verb-first name for the kept item
-  (`update-dependencies`).
+- Maintenance skills use a verb-first name (`update-dependencies`).
 - Governance skills name the governed artifact or action (`bootstrap-project`,
   `audit-workflow-enforcement`).
 - Technology skills are named `develop-<technology>` (`develop-go`,
