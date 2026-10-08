@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Kotlin Multiplatform"
+  short_description: "Share Kotlin code across Android, iOS, and more"
+  default_prompt: "Use $develop-kotlin-multiplatform to place shared code in the right source set, run each target's checks through the Gradle wrapper, and report each command and result."

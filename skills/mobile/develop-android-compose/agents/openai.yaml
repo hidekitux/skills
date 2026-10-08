@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Android Compose"
+  short_description: "Apply an Android app's Compose and Gradle checks"
+  default_prompt: "Use $develop-android-compose to follow this Android project's Compose conventions, run its checks through the Gradle wrapper, and report each command and result."
