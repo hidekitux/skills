@@ -1,5 +1,7 @@
-// Command measure-instructions checks the published-skill instruction
-// inventory and prints fixed-encoding token counts for every skill.
+// Command measure-instructions loads the published-skill instruction
+// inventory and prints the current fixed-encoding token count of every skill.
+// It does not compare them with the inventory's before_tokens and
+// after_tokens, which record the Issue #197 compaction.
 package main
 
 import (
@@ -24,7 +26,6 @@ func main() {
 	fs := flag.NewFlagSet("measure-instructions", flag.ContinueOnError)
 	rootFlag := fs.String("root", "", "repository root (default: current working directory)")
 	inventoryFlag := fs.String("inventory", "docs/skill-instruction-inventory.yml", "instruction inventory path")
-	checkFlag := fs.Bool("check", false, "require the measured counts to match after_tokens")
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		os.Exit(2)
 	}
@@ -51,14 +52,6 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "measure-instructions: %v\n", err)
 		os.Exit(1)
-	}
-	if *checkFlag {
-		for _, skill := range inventory.Skills {
-			if counts[skill.Name] != skill.AfterTokens {
-				fmt.Fprintf(os.Stderr, "measure-instructions: %s measured %d tokens, inventory has %d\n", skill.Name, counts[skill.Name], skill.AfterTokens)
-				os.Exit(1)
-			}
-		}
 	}
 	encoded, err := json.MarshalIndent(output{
 		Encoding: instructions.EncodingName,
