@@ -1,9 +1,11 @@
 # Compiled skill context
 
-`workflow/skill-graph.yml` owns the context contract. Each cataloged skill has
-a profile with four independent token budgets, critical invariants, and
+`workflow/skill-graph.yml` owns the context contract. Each cataloged workflow
+skill has a profile with four independent token budgets, critical invariants, and
 declared modules. A module is either a repository-relative file or a signal
-adapter. The compiler does not infer rules from prose or select a model.
+adapter. The compiler does not infer rules from prose or select a model. A technology
+skill has no profile, so compiled-context evaluation runs its scenarios with the
+full `SKILL.md`.
 
 ## Compile a package
 

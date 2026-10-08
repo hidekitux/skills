@@ -5,8 +5,9 @@ Every skill states where its result goes and which skill owns the next phase. Th
 ## Machine-readable graph
 
 `workflow/skill-graph.yml` is the authoritative source for the machine-readable
-skill graph. It records each cataloged skill's capabilities, inputs, outputs,
-prerequisites, authority, outcomes, and transitions. `cmd/read-skill-graph`
+skill graph. It records each cataloged workflow skill's capabilities, inputs,
+outputs, prerequisites, authority, outcomes, and transitions. Technology skills
+have no graph node (see [Skill layers](skill-layers.md#technology-skills)). `cmd/read-skill-graph`
 returns the versioned JSON read view, and `cmd/validate-skill-graph` checks the
 graph against `CATALOG.yml`, canonical skill discovery, and
 `docs/skill-graph.md`.

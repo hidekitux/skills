@@ -1,12 +1,15 @@
 # Skill instruction inventory
 
-Issue #197 keeps one inventory for every published skill. The inventory records
+Issue #197 keeps one inventory for every published workflow skill. Technology
+skills, which live under a technology category directory (see
+[Skill layers](skill-layers.md#technology-skills)), are not listed. The inventory records
 which `SKILL.md` sections load on every invocation, which sections load only
 under a named condition, which rules a repository check enforces, and which
 duplications the compaction evidence permits removing.
 
 `docs/skill-instruction-inventory.yml` is the machine-readable record. The
-`measure-instructions` command checks that it covers every `SKILL.md`, counts
+`measure-instructions` command checks that it covers every workflow skill's
+`SKILL.md`, counts
 the files with the pinned `cl100k_base` encoding from
 `github.com/pkoukk/tiktoken-go` `v0.1.6`, and reports the current counts. It
 does not compare them with the recorded counts.
