@@ -1,6 +1,6 @@
 ---
 name: develop-java
-description: Apply a Java project's own conventions, Gradle or Maven tasks, and test commands while writing or changing Java code, and verify the change through the project's Gradle wrapper or Maven wrapper. Use it whenever a task writes, changes, or tests Java code, such as in a library, a service, an Android module, or a Minecraft mod, even when the request does not mention Gradle, Maven, or verification. Do not use it for a project without `.java` files, such as a Kotlin-only Gradle project; use develop-kotlin there.
+description: Apply a Java project's own conventions, Gradle or Maven tasks, and test commands while writing or changing Java code, and verify the change through the project's Gradle wrapper or Maven wrapper, or through the build command its CI runs when it has no wrapper. Use it whenever a task writes, changes, or tests Java code, such as in a library, a service, an Android module, or a Minecraft mod, even when the request does not mention Gradle, Maven, or verification. Do not use it for a project without `.java` files, such as a Kotlin-only Gradle project; use develop-kotlin there.
 license: Apache-2.0
 ---
 
@@ -37,8 +37,8 @@ Stop and say that this skill does not apply when the repository has no
 - Find the build tool. Gradle uses `settings.gradle.kts` or `settings.gradle`
   and the wrapper `gradlew`; Maven uses `pom.xml` and the wrapper `mvnw`. List
   the modules that the settings file or the parent `pom.xml` includes.
-- Use `./gradlew` or `./mvnw`, never a Gradle or Maven installed on the
-  machine, so the build runs the version that the project pins in
+- Use `./gradlew` or `./mvnw` when the project has a wrapper, rather than a
+  Gradle or Maven installed on the machine, so the build runs the version that the project pins in
   `gradle/wrapper/gradle-wrapper.properties` or
   `.mvn/wrapper/maven-wrapper.properties`. When the project has no wrapper,
   use the command its CI workflow or contributor documentation runs, such as

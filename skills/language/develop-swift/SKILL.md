@@ -38,8 +38,8 @@ Stop and say that this skill does not apply when the repository has no
   packages. A repository can have both, such as an app project that depends
   on a local package.
 - Read the `// swift-tools-version:` line on the first line of `Package.swift`,
-  the `platforms` list, and the language mode from `swiftLanguageModes`
-  (tools version 6.0 and later) or `swiftLanguageVersions` (earlier), plus any
+  the `platforms` list, and the language mode from `swiftLanguageModes` (tools
+  version 6.0 and later) or `swiftLanguageVersions` (earlier), plus any
   per-target `swiftSettings` such as `.swiftLanguageMode(.v5)`. A package with
   tools version 6.0 and no language mode setting builds in the Swift 6 mode,
   which makes data-race checks errors. Read the default actor isolation too:
@@ -47,9 +47,10 @@ Stop and say that this skill does not apply when the repository has no
   `SWIFT_DEFAULT_ACTOR_ISOLATION` build setting, makes unannotated code run on
   the main actor and changes what needs `Sendable` or `nonisolated`. In an
   Xcode project, read the `SWIFT_VERSION`, `SWIFT_STRICT_CONCURRENCY`, and
-  `SWIFT_DEFAULT_ACTOR_ISOLATION` build settings. Do not change
-  the tools version, the platforms, or the language mode unless the task asks
-  for it, because each change can break every caller and every target.
+  `SWIFT_DEFAULT_ACTOR_ISOLATION` build settings. Do not change the tools
+  version, the platforms, the language mode, or the default actor isolation
+  unless the task asks for it, because each change can break every caller and
+  every target.
 - Find the project's own entry point before using raw `swift` or `xcodebuild`
   commands: a `Makefile` target, a `mise.toml` task, a fastlane lane in
   `fastlane/Fastfile`, or scripts named in the contributor documentation.
