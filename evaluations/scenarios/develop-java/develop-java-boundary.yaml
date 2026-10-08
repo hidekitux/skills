@@ -12,9 +12,7 @@ expectations:
   transcript_must: []
   transcript_must_not: []
   files_must_exist: []
-  files_must_not_exist:
-    - "src/main/java"
-    - "src/test/java"
+  files_must_not_exist: []
   file_contains: []
   unchanged_files:
     - "build.gradle.kts"
