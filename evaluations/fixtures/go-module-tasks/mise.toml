@@ -1,3 +1,6 @@
+[tools]
+go = "1.26.6"
+
 [tasks."test:all"]
 description = "Run the module tests with the race detector"
 run = "go test -race ./..."
