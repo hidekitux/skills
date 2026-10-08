@@ -19,8 +19,8 @@ Markdown checklist when no native list is available.
 
 ## Scope
 
-This skill gives Kotlin and Gradle knowledge to the task that is already
-running. It does not choose what to change, and it creates no Issue, Pull
+This skill is a technology skill in the `language` category. It gives Kotlin
+and Gradle knowledge to the task that is already running. It does not choose what to change, and it creates no Issue, Pull
 Request, branch, or release. When the task belongs to a workflow skill such as
 `implement-issue`, `write-tests`, or `debug-code`, that skill keeps ownership
 of the plan, the commits, and the handoff; this skill supplies the Kotlin
@@ -29,14 +29,18 @@ Multiplatform, or a Minecraft mod loader, can build on this skill for the
 language and Gradle rules.
 
 Stop and say that this skill does not apply when the repository has no `.kt`
-or `.kts` files.
+files. A Gradle Kotlin DSL build file (`.kts`) alone marks a Gradle project,
+not Kotlin code; for a Java project, apply only the Gradle rules below.
 
 ## 1. Discover the project
 
 - Find the build: `settings.gradle.kts` or `settings.gradle`, the modules it
   includes, and the Gradle wrapper (`gradlew`). Use `./gradlew`, never a Gradle
   installed on the machine, so the build runs the version in
-  `gradle/wrapper/gradle-wrapper.properties`.
+  `gradle/wrapper/gradle-wrapper.properties`. When the project has no wrapper,
+  say so and report the Gradle checks as not run instead of using another
+  Gradle version, because a different Gradle can pass or fail for reasons the
+  project does not have.
 - Read the Kotlin version and plugin versions from the version catalog
   (`gradle/libs.versions.toml`) when it exists, otherwise from the `plugins`
   block. Read the JVM target from `kotlin { jvmToolchain(...) }` or
@@ -57,7 +61,8 @@ or `.kts` files.
 - Keep nullability in the type. Do not use `!!`; handle `null` with `?.`,
   `?:`, `requireNotNull`, or an early return with a reason.
 - Use a `data class` for a value, a `sealed` interface or class for a closed
-  set of states, and an `enum class` only for constants without data.
+  set of states whose members carry different data, and an `enum class` for a
+  fixed set of constants, which may share properties.
 - Launch coroutines in a scope that someone owns and cancels, such as a
   `viewModelScope` or a scope the caller passes in. Do not use `GlobalScope`.
   Switch dispatchers with `withContext` at the I/O boundary.
