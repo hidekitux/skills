@@ -20,6 +20,9 @@ The rejected column records a candidate the read-aloud test turned down, so a re
 
 | English term | Japanese term | Rejected | Why the rejection |
 | --- | --- | --- | --- |
+| workflow skill | ワークフロースキル | 工程スキル | 工程 names one phase, and a workflow skill such as `deliver-change` covers several |
+| technology skill | 技術スキル | スタックスキル | `stack` is the catalog identifier; nobody says スタックスキル aloud |
+| technology category | 技術分野 | 技術カテゴリ | A common Japanese word says the same thing |
 | finding | 指摘 | 発見 | 発見 is something nobody knew before; a review comment is not that |
 | boundary | 境界 | 範囲 | 範囲 is the area, not the line around it, and it is already taken by `scope` |
 | evidence | 根拠 | 証拠 | 証拠 carries a forensic sense the English term does not have |
