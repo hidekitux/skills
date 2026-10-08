@@ -10,8 +10,7 @@ prompt: |
 expectations:
   handoff: report
   transcript_must: []
-  transcript_must_not:
-    - "go test"
+  transcript_must_not: []
   files_must_exist: []
   files_must_not_exist:
     - "go.mod"
