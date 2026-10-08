@@ -21,6 +21,7 @@ import (
 	"time"
 
 	skillcontext "github.com/hidekitux/skills/internal/context"
+	"github.com/hidekitux/skills/internal/discover"
 	skillenvironment "github.com/hidekitux/skills/internal/environment"
 	"github.com/hidekitux/skills/internal/evidence"
 	"github.com/hidekitux/skills/internal/graph"
@@ -987,7 +988,8 @@ func validateRepositoryMetadata(root string, item Trace) []string {
 	if err != nil {
 		return append(findings, fmt.Sprintf("load graph: %v", err))
 	}
-	if _, ok := loaded.Skill(item.SkillID); !ok {
+	// A technology skill has no graph node by contract.
+	if _, ok := loaded.Skill(item.SkillID); !ok && !discover.IsTechnologySkill(root, item.SkillID) {
 		findings = append(findings, fmt.Sprintf("skill_id %q is not in the repository graph", item.SkillID))
 	}
 	skillVersion, err := SkillVersion(root, item.SkillID)
