@@ -195,3 +195,26 @@ func TestCatalogDocsRejectsPlannedCountMismatch(t *testing.T) {
 		t.Fatalf("missing planned-count finding:\n%s", errOut)
 	}
 }
+
+func TestCatalogDocsComparesTechnologySkillWithItsCategory(t *testing.T) {
+	catalog := catalogDocCatalog + "  - name: develop-go\n    summary: Develop Go code.\n    owner: hidekitux\n    status: experimental\n    license: Apache-2.0\n    version: 0.1.0\n    kind: stack\n"
+	readme := strings.Replace(catalogDocReadme, "publishes 3 skills", "publishes 4 skills", 1) + "| develop-go | language | experimental |\n"
+	layers := catalogDocLayers + "| language | develop-go | experimental |\n"
+	write := func(readme string) string {
+		root := writeCatalogDocRepo(t, readme, layers, catalogDocContract())
+		if err := writeNestedFile(filepath.Join(root, "CATALOG.yml"), []byte(catalog)); err != nil {
+			t.Fatal(err)
+		}
+		if err := writeNestedFile(filepath.Join(root, "skills", "language", "develop-go", "SKILL.md"), []byte("---\nname: develop-go\n---\n")); err != nil {
+			t.Fatal(err)
+		}
+		return root
+	}
+	if code, errOut := runCatalogDocs(t, write(readme)); code != 0 {
+		t.Fatalf("expected pass, got exit %d: %s", code, errOut)
+	}
+	stale := strings.Replace(readme, "| develop-go | language |", "| develop-go | web |", 1)
+	if code, errOut := runCatalogDocs(t, write(stale)); code != 1 || !strings.Contains(errOut, `develop-go is listed in layer "web", but its technology category is "language"`) {
+		t.Fatalf("expected category-drift finding, got exit %d:\n%s", code, errOut)
+	}
+}
