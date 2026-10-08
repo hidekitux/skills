@@ -69,3 +69,32 @@ func TestSharedReferencesSkipsWithoutSourceDirectory(t *testing.T) {
 		t.Fatalf("expected skip without shared/references, got %d: %s", code, out)
 	}
 }
+
+func TestSharedReferencesRecognizesLinkForms(t *testing.T) {
+	cases := map[string]bool{
+		"Read [p](references/persistent-prose.md).":                   true,
+		"Read [p](./references/persistent-prose.md).":                 true,
+		"Read [p](references/persistent-prose.md#rules).":             true,
+		`Read [p](references/persistent-prose.md "Rules").`:           true,
+		"Read [p][rules].\n\n[rules]: references/persistent-prose.md": true,
+		"Read references/persistent-prose.md as plain text.":          false,
+		"Read [p](references/persistent-prose.md.bak).":               false,
+		"Read [p](other/references/persistent-prose.md).":             false,
+	}
+	for text, want := range cases {
+		if got := linksReference(text, "persistent-prose.md"); got != want {
+			t.Errorf("linksReference(%q) = %t, want %t", text, got, want)
+		}
+	}
+}
+
+func TestSharedReferencesRejectsUnlinkedCopy(t *testing.T) {
+	root := writeSharedReferenceRepo(t, map[string]string{
+		"skills/process/create-pr/references/persistent-prose.md": sharedReferenceSource,
+		"skills/process/merge-pr/references/persistent-prose.md":  sharedReferenceSource,
+	})
+	code, _, errOut := runSharedReferences(t, root)
+	if code != 1 || !strings.Contains(errOut, "skills/process/merge-pr/references/persistent-prose.md is not linked from skills/process/merge-pr/SKILL.md") {
+		t.Fatalf("expected unlinked-copy finding, got %d: %s", code, errOut)
+	}
+}
