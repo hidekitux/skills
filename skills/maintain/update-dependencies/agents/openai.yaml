@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update Dependencies"
+  short_description: "Update dependencies in verified groups"
+  default_prompt: "Use $update-dependencies to update this project's dependencies in verified groups, record the evidence for each version change and every held-back update, and hand the change to implement-issue."
