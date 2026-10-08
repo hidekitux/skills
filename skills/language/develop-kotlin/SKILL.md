@@ -21,12 +21,12 @@ Markdown checklist when no native list is available.
 
 This skill is a technology skill in the `language` category. It gives Kotlin
 and Gradle knowledge to the task that is already running. It does not choose
-what to change, and it creates no Issue, Pull Request, branch, or release. When the task belongs to a workflow skill such as
-`implement-issue`, `write-tests`, or `debug-code`, that skill keeps ownership
-of the plan, the commits, and the handoff; this skill supplies the Kotlin
-commands and conventions. A framework skill, such as one for Android, Compose
-Multiplatform, or a Minecraft mod loader, can build on this skill for the
-language and Gradle rules.
+what to change, and it creates no Issue, Pull Request, branch, or release. When
+the task belongs to a workflow skill such as `implement-issue`, `write-tests`,
+or `debug-code`, that skill keeps ownership of the plan, the commits, and the
+handoff; this skill supplies the Kotlin commands and conventions. A framework
+skill, such as one for Android, Compose Multiplatform, or a Minecraft mod
+loader, can build on this skill for the language and Gradle rules.
 
 Stop and say that this skill does not apply when the repository has no `.kt`
 files. A Gradle Kotlin DSL build file (`.kts`) alone marks a Gradle build, not

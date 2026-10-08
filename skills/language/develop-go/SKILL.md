@@ -21,9 +21,10 @@ Markdown checklist when no native list is available.
 
 This skill is a technology skill in the `language` category. It gives Go
 knowledge to the task that is already running. It does not choose what to
-change, and it creates no Issue, Pull Request, branch, or release. When the task belongs to a workflow skill such as `implement-issue`,
-`write-tests`, or `debug-code`, that skill keeps ownership of the plan, the
-commits, and the handoff; this skill supplies the Go commands and conventions.
+change, and it creates no Issue, Pull Request, branch, or release. When the
+task belongs to a workflow skill such as `implement-issue`, `write-tests`, or
+`debug-code`, that skill keeps ownership of the plan, the commits, and the
+handoff; this skill supplies the Go commands and conventions.
 
 Stop and say that this skill does not apply when the repository has no
 `go.mod` and no `.go` files.
