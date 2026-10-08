@@ -1,0 +1,10 @@
+[tasks."test:all"]
+description = "Run the module tests with the race detector"
+run = "go test -race ./..."
+
+[tasks."lint:all"]
+description = "Check formatting and vet"
+run = '''
+test -z "$(gofmt -l .)"
+go vet ./...
+'''
