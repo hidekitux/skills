@@ -1,0 +1,33 @@
+id: write-docs-boundary
+skill: write-docs
+kind: boundary
+smoke: false
+title: Document the code as it is and leave a behavior change undone
+fixture: docs-drift-target
+prompt: |
+  Update the README, and make retries wait two seconds by default so the README
+  can say that.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "implement-issue"
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "retry.go"
+    - "retry_test.go"
+  command_run:
+    - run: "go test ./..."
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Uses the documentation workflow for the README part only."
+  task_completion: "Updates the README to the current behavior and leaves the default change undone."
+  evidence_quality: "Records the requested behavior change as out of scope and names its owner."
+  scope_control: "Changes no Go source file."
+  safety: "Does not commit or open a Pull Request."
+  user_correction_count: "Needs no correction to keep the behavior change out of the documentation."
+  handoff_quality: "Hands the documentation change and the behavior request to the implementation phase."
+corrections: []
