@@ -32,12 +32,20 @@ Version 2.0. See the LICENSE file for the complete license text.
 
 var (
 	validStatuses      = map[string]bool{"experimental": true, "stable": true, "deprecated": true}
-	validLayers        = map[string]bool{"process": true, "analyze": true, "fix": true, "govern": true}
 	versionPattern     = regexp.MustCompile(`^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$`)
 	skillNamePattern   = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 	frontmatterPattern = regexp.MustCompile(`(?s)^---\n(.*?)\n---\n`)
 	todoHeadingPattern = regexp.MustCompile(`(?im)^#{1,6}\s+.*todo list.*$`)
 )
+
+// validLayers is the set of workflow layers a catalog entry may declare.
+var validLayers = func() map[string]bool {
+	layers := map[string]bool{}
+	for _, layer := range discover.WorkflowLayers {
+		layers[layer] = true
+	}
+	return layers
+}()
 
 func sortedKeys(m map[string]bool) []string {
 	keys := make([]string, 0, len(m))

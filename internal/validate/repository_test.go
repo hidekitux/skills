@@ -221,3 +221,17 @@ func TestCheckRepositoryRejectsTechnologySkillContractViolations(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckRepositoryAcceptsEveryWorkflowLayer(t *testing.T) {
+	for layer := range validLayers {
+		entry := catalogEntry("demo", "", false)
+		entry["layer"] = layer
+		root := scaffoldRepo(t, []string{layer + "/demo"}, []map[string]any{entry})
+		if code, errOut := runRepoCheck(t, root); code != 0 {
+			t.Fatalf("layer %q: expected pass, got exit %d: %s", layer, code, errOut)
+		}
+	}
+	if !validLayers["maintain"] {
+		t.Fatal("the maintain layer must be a valid workflow layer")
+	}
+}

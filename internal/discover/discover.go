@@ -81,6 +81,10 @@ const (
 	KindStack = "stack"
 )
 
+// WorkflowLayers lists the layers a workflow skill may declare in CATALOG.yml,
+// in the order the generated skill list shows them.
+var WorkflowLayers = []string{"process", "analyze", "fix", "maintain", "govern"}
+
 // TechnologyCategories lists the first directories below skills/ that hold
 // technology skills, in lexical order.
 var TechnologyCategories = []string{"game", "language", "mobile", "web"}
