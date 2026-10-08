@@ -159,17 +159,26 @@ func HeadingNames(content string) []string {
 	return headings
 }
 
-// ValidateCoverage ensures that the inventory names every discovered skill
-// and every heading in each skill exactly once.
+// ValidateCoverage ensures that the inventory names every discovered workflow
+// skill and every heading in each skill exactly once. Technology skills, which
+// live under a technology category directory, are not part of the inventory.
 func ValidateCoverage(root string, inventory Inventory) error {
 	byName := map[string]Skill{}
 	for _, skill := range inventory.Skills {
 		if _, exists := byName[skill.Name]; exists {
 			return fmt.Errorf("inventory contains duplicate skill %q", skill.Name)
 		}
+		if discover.IsTechnologyCategory(discover.Category(filepath.Dir(filepath.ToSlash(skill.Path)))) {
+			return fmt.Errorf("inventory must not list technology skill %s", skill.Name)
+		}
 		byName[skill.Name] = skill
 	}
-	discovered := discover.All(root)
+	discovered := []discover.Skill{}
+	for _, skill := range discover.All(root) {
+		if !discover.IsTechnologyCategory(discover.Category(skill.Dir)) {
+			discovered = append(discovered, skill)
+		}
+	}
 	if len(discovered) != len(inventory.Skills) {
 		return fmt.Errorf("inventory has %d skills but discovery found %d", len(inventory.Skills), len(discovered))
 	}
