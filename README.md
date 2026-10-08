@@ -77,7 +77,7 @@ Every published skill uses a category directory and requires `SKILL.md`; its `na
 
 Every published skill creates and maintains a Todo List at invocation start. Include discovery, scope confirmation, implementation, validation, and handoff where applicable. Use a host-native list when available, otherwise an equivalent Markdown checklist. Complete an item only when evidence exists and explain unfinished items at handoff.
 
-Every skill belongs to one of four layers — process, analyze, fix, or govern. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design. Outcome-oriented entry points (`improve-project`, `deliver-change`, `resolve-defect`) coordinate the primitives from a user outcome to a complete result; direct primitive invocation remains available for advanced or partial workflows.
+Every workflow skill belongs to one of four layers — process, analyze, fix, or govern. A technology skill (`kind: stack` in `CATALOG.yml`) gives one technology's conventions and commands instead, and lives under a technology category: `language`, `mobile`, `web`, or `game`. See [Skill layers](docs/skill-layers.md) for the layer model and the skill-set mapping, and [Analysis skill common contract](docs/analysis-skill-common.md) for the shared analyze-* core design. Outcome-oriented entry points (`improve-project`, `deliver-change`, `resolve-defect`) coordinate the primitives from a user outcome to a complete result; direct primitive invocation remains available for advanced or partial workflows.
 
 ## Skill-set map
 

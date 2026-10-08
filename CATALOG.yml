@@ -1,6 +1,9 @@
 # Inventory of skills published from this repository.
 # Add one entry when adding a skill; keep the version aligned with its release.
 # layer is one of: process, analyze, fix, govern (see docs/skill-layers.md).
+# kind is workflow (the default when absent) or stack. A stack entry is a
+# technology skill: it declares no layer and lives under skills/language/,
+# skills/mobile/, skills/web/, or skills/game/.
 # related lists related skills by name; it may include planned skills that are
 # not yet published.
 catalog_version: 1

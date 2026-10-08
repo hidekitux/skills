@@ -2,20 +2,22 @@
 
 ## Purpose
 
-Every skill in this repository belongs to one of four layers: process, analyze,
-fix, or govern. The layer states the skill's naming pattern, what it may and may
+Every workflow skill in this repository belongs to one of four layers: process,
+analyze, fix, or govern. A workflow skill is a catalog entry whose `kind` is
+absent or `workflow`; technology skills have no layer and are described in
+[Technology skills](#technology-skills). The layer states the skill's naming pattern, what it may and may
 not do, and where its results go. Published skills declare their `layer` and
 `related` skills in `CATALOG.yml`; planned skills follow the same vocabulary in
 their feature Issues. The current inventory, layer, and status claims in this
 document and the README derive from `CATALOG.yml`: presence in its `skills:`
 list is the current publishable inventory, and each entry's `layer` and
 `status` fields drive the layer and status documentation. A skill is planned
-only when it is absent from the catalog. This model applies to the whole skill
-set.
+only when it is absent from the catalog. This model applies to every workflow
+skill.
 
 ## Directory hierarchy
 
-Published skills use their layer as the first directory below `skills/`:
+Published workflow skills use their layer as the first directory below `skills/`:
 `skills/<layer>/<skill-name>/SKILL.md`. The layer is a navigation category, not
 part of the public skill name. The category answers the user's task before the
 skill name identifies the exact workflow.
@@ -96,6 +98,43 @@ missing; they do not implement the audited rules themselves.
 
 - Published: `bootstrap-project`, `audit-workflow-enforcement`
 
+## Technology skills
+
+A technology skill is a catalog entry with `kind: stack`. It gives the
+conventions, build commands, and test commands for one technology, such as Go
+or Flutter. It creates no Issue, Pull Request, branch, or release, and it hands
+off to no skill. Workflow skills keep the contract described in the rest of
+this document.
+
+A technology skill lives under one of four technology categories, the first
+directory below `skills/`:
+
+| Technology category | Choose this category when |
+| --- | --- |
+| `language` | The skill covers a programming language or runtime used across project types, such as Go, Python, Kotlin, or Node/TypeScript. |
+| `mobile` | The skill covers a mobile application framework, such as Flutter, Android/Compose, or iOS. |
+| `web` | The skill covers a web front-end framework, such as React. |
+| `game` | The skill covers a game or game-mod platform, such as Minecraft Forge or Minecraft Fabric. |
+
+A technology skill differs from a workflow skill in what the repository checks
+require:
+
+- It declares no `layer` in `CATALOG.yml`; `check:repository` rejects one.
+- It must not appear in `workflow/skill-graph.yml`, because the graph is where a
+  skill declares authority and handoff transitions; the skill graph check
+  rejects a node for it.
+- It is not listed in `docs/skill-instruction-inventory.yml`.
+- It keeps the Todo List, frontmatter, license, and catalog requirements of
+  every published skill, and it needs a positive scenario and a negative or
+  boundary scenario under `evaluations/scenarios/<skill-name>/`.
+- Its row in the skill-set mapping tables shows its technology category in the
+  layer column.
+
+A workflow skill must not live under a technology category directory. A
+technology skill describes a technology; it can refer to another technology
+skill by name, for example `develop-kotlin` from a Compose skill, instead of
+copying shared files.
+
 ## Skill-set mapping
 
 | Layer | Skill | Status |
@@ -175,6 +214,8 @@ test writing, or refactoring as `fix`.
   `write-tests`).
 - Governance skills name the governed artifact or action (`bootstrap-project`,
   `audit-workflow-enforcement`).
+- Technology skills are named `develop-<technology>` (`develop-go`,
+  `develop-kotlin`).
 
 ## Boundaries
 
@@ -185,5 +226,6 @@ test writing, or refactoring as `fix`.
   project.
 - `govern` establishes and verifies rules; `analyze` and `fix` do not change
   governance.
-- Every skill states its layer, related skills, and handoff target when it is
-  authored or updated.
+- Every workflow skill states its layer, related skills, and handoff target
+  when it is authored or updated. A technology skill states its technology
+  category and related skills.
