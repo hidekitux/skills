@@ -411,3 +411,27 @@ func TestCheckCorpusRequiresAtLeastOneScenario(t *testing.T) {
 		t.Fatalf("missing empty-corpus finding:\n%s", errOut)
 	}
 }
+
+func TestCheckCorpusRequiresScenariosForTechnologySkill(t *testing.T) {
+	positive := baseScenario()
+	positive.Fixture = "plan-fixture"
+	root := scaffoldEval(t,
+		[]map[string]string{skillEntry("plan-issue", "experimental")},
+		[]*Scenario{
+			positive,
+			{ID: "plan-issue-boundary", Skill: "plan-issue", Kind: KindBoundary, Title: "Stop without Scope", Prompt: "Plan the draft issue.", Expectations: Expectations{Handoff: "blocked-ask"}, Rubric: fullRubric()},
+		},
+		map[string]map[string]string{"plan-fixture": {"README.md": "# fixture"}},
+	)
+	catalog, err := os.ReadFile(filepath.Join(root, "CATALOG.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, root, "CATALOG.yml", string(catalog)+"  - name: develop-go\n    owner: hidekitux\n    status: experimental\n    license: Apache-2.0\n    version: 0.1.0\n    kind: stack\n")
+	writeTestFile(t, root, filepath.Join("skills", "language", "develop-go", "SKILL.md"), "---\nname: develop-go\n---\n")
+
+	code, _, errOut := runCheckCorpus(t, root)
+	if code != 1 || !strings.Contains(errOut, `skill "develop-go" has no positive success scenario`) || !strings.Contains(errOut, `skill "develop-go" has no failure or boundary scenario`) {
+		t.Fatalf("expected missing technology skill scenario findings, got %d:\n%s", code, errOut)
+	}
+}
