@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Swift"
+  short_description: "Apply a Swift project's conventions and checks"
+  default_prompt: "Use $develop-swift to follow this Swift project's conventions, run its build and tests, and report each command and result."

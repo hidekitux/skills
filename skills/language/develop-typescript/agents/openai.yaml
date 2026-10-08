@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop TypeScript"
+  short_description: "Apply a Node.js project's TS conventions"
+  default_prompt: "Use $develop-typescript to follow this project's conventions, run its typecheck, lint, format, test, and build scripts, and report each command and result."
