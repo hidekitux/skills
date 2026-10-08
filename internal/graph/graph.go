@@ -169,12 +169,14 @@ type ValidationReport struct {
 
 type catalogEntry struct {
 	Layer string
+	Kind  string
 }
 
 type catalogDocument struct {
 	Skills []struct {
 		Name  string `yaml:"name"`
 		Layer string `yaml:"layer"`
+		Kind  string `yaml:"kind"`
 	} `yaml:"skills"`
 }
 
@@ -273,6 +275,8 @@ func validateGraph(root string, graph *Graph) []string {
 		nodes[skill.ID] = true
 		if entry, ok := catalog[skill.ID]; !ok {
 			findings = append(findings, fmt.Sprintf("skill %q is missing from CATALOG.yml", skill.ID))
+		} else if entry.Kind == discover.KindStack {
+			findings = append(findings, fmt.Sprintf("skill %q is a technology skill (kind: stack) and must not appear in the graph", skill.ID))
 		} else if entry.Layer != skill.Layer {
 			findings = append(findings, fmt.Sprintf("skill %q layer %q differs from CATALOG.yml layer %q", skill.ID, skill.Layer, entry.Layer))
 		}
@@ -280,8 +284,8 @@ func validateGraph(root string, graph *Graph) []string {
 	for index := range graph.Skills {
 		findings = append(findings, validateSkill(&graph.Skills[index], artifacts, inputs, prerequisites, terminalOutcomes, terminationConditions, conditions, nodes)...)
 	}
-	for name := range catalog {
-		if !nodes[name] {
+	for name, entry := range catalog {
+		if entry.Kind != discover.KindStack && !nodes[name] {
 			findings = append(findings, fmt.Sprintf("cataloged skill %q is missing from the graph", name))
 		}
 	}
@@ -475,7 +479,7 @@ func loadCatalog(root string) (map[string]catalogEntry, []string) {
 		if _, exists := catalog[skill.Name]; exists {
 			findings = append(findings, fmt.Sprintf("CATALOG.yml skill %q is duplicated", skill.Name))
 		}
-		catalog[skill.Name] = catalogEntry{Layer: skill.Layer}
+		catalog[skill.Name] = catalogEntry{Layer: skill.Layer, Kind: skill.Kind}
 	}
 	return catalog, findings
 }
