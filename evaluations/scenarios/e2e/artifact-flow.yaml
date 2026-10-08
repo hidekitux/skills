@@ -4,13 +4,13 @@ kind: positive
 smoke: false
 title: Drive one change through the governed artifact flow from report to review
 github_sandbox: true
-fixture: governed-change
+fixture: artifact-flow
 stages:
   - skill: create-issue
     prompt: |
       The widgets analysis report is in the repository root. Turn its top
       finding into a governed change issue following the repository
-      conventions.
+      conventions. No change issue exists on GitHub yet.
   - skill: plan-issue
     prompt: |
       The change issue is ready. Produce a verified, ordered implementation
