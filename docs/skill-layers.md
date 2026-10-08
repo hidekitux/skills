@@ -91,7 +91,6 @@ Skills that establish or verify repository rules and their enforcement. They
 create project governance or audit existing enforcement and report what is
 missing; they do not implement the audited rules themselves.
 
-
 ## Technology skills
 
 A technology skill is a catalog entry with `kind: stack`. It gives the
@@ -122,7 +121,7 @@ require:
   every published skill, and it needs a positive scenario and a negative or
   boundary scenario under `evaluations/scenarios/<skill-name>/`.
 - Its row in the generated skill list shows its technology category in the
-  layer column.
+  "Layer or technology category" column.
 
 A workflow skill must not live under a technology category directory. A
 technology skill describes a technology; it can refer to another technology
