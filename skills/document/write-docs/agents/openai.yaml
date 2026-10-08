@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Docs"
+  short_description: "Write project documentation that matches the code"
+  default_prompt: "Use $write-docs to write or update this project's documentation, trace every claim to its source, verify commands and paths, and hand the change to implement-issue."
