@@ -133,7 +133,7 @@ func TestRunRepositoryChecksAgainstRepositoryRoot(t *testing.T) {
 	if !strings.Contains(out.String(), want) {
 		t.Fatalf("output missing %q:\n%s", want, out.String())
 	}
-	for _, label := range []string{"[validate-repository]", "[check-tool-licenses]", "[validate-script-tests]", "[check-sensitive-content]", "[check-writing-quality]", "[check-mutation-badges]", "[check-mutation-triage]", "[check-analyze-readonly]", "[check-guided-paths]", "[check-instruction-inventory]", "[check-catalog-docs]", "[check-dependabot-config]", "[check-action-pins]", "[check-module-boundaries]", "[check-test-git-isolation]", "[check-contract-decisions]", "[check-public-status]", "[validate-diagnostic]", "[check-evaluation]", "[check-context]", "[validate-skill-graph]", "[validate-skill-trace]", "[validate-replay-fixtures]", "[validate-deliberation-policy]", "[validate-execution-strategy]"} {
+	for _, label := range []string{"[validate-repository]", "[check-tool-licenses]", "[validate-script-tests]", "[check-sensitive-content]", "[check-writing-quality]", "[check-mutation-badges]", "[check-mutation-triage]", "[check-analyze-readonly]", "[check-guided-paths]", "[check-instruction-inventory]", "[check-catalog-docs]", "[check-skill-lists]", "[check-dependabot-config]", "[check-action-pins]", "[check-module-boundaries]", "[check-test-git-isolation]", "[check-contract-decisions]", "[check-public-status]", "[validate-diagnostic]", "[check-evaluation]", "[check-context]", "[validate-skill-graph]", "[validate-skill-trace]", "[validate-replay-fixtures]", "[validate-deliberation-policy]", "[validate-execution-strategy]"} {
 		if !strings.Contains(out.String(), label) {
 			t.Fatalf("output missing check label %q:\n%s", label, out.String())
 		}
