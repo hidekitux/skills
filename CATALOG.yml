@@ -263,6 +263,33 @@ skills:
     version: 0.1.1
     kind: stack
     related: [implement-issue, write-tests, debug-code]
+  - name: develop-android-compose
+    summary: Apply an Android project's Compose, resource, and Gradle conventions, and verify Android changes through the project's wrapper.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-kotlin, develop-java, implement-issue]
+  - name: develop-kotlin-multiplatform
+    summary: Apply a Kotlin Multiplatform module's targets, source sets, and expect and actual rules, and verify shared code per target.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-kotlin, develop-swift, implement-issue]
+  - name: develop-compose-multiplatform
+    summary: Apply Compose Multiplatform shared UI, resource, and target conventions, and verify changes through the project's wrapper.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-kotlin-multiplatform, develop-android-compose, implement-issue]
 
 # Example entry:
 # - name: pr-review
