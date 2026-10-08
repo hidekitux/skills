@@ -22,12 +22,12 @@ Published workflow skills use their layer as the first directory below `skills/`
 part of the public skill name. The category answers the user's task before the
 skill name identifies the exact workflow.
 
-| Category | Choose this category when | Published skills | Reserved sibling skills |
-| --- | --- | --- | --- |
-| `process` | You need to move a governed change through Issues, plans, Pull Requests, or reviews. | `create-issue`, `plan-issue`, `implement-issue`, `create-pr`, `review-pr`, `fix-pr`, `merge-pr`, `improve-project`, `deliver-change` | None |
-| `analyze` | You need read-only evidence about a codebase, a project, a completed session, an Issue backlog, or a major redesign. | `analyze-codebase`, `analyze-project`, `propose-improvements`, `retrospect-work`, `triage-issues` | None |
-| `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. | `debug-code`, `resolve-defect`, `write-tests`, `refactor-code` | None |
-| `govern` | You need to establish or audit repository rules and their enforcement. | `bootstrap-project`, `audit-workflow-enforcement` | None |
+| Category | Choose this category when |
+| --- | --- |
+| `process` | You need to move a governed change through Issues, plans, Pull Requests, or reviews. |
+| `analyze` | You need read-only evidence about a codebase, a project, a completed session, an Issue backlog, or a major redesign. |
+| `fix` | You need a task-scoped repair, test, or behavior-preserving refactor. |
+| `govern` | You need to establish or audit repository rules and their enforcement. |
 
 Use these representative requests to navigate without repository history:
 
@@ -61,8 +61,6 @@ a Pull Request exists, and the post-review stage (`fix-pr`) once one is open.
 explicitly authorized Pull Request, but it must not invent feature behavior or
 apply review fixes; substantive drift returns to `fix-pr`.
 
-- Published: `create-issue`, `plan-issue`, `implement-issue`, `create-pr`,
-  `review-pr`, `fix-pr`, `merge-pr`
 - Entry points: `improve-project`, `deliver-change`
 
 ### analyze
@@ -71,13 +69,11 @@ Read-only investigation skills that discover, prioritize, and report
 evidence-backed findings. They never modify files and never create Issues or
 Pull Requests; candidates for change are recommendations only.
 
-- Published: `analyze-codebase`, which owns focused codebase assessment,
-  `analyze-project`, which owns whole-project findings without architecture
-  decisions, `propose-improvements`, which owns project-wide improvement
-  investigation and bounded redesign proposals when structural change is
-  warranted,
-  `retrospect-work`, which owns session review, and `triage-issues`, which
-  owns Issue backlog comparison and ordering.
+`analyze-codebase` owns focused codebase assessment, `analyze-project` owns
+whole-project findings without architecture decisions, `propose-improvements`
+owns project-wide improvement investigation and bounded redesign proposals when
+structural change is warranted, `retrospect-work` owns session review, and
+`triage-issues` owns Issue backlog comparison and ordering.
 
 ### fix
 
@@ -87,7 +83,6 @@ refactoring against a test baseline without changing behavior. They work from a
 defined task or Issue and hand their result to the next owner or into the
 governed flow at `create-issue` instead of inventing scope.
 
-- Published: `debug-code`, `write-tests`, `refactor-code`
 - Entry points: `resolve-defect`
 
 ### govern
@@ -96,7 +91,6 @@ Skills that establish or verify repository rules and their enforcement. They
 create project governance or audit existing enforcement and report what is
 missing; they do not implement the audited rules themselves.
 
-- Published: `bootstrap-project`, `audit-workflow-enforcement`
 
 ## Technology skills
 
@@ -137,28 +131,36 @@ copying shared files.
 
 ## Skill-set mapping
 
-| Layer | Skill | Status |
+<!-- BEGIN generated: skill-list -->
+
+This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
+
+The repository publishes 20 skills: 20 workflow skills and 0 technology skills.
+
+| Skill | Layer or technology category | Status |
 | --- | --- | --- |
-| process | create-issue | stable |
-| process | plan-issue | experimental |
-| process | implement-issue | experimental |
-| process | create-pr | experimental |
-| process | review-pr | experimental |
-| process | fix-pr | experimental |
-| process | merge-pr | experimental |
-| process | improve-project | experimental |
-| process | deliver-change | experimental |
-| analyze | analyze-project | experimental |
-| analyze | analyze-codebase | experimental |
-| analyze | propose-improvements | experimental |
-| analyze | retrospect-work | experimental |
-| analyze | triage-issues | experimental |
-| fix | debug-code | experimental |
-| fix | resolve-defect | experimental |
-| fix | write-tests | experimental |
-| fix | refactor-code | experimental |
-| govern | bootstrap-project | experimental |
-| govern | audit-workflow-enforcement | experimental |
+| `create-issue` | process | stable |
+| `plan-issue` | process | experimental |
+| `implement-issue` | process | experimental |
+| `create-pr` | process | experimental |
+| `review-pr` | process | experimental |
+| `fix-pr` | process | experimental |
+| `merge-pr` | process | experimental |
+| `improve-project` | process | experimental |
+| `deliver-change` | process | experimental |
+| `analyze-codebase` | analyze | experimental |
+| `analyze-project` | analyze | experimental |
+| `propose-improvements` | analyze | experimental |
+| `retrospect-work` | analyze | experimental |
+| `triage-issues` | analyze | experimental |
+| `debug-code` | fix | experimental |
+| `resolve-defect` | fix | experimental |
+| `write-tests` | fix | experimental |
+| `refactor-code` | fix | experimental |
+| `bootstrap-project` | govern | experimental |
+| `audit-workflow-enforcement` | govern | experimental |
+
+<!-- END generated: skill-list -->
 
 ## Outcome-oriented entry points
 

@@ -81,30 +81,38 @@ Every workflow skill belongs to one of four layers — process, analyze, fix, or
 
 ## Skill-set map
 
-The repository publishes 20 skills today and tracks 0 planned next-generation skills. Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer` and `status` fields drive the layer and status documentation below and in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the full mapping and feature Issues; the table below summarizes which layer every current skill belongs to. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief.
+Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current publishable inventory; each entry's `layer`, `kind`, and `status` fields drive the list below and the same list in [Skill layers](docs/skill-layers.md). [Skill layers](docs/skill-layers.md) is the authoritative layer model with the feature Issues. Use the layer vocabulary — process, analyze, fix, and govern — consistently in Issues, docs, and the authoring brief. The repository tracks 0 planned next-generation skills.
 
-| Skill | Layer | Status |
+<!-- BEGIN generated: skill-list -->
+
+This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
+
+The repository publishes 20 skills: 20 workflow skills and 0 technology skills.
+
+| Skill | Layer or technology category | Status |
 | --- | --- | --- |
-| create-issue | process | stable |
-| plan-issue | process | experimental |
-| implement-issue | process | experimental |
-| create-pr | process | experimental |
-| review-pr | process | experimental |
-| fix-pr | process | experimental |
-| merge-pr | process | experimental |
-| improve-project | process | experimental |
-| deliver-change | process | experimental |
-| analyze-codebase | analyze | experimental |
-| analyze-project | analyze | experimental |
-| propose-improvements | analyze | experimental |
-| retrospect-work | analyze | experimental |
-| triage-issues | analyze | experimental |
-| debug-code | fix | experimental |
-| resolve-defect | fix | experimental |
-| write-tests | fix | experimental |
-| refactor-code | fix | experimental |
-| bootstrap-project | govern | experimental |
-| audit-workflow-enforcement | govern | experimental |
+| `create-issue` | process | stable |
+| `plan-issue` | process | experimental |
+| `implement-issue` | process | experimental |
+| `create-pr` | process | experimental |
+| `review-pr` | process | experimental |
+| `fix-pr` | process | experimental |
+| `merge-pr` | process | experimental |
+| `improve-project` | process | experimental |
+| `deliver-change` | process | experimental |
+| `analyze-codebase` | analyze | experimental |
+| `analyze-project` | analyze | experimental |
+| `propose-improvements` | analyze | experimental |
+| `retrospect-work` | analyze | experimental |
+| `triage-issues` | analyze | experimental |
+| `debug-code` | fix | experimental |
+| `resolve-defect` | fix | experimental |
+| `write-tests` | fix | experimental |
+| `refactor-code` | fix | experimental |
+| `bootstrap-project` | govern | experimental |
+| `audit-workflow-enforcement` | govern | experimental |
+
+<!-- END generated: skill-list -->
 
 Where the related guides live:
 
