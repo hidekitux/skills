@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Go"
+  short_description: "Apply a Go project's conventions and checks"
+  default_prompt: "Use $develop-go to follow this module's conventions, run its formatter, vet, and tests, and report each command and result."
