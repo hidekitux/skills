@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hidekitux/skills/internal/discover"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,6 +18,7 @@ import (
 type catalogSkill struct {
 	Name   string
 	Layer  string
+	Kind   string
 	Status string
 }
 
@@ -57,6 +59,7 @@ func readCatalog(path string) (map[string]catalogSkill, error) {
 		Skills []struct {
 			Name   string `yaml:"name"`
 			Layer  string `yaml:"layer"`
+			Kind   string `yaml:"kind"`
 			Status string `yaml:"status"`
 		} `yaml:"skills"`
 	}
@@ -68,7 +71,7 @@ func readCatalog(path string) (map[string]catalogSkill, error) {
 		if entry.Name == "" {
 			continue
 		}
-		catalog[entry.Name] = catalogSkill{Name: entry.Name, Layer: entry.Layer, Status: entry.Status}
+		catalog[entry.Name] = catalogSkill{Name: entry.Name, Layer: entry.Layer, Kind: entry.Kind, Status: entry.Status}
 	}
 	return catalog, nil
 }
@@ -229,7 +232,9 @@ func checkDocTables(docName, tableLabel, text string, mapping bool, catalog map[
 			continue
 		}
 		present[claim.skill] = true
-		if claim.layer != "" && claim.layer != cat.Layer {
+		if claim.layer != "" && cat.Kind == discover.KindStack && claim.layer != cat.Layer {
+			*findings = append(*findings, fmt.Sprintf("%s:%d: %s is listed in layer %q, but its technology category is %q", docName, claim.line, claim.skill, claim.layer, cat.Layer))
+		} else if claim.layer != "" && claim.layer != cat.Layer {
 			*findings = append(*findings, fmt.Sprintf("%s:%d: %s is listed in layer %q, but CATALOG.yml declares layer %q", docName, claim.line, claim.skill, claim.layer, cat.Layer))
 		}
 		if claim.status != "" && claim.status != cat.Status {
@@ -322,6 +327,16 @@ func CheckCatalogDocs(root string, out, errOut io.Writer) int {
 	readme := readDoc("README.md")
 	layers := readDoc(filepath.Join("docs", "skill-layers.md"))
 	contract := readDoc(filepath.Join("docs", "skill-contract.md"))
+
+	// A technology skill declares no layer; its documented layer column holds
+	// the technology category directory it lives under.
+	byName := discover.ByName(root)
+	for name, cat := range catalog {
+		if cat.Kind == discover.KindStack && len(byName[name]) == 1 {
+			cat.Layer = discover.Category(byName[name][0].Dir)
+			catalog[name] = cat
+		}
+	}
 
 	findings := []string{}
 	if readme == "" {
