@@ -153,17 +153,6 @@ skills:
     version: 0.1.1
     layer: fix
     related: [debug-code, write-tests, create-issue, plan-issue, implement-issue]
-
-# Example entry:
-# - name: pr-review
-#   summary: Review pull requests with the team's checklist.
-#   owner: hidekitux
-#   status: experimental # experimental | stable | deprecated
-#   agents: [codex, github-copilot]
-#   host_adapters: [codex, claude-code] # Omit when the core skill is sufficient.
-#   layer: process # process | analyze | fix | govern
-#   related: [implement-issue] # Related skills, published or planned.
-#   version: 0.1.0
   - name: write-tests
     summary: Design focused, proportionate tests with per-case failure evidence for a defined feature or fix.
     owner: hidekitux
@@ -202,3 +191,14 @@ skills:
     version: 0.1.1
     layer: govern
     related: [bootstrap-project]
+
+# Example entry:
+# - name: pr-review
+#   summary: Review pull requests with the team's checklist.
+#   owner: hidekitux
+#   status: experimental # experimental | stable | deprecated
+#   agents: [codex, github-copilot]
+#   host_adapters: [codex, claude-code] # Omit when the core skill is sufficient.
+#   layer: process # process | analyze | fix | govern
+#   related: [implement-issue] # Related skills, published or planned.
+#   version: 0.1.0
