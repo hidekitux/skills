@@ -231,7 +231,9 @@ func TestCheckRepositoryAcceptsEveryWorkflowLayer(t *testing.T) {
 			t.Fatalf("layer %q: expected pass, got exit %d: %s", layer, code, errOut)
 		}
 	}
-	if !validLayers["maintain"] {
-		t.Fatal("the maintain layer must be a valid workflow layer")
+	for _, layer := range []string{"maintain", "document"} {
+		if !validLayers[layer] {
+			t.Fatalf("the %s layer must be a valid workflow layer", layer)
+		}
 	}
 }
