@@ -1,0 +1,39 @@
+id: develop-compose-multiplatform-boundary
+skill: develop-compose-multiplatform
+kind: boundary
+smoke: false
+title: Do not apply Compose Multiplatform to an Android-only Compose app
+fixture: android-compose-app
+prompt: |
+  Add an empty state to the note list: when there are no notes, show a centered
+  message saying there are no notes yet. Keep the text translatable.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist:
+    - "composeApp/build.gradle.kts"
+  file_contains: []
+  unchanged_files:
+    - "app/build.gradle.kts"
+    - "settings.gradle.kts"
+  command_run:
+    - run: "! grep -rq 'org.jetbrains.compose' ."
+      dir: ""
+      exit: 0
+    - run: "test \"$(find . -path '*commonMain*' | wc -l | tr -d ' ')\" = 0"
+      dir: ""
+      exit: 0
+    - run: "test ! -e composeApp"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes that no build file applies org.jetbrains.compose and does not apply the Compose Multiplatform skill, pointing to develop-android-compose instead."
+  task_completion: "Adds the empty state in the Android Compose code with its text in app/src/main/res/values/strings.xml."
+  evidence_quality: "States from the build files that the project is an Android-only Compose app."
+  scope_control: "Adds no Compose Multiplatform plugin, commonMain source set, composeApp module, or composeResources directory."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid Compose Multiplatform."
+  handoff_quality: "Reports what was done and how it was verified."
+corrections: []

@@ -1,0 +1,37 @@
+id: develop-android-compose-boundary
+skill: develop-android-compose
+kind: boundary
+smoke: false
+title: Do not apply Android tooling to a plain JVM Kotlin library
+fixture: kotlin-gradle-library
+prompt: |
+  Add a small UI preview helper that formats a list of slugs for display, with
+  tests, following this project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist:
+    - "AndroidManifest.xml"
+    - "src/main/AndroidManifest.xml"
+  file_contains: []
+  unchanged_files:
+    - "build.gradle.kts"
+    - "settings.gradle.kts"
+  command_run:
+    - run: "! grep -rq 'com.android' ."
+      dir: ""
+      exit: 0
+    - run: "test ! -e src/main/AndroidManifest.xml"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes that no build file applies the Android Gradle plugin and does not apply the Android Compose skill."
+  task_completion: "Implements the helper in plain Kotlin with kotlin.test tests, following the library's explicit API mode."
+  evidence_quality: "States from the build files that the project is a JVM Kotlin library without the Android Gradle plugin."
+  scope_control: "Adds no Android plugin, manifest, resource, or Compose dependency, and leaves the build files unchanged."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid Android tooling."
+  handoff_quality: "Reports what was done and how it was verified, naming any Gradle check that did not run."
+corrections: []
