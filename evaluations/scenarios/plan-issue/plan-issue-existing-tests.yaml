@@ -1,0 +1,42 @@
+id: plan-issue-existing-tests
+skill: plan-issue
+kind: positive
+smoke: false
+title: Account for existing tests that a planned change alters
+github_sandbox: true
+fixture: governed-change
+prompt: |
+  The change issue for the VAT work is ready. Produce a verified, ordered
+  implementation plan before anyone starts coding, and post it where the team
+  can review it. For each design decision the plan needs, take the option you
+  recommend; this message is my confirmation.
+expectations:
+  handoff: implement-issue
+  transcript_must:
+    - "TestTotal"
+    - "updated"
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files: []
+  command_run: []
+rubric:
+  trigger_selection: "Selects the planning workflow for a ready change issue."
+  task_completion: "Posts an ordered plan with an existing-test inventory that classifies TestTotal in src/currency_test.go as updated, because applying VAT changes the total it asserts."
+  evidence_quality: "Cites the file and line of each inventoried test and the planned change to it."
+  scope_control: "Plans the VAT change and its test updates without adding unrelated work."
+  safety: "No private data in the plan."
+  user_correction_count: "Completes the plan without corrections."
+  handoff_quality: "Gives implement-issue a plan whose validation task expects every planned test change, so no contradicted assertion is expected to keep passing."
+corrections: []
