@@ -27,7 +27,7 @@ expectations:
     - run: "test \"$(ls *.go | wc -l | tr -d ' ')\" = 2"
       dir: ""
       exit: 0
-    - run: "! grep -qiE 'two seconds|2 ?s(econds)?([^a-z]|$)|2 \\* time\\.Second' README.md"
+    - run: "! grep -qiE 'by default|default (delay|wait)' README.md"
       dir: ""
       exit: 0
 rubric:
