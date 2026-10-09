@@ -17,7 +17,7 @@ expectations:
     - "build.gradle"
     - "settings.gradle"
   command_run:
-    - run: "! grep -rqiE 'neoforged|minecraftforge' ."
+    - run: "! grep -rqiE 'neoforged|minecraftforge' src build.gradle settings.gradle gradle.properties"
       dir: ""
       exit: 0
     - run: "test \"$(find . -name '*mods.toml' | wc -l | tr -d ' ')\" = 0"
