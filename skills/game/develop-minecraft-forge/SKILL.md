@@ -34,7 +34,9 @@ the rules that the mod loader brings.
 Stop and say that this skill does not apply when the build applies no Forge or
 NeoForge Gradle plugin and the project has no `mods.toml` or
 `neoforge.mods.toml`. A Fabric mod, marked by `fabric.mod.json` and the
-`fabric-loom` plugin, is out of scope; use `develop-minecraft-fabric` there.
+Fabric Loom plugin, is out of scope; use `develop-minecraft-fabric` there. A
+Quilt mod, marked by `quilt.mod.json` and the Quilt Loom plugin, is out of
+scope too.
 
 ## 1. Discover the project
 
@@ -58,20 +60,26 @@ NeoForge Gradle plugin and the project has no `mods.toml` or
   resources under `src/main/resources/assets/<modid>/` and
   `src/main/resources/data/<modid>/`, and any game tests.
 - Read the Java level from the toolchain. Minecraft 1.17 needs Java 16,
-  1.18 to 1.20.4 need Java 17, and 1.20.5 and later need Java 21.
+  1.18 to 1.20.4 need Java 17, and 1.20.5 to 1.21.x need Java 21. The
+  year-based versions from 26.1 need Java 25; check the loader's release notes
+  for a version newer than this list.
 - Read the Gradle task name for each run from the build: a run named `data`
   is the task `runData`, and a run named `gameTestServer` is
   `runGameTestServer`. Newer ModDevGradle projects split data generation into
   `clientData` and `serverData` runs.
 
-## 2. Change the mod
+## 2. Change the code
 
 - Register every block, item, entity, and other registry object through a
   `DeferredRegister` that is registered on the mod event bus, and hold the
   returned `DeferredHolder`, `DeferredItem`, `DeferredBlock`, or
   `RegistryObject`. Never create a registry object in a static initializer
-  outside a register call, because the game freezes its registries before
-  that code runs and the object never registers.
+  outside a register call, because an object built outside the
+  `DeferredRegister` is never registered and fails when the game uses it.
+- From Minecraft 1.21.2, an item's or block's properties must carry its
+  registry id, or the game fails at startup with an "id not set" error. Use
+  `registerItem` or `registerSimpleItem` (and the block equivalents), which
+  set it, or call `setId` on the properties when you use plain `register`.
 - Keep client-only code, such as rendering, screens, and key bindings, out of
   common code. Put it in a class that only a `Dist.CLIENT` subscriber or a
   `FMLEnvironment.dist` check reaches, because a dedicated server has no
@@ -84,9 +92,11 @@ NeoForge Gradle plugin and the project has no `mods.toml` or
   through the data generation providers when the project uses data
   generation. Otherwise add them as JSON files under `assets/<modid>/` and
   `data/<modid>/`, following the folder names the Minecraft version uses.
-- Do not change `minecraft_version`, the loader version, the mappings, or the
-  Java version unless the task asks for it, because every change can break
-  every Minecraft and loader class reference in the mod.
+- Do not change `minecraft_version`, the loader version, the mappings, the
+  Java version, the Gradle plugin version, the mod id, the `mods.toml` or
+  `neoforge.mods.toml` metadata, or the configured runs unless the task asks
+  for it, because every change can break every Minecraft and loader class
+  reference, resource path, or saved world that uses the mod.
 
 ## 3. Verify
 
