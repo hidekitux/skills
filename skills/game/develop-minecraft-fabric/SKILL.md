@@ -76,9 +76,11 @@ to it.
   mod id namespace, such as `Identifier.of(MOD_ID, "sapphire")`. Since
   Minecraft 1.21.2, item and block settings need their registry key, or the
   game fails at startup. Follow the existing helper, which sets it; without
-  one, build the key with `RegistryKey.of(RegistryKeys.ITEM, id)` and pass it
-  to `new Item.Settings().registryKey(key)` before registering under the same
-  key.
+  one, build the key and pass it to the settings before registering under the
+  same key: with Yarn names, `RegistryKey.of(RegistryKeys.ITEM, id)` and
+  `new Item.Settings().registryKey(key)`; with Mojang names,
+  `ResourceKey.create(Registries.ITEM, id)` and
+  `new Item.Properties().setId(key)`.
 - Keep client-only code, such as renderers, screens, key bindings, and
   client networking receivers, in the `client` entrypoint or the client
   source set. Code that the server loads must not reference client classes.
@@ -94,9 +96,11 @@ to it.
   of writing the generated JSON by hand.
 - Do not change `minecraft_version`, the mappings, `loader_version`,
   `fabric_version`, the Loom version, the Java version, the mod `id`, the
-  `depends` block, the Mixin config list, or `splitEnvironmentSourceSets()`
-  unless the task asks for it, because each change can break the mod's class
-  references, resource paths, or load order.
+  `depends` block, the existing Mixin configs, or
+  `splitEnvironmentSourceSets()` unless the task asks for it (adding a Mixin
+  config that a needed Mixin requires is part of that Mixin, not a change to
+  this list), because each change can break the mod's class references,
+  resource paths, or load order.
 
 ## 3. Verify
 
