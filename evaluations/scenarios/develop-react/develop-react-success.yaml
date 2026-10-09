@@ -29,7 +29,7 @@ expectations:
     - "tsconfig.json"
     - "vite.config.ts"
   command_run:
-    - run: "grep -rqE 'notes\\.length[[:space:]]*(===?[[:space:]]*0|<[[:space:]]*1|>[[:space:]]*0|!==?[[:space:]]*0)|!notes\\.length|0[[:space:]]*===?[[:space:]]*notes\\.length' src"
+    - run: "grep -rqE 'notes\\.length[[:space:]]*(===?[[:space:]]*0|<[[:space:]]*1|>[[:space:]]*0|!==?[[:space:]]*0|[[:space:]]*[?]|[[:space:]]*&&)|!notes\\.length|0[[:space:]]*===?[[:space:]]*notes\\.length' src"
       dir: ""
       exit: 0
     - run: "find src -name '*.test.tsx' -exec grep -li 'no notes' {} + | grep -q ."
