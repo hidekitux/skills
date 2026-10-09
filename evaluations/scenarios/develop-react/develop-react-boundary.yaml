@@ -1,0 +1,35 @@
+id: develop-react-boundary
+skill: develop-react
+kind: boundary
+smoke: false
+title: Do not apply React to a plain Node.js TypeScript library
+fixture: typescript-node-library
+prompt: |
+  Add a function that formats a list of notes for display, with tests,
+  following this project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "package.json"
+    - "tsconfig.json"
+  command_run:
+    - run: "! grep -q '\"react\"' package.json"
+      dir: ""
+      exit: 0
+    - run: "test \"$(find . -name '*.tsx' | wc -l | tr -d ' ')\" = 0"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes that no package.json lists a react dependency and does not apply the React skill."
+  task_completion: "Implements the formatting function in plain TypeScript with node:test tests."
+  evidence_quality: "States from package.json that the project is a Node.js library without React."
+  scope_control: "Adds no React dependency, no .tsx file, and no JSX, and leaves package.json and tsconfig.json unchanged."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid React."
+  handoff_quality: "Reports what was done and how it was verified."
+corrections: []

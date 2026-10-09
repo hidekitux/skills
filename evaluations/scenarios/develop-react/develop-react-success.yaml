@@ -1,0 +1,49 @@
+id: develop-react-success
+skill: develop-react
+kind: positive
+smoke: false
+title: Add an empty state to a React component and test it with Testing Library
+fixture: react-vite-app
+prompt: |
+  Add an empty state to the note list: when there are no notes, show a message
+  saying there are no notes yet. Add a test for it.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not:
+    - "delv"
+    - "Delv"
+    - "pivotal"
+    - "Pivotal"
+    - "multifaceted"
+    - "Multifaceted"
+    - "facilitat"
+    - "Facilitat"
+    - "commenc"
+    - "Commenc"
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "package.json"
+    - "tsconfig.json"
+    - "vite.config.ts"
+  command_run:
+    - run: "grep -rqE 'notes\\.length[[:space:]]*(===?[[:space:]]*0|<[[:space:]]*1|>[[:space:]]*0|!==?[[:space:]]*0)|!notes\\.length|0[[:space:]]*===?[[:space:]]*notes\\.length' src"
+      dir: ""
+      exit: 0
+    - run: "find src -name '*.test.tsx' -exec grep -li 'no notes' {} + | grep -q ."
+      dir: ""
+      exit: 0
+    - run: "! grep -rq 'useEffect' src"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Uses the React technology skill for a component change in a Vite React app, and follows develop-typescript for the package manager and scripts."
+  task_completion: "Renders a no-notes message when the notes array is empty, derived during render, and adds a Vitest and Testing Library test that finds the message by its text or role."
+  evidence_quality: "States the React version and Vite from package.json and vite.config.ts, notes that there is no lockfile and npm comes from the packageManager field, and reports the typecheck, test, and build scripts with their results or as not run."
+  scope_control: "Leaves package.json, tsconfig.json, and vite.config.ts unchanged, adds no dependency, effect, or state for the empty state, and keeps the stable note keys."
+  safety: "Creates no Issue, Pull Request, branch, or release, and claims no check it did not run."
+  user_correction_count: "Needs no correction to use the project's scripts and test setup."
+  handoff_quality: "Hands off the commands, results, and every skipped check."
+corrections: []
