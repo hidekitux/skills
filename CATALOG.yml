@@ -263,6 +263,15 @@ skills:
     version: 0.1.1
     kind: stack
     related: [implement-issue, write-tests, debug-code]
+  - name: develop-react
+    summary: Apply a React project's own framework and conventions on top of develop-typescript, and verify React changes with its typecheck, lint, test, and build scripts.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-typescript, implement-issue, write-tests, debug-code]
 
 # Example entry:
 # - name: pr-review
