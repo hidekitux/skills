@@ -43,11 +43,12 @@ A JVM-only Kotlin project is out of scope; use `develop-kotlin` there.
   `settings.gradle.kts`, and each module's `build.gradle.kts` that applies the
   plugin. Read the Kotlin version from `gradle/libs.versions.toml` or the
   `plugins` block.
-- List the targets declared in `kotlin { }`, such as `androidTarget()` or an
-  `androidLibrary { }` block from the `com.android.kotlin.multiplatform.library`
-  plugin, `iosArm64()`, `iosSimulatorArm64()`, `iosX64()`, `jvm()`, `js()`,
-  `wasmJs()`, `macosArm64()`, and `linuxX64()`. The targets decide which
-  platform APIs a source set can use and which test tasks exist.
+- List the targets declared in `kotlin { }`, such as `androidTarget()` (AGP 8)
+  or the Android target of the `com.android.kotlin.multiplatform.library`
+  plugin (AGP 9, where `com.android.application` no longer shares a module with
+  Kotlin Multiplatform), `iosArm64()`, `iosSimulatorArm64()`, `iosX64()`,
+  `jvm()`, `js()`, `wasmJs()`, `macosArm64()`, and `linuxX64()`. The targets
+  decide which platform APIs a source set can use and which test tasks exist.
 - Map the source set hierarchy. Without manual `dependsOn` calls, the default
   hierarchy template creates the intermediate source sets from the targets,
   such as `commonMain` to `nativeMain` to `appleMain` to `iosMain`, each with
@@ -107,7 +108,7 @@ Run the project's own task when it defines one. Otherwise run, with
 
 | Check | Command | Pass condition |
 | --- | --- | --- |
-| Common code | `./gradlew :<module>:compileKotlinMetadata` | Exits 0 |
+| Common code | `./gradlew :<module>:compileCommonMainKotlinMetadata` | Exits 0 |
 | All tests | `./gradlew :<module>:allTests`, or `./gradlew :<module>:check` to add the project's lint tasks | Exits 0, and the output lists a test task for every declared target |
 | One target | `./gradlew :<module>:jvmTest`, `:<module>:iosSimulatorArm64Test`, `:<module>:jsTest`, or the Android unit test task from `./gradlew :<module>:tasks --all` | Exits 0 |
 | iOS framework | `./gradlew :<module>:linkDebugFrameworkIosSimulatorArm64` when the change touches the public API | Exits 0 |

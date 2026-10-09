@@ -1,6 +1,6 @@
 ---
 name: develop-compose-multiplatform
-description: Apply a Compose Multiplatform project's conventions, shared UI layout, resources, and Gradle tasks while writing or changing Compose UI shared across Android, iOS, desktop, and web, and verify the change through the project's Gradle wrapper. Use it whenever a task writes, changes, or tests UI in a module that applies the `org.jetbrains.compose` plugin, such as a `composeApp` module with `commonMain` screens, even when the request does not mention Compose Multiplatform, resources, or verification. Do not use it for a project with no `org.jetbrains.compose` plugin in any build file, such as an Android-only Compose app.
+description: Apply a Compose Multiplatform project's conventions, shared UI layout, resources, and Gradle tasks while writing or changing Compose UI shared across Android, iOS, desktop, and web, and verify the change through the project's Gradle wrapper. Use it whenever a task writes, changes, or tests UI in a module that applies the `org.jetbrains.compose` plugin, directly or through a version catalog alias, such as a `composeApp` module with `commonMain` screens, even when the request does not mention Compose Multiplatform, resources, or verification. Do not use it for a project with no `org.jetbrains.compose` plugin in any build file or version catalog alias, such as an Android-only Compose app.
 license: Apache-2.0
 ---
 
@@ -34,8 +34,9 @@ Use it alongside other technology skills instead of repeating their rules:
 repository, and `develop-swift` for the iOS host app.
 
 Stop and say that this skill does not apply when no build file applies the
-`org.jetbrains.compose` plugin. An Android-only Compose project is out of
-scope; use `develop-android-compose` there.
+`org.jetbrains.compose` plugin, either by id or through a version catalog alias
+whose entry in `gradle/libs.versions.toml` has that id. An Android-only Compose
+project is out of scope; use `develop-android-compose` there.
 
 ## 1. Discover the project
 
@@ -85,8 +86,9 @@ scope; use `develop-android-compose` there.
 - Use the navigation and lifecycle libraries the project already has; do not
   add a second one.
 - Do not change the Compose Multiplatform, Kotlin, or Android Gradle plugin
-  version unless the task asks for it, because these versions must stay
-  compatible with each other.
+  version, the targets, the module layout, or `packageOfResClass` unless the
+  task asks for it, because these versions must stay compatible with each
+  other and every import of `Res` depends on its package.
 
 ## 3. Verify
 
@@ -95,7 +97,7 @@ wrapper:
 
 | Check | Command | Pass condition |
 | --- | --- | --- |
-| Android build | `./gradlew :composeApp:assembleDebug` | Exits 0 |
+| Android build | `./gradlew :<android module>:assembleDebug`, where the Android module applies `com.android.application`: `:composeApp` with AGP 8, or a separate module such as `:androidApp` with AGP 9 | Exits 0 |
 | Tests | `./gradlew :composeApp:<jvm target>Test`, such as `jvmTest` or `desktopTest`, or `./gradlew :composeApp:allTests` | Exits 0 |
 | iOS build | `./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64` on macOS, or the Xcode build of the iOS host app | Exits 0 |
 | Desktop run | `./gradlew :composeApp:run` only when the task asks to run the app | The window opens |
