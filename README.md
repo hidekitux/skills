@@ -87,7 +87,7 @@ Presence in the `skills:` list of [`CATALOG.yml`](CATALOG.yml) is the current pu
 
 This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
 
-The repository publishes 31 skills: 22 workflow skills and 9 technology skills.
+The repository publishes 32 skills: 22 workflow skills and 10 technology skills.
 
 | Skill | Layer or technology category | Status |
 | --- | --- | --- |
@@ -122,6 +122,7 @@ The repository publishes 31 skills: 22 workflow skills and 9 technology skills.
 | `develop-android-compose` | mobile | experimental |
 | `develop-kotlin-multiplatform` | mobile | experimental |
 | `develop-compose-multiplatform` | mobile | experimental |
+| `develop-react` | web | experimental |
 
 <!-- END generated: skill-list -->
 
