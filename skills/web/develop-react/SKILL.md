@@ -10,8 +10,8 @@ license: Apache-2.0
 
 1. **in progress:** Confirm the React version, the framework or bundler, the styling, state, routing, and test setup, and the `develop-typescript` project facts.
 2. Make the requested React change following the project's conventions.
-3. Verify the change with the project's typecheck, lint, tests, and build scripts, and record each command and result.
-4. Complete the list only when every verification command has a recorded result or a stated reason it was not run; hand off the commands, results, and skipped checks.
+3. Verify the change with the typecheck, lint, and format checks from `develop-typescript`, plus the project's tests and build, and record each command and result.
+4. Complete the list only when every verification command has a recorded result; hand off the commands, results, and any skipped check.
 
 Keep exactly one item in progress. Mark an item complete only when its
 evidence exists. Use the host's native Todo List, or keep the same list as a
@@ -34,8 +34,10 @@ uses and does not choose one for the project.
 
 Stop and say that this skill does not apply when no package.json in the
 repository lists `react` in `dependencies`, `devDependencies`, or
-`peerDependencies`. When a package.json lists `react-native`, stop and say that
-a React Native app is out of scope for this skill.
+`peerDependencies`. When the package that owns the change is a React Native
+app, marked by a `react-native` dependency in its own package.json, stop and
+say that a React Native app is out of scope for this skill. A web app in the
+same monorepo, or one that uses `react-native-web`, stays in scope.
 
 ## 1. Discover the project
 
@@ -48,8 +50,9 @@ a React Native app is out of scope for this skill.
   Create React App (`react-scripts`).
 - For Next.js, find the router mode: an `app/` directory is the App Router and
   a `pages/` directory is the Pages Router; both can exist. In the App Router,
-  a file that starts with `"use client"` is a Client Component, and every other
-  component is a Server Component.
+  components are Server Components by default. `"use client"` marks a
+  boundary: the file that starts with it and every module it imports run on
+  the client, even when those modules have no directive.
 - Find the styling approach: CSS Modules (`*.module.css`), Tailwind
   (`tailwind.config.*` or `@import "tailwindcss"`), styled-components, or
   another library already in use.
@@ -66,7 +69,8 @@ a React Native app is out of scope for this skill.
 
 - Write function components and hooks. Do not add a class component.
 - Follow the Rules of Hooks: call hooks only at the top level of a component
-  or custom hook, never in a condition, loop, or nested function. Name a custom
+  or custom hook, never in a condition, loop, or nested function. React 19's
+  `use` is the one exception; it may be called in a condition or a loop. Name a custom
   hook `use<Name>`.
 - Derive a value during render from props and state instead of copying it into
   state and syncing it with an effect. Use `useMemo` only when the calculation
@@ -92,8 +96,11 @@ a React Native app is out of scope for this skill.
   or text (`getByRole`, `getByLabelText`, `getByText`), and drive input with
   `@testing-library/user-event` when the project has it. Do not assert on
   component state, props, or CSS class names.
-- Do not change the React version, the framework or its version, or the
-  Next.js router mode unless the task asks for it.
+- Do not change the React version, the framework or its version, the
+  Next.js router mode, the bundler config, the styling approach, the state,
+  data, and routing libraries, the test runner and its environment, the ESLint
+  configuration, or the i18n setup unless the task asks for it. Use what the
+  project already has instead of adding a second library for the same job.
 
 ## 3. Verify
 
@@ -102,9 +109,8 @@ Run each check through the project's script and the package manager that
 
 | Check | Command | Pass condition |
 | --- | --- | --- |
-| Typecheck | `npm run typecheck` | Exits 0 |
-| Lint | `npm run lint` | Exits 0 |
-| Unit and component tests | `npm test` | Exits 0 |
+| Typecheck, lint, and format | As `develop-typescript` runs them, including its fallback when a script is missing | Exits 0 |
+| Unit and component tests | `npm test`; for Create React App, `CI=true npm test`, because `react-scripts test` otherwise stays in watch mode and never exits | Exits 0 |
 | Build | `npm run build`, which runs `next build`, `vite build`, or the framework's build | Exits 0 |
 | End-to-end tests | The project's script, such as `npm run test:e2e` | Exits 0 |
 
