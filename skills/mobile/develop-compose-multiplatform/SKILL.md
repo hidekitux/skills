@@ -48,7 +48,8 @@ project is out of scope; use `develop-android-compose` there.
   `jvm("desktop")`, `iosArm64()`, `iosSimulatorArm64()`, and `wasmJs`. The
   target name sets the source set and task names: `jvm("desktop")` gives
   `desktopMain` and `desktopTest`, not `jvmMain` and `jvmTest`.
-- Find the entry point of each platform: `MainActivity` in `androidMain`, the
+- Find the entry point of each platform: `MainActivity` in `androidMain` (AGP
+  8) or in the separate Android module's `src/main` (AGP 9), the
   `MainViewController` function in `iosMain` that wraps the shared UI in
   `ComposeUIViewController`, `main.kt` with `application { Window { } }` in the
   desktop source set, and `main.kt` with `ComposeViewport` in `wasmJsMain`.
