@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop React"
+  short_description: "Apply a React project's conventions and checks"
+  default_prompt: "Use $develop-react to follow this React project's framework and conventions, run its typecheck, lint, test, and build scripts, and report each command and result."
