@@ -263,6 +263,24 @@ skills:
     version: 0.1.1
     kind: stack
     related: [implement-issue, write-tests, debug-code]
+  - name: develop-minecraft-fabric
+    summary: Apply a Minecraft Fabric mod's registration, entrypoint, and Mixin conventions, and verify the change through the Gradle wrapper with Fabric Loom tasks.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-java, develop-kotlin, implement-issue, write-tests, debug-code]
+  - name: develop-minecraft-forge
+    summary: Apply a Minecraft Forge or NeoForge mod's registration, event, resource, and client-code conventions, and verify the change through the Gradle wrapper with its build, data generation, and game test runs.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-java, develop-kotlin, implement-issue, write-tests, debug-code]
 
 # Example entry:
 # - name: pr-review

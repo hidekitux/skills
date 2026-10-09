@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Minecraft Fabric"
+  short_description: "Apply a Fabric mod's conventions and Loom checks"
+  default_prompt: "Use $develop-minecraft-fabric to follow this Fabric mod's registration, entrypoint, and Mixin conventions, run its checks through the Gradle wrapper, and report each command and result."

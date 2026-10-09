@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Minecraft Forge"
+  short_description: "Apply a Forge or NeoForge mod's conventions and Gradle runs"
+  default_prompt: "Use $develop-minecraft-forge to follow this Forge or NeoForge mod's registration and client-code rules, run its checks through the Gradle wrapper, and report each command and result."
