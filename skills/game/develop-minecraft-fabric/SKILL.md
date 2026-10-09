@@ -31,22 +31,25 @@ Use `develop-java` for the Java language and Gradle rules, and
 `develop-kotlin` for a mod written with `fabric-language-kotlin`. This skill
 does not repeat those rules.
 
-Stop and say that this skill does not apply when the project has neither the
-`fabric-loom` plugin nor a `fabric.mod.json`. A Forge or NeoForge mod, marked
+Stop and say that this skill does not apply when the project has neither a
+Fabric Loom plugin (`fabric-loom` or `net.fabricmc.fabric-loom`) nor a
+`fabric.mod.json`. A Forge or NeoForge mod, marked
 by `mods.toml`, `neoforge.mods.toml`, or a ForgeGradle or NeoGradle plugin, is
 out of scope; use `develop-minecraft-forge` there, and do not add Fabric files
 to it.
 
 ## 1. Discover the project
 
-- Find the Loom plugin, `id 'fabric-loom'` or `id("fabric-loom")`, in
+- Find the Loom plugin, `id 'fabric-loom'`, `id("fabric-loom")`, or
+  `net.fabricmc.fabric-loom` for the year-based versions, in
   `build.gradle` or `build.gradle.kts`, and the plugin repositories in the
   settings file.
 - Read `gradle.properties`: `minecraft_version`, `yarn_mappings` or the
   official Mojang mappings (`loom.officialMojangMappings()` in the build),
   `loader_version`, and `fabric_version`. The mappings decide the names: Yarn
-  uses `Identifier` and `Registries`, Mojang mappings use `ResourceLocation`
-  and `BuiltInRegistries`. Use the names the existing code uses. When the
+  uses `Identifier` and `Registries`, and Mojang mappings use
+  `BuiltInRegistries` with `ResourceLocation` before 1.21.11 and `Identifier`
+  from 1.21.11. Use the names the existing code uses. When the
   build has no mappings dependency, do not add one.
 - Read `src/main/resources/fabric.mod.json`: the mod `id`, the `entrypoints`
   (`main`, `client`, `fabric-datagen`, `fabric-gametest`), the `mixins` list,
@@ -60,16 +63,22 @@ to it.
   entrypoints name, and any registry helper the project already has, such as
   a `ModItems.register` method.
 - Read the Java version from `options.release` or the toolchain in the build.
-  Minecraft 1.20.5 and later require Java 21; 1.18 through 1.20.4 require
-  Java 17.
+  Minecraft 1.20.5 to 1.21.x require Java 21; 1.18 through 1.20.4 require
+  Java 17. The year-based versions from 26.1 require Java 25 and ship without
+  obfuscation, so Yarn mappings end at 1.21.11 and the build has no mappings
+  dependency; check the Fabric release notes for a version newer than this
+  list.
 
 ## 2. Change the code
 
 - Register content from the `ModInitializer` through the project's own
   registry helper, or through `Registry.register` with an identifier in the
   mod id namespace, such as `Identifier.of(MOD_ID, "sapphire")`. Since
-  Minecraft 1.21.2, item and block settings need their registry key; follow
-  the existing helper, which sets it.
+  Minecraft 1.21.2, item and block settings need their registry key, or the
+  game fails at startup. Follow the existing helper, which sets it; without
+  one, build the key with `RegistryKey.of(RegistryKeys.ITEM, id)` and pass it
+  to `new Item.Settings().registryKey(key)` before registering under the same
+  key.
 - Keep client-only code, such as renderers, screens, key bindings, and
   client networking receivers, in the `client` entrypoint or the client
   source set. Code that the server loads must not reference client classes.
@@ -84,8 +93,10 @@ to it.
   tables, tags, models, and lang entries through its data providers instead
   of writing the generated JSON by hand.
 - Do not change `minecraft_version`, the mappings, `loader_version`,
-  `fabric_version`, the Loom version, or the Java version unless the task
-  asks for it.
+  `fabric_version`, the Loom version, the Java version, the mod `id`, the
+  `depends` block, the Mixin config list, or `splitEnvironmentSourceSets()`
+  unless the task asks for it, because each change can break the mod's class
+  references, resource paths, or load order.
 
 ## 3. Verify
 
