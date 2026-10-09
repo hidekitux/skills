@@ -95,6 +95,9 @@ has one of those ids. A plain Kotlin or Java JVM project is out of scope; use
 - Do not change compileSdk, targetSdk, or minSdk, and do not upgrade AGP,
   unless the task asks for it, because each one changes platform behavior or
   the build for every module.
+- Do not regenerate `lint-baseline.xml` or relax the `lint { }` or `lint.xml`
+  configuration to make a lint check pass; fix the reported issue, or report
+  it when it predates the change.
 - Add a permission to the manifest only when the task needs it, because each
   permission is visible to users and to store review.
 - Add a dependency through the version catalog, and take Compose library
