@@ -1,0 +1,34 @@
+id: develop-minecraft-forge-boundary
+skill: develop-minecraft-forge
+kind: boundary
+smoke: false
+title: Do not apply Forge or NeoForge conventions to a Fabric mod
+fixture: minecraft-fabric-mod
+prompt: |
+  Add a sapphire item to the mod, with its display name.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "build.gradle"
+    - "settings.gradle"
+  command_run:
+    - run: "! grep -rqiE 'neoforged|minecraftforge' ."
+      dir: ""
+      exit: 0
+    - run: "test \"$(find . -name '*mods.toml' | wc -l | tr -d ' ')\" = 0"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes a Fabric mod from fabric.mod.json and the fabric-loom plugin and does not apply the Forge or NeoForge skill."
+  task_completion: "Adds the sapphire item with Fabric registration and its display name, or points to develop-minecraft-fabric."
+  evidence_quality: "States the mod loader and build from the project's files."
+  scope_control: "Adds no Forge or NeoForge dependency, plugin, import, or mods.toml, and leaves the build files unchanged."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to stay with Fabric."
+  handoff_quality: "Reports what was done and how it was verified."
+corrections: []
