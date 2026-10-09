@@ -29,7 +29,7 @@ expectations:
       dir: ""
       exit: 0
 rubric:
-  trigger_selection: "Recognizes that no build file applies org.jetbrains.compose and does not apply the Compose Multiplatform skill, pointing to develop-android-compose instead."
+  trigger_selection: "Recognizes that no build file applies org.jetbrains.compose and does not apply the Compose Multiplatform skill."
   task_completion: "Adds the empty state in the Android Compose code with its text in app/src/main/res/values/strings.xml."
   evidence_quality: "States from the build files that the project is an Android-only Compose app."
   scope_control: "Adds no Compose Multiplatform plugin, commonMain source set, composeApp module, or composeResources directory."

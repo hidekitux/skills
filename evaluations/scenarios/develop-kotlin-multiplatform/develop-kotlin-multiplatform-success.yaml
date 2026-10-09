@@ -6,7 +6,7 @@ title: Add a shared timestamp function that every target can build
 fixture: kotlin-multiplatform-library
 prompt: |
   Add a function that returns the current time in milliseconds for the shared
-  module so the Android and iOS apps can timestamp notes, with tests.
+  module so the desktop and iOS apps can timestamp notes, with tests.
 expectations:
   handoff: report
   transcript_must:
