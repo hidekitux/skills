@@ -68,10 +68,10 @@ same monorepo, or one that uses `react-native-web`, stays in scope.
 ## 2. Change the code
 
 - Write function components and hooks. Do not add a class component.
-- Follow the Rules of Hooks: call hooks only at the top level of a component
-  or custom hook, never in a condition, loop, or nested function. React 19's
-  `use` is the one exception; it may be called in a condition or a loop. Name a custom
-  hook `use<Name>`.
+- Follow the Rules of Hooks: call hooks only at the top level of a component or
+  custom hook, never in a condition, loop, or nested function. React 19's `use`
+  is the one exception; it may be called in a condition or a loop. Name a
+  custom hook `use<Name>`.
 - Derive a value during render from props and state instead of copying it into
   state and syncing it with an effect. Use `useMemo` only when the calculation
   is measurably slow.
