@@ -17,7 +17,7 @@ expectations:
     - "build.gradle.kts"
     - "settings.gradle.kts"
   command_run:
-    - run: "! grep -rq 'fabric' ."
+    - run: "! grep -rqi 'fabric' src build.gradle.kts settings.gradle.kts gradle.properties"
       dir: ""
       exit: 0
     - run: "test \"$(find . -name 'fabric.mod.json' | wc -l | tr -d ' ')\" = 0"

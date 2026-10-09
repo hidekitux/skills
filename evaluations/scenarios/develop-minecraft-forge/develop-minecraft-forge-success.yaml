@@ -34,7 +34,7 @@ expectations:
     - "gradle.properties"
     - "src/main/resources/META-INF/neoforge.mods.toml"
   command_run:
-    - run: "grep -rqE 'ITEMS[.](registerSimpleItem|registerItem|register)[(][[:space:]]*\"sapphire\"' src/main/java"
+    - run: "find src/main/java -name '*.java' -exec cat {} + | tr '\\n' ' ' | grep -qE 'ITEMS[.](registerSimpleItem|registerItem|register)[(][[:space:]]*\"sapphire\"'"
       dir: ""
       exit: 0
     - run: "! grep -rqE 'static[^=(]*=[[:space:]]*new (Block)?Item[(]' src/main/java"
