@@ -69,236 +69,122 @@
       "spec": "specs/cross-skill-workflow.fsl",
       "status": "mutated",
       "total": 200,
-      "killed": 162,
-      "survived": 38,
+      "killed": 181,
+      "survived": 19,
       "invalid": 0,
       "survivors": [
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 55,
+          "line": 63,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 58,
+          "line": 66,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 60,
+          "line": 68,
           "column": 5
         },
         {
           "op": "assignment_remove",
           "target": "init assignment",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "create_issue requires #1",
-          "line": 67,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "post_plan requires #1",
-          "line": 73,
+          "line": 70,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "post_plan requires #2",
-          "line": 74,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "record_implementation requires #1",
-          "line": 80,
+          "line": 82,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "record_implementation requires #2",
-          "line": 81,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "pass_validation requires #1",
-          "line": 88,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "pass_validation requires #2",
           "line": 89,
           "column": 5
         },
         {
           "op": "requires_remove",
-          "target": "pass_validation requires #3",
-          "line": 90,
+          "target": "pass_validation requires #2",
+          "line": 97,
           "column": 5
         },
         {
           "op": "requires_remove",
-          "target": "open_pull_request requires #1",
-          "line": 96,
+          "target": "pass_validation requires #3",
+          "line": 98,
           "column": 5
         },
         {
           "op": "requires_remove",
           "target": "open_pull_request requires #2",
-          "line": 97,
+          "line": 105,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "open_pull_request assignment PullRequestReady-\u003ePullRequestReadySecond",
-          "line": 99,
+          "line": 107,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "open_pull_request assignment PullRequestReady-\u003ePullRequestReadyThird",
-          "line": 99,
-          "column": 5
-        },
-        {
-          "op": "requires_remove",
-          "target": "complete_review requires #1",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "requires_negate",
-          "target": "complete_review requires #1",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "equality_operator_flip",
-          "target": "complete_review requires #1",
-          "line": 105,
+          "line": 107,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003eStart",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003eIssueReady",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003ePlanReady",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003eImplementationReady",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003eValidated",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003ePullRequestReadySecond",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003ePullRequestReadyThird",
-          "line": 105,
+          "line": 113,
           "column": 5
         },
         {
           "op": "enum_constant_swap",
           "target": "complete_review requires #1 PullRequestReady-\u003eCompleted",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReady-\u003eBlocked",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReady-\u003eIncomplete",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReady-\u003eInterrupted",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReady-\u003eRetryExhausted",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "equality_operator_flip",
-          "target": "complete_review requires #1",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReadySecond-\u003eStart",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReadySecond-\u003eIssueReady",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReadySecond-\u003ePlanReady",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReadySecond-\u003eImplementationReady",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReadySecond-\u003eValidated",
-          "line": 105,
-          "column": 5
-        },
-        {
-          "op": "enum_constant_swap",
-          "target": "complete_review requires #1 PullRequestReadySecond-\u003ePullRequestReady",
-          "line": 105,
+          "line": 113,
           "column": 5
         }
       ]
@@ -1550,8 +1436,8 @@
   ],
   "totals": {
     "specs": 9,
-    "killed": 1076,
-    "survived": 243,
+    "killed": 1095,
+    "survived": 224,
     "invalid": 0,
     "infrastructure_errors": 0
   }
