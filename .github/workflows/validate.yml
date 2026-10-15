@@ -25,7 +25,7 @@ jobs:
       - name: Prepare Worktree environment
         run: bash scripts/setup/setup-environment.sh
       - name: Set up mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install: true
           install_args: "go aqua:cli/cli"
@@ -48,7 +48,7 @@ jobs:
       - name: Prepare Worktree environment
         run: bash scripts/setup/setup-environment.sh
       - name: Set up mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install: true
           install_args: "go actionlint aqua:astral-sh/ruff aqua:koalaman/shellcheck"
@@ -67,7 +67,7 @@ jobs:
       - name: Prepare Worktree environment
         run: bash scripts/setup/setup-environment.sh
       - name: Set up mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install: true
           install_args: "go"
@@ -86,7 +86,7 @@ jobs:
       - name: Prepare Worktree environment
         run: bash scripts/setup/setup-environment.sh
       - name: Set up mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install: true
           install_args: "go"
@@ -105,7 +105,7 @@ jobs:
       - name: Prepare Worktree environment
         run: bash scripts/setup/setup-environment.sh
       - name: Set up mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install: true
           install_args: "aqua:cli/cli"
