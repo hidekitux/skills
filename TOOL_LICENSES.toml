@@ -69,7 +69,9 @@ pinned_in = ["scripts/fsl/install-fslc.sh"]
 [script_tools.mise]
 # Reviewed 2026-10-15 (2026.10.9): MIT per jdx/mise. Every jdx/mise-action
 # step in the pinned_in workflows passes this version through its version
-# input; check:repository fails on a step without it or at another version.
+# input; check:repository fails on a step without it or at another version,
+# and on a workflow or composite action that uses jdx/mise-action but is not
+# listed here.
 license = "MIT"
 source = "https://github.com/jdx/mise"
 version = "2026.10.9"

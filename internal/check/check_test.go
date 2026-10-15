@@ -277,6 +277,22 @@ func TestToolLicensesRejectsMiseActionAtOtherVersion(t *testing.T) {
 	}
 }
 
+func TestToolLicensesRejectsMiseActionOutsidePinnedIn(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "ci.yml", "jobs:\n  test:\n    steps:\n"+miseStep("          version: \"2026.10.9\"\n"))
+	if err := os.MkdirAll(filepath.Join(root, ".github", "workflows"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, ".github/workflows/extra.yml", "jobs:\n  test:\n    steps:\n"+miseStep("          install: true\n"))
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+miseScriptEntry)
+	var out, errOut bytes.Buffer
+	code := CheckToolLicenses(root, &out, &errOut)
+	if code != 1 || !strings.Contains(errOut.String(), ".github/workflows/extra.yml uses jdx/mise-action but is not listed in pinned_in") {
+		t.Fatalf("expected an unlisted-workflow failure, got exit %d: %s", code, errOut.String())
+	}
+}
+
 const miseToolPinnedEntry = "[tools.zizmor]\nlicense = \"MIT\"\nsource = \"https://github.com/zizmorcore/zizmor\"\npinned_in = [\"security.yml\"]\n"
 
 func TestToolLicensesAcceptsMiseToolPinnedInFileAtMiseVersion(t *testing.T) {

@@ -241,6 +241,46 @@ func checkScriptAttestations(root string, attestations map[string]scriptAttestat
 				errors = append(errors, checkMiseActionVersions(file, string(data), entry.Version)...)
 			}
 		}
+		if name == "mise" {
+			errors = append(errors, checkUnlistedMiseActionFiles(root, entry.PinnedIn)...)
+		}
+	}
+	return errors
+}
+
+// checkUnlistedMiseActionFiles requires every workflow or composite action
+// that references jdx/mise-action to be listed in the mise pinned_in, so the
+// version check above reaches every mise setup step.
+func checkUnlistedMiseActionFiles(root string, pinnedIn []string) []string {
+	files, err := githubActionFiles(root)
+	if err != nil {
+		return []string{fmt.Sprintf("mise: cannot list GitHub Actions files: %v", err)}
+	}
+	listed := make(map[string]bool, len(pinnedIn))
+	for _, file := range pinnedIn {
+		listed[filepath.ToSlash(filepath.Clean(file))] = true
+	}
+	var errors []string
+	for _, path := range files {
+		name, err := filepath.Rel(root, path)
+		if err != nil {
+			name = path
+		}
+		name = filepath.ToSlash(name)
+		if listed[name] {
+			continue
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			errors = append(errors, fmt.Sprintf("mise: %s cannot be read", name))
+			continue
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			if miseActionPattern.MatchString(line) {
+				errors = append(errors, fmt.Sprintf("mise: %s uses jdx/mise-action but is not listed in pinned_in", name))
+				break
+			}
+		}
 	}
 	return errors
 }

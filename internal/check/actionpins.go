@@ -28,21 +28,11 @@ var (
 // updated and drifts from the pin. It returns 0 on success or 1 when a pin
 // lacks its version comment or a comment contains a SHA.
 func CheckActionPins(root string, out, errOut io.Writer) int {
-	files := []string{}
-	for _, pattern := range []string{
-		filepath.Join(root, ".github", "workflows", "*.yml"),
-		filepath.Join(root, ".github", "workflows", "*.yaml"),
-		filepath.Join(root, ".github", "actions", "*", "action.yml"),
-		filepath.Join(root, ".github", "actions", "*", "action.yaml"),
-	} {
-		matches, err := filepath.Glob(pattern)
-		if err != nil {
-			fmt.Fprintf(errOut, "Action-pin check failed: %v\n", err)
-			return 1
-		}
-		files = append(files, matches...)
+	files, err := githubActionFiles(root)
+	if err != nil {
+		fmt.Fprintf(errOut, "Action-pin check failed: %v\n", err)
+		return 1
 	}
-	sort.Strings(files)
 	errors := []string{}
 	pins := 0
 	for _, path := range files {
@@ -79,4 +69,24 @@ func CheckActionPins(root string, out, errOut io.Writer) int {
 	}
 	fmt.Fprintf(out, "Action-pin check passed: %d pinned action reference(s) carry a version comment.\n", pins)
 	return 0
+}
+
+// githubActionFiles returns the sorted workflow and composite action files
+// below root/.github that can reference an external action.
+func githubActionFiles(root string) ([]string, error) {
+	files := []string{}
+	for _, pattern := range []string{
+		filepath.Join(root, ".github", "workflows", "*.yml"),
+		filepath.Join(root, ".github", "workflows", "*.yaml"),
+		filepath.Join(root, ".github", "actions", "*", "action.yml"),
+		filepath.Join(root, ".github", "actions", "*", "action.yaml"),
+	} {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, matches...)
+	}
+	sort.Strings(files)
+	return files, nil
 }
