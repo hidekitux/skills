@@ -66,6 +66,19 @@ source = "https://github.com/ymm-oss/fsl"
 version = "4.2.0"
 pinned_in = ["scripts/fsl/install-fslc.sh"]
 
+[script_tools.mise]
+# Reviewed 2026-10-15 (2026.10.9): MIT per jdx/mise. Every jdx/mise-action
+# step in the pinned_in workflows passes this version through its version
+# input; check:repository fails on a step without it or at another version.
+license = "MIT"
+source = "https://github.com/jdx/mise"
+version = "2026.10.9"
+pinned_in = [
+  ".github/workflows/publish.yml",
+  ".github/workflows/targeted.yml",
+  ".github/workflows/validate.yml",
+]
+
 # Direct Go module dependencies declared in go.mod. Each entry is reviewed when
 # the corresponding module is added or updated.
 [go_modules."gopkg.in/yaml.v3"]
