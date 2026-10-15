@@ -105,6 +105,13 @@ reasons:
   cache rooted in the same `MISE_DATA_DIR`; later repository tasks use
   `scripts/setup/run-mise.sh` with the same environment and do not reinstall
   the full `mise.toml` tool set.
+- Every `jdx/mise-action` step passes the same mise version through its
+  `version:` input, so a new mise release reaches CI only through a reviewed
+  change. The version is recorded in the `[script_tools.mise]` entry of
+  `TOOL_LICENSES.toml`, and `check:repository` fails on a `jdx/mise-action`
+  step without the input or at another version. Dependabot updates only the
+  action SHA and its comment, not this input; a mise bump follows
+  `docs/tool-update-policy.md`.
 - Go, FSL, and cache paths are exported through `GITHUB_ENV` before the action
   and remain consistent for later steps. CI keeps mutable installs and state
   inside the runner environment while the action reuses its cached metadata and
