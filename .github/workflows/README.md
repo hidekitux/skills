@@ -109,7 +109,9 @@ reasons:
   `version:` input, so a new mise release reaches CI only through a reviewed
   change. The version is recorded in the `[script_tools.mise]` entry of
   `TOOL_LICENSES.toml`, and `check:repository` fails on a `jdx/mise-action`
-  step without the input or at another version. Dependabot updates only the
+  step without the input or at another version. It also fails on a workflow
+  or composite action that uses `jdx/mise-action` but is missing from that
+  entry's `pinned_in` list. Dependabot updates only the
   action SHA and its comment, not this input; a mise bump follows
   `docs/tool-update-policy.md`.
 - Go, FSL, and cache paths are exported through `GITHUB_ENV` before the action
