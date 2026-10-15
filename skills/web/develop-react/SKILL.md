@@ -104,8 +104,8 @@ same monorepo, or one that uses `react-native-web`, stays in scope.
 
 ## 3. Verify
 
-Run each check through the project's script and the package manager that
-`develop-typescript` detected:
+Run each check through the project's script when it has one, with the
+package manager that `develop-typescript` detected:
 
 | Check | Command | Pass condition |
 | --- | --- | --- |
