@@ -27,6 +27,7 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
+          version: "2026.10.9"
           install: true
           install_args: "go aqua:cli/cli"
           cache: true
@@ -50,6 +51,7 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
+          version: "2026.10.9"
           install: true
           install_args: "go actionlint aqua:astral-sh/ruff aqua:koalaman/shellcheck"
           cache: true
@@ -69,6 +71,7 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
+          version: "2026.10.9"
           install: true
           install_args: "go"
           cache: true
@@ -88,6 +91,7 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
+          version: "2026.10.9"
           install: true
           install_args: "go"
           cache: true
@@ -107,6 +111,7 @@ jobs:
       - name: Set up mise toolchain
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
+          version: "2026.10.9"
           install: true
           install_args: "aqua:cli/cli"
           cache: true
