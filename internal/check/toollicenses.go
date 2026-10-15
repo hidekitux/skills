@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -236,7 +237,63 @@ func checkScriptAttestations(root string, attestations map[string]scriptAttestat
 			if !strings.Contains(string(data), entry.Version) {
 				errors = append(errors, fmt.Sprintf("%s: pinned_in file %s does not contain version %s", name, file, entry.Version))
 			}
+			if name == "mise" {
+				errors = append(errors, checkMiseActionVersions(file, string(data), entry.Version)...)
+			}
 		}
 	}
 	return errors
+}
+
+// miseActionPattern matches the uses: line of a jdx/mise-action step and
+// captures its leading text, whose width is the step's key column.
+var miseActionPattern = regexp.MustCompile(`^(\s*(?:-\s+)?)uses:\s*jdx/mise-action@`)
+
+// checkMiseActionVersions requires every jdx/mise-action step in a workflow
+// to pass the recorded mise version through its version input, so that CI
+// never installs whatever mise release the action resolves (Issue #508).
+func checkMiseActionVersions(file, content, version string) []string {
+	lines := strings.Split(content, "\n")
+	var errors []string
+	for index, line := range lines {
+		match := miseActionPattern.FindStringSubmatch(line)
+		if match == nil {
+			continue
+		}
+		found, ok := miseActionVersion(lines[index+1:], len(match[1]))
+		location := fmt.Sprintf("%s:%d", file, index+1)
+		switch {
+		case !ok:
+			errors = append(errors, fmt.Sprintf("mise: %s: jdx/mise-action step has no version input; pass version: %q", location, version))
+		case found != version:
+			errors = append(errors, fmt.Sprintf("mise: %s: jdx/mise-action step installs mise %s, not the recorded %s", location, found, version))
+		}
+	}
+	return errors
+}
+
+// miseActionVersion reads the version input from the with: block of the step
+// whose keys start at column, scanning the lines after its uses: line until
+// the step ends.
+func miseActionVersion(lines []string, column int) (string, bool) {
+	inWith := false
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		indent := len(line) - len(strings.TrimLeft(line, " "))
+		if indent < column || (indent == column && strings.HasPrefix(trimmed, "- ")) {
+			return "", false
+		}
+		if indent == column {
+			inWith = trimmed == "with:"
+			continue
+		}
+		if inWith && strings.HasPrefix(trimmed, "version:") {
+			value := strings.TrimSpace(strings.TrimPrefix(trimmed, "version:"))
+			return strings.Trim(value, `"'`), true
+		}
+	}
+	return "", false
 }
