@@ -1,0 +1,31 @@
+id: develop-ios-boundary
+skill: develop-ios
+kind: boundary
+smoke: false
+title: Do not apply iOS app tooling to a library-only Swift package
+fixture: swift-package
+prompt: |
+  Add a function that truncates a string to at most n characters, with tests,
+  following this project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "Package.swift"
+  command_run:
+    - run: "test \"$(find . \\( -name '*.xcodeproj' -o -name 'project.yml' -o -name '*.xcstrings' -o -name 'Info.plist' \\) | wc -l | tr -d ' ')\" = 0"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes that the repository is a Swift package with no iOS app target and does not apply the iOS skill."
+  task_completion: "Implements the function and tests as a Swift package change, or explains why it cannot."
+  evidence_quality: "States that the project is a library-only Swift package, citing Package.swift."
+  scope_control: "Adds no Xcode project, project generator, Info.plist, or String Catalog."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid iOS app tooling."
+  handoff_quality: "Reports what was done and what could not be verified."
+corrections: []
