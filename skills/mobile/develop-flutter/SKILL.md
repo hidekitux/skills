@@ -84,9 +84,10 @@ package is out of scope; use `develop-dart` there.
 - Add a package with `flutter pub add <package>`, or
   `flutter pub add dev:<package>` for a test or tool package.
 - Do not change the Flutter SDK constraint or version pin, the platform
-  folders' bundle IDs, application IDs, or signing, the minimum OS versions,
-  `l10n.yaml`, or `analysis_options.yaml` unless the task asks for it, because
-  each one changes the build or the release for every user.
+  folders' bundle IDs, application IDs, signing, development team, or
+  provisioning profiles, the minimum OS versions, `l10n.yaml`, or
+  `analysis_options.yaml` unless the task asks for it, because each one
+  changes the build or the release for every user.
 - Write widget tests with `testWidgets`, `WidgetTester.pumpWidget`, and
   `find`. Wrap a widget that reads localizations in a `MaterialApp` with the
   project's localization delegates.
