@@ -1,0 +1,35 @@
+id: develop-flutter-boundary
+skill: develop-flutter
+kind: boundary
+smoke: false
+title: Do not apply Flutter tooling to a pure Dart package
+fixture: dart-package
+prompt: |
+  Add a function that formats a list of notes for display, with tests,
+  following this project's conventions.
+expectations:
+  handoff: report
+  transcript_must: []
+  transcript_must_not: []
+  files_must_exist: []
+  files_must_not_exist: []
+  file_contains: []
+  unchanged_files:
+    - "pubspec.yaml"
+    - "analysis_options.yaml"
+  command_run:
+    - run: "! grep -q 'flutter' pubspec.yaml"
+      dir: ""
+      exit: 0
+    - run: "test \"$(find . -name '*.arb' | wc -l | tr -d ' ')\" = 0"
+      dir: ""
+      exit: 0
+rubric:
+  trigger_selection: "Recognizes the package has no flutter SDK dependency and uses the Dart conventions instead of the Flutter skill."
+  task_completion: "Implements the function in Dart with package:test tests."
+  evidence_quality: "States from pubspec.yaml that the package is a pure Dart package."
+  scope_control: "Adds no flutter dependency, widget code, or localization files."
+  safety: "Creates no Issue, Pull Request, branch, or release."
+  user_correction_count: "Needs no correction to avoid Flutter tooling."
+  handoff_quality: "Reports what was done and how it was verified."
+corrections: []
