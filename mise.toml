@@ -27,6 +27,7 @@ depends = [
   "check:hosts",
   "verify:fsl",
   "lint:all",
+  "lint:workflow-security",
   "test:all",
 ]
 
