@@ -79,10 +79,10 @@ Stop and say that this skill does not apply when no package.json lists
 - Do not edit `ios/` or `android/` in a managed Expo project, because prebuild
   overwrites them; change the app config or a config plugin instead.
 - Do not change the React Native or Expo SDK version, the bundle identifier
-  or application id, signing, the New Architecture setting, the Metro config,
-  the Jest preset, or `ios/Podfile` unless the task asks for it, because each
-  one changes the build or the tests for both platforms or the identity in
-  the stores.
+  or application id, signing, the development team, provisioning profiles,
+  the New Architecture setting, the Metro config, the Jest preset, or
+  `ios/Podfile` unless the task asks for it, because each one changes the
+  build or the tests for both platforms or the identity in the stores.
 - Add screens through the navigation library already in use, React
   Navigation or Expo Router, and do not add a second one.
 - Write tests with React Native Testing Library and the project's Jest preset,
