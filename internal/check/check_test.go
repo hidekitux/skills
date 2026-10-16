@@ -232,6 +232,67 @@ func TestToolLicensesRejectsScriptToolWithoutLicense(t *testing.T) {
 	}
 }
 
+const miseScriptEntry = "[script_tools.mise]\nlicense = \"MIT\"\nsource = \"https://github.com/jdx/mise\"\nversion = \"2026.10.9\"\npinned_in = [\"ci.yml\"]\n"
+
+// miseStep renders a jdx/mise-action step whose with: block holds inputs.
+func miseStep(inputs string) string {
+	return "      - name: Set up mise\n        uses: jdx/mise-action@" + pinSHA + " # v5.1.1\n        with:\n" + inputs
+}
+
+func runMiseVersionCheck(t *testing.T, workflow string) (int, string) {
+	t.Helper()
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "ci.yml", "jobs:\n  test:\n    steps:\n"+workflow)
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+miseScriptEntry)
+	var out, errOut bytes.Buffer
+	code := CheckToolLicenses(root, &out, &errOut)
+	return code, errOut.String()
+}
+
+func TestToolLicensesAcceptsMiseActionAtRecordedVersion(t *testing.T) {
+	workflow := miseStep("          version: \"2026.10.9\"\n          install: true\n") +
+		miseStep("          install: true\n          version: 2026.10.9\n")
+	if code, errOut := runMiseVersionCheck(t, workflow); code != 0 {
+		t.Fatalf("expected pass, got exit %d: %s", code, errOut)
+	}
+}
+
+func TestToolLicensesRejectsMiseActionWithoutVersion(t *testing.T) {
+	workflow := miseStep("          install: true\n") + "      - name: Later step\n        with:\n          version: \"2026.10.9\"\n"
+	code, errOut := runMiseVersionCheck(t, workflow)
+	if code != 1 || !strings.Contains(errOut, "ci.yml:5: jdx/mise-action step has no version input") {
+		t.Fatalf("expected a missing-version failure at ci.yml:5, got exit %d: %s", code, errOut)
+	}
+}
+
+func TestToolLicensesRejectsMiseActionAtOtherVersion(t *testing.T) {
+	workflow := miseStep("          version: \"2026.10.9\"\n") + miseStep("          version: \"2026.10.10\"\n")
+	code, errOut := runMiseVersionCheck(t, workflow)
+	if code != 1 || !strings.Contains(errOut, "ci.yml:9: jdx/mise-action step installs mise 2026.10.10, not the recorded 2026.10.9") {
+		t.Fatalf("expected a version-mismatch failure at ci.yml:9, got exit %d: %s", code, errOut)
+	}
+	if strings.Contains(errOut, "ci.yml:5:") {
+		t.Fatalf("expected the step at the recorded version to pass, got: %s", errOut)
+	}
+}
+
+func TestToolLicensesRejectsMiseActionOutsidePinnedIn(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "mise.toml", "[tools]\n")
+	writeFile(t, root, "ci.yml", "jobs:\n  test:\n    steps:\n"+miseStep("          version: \"2026.10.9\"\n"))
+	if err := os.MkdirAll(filepath.Join(root, ".github", "workflows"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, ".github/workflows/extra.yml", "jobs:\n  test:\n    steps:\n"+miseStep("          install: true\n"))
+	writeFile(t, root, "TOOL_LICENSES.toml", "[tools]\n"+miseScriptEntry)
+	var out, errOut bytes.Buffer
+	code := CheckToolLicenses(root, &out, &errOut)
+	if code != 1 || !strings.Contains(errOut.String(), ".github/workflows/extra.yml uses jdx/mise-action but is not listed in pinned_in") {
+		t.Fatalf("expected an unlisted-workflow failure, got exit %d: %s", code, errOut.String())
+	}
+}
+
 const miseToolPinnedEntry = "[tools.zizmor]\nlicense = \"MIT\"\nsource = \"https://github.com/zizmorcore/zizmor\"\npinned_in = [\"security.yml\"]\n"
 
 func TestToolLicensesAcceptsMiseToolPinnedInFileAtMiseVersion(t *testing.T) {

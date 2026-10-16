@@ -41,10 +41,10 @@ result informs review, but GitHub Actions does not run the command and no
 failure blocks a pull request. The static `check-evaluation` check remains the
 CI-bound evaluation check.
 
-The local workflow audit also sits outside the CI tiers. Run
-`mise run lint:workflow-security` before pushing a change under
-`.github/`. It runs the zizmor version pinned in `mise.toml`, and
-`validate:all` does not run it. The blocking check stays the Tier 1
+The local workflow audit also sits outside the CI tiers.
+`mise run lint:workflow-security` runs the zizmor version pinned in
+`mise.toml`. `validate:all` depends on it, so the pre-push hook runs it, but
+no CI job calls the task. The blocking check stays the Tier 1
 `Audit workflow security` job, described in [docs/security.md](security.md).
 
 ## Tier assignments
@@ -52,7 +52,7 @@ The local workflow audit also sits outside the CI tiers. Run
 | Command / job | Tier | Trigger | Owner | Expected duration | Failure policy |
 | --- | --- | --- | --- | --- | --- |
 | `check:all` (`check:repository`, `check:branch-policy`, `check:diff`, `check:tasks`) | 1 | every PR / `main` push / local | repository owner | ~1s warm | blocking |
-| `check:repository` (twenty-six repository checks, `cmd/check-repository`) | 1 | every PR / `main` push / local | repository owner | ~0.3s warm | blocking |
+| `check:repository` (the repository checks in `cmd/check-repository`, whose final line prints the total) | 1 | every PR / `main` push / local | repository owner | ~0.3s warm | blocking |
 | `check:tasks` (`cmd/validate-mise-tasks`) | 1 | every PR / `main` push / local | repository owner | ~0.7s warm | blocking |
 | `check:hosts` (`cmd/validate-hosts`) | 1 | every PR / `main` push | repository owner | ~0.4s warm | blocking |
 | `check:branch-policy` (`cmd/validate-branch-policy`) | 1 | every PR / `main` push | repository owner | ~0.2s | blocking |
