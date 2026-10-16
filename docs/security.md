@@ -46,11 +46,11 @@ audits workflow files. Check each surface with its own command.
 
 ## Local workflow audit (`lint:workflow-security`)
 
-- **Command.** Run `mise run lint:workflow-security` before pushing a change
-  under `.github/`. It runs `zizmor .github` with the default persona, so it
-  audits the workflows, composite actions, and Dependabot configuration that
-  the CI job audits. `validate:all` does not run it, and no CI job
-  calls the task.
+- **Command.** `mise run lint:workflow-security` runs `zizmor .github` with
+  the default persona, so it audits the workflows, composite actions, and
+  Dependabot configuration that the CI job audits. `validate:all` depends on
+  it, so the pre-push hook runs it before every push. No CI job calls the
+  task.
 - **Pinned tool.** zizmor 1.30.1 is pinned in `mise.toml`
   (`aqua:zizmorcore/zizmor`) with its license attested in `TOOL_LICENSES.toml`.
   Updates follow `docs/tool-update-policy.md`.
