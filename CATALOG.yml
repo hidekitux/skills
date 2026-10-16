@@ -290,6 +290,33 @@ skills:
     version: 0.1.1
     kind: stack
     related: [develop-kotlin-multiplatform, develop-android-compose, implement-issue]
+  - name: develop-react-native
+    summary: Apply a React Native app's Expo or bare workflow, component, and navigation conventions on top of develop-typescript and develop-react, and verify changes with its typecheck, lint, and Jest scripts.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-typescript, develop-react, implement-issue, write-tests, debug-code]
+  - name: develop-flutter
+    summary: Apply a Flutter app's widget, state, and localization conventions on top of develop-dart, and verify changes with its formatter, analyzer, and tests.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-dart, implement-issue, write-tests, debug-code]
+  - name: develop-ios
+    summary: Apply an iOS app's SwiftUI or UIKit and Xcode project conventions on top of develop-swift, and verify changes with xcodebuild on an iOS Simulator.
+    owner: hidekitux
+    status: experimental
+    agents: [codex, claude-code]
+    license: Apache-2.0
+    version: 0.1.1
+    kind: stack
+    related: [develop-swift, implement-issue, write-tests, debug-code]
   - name: develop-react
     summary: Apply a React project's own framework and conventions on top of develop-typescript, and verify React changes with its typecheck, lint, test, and build scripts.
     owner: hidekitux
