@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Flutter"
+  short_description: "Apply a Flutter app's widget conventions and checks"
+  default_prompt: "Use $develop-flutter to follow this Flutter project's widget, state, and localization conventions, run its formatter, analyzer, and tests, and report each command and result."
