@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop iOS"
+  short_description: "Apply an iOS app's SwiftUI and Xcode checks"
+  default_prompt: "Use $develop-ios to follow this iOS app's SwiftUI or UIKit conventions, build and test it with xcodebuild on a simulator, and report each command and result."

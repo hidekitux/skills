@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop React Native"
+  short_description: "Apply a React Native app's Expo and Jest checks"
+  default_prompt: "Use $develop-react-native to follow this React Native project's Expo or bare workflow conventions, run its typecheck, lint, and test scripts, and report each command and result."
