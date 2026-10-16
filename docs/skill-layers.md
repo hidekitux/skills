@@ -155,7 +155,7 @@ copying shared files.
 
 This list is generated from `CATALOG.yml` by `mise run generate:skill-lists` and checked by `check:repository`. Do not edit it by hand.
 
-The repository publishes 34 skills: 22 workflow skills and 12 technology skills.
+The repository publishes 37 skills: 22 workflow skills and 15 technology skills.
 
 | Skill | Layer or technology category | Status |
 | --- | --- | --- |
@@ -192,6 +192,9 @@ The repository publishes 34 skills: 22 workflow skills and 12 technology skills.
 | `develop-android-compose` | mobile | experimental |
 | `develop-kotlin-multiplatform` | mobile | experimental |
 | `develop-compose-multiplatform` | mobile | experimental |
+| `develop-react-native` | mobile | experimental |
+| `develop-flutter` | mobile | experimental |
+| `develop-ios` | mobile | experimental |
 | `develop-react` | web | experimental |
 
 <!-- END generated: skill-list -->
