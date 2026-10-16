@@ -30,6 +30,7 @@ expectations:
   unchanged_files:
     - "pubspec.yaml"
     - "l10n.yaml"
+    - "android/app/build.gradle.kts"
   command_run:
     - run: 'test "$(grep -E ''"[A-Za-z][A-Za-z0-9_]*"[[:space:]]*:'' lib/l10n/app_en.arb | grep -Ev ''"(description|placeholders|type|example|format|optionalParameters|context|isCustomDateFormat)"[[:space:]]*:'' | wc -l | tr -d '' '')" -ge 2'
       dir: ""
