@@ -18,7 +18,7 @@ The owner checked the following sources on 2026-09-09. “No fix identified” m
 
 | Tool | Pin and current version | Latest stable release checked | Security result | Authoritative source |
 | --- | --- | --- | --- | --- |
-| Go | [`mise.toml`](../mise.toml), `1.26.6` | `1.27.1`; latest `1.26` patch is `1.26.8` | No later security fix identified. `1.26.6` itself includes security fixes. | [Go release history](https://go.dev/doc/devel/release) |
+| Go | [`mise.toml`](../mise.toml), `1.26.9` | `1.27.2`; latest `1.26` patch is `1.26.9`, checked on 2026-10-16 | `1.26.9` fixes the reachable standard-library advisories GO-2026-6603, GO-2026-6605, GO-2026-6607, GO-2026-6608, GO-2026-6610, GO-2026-6611, GO-2026-6612, GO-2026-6613, and GO-2026-6617 that `mise run check:go-vuln` reported on `1.26.6`. No later fix identified. | [Go release history](https://go.dev/doc/devel/release) |
 | actionlint | [`mise.toml`](../mise.toml), `1.7.12` | `1.7.12` | No fix identified. The current pin is latest. | [actionlint v1.7.12](https://github.com/rhysd/actionlint/releases/tag/v1.7.12) |
 | Ruff | [`mise.toml`](../mise.toml), `0.16.0` | `0.16.6` | No fix identified in the reviewed release notes. | [Ruff 0.16.6](https://github.com/astral-sh/ruff/releases/tag/0.16.6) |
 | ShellCheck | [`mise.toml`](../mise.toml), `0.11.0` | `0.11.0` | No fix identified. The current pin is latest. | [ShellCheck v0.11.0](https://github.com/koalaman/shellcheck/releases/tag/v0.11.0) |
